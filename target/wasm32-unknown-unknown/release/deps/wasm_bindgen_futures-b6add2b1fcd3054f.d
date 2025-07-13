@@ -1,0 +1,9 @@
+/Users/alexanderbeck/Documents/GitHub/mindtyper/target/wasm32-unknown-unknown/release/deps/wasm_bindgen_futures-b6add2b1fcd3054f.d: /Users/alexanderbeck/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.50/src/lib.rs /Users/alexanderbeck/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.50/src/queue.rs /Users/alexanderbeck/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.50/src/task/singlethread.rs
+
+/Users/alexanderbeck/Documents/GitHub/mindtyper/target/wasm32-unknown-unknown/release/deps/libwasm_bindgen_futures-b6add2b1fcd3054f.rlib: /Users/alexanderbeck/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.50/src/lib.rs /Users/alexanderbeck/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.50/src/queue.rs /Users/alexanderbeck/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.50/src/task/singlethread.rs
+
+/Users/alexanderbeck/Documents/GitHub/mindtyper/target/wasm32-unknown-unknown/release/deps/libwasm_bindgen_futures-b6add2b1fcd3054f.rmeta: /Users/alexanderbeck/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.50/src/lib.rs /Users/alexanderbeck/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.50/src/queue.rs /Users/alexanderbeck/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.50/src/task/singlethread.rs
+
+/Users/alexanderbeck/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.50/src/lib.rs:
+/Users/alexanderbeck/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.50/src/queue.rs:
+/Users/alexanderbeck/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.50/src/task/singlethread.rs:
