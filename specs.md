@@ -1,6 +1,6 @@
 MindType – End-to-End Engineering Specification
 
-(Comprehensive v1.0 draft – all chapters 0 – 18 in one place)
+(Comprehensive v1.0 draft – all chapters 0 – 27 in one place)
 
 ⸻
 
@@ -14,7 +14,9 @@ Guiding principles
 	1.	One pipeline – pause-detect → extract fragment → stream LLM → diff/merge → inject.
 	2.	Non-intrusive – never block / steal shortcuts; single undo step; minimal resource draw.
 	3.	Privacy-first – send only the last fragment (≤ 250 chars), show a live log, allow local-only mode.
+        4.      Ship the simplest feature set first, gather feedback, then iterate quickly.
 
+Context and rationale are expanded in [docs/architecture_overview.md](docs/architecture_overview.md).
 ⸻
 
 1 • Folder & Project Layout
@@ -72,7 +74,7 @@ Perf tricks:
 4 • macOS App Implementation
 
 Subsystem	File(s)	Highlights
-Menu bar shell	MenuBarController.swift	Returns NSStatusItem with mic icon; toggles enable/disable.
+Menu bar shell	MenuBarController.swift	Returns NSStatusItem with a pencil icon (no audio capture); toggles enable/disable.
 Settings window	SettingsWindow.swift	SwiftUI sliders (Idle ms, Aggressiveness), toggle Cloud/Local.
 EventTapMonitor	EventTap.swift	Passive CGEvent tap; ignore Command-modified keys.
 AccessibilityWatcher	AXWatcher.swift	Observes kAXFocusedUIElementChanged, kAXValueChanged.
@@ -306,6 +308,14 @@ error   Sentry                                 exception stack, app version
         •       Publish notes before pushing Sparkle feed.
         •       Hint: a missing CFBundleIdentifier in a helper tool breaks notarisation – verify with codesign --verify --deep --strict.
 ⸻
+28 • Further Reading
+        •       See docs/architecture_overview.md for the high-level design.
+        •       docs/web_demo_details.md describes the in-browser experience.
+        •       docs/mac_app_details.md covers how the menu-bar app operates.
+        •       docs/developer_tasks.md lists concrete implementation steps for contributors.
+        •       docs/core_details.md breaks down the TypeScript modules in depth.
+        •       docs/web_demo_server.md explains the optional backend service.
+
 
 You now have the full, end-to-end blueprint — code skeletons, performance tactics, and deployment steps. Fork it; ship it; refine it. MindType is ready to materialise.
 
