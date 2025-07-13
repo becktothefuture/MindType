@@ -255,5 +255,57 @@ RTL text	System language Arabic; verify cursor restore.
 
 ⸻
 
+19 • Defensive I/O & Error Handling
+        •       Network: wrap every LLM call in retry(3, 250 ms ↑ 2×). Abort after the second failure and fall back to the dictionary. Toast “Cloud unavailable – working offline”.
+        •       API key: load from macOS Keychain or .env.local; prompt once if missing (“Add API key in Settings → Cloud”).
+        •       User prefs stored in UserDefaults / localStorage.
+        •       Core ML models in ~/Library/Application Support/MindType/Models. Verify SHA-256 before load.
+        •       Streaming watchdog cancels if no token for 1 s and reverts fragment.
+
+20 • Logging & Telemetry (opt-in)
+Level   Route                           Payload example
+debug   local Console.log / os_log(.debug)      latency, cancellations
+info    PostHog when enabled                   fragment length, cloud/local flag, hashed id
+error   Sentry                                 exception stack, app version
+        •       Logging disabled in Release unless “Developer Mode” is toggled.
+
+21 • Concurrency Safety (macOS)
+        •       Run Accessibility mutations on DispatchQueue.main.
+        •       Keep network/diff work on a user-initiated queue.
+        •       Guard shared state with @MainActor or DispatchQueue.sync.
+
+22 • Undo/Redo Integrity Tests
+        •       Open TextEdit, Notes, Mail.
+        •       Run osascript typing macro then Cmd-Z.
+        •       Assert diff is empty. Ship in CI.
+
+23 • Continuous Integration Essentials
+        •       GitHub Actions: npm run test, xcodebuild -scheme MindType -destination "platform=macOS".
+        •       Run swiftlint and eslint.
+        •       Notarise build on main and attach to draft GitHub Release.
+        •       Branch naming feat/…, fix/…, chore/…; use conventional commits.
+
+24 • Accessibility & Localisation
+        •       VoiceOver labels for every Settings control.
+        •       Language menu in demo: English, Deutsch, Português.
+        •       Use String(localised:) so new translations drop in.
+
+25 • Memory-Leak Smoke Test
+        •       Loop AppleScript typing for 2 h. Track memory_pressure; target < +30 MB.
+        •       Use Instruments → Leaks to catch unreleased AX or diff objects.
+
+26 • Crash Reporting
+        •       Call CrashReporter.configure(dsn:) on launch.
+        •       Symbolicate crashes in CI and post to Slack.
+
+27 • Release Playbook
+        •       Bump CFBundleShortVersionString.
+        •       make notarise && make staple.
+        •       Sign DMG via Sparkle Ed25519; update appcast.xml.
+        •       Tag in git: v1.0.0-beta.1.
+        •       Publish notes before pushing Sparkle feed.
+        •       Hint: a missing CFBundleIdentifier in a helper tool breaks notarisation – verify with codesign --verify --deep --strict.
+⸻
+
 You now have the full, end-to-end blueprint — code skeletons, performance tactics, and deployment steps. Fork it; ship it; refine it. MindType is ready to materialise.
 
