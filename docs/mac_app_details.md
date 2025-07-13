@@ -13,7 +13,7 @@ This document outlines how the menu‑bar application operates and highlights so
 
 - **EventTapMonitor** – A passive event tap listens for printable keys. Any command‑modified key is ignored to avoid conflicts with shortcuts.
 - **AXWatcher** – Observes changes to the focused UI element. When the user moves to a different application or text field, the fragment snapshot resets.
-- **FragmentExtractor & MergeEngine** – Swift ports of the TypeScript logic. They run on a background queue and feed patches back to the main thread for injection.
+- **FragmentExtractor & MergeEngine** – Rust core functions called via FFI; results are fed back to the main thread for injection.
 - **MacInjector** – Applies the diff via Accessibility APIs. If direct editing fails (e.g. some Electron apps), it falls back to copying corrected text to the clipboard and simulating Cmd‑V.
 - **LLMClient** – Uses `URLSession` with HTTP/2 streaming. Tokens are provided through an `AsyncSequence` so the rest of the code can await them naturally.
 
@@ -33,6 +33,6 @@ The macOS app shares philosophy with the web demo but integrates deeply with the
 ### Implementation Notes
 
 - Start by wiring up `MenuBarController.swift` with an `NSStatusItem` and connect its toggle to a simple `enabled` boolean.
-- Port the core logic from TypeScript into Swift modules (`PauseTimer`, `FragmentExtractor`, `MergeEngine`). Keep the API names parallel to ease cross-checks.
+- Link the Rust static library (`libmindtype.a`) and call its FFI functions for `PauseTimer`, `FragmentExtractor`, `MergeEngine`.
 - Wrap the Accessibility APIs in `MacInjector` and unit test injection in a sandboxed sample app before integrating system wide.
-- Add a placeholder Core ML model in `LLMClient.swift`; networking can be stubbed initially with static JSON for testing.
+- A 5-kB stub `grammar_stub.mlmodelc` is bundled for development; CI replaces it with the full quantised model during the release build.

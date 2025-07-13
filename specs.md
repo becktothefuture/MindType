@@ -1,321 +1,215 @@
-MindType – End-to-End Engineering Specification
+# MindType – Unified Engineering Specification (v2.0)
 
-(Comprehensive v1.0 draft – all chapters 0 – 27 in one place)
+> This document replaces the previous `specs.md`.  All subsidiary docs under `docs/` cross-reference this master spec.
 
-⸻
+────────────────────────────────────────
+0 • Guiding Principles
+────────────────────────────────────────
+1. **Single-source core** – One canonical implementation in **Rust** (`crates/core-rs`).  Shipped to:
+   • Web via WASM + TypeScript bindings (`@mindtype/core`).
+   • macOS via static library + Swift module.
+2. **One pipeline** – `pause-detect → extract-fragment → stream LLM → diff/merge → inject` (unchanged, see §2).
+3. **Non-intrusive UX** – No shortcut stealing; single undo; low CPU.
+4. **Zero-trust data policy** – Minimal fragment (≤250 chars + context) encrypted in transit *and at rest*; default retention 14 days.
+5. **Performance first** – ≤2 ms per keystroke, ≤180 ms idle→first-token (cloud).
 
-0 • Product Mindset
-
-Deliverable	Purpose	Tech tiers
-Web Demo (mindtype.app/demo)	Showcase the “magic” in a browser – collect emails for beta	React + TypeScript (Vite) - shared core in TS
-macOS Menu-Bar App (MindType.app)	Always-on assistant correcting any focused text field across the OS	Swift/SwiftUI UI, AppKit + Accessibility; core logic ported from TS
-
-Guiding principles
-	1.	One pipeline – pause-detect → extract fragment → stream LLM → diff/merge → inject.
-	2.	Non-intrusive – never block / steal shortcuts; single undo step; minimal resource draw.
-	3.	Privacy-first – send only the last fragment (≤ 250 chars), show a live log, allow local-only mode.
-        4.      Ship the simplest feature set first, gather feedback, then iterate quickly.
-
-Context and rationale are expanded in [docs/architecture_overview.md](docs/architecture_overview.md).
-⸻
-
+────────────────────────────────────────
 1 • Folder & Project Layout
-
+────────────────────────────────────────
+```
 mindtype/
-├─ packages/
-│  ├─ core-ts/          # shared logic (TypeScript)
-│  └─ diff-match-patch/ # git submodule
-├─ web-demo/            # Vite React demo
-│  └─ src/…
-└─ mac/
-   ├─ MindType.xcodeproj
-   ├─ Accessibility/    # AXWatcher.swift, MacInjector.swift
-   ├─ Core/             # PauseTimer.swift, FragmentExtractor.swift, …
-   └─ UI/               # MenuBarController.swift, SettingsWindow.swift
+├─ crates/
+│  └─ core-rs/           # shared Rust lib (no platform code)
+├─ bindings/
+│  ├─ wasm/              # pkg from wasm-bindgen (npm publish)
+│  └─ swift/             # C header + module map via cbindgen
+├─ web-demo/             # React (imports @mindtype/core)
+├─ mac/                  # Xcode proj, links libmindtype.a
+├─ shared-tests/         # golden JSON vectors & corpora
+└─ docs/                 # architecture_overview.md, …
+```
+All diagrams & API contracts live in `docs/` and reference sections below.
 
+────────────────────────────────────────
+2 • Shared Algorithm (Rust canonical)  ↗ `docs/core_rust_details.md`
+────────────────────────────────────────
+Stage | Detail | Source File
+---|---|---
+Pause detection | `PauseTimer` (configurable idle_ms) | `src/pause_timer.rs`
+Fragment extraction | Unicode-aware (`.?!。
+` + *Sentence_Terminal* class); bidi-safe | `src/fragment.rs`
+LLM call | Streaming GPT-3.5 or local Core ML via FFI | `src/llm.rs`
+Diff & merge | Incremental diff every ≤4 tokens; idempotent batches | `src/merge.rs`
+Injection | Platform-specific (bindings layer) | —
 
-⸻
+The Rust unit-test corpus in `shared-tests/` is executed by TS & Swift harnesses for parity.
 
-2 • Shared Algorithm (language-agnostic)
+────────────────────────────────────────
+3 • Browser Demo  ↗ `docs/web_demo_details.md`
+────────────────────────────────────────
+• Uses WASM build of core.  Text insertion via `InputEvent` (`beforeinput`) + `Selection.modify` (no `execCommand`).
+• PauseTimer falls back to `setTimeout` inside a dedicated Worker when `document.hidden`.
+• Secure-field guard: skip `<input type=password>` and elements with `autocomplete="off"`.
 
-onKeyEvent -> pauseTimer.touch()
-pauseTimer.idle -> {
-    text, caret = getBuffer()
-    fragment = extractFragment(text, caret)
-    if length(fragment) < 3  → return
-    stream = LLM.correct(fragment, contextAround)
-    mergeEngine.applyStream(stream, fragmentRange)
-}
+────────────────────────────────────────
+4 • macOS Menu-Bar App  ↗ `docs/mac_app_details.md`
+────────────────────────────────────────
+• Links static `libmindtype.a`; calls Rust functions via generated Swift module.
+• Two build flavours:
+  – *Cloud-Only* (≈15 MB DMG).
+  – *Local-Model* downloadable asset (≤120 MB) fetched post-install via Sparkle delta feed.
+• AX write coalescer batches patches ≤40 ms apart.
 
-Stage	Detail
-Pause detection	Reset on every printable key. Default idle = 500 ms (user-config 200 – 1000 ms).
-Fragment extraction	Look back to last . ? ! \n within 250 chars; else start of doc.
-LLM call	GPT-3.5 Turbo / local Core ML. Prompt: “Fix spelling and grammar only…”. Stream on.
-Diff & merge	diff-match-patch incremental patches every 3-4 tokens.
-Injection	Replace only the fragment; preserve formatting, cursor, single undo layer.
+────────────────────────────────────────
+5 • Performance Targets
+────────────────────────────────────────
+Metric | Target
+---|---
+Typing overhead | <2 ms/key (web & mac)
+Idle → first token | ≤180 ms (cloud); ≤120 ms (local)
+Memory (mac) | <80 MB w/o model; <200 MB with local model
+CPU idle | <5 % on Apple Silicon
 
-
-⸻
-
-3 • Browser Demo Implementation
-
-Component	Purpose	Key points
-Editable.tsx	<div contentEditable> typing area	Save/restore Selection; no preventDefault on shortcuts.
-usePauseTimer.ts	Debounce hook	Uses requestAnimationFrame for accuracy.
-useMindType.ts	Glue logic	Cancels in-flight stream if new keys arrive.
-LLM client	Fetch + SSE polyfill	Streams tokens, yields every chunk.
-UI polish	✔︎ flash, latency badge	CSS transitions only (no React re-renders).
-
-Perf tricks:
-	•	diff on requestIdleCallback, throttle to every 4th token; single execCommand('insertText') gives one undo.
-
-⸻
-
-4 • macOS App Implementation
-
-Subsystem	File(s)	Highlights
-Menu bar shell	MenuBarController.swift	Returns NSStatusItem with a pencil icon (no audio capture); toggles enable/disable.
-Settings window	SettingsWindow.swift	SwiftUI sliders (Idle ms, Aggressiveness), toggle Cloud/Local.
-EventTapMonitor	EventTap.swift	Passive CGEvent tap; ignore Command-modified keys.
-AccessibilityWatcher	AXWatcher.swift	Observes kAXFocusedUIElementChanged, kAXValueChanged.
-Fragment & diff	FragmentExtractor.swift, MergeEngine.swift	Direct Swift port of TS logic using Swift-DMP.
-LLM client	LLMClient.swift	URLSession HTTP/2 stream → AsyncSequence of tokens.
-MacInjector	MacInjector.swift	Set AXSelectedTextRange, clipboard swap (RTF + plain), synthetic Delete + Cmd-V, restore cursor & clipboard.
-
-Edge guards:
-	•	Skip fields where kAXSecureTextEntry = true.
-	•	Wait for IME composition commit (kAXSelectedTextRange read-only).
-	•	Cancel running stream on new key in same fragment.
-
-⸻
-
-5 • Performance Checklist
-
-Metric	Target	Notes
-Typing overhead	< 2 ms per keystroke	Event tap & AX watchers are lightweight.
-Idle→first token	≤ 250 ms (cloud)	Local model goal ≤ 120 ms.
-Full 20-word sentence	≤ 600 ms corrected	Using streaming diff.
-Memory (mac)	< 150 MB incl. Core ML cache	Cloud-only mode < 50 MB.
-CPU idle	< 5 % on M1	Background queue for diff/JSON.
-
-
-⸻
-
+────────────────────────────────────────
 6 • Security & Privacy
-	1.	Prompt the user for Accessibility control on first launch.
-	2.	Scope outbound data to fragment ±100 chars context.
-	3.	TLS 1.3; pin OpenAI cert (optional).
-	4.	Local-only mode toggle → fallback dictionary.
-	5.	Clipboard hygiene – restore prior contents within 2 s.
+────────────────────────────────────────
+1. TLS 1.3 for all outbound requests.
+2. Encrypted fragment storage (AES-GCM) in SQLite; auto-purge after 14 days (configurable 0-180).
+3. Demo server protected by express-rate-limit + Turnstile CAPTCHA.
+4. macOS binary hardened & sandboxed; entitlements limited to AX + network.
+5. Opt-in telemetry only; users can export & delete data via UI.
 
-⸻
+────────────────────────────────────────
+7 • Testing & Quality Assurance Plan  🔹
+────────────────────────────────────────
+| Layer / Goal                 | Tooling & Location                                           | CI Frequency |
+| ---------------------------- | ------------------------------------------------------------ | ------------ |
+| **Unit Tests** – verify a single function or class | • Rust: `cargo test` + `proptest` (property-based) in `crates/core-rs/tests/`  <br/>• TypeScript: `vitest` in `web-demo/`  <br/>• Swift: `XCTest` in `mac/Tests/` | every push |
+| **Integration Tests** – modules talking together | • Rust WASM ↔ JS glue via `wasm-bindgen-test`  <br/>• Swift ↔ Rust FFI tests under `mac/IntegrationTests/`  <br/>• Mock OpenAI server using `wiremock-rs` | every push |
+| **End-to-End (E2E) / Functional** | • Playwright suite located at `e2e/` spins up web demo + stub backend <br/>• macOS UI automation with XCUITest for menu-bar toggling & AX injection | nightly & pre-release |
+| **Smoke Tests** – post-deploy sanity | `just smoke` script runs against staging URL; checks status 200, DB write, local model load. | on deploy |
+| **Regression Suite** | Entire test matrix rerun on every merge to `main`; fails if a previously tagged issue re-appears. | every merge |
+| **Performance / Load** | • Rust micro-benchmarks via `criterion`  <br/>• Web demo load via `locust` scripts in `perf/`  | nightly |
+| **Security / Vulnerability** | • Dependency scan with `cargo audit`, `npm audit`, `Snyk`  <br/>• OWASP ZAP baseline scan against staging demo | weekly & on release |
+| **Linting & Static Analysis** | `cargo clippy -D warnings`, `eslint --max-warnings 0`, `swiftlint`, `sonarlint` | every push |
+| **Code Coverage Metrics** | • Rust: `cargo tarpaulin`  <br/>• TS: `nyc`  <br/>• Swift: Xcode coverage → `xcresultparser` | PR gate ≥ 85 % |
+| **Peer Review** | PR template enforces checklist; at least one approving review required. | every PR |
+| **Continuous Integration** | GitHub Actions workflow `ci.yml` orchestrates all jobs in parallel; artifacts (HTML coverage, Playwright video) uploaded. | every push |
 
-7 • Testing Plan
+All CI logic lives in `.github/workflows/ci.yml`; local `just test-all` runs an equivalent superset to catch failures before pushing.
 
-Layer	Tests	Tool
-Fragment extractor	Unit, property-based	Vitest / XCTest
-Pause timer	Simulated 120 WPM bursts	XCTest
-Merge engine	Fuzz diff vs patch	QuickCheck
-AX injection	UI Automation across TextEdit, Mail, Slack	XCUITest
-Undo integrity	Manual script: type → pause → Cmd-Z	
-Web demo e2e	Cypress: type lorem → expect corrected	Cypress
+────────────────────────────────────────
+8 • Roadmap
+────────────────────────────────────────
+Version | Features
+---|---
+v0.1 | Rust core, web demo, cloud LLM
+v0.2 | macOS shell (cloud-only), shared tests
+v0.3 | Downloadable local Core ML model
+v0.4 | Personal dictionary + multi-language
+v1.0 | Hardened notarised release, auto-update, marketing launch
 
+────────────────────────────────────────
+9 • Quick-Start for Contributors
+────────────────────────────────────────
+1. `pnpm i && pnpm run bootstrap` – builds WASM + installs web demo.
+2. `cargo test` – run Rust unit+property tests.
+3. `npm run test:shared` – executes golden vectors in TS harness.
+4. `open mac/MindType.xcodeproj` – run mac app (requires AX perms). 
 
-⸻
+────────────────────────────────────────
+10 • Configuration & Feature Flags
+────────────────────────────────────────
+• Global JSON5 file `~/.mindtype/config.json5` (hot-reloaded; project-local override `./mindtype.config.json5`).
+• Environment variables with `MINDTYPE_` prefix override any key.
 
-8 • First-Time Mac-Dev Tips
+Example default:
+```json5
+{
+  idleMs: 500,
+  backend: "cloud",              // cloud | local | auto
+  cloudEndpoint: "https://api.openai.com/v1/chat/completions",
+  apiKeyEnv: "OPENAI_API_KEY",
+  localModelPath: "~/Library/MindType/grammar.mlmodelc",
+  temperature: 0.0,
+  diffTokens: 4,
+  minConfidence: 0.85,
+  telemetry: true,
+  retentionDays: 14,
+  logLevel: "info",
+  flags: {
+    disableSecureFields: true,
+    showDebugPanel: false
+  }
+}
+```
+Compile-time Cargo features: `cloud`, `local-ml`, `ffi`, `wasm`, `dev-panel`.
 
-Tip	Why
-Use SwiftUI for UI, AppKit for system hooks	Keeps code modern yet powerful.
-Develop unsigned first; codesign only when AX works	Hardened runtime can block AX if entitlements missing.
-Keep a second user account for permissions reset tests	Simulates fresh install.
-Test on Intel & Apple Silicon	AX timing differs.
-Avoid Mac App Store at first	Accessibility control not allowed in sandbox.
+────────────────────────────────────────
+11 • Live Debug / Tuning Panel
+────────────────────────────────────────
+Shortcut ⌥⇧⌘L (both web & macOS)
+Tabs:
+1. Metrics – latency graph, token counts, memory use.
+2. Settings – live sliders for `idleMs`, `temperature`, `diffTokens`, backend toggle.
+3. Inspector – current fragment, raw tokens, generated patches.
+4. Logs – real-time structured logs (filter by level).
 
+Implementation: React portal (web) / SwiftUI window (mac) reading & writing the
+shared config ⇒ hot effect without restart.
 
-⸻
+────────────────────────────────────────
+12 • Text-Replacement Enhancements
+────────────────────────────────────────
+1. Confidence gate – LLM must return `{text, confidence}`; if `confidence <
+   minConfidence` render dotted-underline suggestion instead of auto-patch.
+2. Revert-in-one-key – last patch snapshot cached 5 s; Esc or ⌘Z reverts without
+   touching global undo stack.
+3. Adaptive idle timer – sustained >120 wpm → idleMs ramps 500→300 ms; resets
+   when pace slows.
+4. Patch hysteresis – min 2 tokens *or* 50 ms between visible updates to avoid
+   flicker.
+5. Cursor/selection guard – compare logical caret + native selection; on mismatch
+   fall back to clipboard-swap injection.
 
-9 • Roadmap After MVP
+────────────────────────────────────────
+13 • LLM Backend & Public API
+────────────────────────────────────────
+Rust trait `TokenStream` with impls: `OpenAIStream`, `CoreMLStream`, `StubStream`.
+Local model: int8-quantised *distilbart-grammar* (~110 MB, ~65 ms per 250-char
+sentence on M1). Downloaded on first switch to `local`; Sparkle handles delta
+updates.
 
-Version	Adds
-v0.1	Web demo, basic mac injector, cloud LLM
-v0.2	Streaming UI, settings pane, latency badge
-v0.3	Local Core ML grammar model (offline)
-v0.4	Personal dictionary, multi-language
-v1.0	Hardened notarised release, auto-update, marketing push
+FFI-safe API:
+```rust
+extern "C" {
+  fn mt_touch_key(handle: MTHandle, code_point: u32);
+  fn mt_cancel(handle: MTHandle);
+  fn mt_request_correction(handle: MTHandle,
+                           buffer_utf8: *const u8,
+                           len: usize,
+                           caret: usize) -> MTRequestId;
+}
+```
+Shared error enum: `Ok`, `ConfigInvalid`, `LLMError`, `Timeout`,
+`InjectionFailed`, `PermissionDenied`.
 
+────────────────────────────────────────
+14 • Build, CI & Release
+────────────────────────────────────────
+• `just` tasks: `just build-web`, `just build-mac`, `just test`, `just lint`.
+• GitHub Actions matrix: ubuntu-latest (Rust + wasm-pack), macos-12 (Xcode,
+  notarisation dry-run).
+• Pre-merge gate: `cargo clippy --all-targets -- -D warnings`, `eslint`,
+  `swiftlint`, unit & property tests, Playwright e2e.
+• Release: tag → build → notarise → GitHub → Sparkle feed.
+• Size budgets: WASM ≤ 400 kB gz; cloud-only DMG ≤ 15 MB.
 
-⸻
-
-10 • Code Skeletons (Copy-ready)
-
-(excerpts – see previous answer for full files)
-
-10.1 TypeScript core
-
-// pauseTimer.ts
-export class PauseTimer { … }
-
-// fragment.ts
-export function extractFragment(text, caret) { … }
-
-10.2 mac Swift snippets
-
-// PauseTimer.swift
-final class PauseTimer { … }
-
-// AXWatcher.swift
-class AXWatcher { … }
-
-(Full listings in the earlier add-on.)
-
-⸻
-
-11 • Attention Hot-Spots
-
-Area	Watch-out
-AX write errors	Some apps throttle; retry once then clipboard-paste fallback.
-Undo stack splits	Wrap Delete+Paste in one NSUndoManager grouping for rich-text apps.
-Typing mid-stream	Cancel stream, revert snapshot to avoid garbled output.
-Secure input	Respect; never read or write.
-
-
-⸻
-
-12 • Performance Tricks
-	1.	Token gating – run diff every 3–4 tokens, not each token.
-	2.	Patch window – cap diff to last 250 chars.
-	3.	Reuse DMP instance – heavy object creation avoided.
-	4.	AX batching – group multiple attribute sets.
-	5.	Connection reuse – single URLSession for all calls.
-
-⸻
-
-13 • Build & Ship Pipeline
-
-Stage	Command
-Web build	pnpm run build → dist/
-Deploy	Netlify / rsync to VPS
-mac Release	xcodebuild -scheme Release
-Sign	codesign --deep --options runtime --sign "Developer ID" MindType.app
-Notarise	xcrun notarytool submit MindType.zip … --wait
-DMG	create-dmg … MindType.dmg
-Auto-update	Sparkle 2 feed appcast.xml
-
-
-⸻
-
-14 • Local-Model Path
-	1.	Pick BART-grammar-small (~120 MB).
-	2.	Convert to Core ML with 8-bit quantisation.
-	3.	Load via MLModel + GenerateTextRequest.
-	4.	Fallback chain: Local > Cloud > Dictionary.
-
-⸻
-
-15 • Instrumentation
-
-Metric	How
-LLM cost	Log tokens_in/out to PostHog with user hash.
-Latency	idle→firstToken median per hour.
-Usage	Count fragments per day for engagement KPI.
-
-Debug overlay shortcut ⌥⇧⌘L shows live latency + token count.
-
-⸻
-
-16 • Common Gotchas (Mac)
-
-Symptom	Cause	Fix
-AX failure after sign	Missing com.apple.security.device.accessibility	Add entitlement & re-sign.
-Clipboard overwritten	Forgot restore	Store previous string, restore after 2 s.
-App rejected by Gatekeeper	Not notarised	Run notarytool + staple.
-
-
-⸻
-
-17 • Simulating Edge Conditions
-
-Scenario	Command
-300 ms latency	sudo ipfw add pipe 1 delay 300ms
-20 % packet loss	add plr 0.2 to pipe
-Low-power CPU	renice +10 $(pgrep MindType)
-Secure field	Test in Keychain; expect no reads/writes.
-RTL text	System language Arabic; verify cursor restore.
-
-
-⸻
-
-18 • Next-Step Checklist
-	•	Register mindtype.app + mindtype.ai
-	•	Initialise repo; commit packages/core-ts with tests
-	•	Hook useMindType into web demo; deploy preview
-	•	Apply for OpenAI key; set spending cap £25
-	•	Scaffold Xcode project; test AXWatcher in TextEdit
-	•	Validate single-undo in Pages, Slack, Gmail (Chrome)
-	•	Publish closed alpha DMG to testers within 3 weeks
-
-⸻
-
-19 • Defensive I/O & Error Handling
-        •       Network: wrap every LLM call in retry(3, 250 ms ↑ 2×). Abort after the second failure and fall back to the dictionary. Toast “Cloud unavailable – working offline”.
-        •       API key: load from macOS Keychain or .env.local; prompt once if missing (“Add API key in Settings → Cloud”).
-        •       User prefs stored in UserDefaults / localStorage.
-        •       Core ML models in ~/Library/Application Support/MindType/Models. Verify SHA-256 before load.
-        •       Streaming watchdog cancels if no token for 1 s and reverts fragment.
-
-20 • Logging & Telemetry (opt-in)
-Level   Route                           Payload example
-debug   local Console.log / os_log(.debug)      latency, cancellations
-info    PostHog when enabled                   fragment length, cloud/local flag, hashed id
-error   Sentry                                 exception stack, app version
-        •       Logging disabled in Release unless “Developer Mode” is toggled.
-
-21 • Concurrency Safety (macOS)
-        •       Run Accessibility mutations on DispatchQueue.main.
-        •       Keep network/diff work on a user-initiated queue.
-        •       Guard shared state with @MainActor or DispatchQueue.sync.
-
-22 • Undo/Redo Integrity Tests
-        •       Open TextEdit, Notes, Mail.
-        •       Run osascript typing macro then Cmd-Z.
-        •       Assert diff is empty. Ship in CI.
-
-23 • Continuous Integration Essentials
-        •       GitHub Actions: npm run test, xcodebuild -scheme MindType -destination "platform=macOS".
-        •       Run swiftlint and eslint.
-        •       Notarise build on main and attach to draft GitHub Release.
-        •       Branch naming feat/…, fix/…, chore/…; use conventional commits.
-
-24 • Accessibility & Localisation
-        •       VoiceOver labels for every Settings control.
-        •       Language menu in demo: English, Deutsch, Português.
-        •       Use String(localised:) so new translations drop in.
-
-25 • Memory-Leak Smoke Test
-        •       Loop AppleScript typing for 2 h. Track memory_pressure; target < +30 MB.
-        •       Use Instruments → Leaks to catch unreleased AX or diff objects.
-
-26 • Crash Reporting
-        •       Call CrashReporter.configure(dsn:) on launch.
-        •       Symbolicate crashes in CI and post to Slack.
-
-27 • Release Playbook
-        •       Bump CFBundleShortVersionString.
-        •       make notarise && make staple.
-        •       Sign DMG via Sparkle Ed25519; update appcast.xml.
-        •       Tag in git: v1.0.0-beta.1.
-        •       Publish notes before pushing Sparkle feed.
-        •       Hint: a missing CFBundleIdentifier in a helper tool breaks notarisation – verify with codesign --verify --deep --strict.
-⸻
-28 • Further Reading
-        •       See docs/architecture_overview.md for the high-level design.
-        •       docs/web_demo_details.md describes the in-browser experience.
-        •       docs/mac_app_details.md covers how the menu-bar app operates.
-        •       docs/developer_tasks.md lists concrete implementation steps for contributors.
-        •       docs/core_details.md breaks down the TypeScript modules in depth.
-        •       docs/web_demo_server.md explains the optional backend service.
-
-
-You now have the full, end-to-end blueprint — code skeletons, performance tactics, and deployment steps. Fork it; ship it; refine it. MindType is ready to materialise.
-
+────────────────────────────────────────
+15 • Pre-Flight Checklists
+────────────────────────────────────────
+✓ Undo/redo single step in Gmail, Notion, Slack.
+✓ No plaintext leaves process when `telemetry = false`.
+✓ AX injection OK on Intel & Apple Silicon.
+✓ 30-min typing run increases RSS by < 20 MB.
+✓ All bullets in §12 function as documented. 

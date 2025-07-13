@@ -34,8 +34,8 @@ The web demo is intentionally lightweight; it mirrors the eventual macOS experie
 
 ### Implementation Notes
 
-- Set up a Vite project with React and TypeScript. Keep all core logic in `packages/core-ts` so the demo remains thin.
-- Build the `usePauseTimer` hook to wrap the shared `PauseTimer` class and expose an `idle` event to React components.
+- Set up a Vite project with React and TypeScript. Import the shared logic from the WASM package `@mindtype/core` (compiled from `crates/core-rs`) so the demo remains thin.
+- Build the `usePauseTimer` hook to wrap the Rust `PauseTimer` and expose an `idle` event to React components.
 - Implement `Editable.tsx` so it never resets the DOM tree — rely on refs and `contentEditable` to maintain cursor position.
-- When integrating `LLMClient.ts`, mock the network layer first using a simple async generator to feed tokens for local testing.
-- Add a small Express server (or Vite plugin) to store email sign-ups; keep telemetry logging optional via a checkbox.
+- When integrating `LLMClient.ts`, mock the network layer first with a small async generator to feed tokens for local testing.
+- Add a small Express server to store email sign-ups; keep telemetry logging optional via a checkbox.

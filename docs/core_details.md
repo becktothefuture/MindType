@@ -1,3 +1,9 @@
+# ⚠️  Deprecated – see `docs/core_rust_details.md`
+
+This document described the original TypeScript reference core (`packages/core-ts`). The project has moved to a single Rust implementation (`crates/core-rs`) compiled to WebAssembly and linked into the macOS app via FFI.
+
+---
+
 # Shared Core Details
 
 This document zooms in on the TypeScript reference implementation found in `packages/core-ts`. It explains how each module collaborates and outlines key interfaces.
