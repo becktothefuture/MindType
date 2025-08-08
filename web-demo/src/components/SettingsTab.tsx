@@ -26,4 +26,4 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ idleMs, onIdleMsChange }) => 
   );
 };
 
-export default SettingsTab; 
+export default SettingsTab;

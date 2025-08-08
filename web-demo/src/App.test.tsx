@@ -7,4 +7,4 @@ describe('App', () => {
     const headline = screen.getByText(/MindType Web Demo/i);
     expect(headline).toBeInTheDocument();
   });
-}); 
+});

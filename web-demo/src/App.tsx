@@ -17,7 +17,9 @@ interface LogEntry {
 }
 
 function App() {
-  const [text, setText] = useState('Hello there. Try typing a sentence and then pausing.');
+  const [text, setText] = useState(
+    'Hello there. Try typing a sentence and then pausing.',
+  );
   const [idleMs, setIdleMs] = useState(1000);
   const [pauseTimer, setPauseTimer] = useState<WasmPauseTimer | null>(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -31,7 +33,7 @@ function App() {
     async function loadWasm() {
       await init();
       init_logger();
-      console.log("WASM module initialized.");
+      console.log('WASM module initialized.');
       setWasmInitialized(true);
     }
     loadWasm();
@@ -57,42 +59,41 @@ function App() {
   // 4. Core pipeline logic, triggered by pause
   useEffect(() => {
     async function runCorrection() {
-        if (isPaused && wasmInitialized) {
-            console.log("Correction logic triggered.");
-            setIsThinking(true);
-            const extractor = new WasmFragmentExtractor();
-            const fragment = extractor.extract_fragment(text);
+      if (isPaused && wasmInitialized) {
+        console.log('Correction logic triggered.');
+        setIsThinking(true);
+        const extractor = new WasmFragmentExtractor();
+        const fragment = extractor.extract_fragment(text);
 
-            if (fragment) {
-                console.log(`Fragment found: "${fragment}"`);
-                const replacementText = "This is a corrected sentence. ";
-                let stream = new WasmStubStream(replacementText);
-                
-                // For simplicity, we replace the last fragment.
-                // A real implementation would be more complex.
-                const fragmentIndex = text.lastIndexOf(fragment);
-                if (fragmentIndex !== -1) {
-                    const prefix = text.substring(0, fragmentIndex);
-                    let merger = new WasmMerger(prefix);
+        if (fragment) {
+          console.log(`Fragment found: "${fragment}"`);
+          const replacementText = 'This is a corrected sentence. ';
+          let stream = new WasmStubStream(replacementText);
 
-                    let token = await stream.next_token();
-                    while(token) {
-                        merger.apply_token(token);
-                        token = await stream.next_token();
-                    }
-                    setText(merger.get_result());
-                }
-            } else {
-                console.log("No fragment found to correct.");
+          // For simplicity, we replace the last fragment.
+          // A real implementation would be more complex.
+          const fragmentIndex = text.lastIndexOf(fragment);
+          if (fragmentIndex !== -1) {
+            const prefix = text.substring(0, fragmentIndex);
+            let merger = new WasmMerger(prefix);
+
+            let token = await stream.next_token();
+            while (token) {
+              merger.apply_token(token);
+              token = await stream.next_token();
             }
-            // Reset pause state to prevent re-triggering
-            setIsPaused(false);
-            setIsThinking(false);
+            setText(merger.get_result());
+          }
+        } else {
+          console.log('No fragment found to correct.');
         }
+        // Reset pause state to prevent re-triggering
+        setIsPaused(false);
+        setIsThinking(false);
+      }
     }
     runCorrection();
   }, [isPaused, wasmInitialized, text]);
-
 
   // 5. Poll for pause state
   useEffect(() => {
@@ -109,7 +110,7 @@ function App() {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.altKey && event.shiftKey && event.metaKey && event.key === 'l') {
-        setShowDebugPanel(prev => !prev);
+        setShowDebugPanel((prev) => !prev);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -117,7 +118,7 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-  
+
   // 7. Log fetching for debug panel
   useEffect(() => {
     if (showDebugPanel && wasmInitialized) {
@@ -129,28 +130,26 @@ function App() {
     }
   }, [showDebugPanel, wasmInitialized]);
 
-
   return (
     <div className="App">
-      <button className="debug-toggle" onClick={() => setShowDebugPanel(p => !p)}>
+      <button className="debug-toggle" onClick={() => setShowDebugPanel((p) => !p)}>
         {showDebugPanel ? 'Hide' : 'Show'} Debug Panel (⌥⇧⌘L)
       </button>
 
       <h1>MindType Web Demo</h1>
-      
+
       <div className="card">
         <h2>Editor</h2>
-        <textarea 
-          value={text} 
-          onChange={handleTextChange} 
-          rows={10} 
-          cols={80}
-        />
-        <p><i>Pause for {idleMs}ms after a sentence to trigger the correction.</i></p>
+        <textarea value={text} onChange={handleTextChange} rows={10} cols={80} />
+        <p>
+          <i>Pause for {idleMs}ms after a sentence to trigger the correction.</i>
+        </p>
         {isThinking && <p className="thinking-indicator">Thinking...</p>}
       </div>
 
-      {showDebugPanel && <DebugPanel idleMs={idleMs} onIdleMsChange={setIdleMs} logs={logs} />}
+      {showDebugPanel && (
+        <DebugPanel idleMs={idleMs} onIdleMsChange={setIdleMs} logs={logs} />
+      )}
     </div>
   );
 }

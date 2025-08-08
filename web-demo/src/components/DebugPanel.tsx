@@ -38,16 +38,34 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ idleMs, onIdleMsChange, logs })
   return (
     <div className="debug-panel">
       <div className="tabs">
-        <button onClick={() => setActiveTab('Metrics')} className={activeTab === 'Metrics' ? 'active' : ''}>Metrics</button>
-        <button onClick={() => setActiveTab('Settings')} className={activeTab === 'Settings' ? 'active' : ''}>Settings</button>
-        <button onClick={() => setActiveTab('Inspector')} className={activeTab === 'Inspector' ? 'active' : ''}>Inspector</button>
-        <button onClick={() => setActiveTab('Logs')} className={activeTab === 'Logs' ? 'active' : ''}>Logs</button>
+        <button
+          onClick={() => setActiveTab('Metrics')}
+          className={activeTab === 'Metrics' ? 'active' : ''}
+        >
+          Metrics
+        </button>
+        <button
+          onClick={() => setActiveTab('Settings')}
+          className={activeTab === 'Settings' ? 'active' : ''}
+        >
+          Settings
+        </button>
+        <button
+          onClick={() => setActiveTab('Inspector')}
+          className={activeTab === 'Inspector' ? 'active' : ''}
+        >
+          Inspector
+        </button>
+        <button
+          onClick={() => setActiveTab('Logs')}
+          className={activeTab === 'Logs' ? 'active' : ''}
+        >
+          Logs
+        </button>
       </div>
-      <div className="tab-content">
-        {renderTabContent()}
-      </div>
+      <div className="tab-content">{renderTabContent()}</div>
     </div>
   );
 };
 
-export default DebugPanel; 
+export default DebugPanel;

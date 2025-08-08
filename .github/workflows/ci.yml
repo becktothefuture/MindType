@@ -2,9 +2,9 @@ name: MindType CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   lint:
@@ -69,4 +69,4 @@ jobs:
       - name: Build WASM
         run: wasm-pack build crates/core-rs --target web --out-dir bindings/wasm/pkg
       - name: Build web-demo
-        run: pnpm --prefix web-demo build 
+        run: pnpm --prefix web-demo build

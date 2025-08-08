@@ -1,13 +1,13 @@
 {
-    "compilerOptions": {
-      "target": "ES2022",
-      "module": "ES2022",
-      "moduleResolution": "Bundler",
-      "strict": true,
-      "rootDir": ".",
-      "outDir": "dist",
-      "types": ["vitest/globals"]
-    },
-    "include": ["**/*.ts"],
-    "exclude": ["node_modules", "dist"]
-  }
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "rootDir": ".",
+    "outDir": "dist",
+    "typeRoots": ["./types", "./node_modules/@types"]
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

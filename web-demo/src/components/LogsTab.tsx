@@ -17,7 +17,9 @@ const LogsTab: React.FC<LogsTabProps> = ({ logs }) => {
       <div className="log-container">
         {logs.map((log, index) => (
           <div key={index} className={`log-entry log-${log.level.toLowerCase()}`}>
-            <span className="log-timestamp">{new Date(log.timestamp).toLocaleTimeString()}</span>
+            <span className="log-timestamp">
+              {new Date(log.timestamp).toLocaleTimeString()}
+            </span>
             <span className="log-level">{log.level}</span>
             <span className="log-message">{log.message}</span>
           </div>
@@ -27,4 +29,4 @@ const LogsTab: React.FC<LogsTabProps> = ({ logs }) => {
   );
 };
 
-export default LogsTab; 
+export default LogsTab;

@@ -5,6 +5,7 @@ This document paints a picture of the interactive demo found at `/demo`. It expl
 ## Purpose
 
 The demo serves three goals:
+
 1. **Visualise the magic** – Users can see sentences correct themselves as they type, giving a tangible feel for the final product.
 2. **Collect interested users** – A small email capture form invites visitors to sign up for the macOS beta.
 3. **Gather telemetry** – With consent, we log anonymised latency and token counts to help tune the algorithm.

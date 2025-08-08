@@ -1,4 +1,4 @@
-# ⚠️  Deprecated – see `docs/core_rust_details.md`
+# ⚠️ Deprecated – see `docs/core_rust_details.md`
 
 This document described the original TypeScript reference core (`packages/core-ts`). The project has moved to a single Rust implementation (`crates/core-rs`) compiled to WebAssembly and linked into the macOS app via FFI.
 
@@ -17,41 +17,48 @@ The primary entry point is `useMindType` in the web demo and a small Swift wrapp
 ## Module Summaries
 
 ### PauseTimer.ts
+
 - **Purpose**: Detect a typing pause of configurable length.
 - **Interface**:
   ```ts
   export class PauseTimer {
-      constructor(idleMs: number, onIdle: () => void);
-      touch(): void;    // call on every printable key
-      cancel(): void;   // stop pending idle callbacks
+    constructor(idleMs: number, onIdle: () => void);
+    touch(): void; // call on every printable key
+    cancel(): void; // stop pending idle callbacks
   }
   ```
 - **Notes**: Uses `requestAnimationFrame` under the hood to keep timing accurate even when the tab is not focused.
 
 ### FragmentExtractor.ts
+
 - **Purpose**: Determine the sentence fragment to correct.
 - **Interface**:
   ```ts
-  export function extractFragment(text: string, caret: number): {
-      fragment: string;
-      range: [number, number]; // start and end offsets
-      context: string; // ~100 chars surrounding text
+  export function extractFragment(
+    text: string,
+    caret: number,
+  ): {
+    fragment: string;
+    range: [number, number]; // start and end offsets
+    context: string; // ~100 chars surrounding text
   };
   ```
 - **Notes**: Looks back to the previous `.`, `?`, `!` or newline within the last 250 characters. If none are found, the fragment starts at position 0.
 
 ### MergeEngine.ts
+
 - **Purpose**: Apply streaming LLM output to the original text buffer.
 - **Interface**:
   ```ts
   export class MergeEngine {
-      constructor(original: string, range: [number, number]);
-      pushToken(token: string): Patch[]; // compute diff for each chunk
+    constructor(original: string, range: [number, number]);
+    pushToken(token: string): Patch[]; // compute diff for each chunk
   }
   ```
 - **Notes**: Wraps the `diff-match-patch` library. Patches are small operations describing insertions and deletions. The consumer is responsible for applying them.
 
 ### LLMClient.ts
+
 - **Purpose**: Stream tokens from the API.
 - **Interface**:
   ```ts
