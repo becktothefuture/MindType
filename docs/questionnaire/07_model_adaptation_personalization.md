@@ -1,4 +1,5 @@
 # Model Adaptation & Personalization
+
 _MindTyper Deep-Dive Questionnaire — Section 7 of 16_
 
 **Progress: 16/16 questions answered (100%)**
@@ -8,7 +9,7 @@ This section covers how MindTyper learns from each user and adapts its behavior 
 ---
 
 **125. Should MindTyper create a personalized typing profile for each user, and if so, what should it include?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will create a personalized typing profile for each user, capturing traits like tone, punctuation habits, typing speed, rhythm, and correction frequency. It will also learn things like lowercase preference, sentence structure, use of contractions, and expressive quirks like repeated punctuation or emojis.
@@ -20,7 +21,7 @@ This profile is private, user-led, and travels across devices when needed (via s
 ---
 
 **126. Should users be able to view, edit, or reset their typing profile?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—users will be able to view, reset, and lightly adjust their typing profile, but only through a minimal, tucked-away interface in the settings area.
@@ -28,6 +29,7 @@ This profile is private, user-led, and travels across devices when needed (via s
 MindTyper avoids surfacing complex personalization details during everyday use. Instead, it delivers a frictionless, magical experience—quietly adapting in the background.
 
 Users can access a lightweight view of their profile if they choose, with simple options like:
+
 - Reset profile
 - Adjust tone preferences
 - Review improvement milestones
@@ -37,7 +39,7 @@ No heavy analytics, no tuning jargon—just clean, human-centered controls where
 ---
 
 **127. Should MindTyper adapt differently depending on the app or environment (e.g. email vs chat, docs vs coding)?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper won't adapt based on the app—it'll adapt based on writing context. Whether you're in a chat app, writing an email, or working in a doc, the system will look at your behavior and tone—not the app itself.
@@ -49,7 +51,7 @@ It's all driven by user intent, not app identity—which keeps things future-pro
 ---
 
 **128. Should MindTyper remember corrections and patterns across devices (if user is logged in)?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will sync the user's core typing profile across devices, but only with the user's consent and always with on-device fallback.
@@ -63,7 +65,7 @@ And, of course, everything works offline by default—with syncing only enhancin
 ---
 
 **129. Should MindTyper adapt its correction intensity over time (e.g. become more confident or subtle as it learns the user)?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper won't actively shift correction intensity over time—not yet. While the model will learn user preferences, the core behavior will stay stable to maintain trust and predictability.
@@ -75,7 +77,7 @@ For now, stability and comfort take priority. Adaptation will stay subtle and in
 ---
 
 **130. Should users be able to "train" MindTyper with example sentences, vocabulary, or tone samples?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper won't require users to "train" it with examples—but it may include a light, playful onboarding experience that gathers initial signals.
@@ -87,7 +89,7 @@ Optional onboarding (like a tone matrix or fun writing prompt) might help kickst
 ---
 
 **131. Should users be able to create multiple typing "modes" or "profiles" for different contexts (e.g. casual vs professional)?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** No—MindTyper won't support multiple saved typing modes or profiles. Instead, it uses a single adaptive profile that responds in real-time to the user's tone, context, and intent.
@@ -97,7 +99,7 @@ If users want to influence tone or style, they can do so through the lightweight
 ---
 
 **132. Should MindTyper have a way to export a user's typing profile or share it between accounts?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** No manual export or sharing needed—MindTyper handles it invisibly and automatically. Typing profiles will sync securely between devices and sessions when the user is logged in, so the experience feels seamless.
@@ -107,7 +109,7 @@ No need to think about exporting or transferring anything—just log in, and Min
 ---
 
 **133. Should users be able to reset their typing profile and start fresh?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—users will be able to manually reset their typing profile at any time, but only from within the settings area. It's an intentional action, clearly marked, and never accidental.
@@ -117,7 +119,7 @@ Resetting starts a clean slate for tone, vocabulary, and correction preferences.
 ---
 
 **134. Should MindTyper detect and adjust based on context like app type (e.g. email vs. messaging), time of day, or typing speed?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will subtly adapt based on context, like app type, tone of the content, and even typing speed. But it won't make these shifts obvious or disruptive.
@@ -129,7 +131,7 @@ Everything remains stable and trustworthy, with no visible mode switching or unp
 ---
 
 **135. Should MindTyper visually show confidence levels or uncertainty in its corrections?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper won't visibly show confidence levels by default. Corrections happen quietly in the background to preserve flow and minimize visual noise.
@@ -141,7 +143,7 @@ MindTyper always prioritizes momentum and user voice, not second-guessing.
 ---
 
 **136. Should users be able to adjust how "aggressive" the correction is (e.g. very gentle vs. highly assertive)?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—users will be able to adjust correction "aggressiveness," but only in a simple, well-contained way.
@@ -153,7 +155,7 @@ By default, users start on the balanced setting. The system continues to auto-ad
 ---
 
 **137. Should MindTyper support collaborative use cases—like shared typing preferences for teams or organizations?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** No—MindTyper won't support collaborative typing preferences or shared team settings, at least not for the foreseeable future.
@@ -165,7 +167,7 @@ We might explore lightweight alignment options later, but only if they can enhan
 ---
 
 **138. Should users be able to set app-specific preferences (e.g. more formal in Gmail, more casual in WhatsApp)?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** No—MindTyper won't support manual app-specific preferences. App-specific behavior is inferred automatically, not user-defined. MindTyper adapts subtly to tone, not app metadata. No user micromanagement needed.
@@ -175,7 +177,7 @@ The system will recognize and adapt to writing context naturally without requiri
 ---
 
 **139. Should MindTyper provide a visual indication that it's active and running?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes, MindTyper will have a subtle visual indicator when it's active—likely through a lightly animated or glowing cursor/caret. It might appear slightly larger, move with a soft pulse, or show a glow effect while idle.
@@ -189,7 +191,7 @@ The whole goal: presence that feels natural, quiet, and intentional.
 ---
 
 **140. Should users be able to temporarily disable MindTyper without uninstalling it?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—users should be able to temporarily disable MindTyper, with easy access through the caps lock long-press modifier menu or settings. However, it should default to always being on when the system launches, with minimal footprint and seamless integration.
@@ -198,17 +200,18 @@ The system loads automatically on Mac startup and runs with minimal resource usa
 
 ---
 
- - Clarifier 7.4.a — Sync Encryption & Key Management
-   - Primitive: end‑to‑end XChaCha20‑Poly1305 for any optional cloud sync of personalization deltas (if enabled).
-   - Keys: derive per‑device keys via HKDF‑SHA256 from account/device secrets; store only wrapped keys in Keychain.
-   - Rotation: rotate annually or on suspicion; support in‑place re‑encryption and instant rollback.
-   - Merge policy: per‑device deltas merged using LWW timestamps for scalar prefs; lexicons and adapters merged by union with recency weighting; conflicts logged (content‑free) and resolved deterministically.
+- Clarifier 7.4.a — Sync Encryption & Key Management
+  - Primitive: end‑to‑end XChaCha20‑Poly1305 for any optional cloud sync of personalization deltas (if enabled).
+  - Keys: derive per‑device keys via HKDF‑SHA256 from account/device secrets; store only wrapped keys in Keychain.
+  - Rotation: rotate annually or on suspicion; support in‑place re‑encryption and instant rollback.
+  - Merge policy: per‑device deltas merged using LWW timestamps for scalar prefs; lexicons and adapters merged by union with recency weighting; conflicts logged (content‑free) and resolved deterministically.
 
 ---
 
 ## Implementation Notes
 
 This section establishes MindTyper's approach to:
+
 1. **Intelligent Personalization**: Learning user patterns without overwhelming them with controls
 2. **Cross-Device Seamlessness**: Automatic sync with privacy protection and offline fallback
 3. **User Agency**: Simple controls for profile management and system behavior
@@ -217,6 +220,7 @@ This section establishes MindTyper's approach to:
 6. **Personal Focus**: Individual enhancement rather than collaborative or team features
 
 ### Key Design Principles:
+
 - **Single Adaptive Profile**: One intelligent profile that adapts to context vs. multiple manual modes
 - **Invisible Learning**: Passive adaptation from user behavior without explicit training
 - **Graceful Control**: Simple, three-tier correction intensity with safe defaults
@@ -224,7 +228,9 @@ This section establishes MindTyper's approach to:
 - **Stable Behavior**: Consistent core experience that users can trust and rely on
 
 ### Caps Lock Modifier Behavior:
+
 Holding Caps Lock triggers an elegant tone and behavior overlay near the cursor, including:
+
 - Tone slider or sentiment matrix
 - Typing stats or proficiency tier (optional)
 - Current detected language with manual switch capability

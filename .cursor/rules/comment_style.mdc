@@ -1,0 +1,80 @@
+---
+alwaysApply: true
+---
+# ────────────────────────────────────────────────────────────────────────────
+#  ⌘  C O M M E N T   S T Y L E   G U I D E  ──  M I N D T Y P E R  ⌘
+# ────────────────────────────────────────────────────────────────────────────
+#
+#  PURPOSE ▸ Ensure every generated file carries a consistent, Swiss-grid,
+#            cyber-punk comment header + placeholder block.
+#
+#  RULES ────────────────────────────────────────────────────────────────────
+#  1.  Header always at top-of-file. Use language-native comment tokens.
+#  2.  Box layout:
+#        • Outer border uses heavy box-drawing glyphs (╔ ═ ╗ ║ ╚).
+#        • Title line in ALL-CAPS, mono-aligned left; pad with "░".
+#        • Blank canvas inside for future content (spaces only, no filler char).
+#  3.  After box, append WHAT / WHY / HOW trio — bulleted with "•".
+#  4.  Keep total width **72 chars** (ideal for side-by-side diff).
+#  5.  Use monospace alignment; pad with single spaces (␠) only.
+#  6.  Colour words (if supported) NEVER hard-coded in source; just glyphs.
+#  7.  Inline comments later in file → prefix with "⟢" (arrow-dot) for quick scan.
+#  8.  Never exceed ~50% comment density in code files.
+#  9.  Markdown docs use HTML comments with same grid.
+# 10. Glossary keywords → UPPER-SNAKE (CARET, DIFF, SWEEP) on first mention.
+#
+#  TEMPLATES ────────────────────────────────────────────────────────────────
+#  • TypeScript / JS / Swift / Java / Kotlin
+#    ---------------------------------------------------------
+#    /*╔══════════════════════════════════════════════════════╗
+#      ║  ░  <MODULE TITLE>  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+#      ║                                                      ║
+#      ║                                                      ║
+#      ║                                                      ║
+#      ║                                                      ║
+#      ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+#      ║                                                      ║
+#      ║                                                      ║
+#      ║                                                      ║
+#      ║                                                      ║
+#      ╚══════════════════════════════════════════════════════╝
+#      • WHAT ▸ <one-line purpose>
+#      • WHY  ▸ <business / tech reason>
+#      • HOW  ▸ <interaction w/ other modules>
+#    */
+#
+#  • Markdown / .md / .mdc
+#    ---------------------------------------------------------
+#    <!--══════════════════════════════════════════════════
+#      ╔══════════════════════════════════════════════════════╗
+#      ║  ░  <MODULE TITLE>  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+#      ║                                                      ║
+#      ║                                                      ║
+#      ║                                                      ║
+#      ║                                                      ║
+#      ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+#      ║                                                      ║
+#      ║                                                      ║
+#      ║                                                      ║
+#      ║                                                      ║
+#      ╚══════════════════════════════════════════════════════╝
+#        • WHAT ▸ ...
+#        • WHY  ▸ ...
+#        • HOW  ▸ ...
+#    -->
+#
+#  • Shell / env / cfg (no multi-line comment token)
+#    ---------------------------------------------------------
+#    #╔════════════════════════════════════════════════════╗
+#    #║  █  <CONFIG BLOCK>  █░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+#    #╚════════════════════════════════════════════════════╝
+#    # WHAT ▸ ...
+#    # WHY  ▸ ...
+#    # HOW  ▸ ...
+#
+#  INLINE EXAMPLE ──────────────────────────────────────────────────────────
+#    ⟢ Guard: skip sweep if pause < SHORT_PAUSE_MS
+#
+#  END OF GUIDE ────────────────────────────────────────────────────────────
+ #  LIB_TOUCH Example:
+ #    use context7: {"@upstash/context7-mcp@latest", topics: ["eslint flat config", "vitest coverage reporter"]}

@@ -1,8 +1,9 @@
 # Rust Core Details (`crates/core-rs`)
 
-This document provides low-level information for contributors working inside the Rust crate.  It complements the high-level spec (§2).
+This document provides low-level information for contributors working inside the Rust crate. It complements the high-level spec (§2).
 
 ## Crate Layout
+
 ```
 core-rs/
 ├─ src/
@@ -18,6 +19,7 @@ core-rs/
 ```
 
 ## Public API (simplified)
+
 ```rust
 // lib.rs
 #[cfg(feature = "ffi")] // C + Swift
@@ -36,20 +38,26 @@ impl PauseTimer {
 All exported functions are `#![no_std]`-friendly to enable future embedded targets.
 
 ## Fragment Extraction Rules
-1. Look back ≤250 code points for Unicode category *Sentence_Terminal* plus full-width `。`.  
-2. Respect bidirectional text order using the `unicode-bidi` crate.  
+
+1. Look back ≤250 code points for Unicode category _Sentence_Terminal_ plus full-width `。`.
+2. Respect bidirectional text order using the `unicode-bidi` crate.
 3. Provide 100-char context both sides, clamped to buffer bounds.
 
 ## Diff Strategy
-- Uses the `dmp` crate fork with streaming patches.  
+
+- Uses the `dmp` crate fork with streaming patches.
 - Patch window limited to the fragment range for O(Δ) behaviour.
 
 ## LLM Abstraction
+
 The core defers transport to consumer:
+
 ```rust
 pub trait TokenStream: AsyncIterator<Item = String> + Send {}
 ```
-Bindings provide concrete impls (`OpenAIStream`, `CoreMLStream`).  This keeps the core free of TLS/HTTP deps unless `cloud` feature is enabled.
+
+Bindings provide concrete impls (`OpenAIStream`, `CoreMLStream`). This keeps the core free of TLS/HTTP deps unless `cloud` feature is enabled.
 
 ## Testing & Benchmarks
-Run `cargo test` for correctness, `cargo bench` for performance baselines.  Golden vectors in `shared-tests/` are loaded via `serde_json`. 
+
+Run `cargo test` for correctness, `cargo bench` for performance baselines. Golden vectors in `shared-tests/` are loaded via `serde_json`.

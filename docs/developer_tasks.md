@@ -3,7 +3,9 @@
 This document lists concrete tasks for building the first working version of MindType. It turns the high-level architecture into actionable steps for contributors.
 
 ## Shared Core (`crates/core-rs`)
-*Language: Rust*
+
+_Language: Rust_
+
 - **pause_timer.rs** – idle-detection state machine, property-based tests with `proptest`.
 - **fragment.rs** – Unicode-aware extractor; golden-vector tests live in `shared-tests/`.
 - **merge.rs** – incremental diff wrapper; fuzz with random token streams.
@@ -11,12 +13,15 @@ This document lists concrete tasks for building the first working version of Min
 - **ffi/mod.rs** – `extern "C"` layer + `wasm_bindgen` exports.
 
 ## Web Demo (`web-demo`)
+
 - **Editable.tsx** – maintain cursor, use `beforeinput` + `InputEvent` with `Selection.modify` (no deprecated `execCommand`).
 - **LLMClient.ts** – call `@mindtype/core` WASM bindings; fall back to mock stream in tests.
 - **DebugPanel.tsx** – UI opened with ⌥⇧⌘L; binds to hot-reloaded config.
 
 ## macOS App (`mac`)
-*All Swift files now call the Rust core via FFI; no separate Swift port required.*
+
+_All Swift files now call the Rust core via FFI; no separate Swift port required._
+
 - **MenuBarController.swift** – pencil icon toggle, opens Debug window.
 - **EventTapMonitor.swift** – forwards printable key codes to `mt_touch_key` FFI.
 - **AXWatcher.swift** – resets state on focus change.

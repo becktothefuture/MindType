@@ -1,13 +1,15 @@
 {
-    "compilerOptions": {
-      "target": "ES2022",
-      "module": "ES2022",
-      "moduleResolution": "Bundler",
-      "strict": true,
-      "rootDir": ".",
-      "outDir": "dist",
-      "types": ["vitest/globals"]
-    },
-    "include": ["**/*.ts"],
-    "exclude": ["node_modules", "dist"]
-  }
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "rootDir": ".",
+    "outDir": "dist",
+    "lib": ["ES2024"],
+    "types": ["node", "vitest"],
+    "skipLibCheck": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist", "e2e/**", "web-demo/**"]
+}

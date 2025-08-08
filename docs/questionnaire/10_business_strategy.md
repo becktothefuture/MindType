@@ -1,4 +1,5 @@
 # Business Model & Strategy
+
 _MindTyper Deep-Dive Questionnaire — Section 10 of 13_
 
 **Progress: 10/10 questions (100%)**
@@ -8,7 +9,7 @@ This section defines MindTyper's business model, go-to-market strategy, and reve
 ---
 
 **168. Revenue Model Architecture?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Pricing philosophy: Access‑pass model, simple, and privacy‑first. Accounts are required. Zero input data to cloud.
@@ -24,16 +25,17 @@ This section defines MindTyper's business model, go-to-market strategy, and reve
 - Refunds: Honor a 14‑day no‑questions refund window for direct sales; follow App Store terms in‑store.
 - Guardrails: Emphasize “100% on‑device, zero input to cloud.” Keep usage counters strictly local.
 
- - Clarifier 10.7.a — Revenue Split Assumptions & Blends
-   - Channels: assume Mac App Store 70/30 split; direct sales 97/3 (fees ≈ 3%).
-   - Effective take rate by mix:
+- Clarifier 10.7.a — Revenue Split Assumptions & Blends
+  - Channels: assume Mac App Store 70/30 split; direct sales 97/3 (fees ≈ 3%).
+  - Effective take rate by mix:
 
-     | MAS/Direct Mix | Effective Take | ARPU Multiplier |
-     |:--------------:|:--------------:|:---------------:|
-     | 30% / 70%      | 0.3×0.30 + 0.7×0.03 = 10.9% | × 0.891 |
-     | 50% / 50%      | 0.5×0.30 + 0.5×0.03 = 16.5% | × 0.835 |
-     | 70% / 30%      | 0.7×0.30 + 0.3×0.03 = 22.1% | × 0.779 |
-   - LTV impact: scale linearly with ARPU multiplier for first‑order planning; refine with retention by channel as data arrives.
+    | MAS/Direct Mix |       Effective Take        | ARPU Multiplier |
+    | :------------: | :-------------------------: | :-------------: |
+    |   30% / 70%    | 0.3×0.30 + 0.7×0.03 = 10.9% |     × 0.891     |
+    |   50% / 50%    | 0.5×0.30 + 0.5×0.03 = 16.5% |     × 0.835     |
+    |   70% / 30%    | 0.7×0.30 + 0.3×0.03 = 22.1% |     × 0.779     |
+
+  - LTV impact: scale linearly with ARPU multiplier for first‑order planning; refine with retention by channel as data arrives.
 
 - Clarifier 10.1.a — Direct Refund Policy
   - Honor 14‑day refunds for direct purchases; process within 48 hours.
@@ -50,7 +52,7 @@ This section defines MindTyper's business model, go-to-market strategy, and reve
 ---
 
 **169. Target Market Segmentation?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Primary (launch): Writers, editors, journalists, and general macOS knowledge workers who type 4+ hours/day and want "noise → clean text" without breaking flow.
@@ -63,7 +65,7 @@ This section defines MindTyper's business model, go-to-market strategy, and reve
 ---
 
 **170. Competitive Positioning Strategy?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Category: Typing enhancement and input normalization — not a writing assistant.
@@ -80,7 +82,7 @@ This section defines MindTyper's business model, go-to-market strategy, and reve
 ---
 
 **171. Go-to-Market Strategy?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Objectives: Slow, controlled ramp; prove PMF with writers/knowledge workers; keep infra/support load low; maintain privacy trust.
@@ -137,7 +139,7 @@ This section defines MindTyper's business model, go-to-market strategy, and reve
 ---
 
 **172. Customer Acquisition & Retention?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Acquisition (high‑class, organic‑first)
@@ -158,7 +160,7 @@ This section defines MindTyper's business model, go-to-market strategy, and reve
 ---
 
 **173. Partnership & Distribution Strategy?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Distribution
@@ -178,7 +180,7 @@ This section defines MindTyper's business model, go-to-market strategy, and reve
 ---
 
 **174. Financial Projections & Unit Economics?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Pricing (recap): Plus Pass $4.99/30‑day or $39/12‑month; free tier with usage limits.
@@ -199,7 +201,7 @@ This section defines MindTyper's business model, go-to-market strategy, and reve
 ---
 
 **175. International Expansion Plan?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Phase 1: English‑first markets (US, UK, CA, AU, NZ). Localized pricing/taxes; regional endpoints for licensing/updates.
@@ -211,7 +213,7 @@ This section defines MindTyper's business model, go-to-market strategy, and reve
 ---
 
 **176. Risk Assessment & Mitigation?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Competitive copy/OS features
@@ -230,7 +232,7 @@ This section defines MindTyper's business model, go-to-market strategy, and reve
 ---
 
 **177. Success Metrics & KPIs?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Product/usage (opt‑in, content‑free)

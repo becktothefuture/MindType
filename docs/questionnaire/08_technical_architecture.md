@@ -1,4 +1,5 @@
 # Technical Architecture & Performance Requirements
+
 _MindTyper Deep-Dive Questionnaire — Section 8 of 13_
 
 **Progress: 15/15 questions (100%)**
@@ -8,7 +9,7 @@ This section defines the core technical architecture, performance constraints, a
 ---
 
 **141. Core Technology Stack Selection?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - macOS app: Swift (AppKit for always-on menubar/daemon bits; SwiftUI for settings & the Caps‑Lock modal).
@@ -25,7 +26,7 @@ Note on cross‑platform: the Rust engine is the shared core (tokenization, heur
 ---
 
 **142. Performance Benchmarks & SLAs?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Latency (local, on-device):
@@ -57,7 +58,7 @@ Note on cross‑platform: the Rust engine is the shared core (tokenization, heur
 ---
 
 **143. On-Device ML Model Architecture?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Goal: Compact, fast noise‑to‑intent correction—not a giant LLM. Optimized for Apple Neural Engine first, with seamless CPU/GPU fallback via Core ML.
@@ -78,7 +79,7 @@ Note on cross‑platform: the Rust engine is the shared core (tokenization, heur
 ---
 
 **144. Data Flow & Processing Pipeline?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Single‑pass, low‑latency pipeline: Keystroke → Context Buffer (RAM) → Rust Engine (tokenize + noise features) → Core ML Inference (ANE‑first) → Confidence Gate → Action (apply/queue/ignore) → UI Commit.
@@ -91,7 +92,7 @@ Note on cross‑platform: the Rust engine is the shared core (tokenization, heur
 ---
 
 **145. Memory Management Strategy?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Budgets: hard cap ≤ 200 MB, typical ≤ 150 MB.
@@ -104,7 +105,7 @@ Note on cross‑platform: the Rust engine is the shared core (tokenization, heur
 ---
 
 **146. Threading & Concurrency Model?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - UI: main thread only (SwiftUI/AppKit).
@@ -117,7 +118,7 @@ Note on cross‑platform: the Rust engine is the shared core (tokenization, heur
 ---
 
 **147. API Design & Integration Points?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - macOS Accessibility API for text access/editing; Core Graphics/Quartz only for minimal visuals.
@@ -127,38 +128,38 @@ Note on cross‑platform: the Rust engine is the shared core (tokenization, heur
 
 ---
 
- - Clarifier 8.6.a — FFI Error Domains & Codes
+- Clarifier 8.6.a — FFI Error Domains & Codes
 
-   | Domain | Code Range | Examples |
-   |-------:|:----------:|----------|
-   | FFI_BOUNDARY | 100x | 100: NullPointer, 101: InvalidUTF8, 102: BufferTooSmall |
-   | MODEL_LOAD | 200x | 200: NotFound, 201: SignatureMismatch, 202: UnsupportedVersion |
-   | INFERENCE | 300x | 300: Timeout, 301: OutOfMemory, 302: InternalKernelError |
-   | ENTITLEMENT | 400x | 400: NotSignedIn, 401: TokenExpired, 402: DeviceLimitReached |
-   | DATA | 500x | 500: CorruptDB, 501: MigrationFailed, 502: WriteDenied |
+  |       Domain | Code Range | Examples                                                       |
+  | -----------: | :--------: | -------------------------------------------------------------- |
+  | FFI_BOUNDARY |    100x    | 100: NullPointer, 101: InvalidUTF8, 102: BufferTooSmall        |
+  |   MODEL_LOAD |    200x    | 200: NotFound, 201: SignatureMismatch, 202: UnsupportedVersion |
+  |    INFERENCE |    300x    | 300: Timeout, 301: OutOfMemory, 302: InternalKernelError       |
+  |  ENTITLEMENT |    400x    | 400: NotSignedIn, 401: TokenExpired, 402: DeviceLimitReached   |
+  |         DATA |    500x    | 500: CorruptDB, 501: MigrationFailed, 502: WriteDenied         |
 
- - Clarifier 8.7.a — Keystroke Processing Sequence
+- Clarifier 8.7.a — Keystroke Processing Sequence
 
-   ```mermaid
-   sequenceDiagram
-     participant HostApp as Host App
-     participant Swift as Swift App
-     participant Rust as Rust Core
-     participant CoreML as Core ML
-     HostApp->>Swift: Keystroke event
-     Swift->>Rust: Tokenize + noise features
-     Rust->>CoreML: Inference (ANE-first)
-     CoreML-->>Rust: Edits + confidence
-     Rust-->>Swift: Action (apply / queue / ignore)
-     Swift-->>HostApp: Commit via Accessibility API
-     Note over Swift,Rust: New keystroke cancels in-flight work
-     Swift-->>HostApp: Rollback to last-known-good on failure
-   ```
+  ```mermaid
+  sequenceDiagram
+    participant HostApp as Host App
+    participant Swift as Swift App
+    participant Rust as Rust Core
+    participant CoreML as Core ML
+    HostApp->>Swift: Keystroke event
+    Swift->>Rust: Tokenize + noise features
+    Rust->>CoreML: Inference (ANE-first)
+    CoreML-->>Rust: Edits + confidence
+    Rust-->>Swift: Action (apply / queue / ignore)
+    Swift-->>HostApp: Commit via Accessibility API
+    Note over Swift,Rust: New keystroke cancels in-flight work
+    Swift-->>HostApp: Rollback to last-known-good on failure
+  ```
 
 ---
 
 **148. Error Handling & Recovery?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Degradation ladder: ML inference → rule‑based spellcheck → no‑op (never corrupt text).
@@ -170,7 +171,7 @@ Note on cross‑platform: the Rust engine is the shared core (tokenization, heur
 ---
 
 **149. Scalability & Performance Optimization?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - On‑device: guardrails (p95/p99 alerts) from perf tests; feature flags to ship small and iterate.
@@ -181,7 +182,7 @@ Note on cross‑platform: the Rust engine is the shared core (tokenization, heur
 ---
 
 **150. Security Architecture?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Data boundaries: keystroke content never leaves device; ephemeral RAM buffers only.
@@ -193,7 +194,7 @@ Note on cross‑platform: the Rust engine is the shared core (tokenization, heur
 ---
 
 **151. Deployment & Update Strategy?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Release cadence: monthly minors; quarterly majors.
@@ -205,7 +206,7 @@ Note on cross‑platform: the Rust engine is the shared core (tokenization, heur
 ---
 
 **152. Monitoring & Observability?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Privacy‑first telemetry (opt‑in): counters, timings, device class; no content capture.
@@ -217,7 +218,7 @@ Note on cross‑platform: the Rust engine is the shared core (tokenization, heur
 ---
 
 **153. Development & Testing Infrastructure?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Repo & CI: GitHub + Actions (macOS runners) building SwiftPM + Cargo; signed/notarized artifacts.
@@ -229,7 +230,7 @@ Note on cross‑platform: the Rust engine is the shared core (tokenization, heur
 ---
 
 **154. Data Architecture & Storage?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Local‑first: SQLite (dictionaries, personalization deltas, settings), UserDefaults for trivial flags.
@@ -238,16 +239,16 @@ Note on cross‑platform: the Rust engine is the shared core (tokenization, heur
 - Backups: rely on OS backups; our DB is safe to snapshot; provide export/import of user dictionary.
 - Retention: rolling cleanup of stale personalization; never store raw text content.
 
- - Clarifier 8.14.a — Personalization Storage Caps & Compaction
-   - Cap: per‑user personalization deltas capped at 5 MB on disk.
-   - Compaction: weekly job merges and trims; SQLite VACUUM quarterly.
-   - Eviction: LRU removes oldest deltas when cap exceeded; keep high‑impact, recent data.
-   - Controls: expose "Compact now" and "Reset personalization" in app settings.
+- Clarifier 8.14.a — Personalization Storage Caps & Compaction
+  - Cap: per‑user personalization deltas capped at 5 MB on disk.
+  - Compaction: weekly job merges and trims; SQLite VACUUM quarterly.
+  - Eviction: LRU removes oldest deltas when cap exceeded; keep high‑impact, recent data.
+  - Controls: expose "Compact now" and "Reset personalization" in app settings.
 
 ---
 
 **155. Cross-Platform Compatibility?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Shared core: Rust engine + model artifacts are identical across platforms, exposed via stable C ABI/UniFFI.

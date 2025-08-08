@@ -1,11 +1,14 @@
-import React from 'react';
+import React from "react";
 
 interface SettingsTabProps {
   idleMs: number;
   onIdleMsChange: (value: number) => void;
 }
 
-const SettingsTab: React.FC<SettingsTabProps> = ({ idleMs, onIdleMsChange }) => {
+const SettingsTab: React.FC<SettingsTabProps> = ({
+  idleMs,
+  onIdleMsChange,
+}) => {
   return (
     <div>
       <h3>Settings</h3>
@@ -26,4 +29,4 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ idleMs, onIdleMsChange }) => 
   );
 };
 
-export default SettingsTab; 
+export default SettingsTab;

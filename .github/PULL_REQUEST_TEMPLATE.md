@@ -1,20 +1,32 @@
-<<<<<<< HEAD
-## Checklist
-- [ ] Unit tests pass (`just test-all`)
-- [ ] Lints pass (`cargo clippy`, `eslint`, `swiftlint`)
-- [ ] E2E tests pass (Playwright / XCUITest)
-- [ ] Coverage ≥ 85 %
-- [ ] Spec §15 pre-flight checks (undo, telemetry off, AX on both CPUs)
-- [ ] Version bumped (Cargo.toml, package.json) if public API changed
+<!--══════════════════════════════════════════════════
+  ╔══════════════════════════════════════════════════════╗
+  ║  ░  P U L L   R E Q U E S T   T E M P L A T E  ░░░░  ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ╚══════════════════════════════════════════════════════╝
+    • WHAT ▸ PR checklist
+    • WHY  ▸ Enforce gates & conventions
+    • HOW  ▸ Fill and submit with CC + [FT-ID]
+-->
 
-## Summary of changes
-<!-- high-level description --> 
-=======
 # Pull Request
-- [ ] Follows comment_style header
-- [ ] Tests updated/added
-- [ ] No caret edits; diffs only
-- [ ] References [FT-ID] if applicable
 
-**Summary**
->>>>>>> 12fed98 ([DOCS] Fill incomplete questionnaire items, update index, normalize spacing)
+## Summary
+
+Describe the change.
+
+## Checklist
+
+- [ ] Conventional Commit message used
+- [ ] Code + tests updated
+- [ ] Typecheck/lint/format/test gates pass (pnpm typecheck | lint | format:check | test)
+- [ ] Docs updated (PRD/ADR/Guides where relevant)
+- [ ] Accessibility considered (reduced motion, SR announces)
+- [ ] No edits at/after caret; diffs grouped for undo

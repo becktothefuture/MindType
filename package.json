@@ -4,10 +4,23 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier -c .",
+    "format:write": "prettier -w .",
+    "test": "vitest run --reporter=dot --coverage",
     "dev": "vitest watch"
   },
   "devDependencies": {
+    "@types/node": "^24.2.1",
+    "@typescript-eslint/eslint-plugin": "^8.4.0",
+    "@typescript-eslint/parser": "^8.4.0",
+    "@vitest/coverage-v8": "^1.6.1",
+    "eslint": "^9.9.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.3.3",
     "typescript": "^5.5.4",
     "vitest": "^1.6.0"
   }

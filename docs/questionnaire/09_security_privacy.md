@@ -1,4 +1,5 @@
 # Security & Privacy Implementation
+
 _MindTyper Deep-Dive Questionnaire — Section 9 of 13_
 
 **Progress: 12/12 questions (100%)**
@@ -8,7 +9,7 @@ This section defines MindTyper's security architecture, privacy protections, and
 ---
 
 **156. Privacy-by-Design Implementation?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Principle: No input content ever leaves the device. All inference, context handling, and decisions occur locally.
@@ -22,7 +23,7 @@ This section defines MindTyper's security architecture, privacy protections, and
 ---
 
 **157. Data Classification & Handling?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Input content (keystrokes, selected text, caret context): Highly Sensitive. Processing: ephemeral RAM only. Storage: none. Transmission: never.
@@ -35,7 +36,7 @@ This section defines MindTyper's security architecture, privacy protections, and
 ---
 
 **158. Encryption & Key Management?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - At rest: Encrypt SQLite data (preferences, dictionaries, personalization deltas) using AES‑256‑GCM with a per‑device key.
@@ -46,19 +47,19 @@ This section defines MindTyper's security architecture, privacy protections, and
 
 ---
 
- - Clarifier 9.3.a — Keychain Failure & Signature Mismatch UX
-   - UX copy: show a single, human message (no error codes). Example: "We couldn’t verify a security key. Retrying in the background. Your typing is safe."
-   - Retry: exponential backoff with jitter for keychain access and signature checks; cap retries; never block typing.
-   - Fallback: immediately fall back to last‑known‑good model/assets on signature mismatch; queue integrity recheck.
-   - Re‑auth: prompt only if entitlement truly invalid and only when idle; never interrupt mid‑session.
+- Clarifier 9.3.a — Keychain Failure & Signature Mismatch UX
+  - UX copy: show a single, human message (no error codes). Example: "We couldn’t verify a security key. Retrying in the background. Your typing is safe."
+  - Retry: exponential backoff with jitter for keychain access and signature checks; cap retries; never block typing.
+  - Fallback: immediately fall back to last‑known‑good model/assets on signature mismatch; queue integrity recheck.
+  - Re‑auth: prompt only if entitlement truly invalid and only when idle; never interrupt mid‑session.
 
 ---
 
 **159. Access Control & Authentication?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
- - Identity: Accounts required for licensing/subscriptions (Sign in with Apple supported). Device‑bound entitlement stored in Keychain; no keyboard input ever transmitted.
+- Identity: Accounts required for licensing/subscriptions (Sign in with Apple supported). Device‑bound entitlement stored in Keychain; no keyboard input ever transmitted.
 - Local access: Optional app lock using biometrics (Touch ID) or password for opening settings and exporting data.
 - Authorization: Least‑privilege entitlements; request Accessibility permission only to edit text fields.
 - Data rights: In‑app controls to export/reset dictionaries and personalization; immediate local deletion honored.
@@ -67,7 +68,7 @@ This section defines MindTyper's security architecture, privacy protections, and
 ---
 
 **160. Compliance Framework?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - GDPR/CCPA by design: Data minimization, purpose limitation, local processing, opt‑in telemetry, and user rights (export/delete) built‑in.
@@ -79,7 +80,7 @@ This section defines MindTyper's security architecture, privacy protections, and
 ---
 
 **161. Vulnerability Management?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Scanning: Automated dependency scanning (e.g., Dependabot) and SAST in CI for Swift and Rust.
@@ -91,7 +92,7 @@ This section defines MindTyper's security architecture, privacy protections, and
 ---
 
 **162. Incident Response Plan?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Detection: Monitor code signing/reporting channels and crash trends; triage within 24 hours.
@@ -103,7 +104,7 @@ This section defines MindTyper's security architecture, privacy protections, and
 ---
 
 **163. Secure Development Practices?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Shift‑left security: Feature‑level threat modeling; mandatory security review for risky changes.
@@ -115,7 +116,7 @@ This section defines MindTyper's security architecture, privacy protections, and
 ---
 
 **164. Third-Party Security?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Minimal third‑party surface: No SDKs or libraries that inspect keystrokes or capture content.
@@ -126,7 +127,7 @@ This section defines MindTyper's security architecture, privacy protections, and
 ---
 
 **165. User Security Education?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Onboarding: "Your input never leaves your device" highlighted; quick tour of permissions and why they’re needed.
@@ -137,7 +138,7 @@ This section defines MindTyper's security architecture, privacy protections, and
 ---
 
 **166. Audit & Compliance Monitoring?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - CI checks: Automated compliance linting (telemetry off by default, no content collection), license/notice verification, SBOM diff checks.
@@ -152,12 +153,12 @@ This section defines MindTyper's security architecture, privacy protections, and
 ---
 
 **167. Cross-Border Data Handling?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Input content residency: Not applicable — input content never leaves the device.
 - Minimal network use: If enabled, licensing and update checks transmit no input content or identifiers beyond anonymous tokens.
- - Minimal network use: If enabled, licensing and update checks transmit no input content; send only content‑free entitlement tokens.
+- Minimal network use: If enabled, licensing and update checks transmit no input content; send only content‑free entitlement tokens.
 - Jurisdictions: Use regional endpoints/CDN where feasible; apply SCCs/adequacy mechanisms to any minimal metadata.
 - User control: Full offline mode; users can disable networking from the app; functionality unaffected.
 

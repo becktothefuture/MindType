@@ -1,37 +1,66 @@
----
-alwaysApply: true
----
+<!-- ⚡  W O R K F L O W . M D C  — MindTyper  ⚡
+╔═══════════════════════════════════════════════════════════════════╗
+║ Modes: PLAN_ONLY • EXECUTE • LIB_TOUCH                           ║
+║ Promise: Small diffs • Fast loops • Grounded APIs • Green tests  ║
+╚═══════════════════════════════════════════════════════════════════╝
+  • WHAT ▸ End-to-end rules for planning, execution, and library use
+  • WHY  ▸ Ensure predictable, test-first changes and safe merges
+  • HOW  ▸ Pick tasks from docs/implementation.md, enforce gates, use Context7
+-->
 
-# Cursor Workflow Rules
-
-This file tells Cursor how to behave and what steps to follow when working on the MindTyper project.
-
-### Core Workflow
-
-1.  **Task Identification**: Start by reading `docs/implementation.md` to identify the next priority task.
-2.  **Context Review**: Before coding, consult:
-    *   `context/glossary.md` for domain-specific terminology.
-    *   `context/system_principles.md` for behavioral guidelines.
-    *   `docs/project_structure.md` for architectural patterns.
-3.  **File Setup**: Open or create the target file(s). Ensure the standard file header from `.cursor/rules/comment_style.mdc` is present.
-4.  **External Libraries**: If using an external library, use **Context7** to fetch documentation for the exact version specified in `package.json`.
-5.  **Implementation**: Generate code and corresponding tests.
-6.  **Self-Correction**: Review generated code against the guidelines in `context/system_principles.md`.
-7.  **Commit**: Commit changes with a message formatted as `[FT-ID] short summary`.
-
-### MCP Registration (Cursor understands this block)
+## 0) Preload & Tools
+- Always load `.cursor/rules/comment_style.mdc` and apply its header to any new/edited file.
+- Register MCP **Context7** and use it whenever code touches an external library (fetch version-correct docs before coding).
+- Use `@latest` for **Context7 MCP** and include LIB_TOUCH notes in commits.
 
 ```json
 {
   "mcpServers": [
-    { "name": "context7", "command": "npx", "args": ["-y", "@upstash/context7-mcp"] }
+    { "name": "context7", "command": "npx", "args": ["-y", "@upstash/context7-mcp@latest"] }
   ]
 }
 ```
 
-### General Behavior
+## 1) Task Intake (single source of truth)
+- Read `docs/implementation.md` and pick the **first unchecked task** (top–down) from the highest active Stage.
+- If no tasks exist, switch to **PLAN_ONLY** and propose tasks using the schema below.
 
--   Prioritize user experience and performance.
--   Maintain consistency with existing patterns.
--   Document all significant changes.
--   Test thoroughly before committing.
+## 2) Modes
+
+### A. PLAN_ONLY (no code edits)
+1) Scan repo and constraints to fulfil the requested outcome.  
+2) **Append tasks** into `docs/implementation.md` under the correct Stage using the **Task Schema**.  
+3) Keep tasks atomic; each must have **AC** (acceptance criteria).  
+4) Stop and wait for approval.
+
+### B. EXECUTE (make changes)
+1) Open/create target file(s); add comment header if missing.  
+2) **Context discipline:** if imports/SDKs are involved, call **Context7** for `name@version` before coding; include doc refs in the commit body.  
+3) Implement **code and tests together** (Vitest).  
+4) **Quality gates must pass locally** (FT-100 wires these scripts):
+   - `pnpm typecheck` (TS) — until FT-100, use `pnpm run build`
+   - `pnpm test` (Vitest)
+   - `pnpm lint` and `pnpm format:check` (ESLint + Prettier)
+5) **Self-review (Google check):** Correctness • Simplicity • Readability • Tests cover the change.  
+6) Commit with **Conventional Commits** + optional feature tag, e.g.:  
+   `feat(engine): add caret-safe window diff [FT-123]`.
+
+### C. LIB_TOUCH (explicit library work)
+- Always run Context7 with `{library, version, topics}` to ground APIs; summarise constraints obeyed in code comments and PR body.
+
+## 3) Files & Tests
+- Place tests in `tests/` mirroring the source path; filenames end with `*.spec.ts`.  
+- Never edit at/after the caret; apply **diffs** only.
+
+## 4) Branch & PR etiquette
+- One branch per task; never commit to `main`.  
+- Protected branch checks (typecheck, tests, lint, format) must be required before merge.
+
+## 5) Task Schema (docs/implementation.md)
+- `- [ ] (P1) [FT-123] Title  — path/to/file.ts`  
+  **AC:** concrete acceptance criteria (facts, numbers, paths)  
+  **Owner:** @alex (optional) • **DependsOn:** FT-122 (optional) • **Source:** Questionnaire #NN / ADR-00X / PRD line
+
+## 6) Definition of Done
+- Code + tests updated • All gates green • Self-review applied  
+- Conventional Commit incl. [FT-ID] • ADR added/linked if architectural

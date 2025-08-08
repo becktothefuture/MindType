@@ -1,4 +1,5 @@
 # Testing & Quality Assurance Strategy
+
 _MindTyper Deep-Dive Questionnaire — Section 11 of 13_
 
 **Progress: 12/12 questions (100%)**
@@ -8,7 +9,7 @@ This section defines MindTyper's testing strategy, quality assurance processes, 
 ---
 
 **178. Testing Strategy Framework?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Test pyramid (automation‑first): ~65% unit, ~25% integration, ~10% end‑to‑end (E2E). Manual UX reviews supplement, not replace, automation.
@@ -42,7 +43,7 @@ This section defines MindTyper's testing strategy, quality assurance processes, 
 ---
 
 **179. ML Model Testing & Validation?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Golden corpus: 10K–50K anonymized/synthetic sequences stratified by noise type (adjacent‑key, transposition, omission), language, layout (US/UK/DE), IME/RTL cases.
@@ -57,7 +58,7 @@ This section defines MindTyper's testing strategy, quality assurance processes, 
 ---
 
 **180. Performance Testing Requirements?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Latency: keystroke→suggestion p50/p95/p99 measured under synthetic streams (60–140 WPM) with bursts; targets per Section 8.
@@ -70,15 +71,15 @@ This section defines MindTyper's testing strategy, quality assurance processes, 
 
 ---
 
- - Clarifier 11.3.a — CI Performance Budgets per Job
-   - Unit tests: ≤ 8 minutes.
-   - Integration tests: ≤ 12 minutes.
-   - Performance suite: ≤ 15 minutes per device class.
-   - E2E smoke: ≤ 6 minutes.
-   - Policy: fail fast on budget overrun; auto‑quarantine flaky suites and open triage ticket.
+- Clarifier 11.3.a — CI Performance Budgets per Job
+  - Unit tests: ≤ 8 minutes.
+  - Integration tests: ≤ 12 minutes.
+  - Performance suite: ≤ 15 minutes per device class.
+  - E2E smoke: ≤ 6 minutes.
+  - Policy: fail fast on budget overrun; auto‑quarantine flaky suites and open triage ticket.
 
 **181. Cross-Platform Testing Strategy?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - macOS versions: current and current‑2 majors; test Intel + Apple Silicon.
@@ -90,7 +91,7 @@ This section defines MindTyper's testing strategy, quality assurance processes, 
 ---
 
 **182. User Experience Testing?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Usability: weekly 5‑user sessions (writers/knowledge workers); tasks: install, first suggestion, per‑app scopes, undo.
@@ -101,7 +102,7 @@ This section defines MindTyper's testing strategy, quality assurance processes, 
 ---
 
 **183. Security Testing Implementation?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - SAST/secret scans in CI; dependency CVE scanning (Swift/Rust).
@@ -113,7 +114,7 @@ This section defines MindTyper's testing strategy, quality assurance processes, 
 ---
 
 **184. Regression Testing Framework?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Suite: unit/integration/E2E plus golden‑corpus ML validation on each PR; change‑impact selection speeds runs.
@@ -124,7 +125,7 @@ This section defines MindTyper's testing strategy, quality assurance processes, 
 ---
 
 **185. Beta Testing & User Feedback?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Size: private beta 100–300 active; public beta 1–2K with invite caps.
@@ -135,7 +136,7 @@ This section defines MindTyper's testing strategy, quality assurance processes, 
 ---
 
 **186. Quality Gates & Release Criteria?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Tests: green CI; coverage ≥ 80% Rust core, ≥ 70% Swift core.
@@ -147,7 +148,7 @@ This section defines MindTyper's testing strategy, quality assurance processes, 
 ---
 
 **187. Bug Tracking & Resolution?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Severity & SLA: P0 (crash/data loss) 24h hotfix; P1 (core broken) 3 days; P2 (major) next minor; P3 (minor) backlog.
@@ -158,7 +159,7 @@ This section defines MindTyper's testing strategy, quality assurance processes, 
 ---
 
 **188. Continuous Quality Improvement?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Monthly QA review: flakes, escapes, perf regressions; action items with owners.
@@ -169,7 +170,7 @@ This section defines MindTyper's testing strategy, quality assurance processes, 
 ---
 
 **189. Production Monitoring & Quality?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Privacy‑first telemetry (opt‑in): latency histograms, CPU/RAM envelopes, crash reports; no content.

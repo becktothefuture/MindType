@@ -1,4 +1,5 @@
 # Product Vision & Success Metrics
+
 _MindTyper Deep-Dive Questionnaire — Section 1 of 14_
 
 **Progress: 10/10 questions answered (100%)**
@@ -8,7 +9,7 @@ This section defines MindTyper's core vision, success metrics, user personas, an
 ---
 
 **1. What single metric will prove MindTyper speeds people up?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper's core success metric is effective WPM uplift of 3× (from 45 to 135 WPM) at ≥95% semantic accuracy, measured via before/after typing tests using standardized prose. This balances both speed and precision, ensuring performance gains don't come at the cost of meaning or clarity.
@@ -16,7 +17,7 @@ This section defines MindTyper's core vision, success metrics, user personas, an
 ---
 
 **2. Describe a headline success story one year after launch.?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** A year after launch, MindTyper is known not just for boosting productivity but for transforming the emotional quality of typing itself. Imagine someone like Elena Soto, a UX researcher juggling notes, emails, and thought pieces throughout the day. Before MindTyper, typing felt like a chore—interruptions, corrections, and clunky phrasing constantly broke her flow. Now, with MindTyper, the experience feels fluid, almost meditative. It's not about doing more; it's about doing things more comfortably. Typing is smoother, context switches are gentler, and the cognitive load is lighter. MindTyper is her "quiet assistant," helping ideas flow effortlessly from brain to screen—whether she's writing a research brief or journaling late at night.
@@ -24,7 +25,7 @@ This section defines MindTyper's core vision, success metrics, user personas, an
 ---
 
 **3. Primary user persona (name + job + pain).?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Primary persona: Adrian (Founder / Creative Technologist)
@@ -36,7 +37,7 @@ MindTyper is his answer to that. He envisions a tool that removes the static bet
 ---
 
 **4. Secondary persona(s).?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Secondary persona 1: Laila Mansour — UX Designer (non-native speaker)**
@@ -50,10 +51,11 @@ Devin moves fast mentally but often hits bottlenecks when translating thoughts i
 ---
 
 **5. Must-Have vs Delight-To-Have feature list.?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 ### MUST-HAVE
+
 - Real-time typo correction
 - Context-aware word completion
 - Granular undo/redo for system suggestions
@@ -63,6 +65,7 @@ Devin moves fast mentally but often hits bottlenecks when translating thoughts i
 - Background operation that doesn't alter the user's workflow or demand attention
 
 ### DELIGHT
+
 - Smart punctuation
 - Optional tone/nuance adjustments that preserve the user's original voice
 - Aesthetic personalization (e.g. cursor styles, visual themes)
@@ -73,7 +76,7 @@ Devin moves fast mentally but often hits bottlenecks when translating thoughts i
 ---
 
 **6. Acceptable learning curve (minutes before magic).?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** First magic moment: within 30 seconds of interacting with the web demo—users experience a live correction that feels effortless and affirming. This is their introduction to how MindTyper enhances typing in real-time, without hijacking intent.
@@ -87,7 +90,7 @@ Learning becomes a feature, not a barrier. Onboarding and progression are framed
 ---
 
 **7. Offline vs Cloud dependency tolerance.?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper is built to be offline-first, with all essential features—correction, completion, learning, and personalization—running locally. During setup, users are asked which languages they type in most regularly, and MindTyper downloads the relevant models to the device. These models are kept up-to-date quietly in the background, but everything continues to function fully even when offline.
@@ -99,7 +102,7 @@ This architecture puts privacy, reliability, and user control at the center.
 ---
 
 **8. Monetisation approach.?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper uses a simple, privacy‑first access‑pass model with required accounts (e.g., Sign in with Apple). Offer a free tier with usage limits (e.g., up to 7 active days per month). Sell 30‑day ($4.99) and 12‑month ($39) Plus passes for unlimited usage. Keep all processing on‑device; never send keyboard input to the cloud.
@@ -109,7 +112,7 @@ Store device‑bound entitlements in the Keychain with content‑free check‑in
 ---
 
 **9. What existing product impresses you and why?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Three products shape the vision behind MindTyper:
@@ -123,7 +126,7 @@ Store device‑bound entitlements in the Keychain with content‑free check‑in
 ---
 
 **10. A vanity KPI we must never optimize for?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** We will never optimize for surface metrics like time-on-app, number of corrections made, or "activity" for its own sake. These can be misleading and even counterproductive if they don't reflect real value to the user.

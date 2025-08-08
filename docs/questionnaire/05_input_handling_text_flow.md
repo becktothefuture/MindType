@@ -1,4 +1,5 @@
 # Input Handling & Text Flow
+
 _MindTyper Deep-Dive Questionnaire — Section 5 of 16_
 
 **Progress: 30/30 questions answered (100%)**
@@ -8,7 +9,7 @@ This section defines how MindTyper processes and handles different types of inpu
 ---
 
 **59. How should MindTyper handle partial words?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper will not correct partial words while the user is still typing them. Instead, it waits until there's sufficient context—guided by word boundaries like spaces or punctuation—but ultimately shaped by the overall sentence structure.
@@ -20,7 +21,7 @@ This approach protects user flow and intent, ensuring MindTyper never intrudes m
 ---
 
 **60. How does MindTyper handle repeated or deleted characters (e.g. "goooood" or "helppp")?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper will preserve repeated letters by default, treating them as intentional expressions of tone, emotion, or rhythm. In informal or expressive contexts—like chats, personal notes, or casual writing—these repetitions are respected and passed through untouched.
@@ -32,7 +33,7 @@ The goal is never to flatten expression, but to enhance it when appropriate.
 ---
 
 **61. Should MindTyper automatically insert missing punctuation (e.g. periods, commas)?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper will automatically insert missing punctuation only when tone and context support it. If a user begins writing with structured punctuation and capitalization, the system will enhance that clarity—adding commas, periods, and sentence flow refinements as needed.
@@ -44,7 +45,7 @@ Capitalization is treated the same way: if the user's flow is lowercase by desig
 ---
 
 **62. Should MindTyper reflow or rewrap text for readability?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will reflow or rewrap text for readability, but only when the user's intent clearly supports it. If the user types longer content with structural markers like line breaks, paragraph spacing, or sentence cadence, the system will reinforce that formatting by helping create natural breaks and spacing.
@@ -56,7 +57,7 @@ If the user doesn't add breaks or prefers dense, casual flow, MindTyper respects
 ---
 
 **63. Should MindTyper pause corrections mid-thought (e.g. while user pauses to think)?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will pause mid-thought corrections to avoid interrupting the user's natural flow. Corrections only begin once a complete idea is detected—either through punctuation, sentence structure, or a brief pause (e.g. two or more seconds without typing).
@@ -66,7 +67,7 @@ This approach ensures that users don't feel like they're being "edited while thi
 ---
 
 **64. Should users be able to rewind or scrub through recent input?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** No separate timeline UI. MindTyper relies on the host app’s native undo (⌘Z), grouping its automatic edits into coherent steps so users can rewind cleanly if needed. No extra history UI.
@@ -76,7 +77,7 @@ This keeps the experience fluid and minimal while preserving safe reversibility.
 ---
 
 **65. Should MindTyper support voice dictation as an input source?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Not at first—MindTyper is focused entirely on keyboard input. Voice dictation support may be added later as a separate layer, with its own correction model and interface considerations. The core experience is built around enhancing and streamlining typed input, not voice.
@@ -84,7 +85,7 @@ This keeps the experience fluid and minimal while preserving safe reversibility.
 ---
 
 **66. Should MindTyper detect and adapt to keyboard layout (e.g. QWERTY, AZERTY)?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will automatically detect the user's keyboard layout during setup and adjust its correction model to match. This ensures typo detection and input interpretation are tailored to layout-specific quirks (e.g. AZERTY vs. QWERTY).
@@ -94,7 +95,7 @@ Users will also have the option to manually override or switch layouts in the se
 ---
 
 **67. Should MindTyper account for mobile vs desktop input differences?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will account for input differences between mobile and desktop platforms. While the initial focus is desktop, the correction model is designed to eventually adapt to mobile-specific input patterns, like thumb typing, higher typo frequency, and gesture-based input.
@@ -104,7 +105,7 @@ On mobile, the system will apply more aggressive denoising and typo correction, 
 ---
 
 **68. Should MindTyper correct emoji use, spelling, or placement?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper will not correct or modify emoji use in any way. Emojis are treated as intentional expressions, not errors. Even when misspelled or misused, they are left untouched in the current version.
@@ -114,7 +115,7 @@ Emoji correction or enhancement may be explored in future releases, but for now,
 ---
 
 **69. Should MindTyper treat numerals, dates, and times differently than regular words?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will treat numerals, dates, and times as special cases, but only intervene when clarity or consistency is at risk. If a user types something ambiguous (like "03/09/21"), the system may quietly standardize it based on local format settings or inferred context.
@@ -124,7 +125,7 @@ However, if the formatting is clear and intentional, MindTyper will leave it as-
 ---
 
 **70. Should MindTyper help convert shorthand or abbreviations (e.g. "asap" → "as soon as possible")?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper will preserve abbreviations and shorthand exactly as typed—no automatic expansion. These compact forms are part of tone, rhythm, and intent.
@@ -134,7 +135,7 @@ However, if a shorthand is misspelled—like "assap" instead of "asap"—MindTyp
 ---
 
 **71. Should MindTyper reformat numbers (e.g. "1000" → "1,000")?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will apply light, region-aware formatting to numbers when it clearly improves readability. For example, large numbers like "1000000" may be formatted as "1.000.000" or "1,000,000" depending on the user's locale, and phone numbers may get soft spacing to enhance clarity.
@@ -144,17 +145,17 @@ This formatting is subtle and non-intrusive—it does not alter meaning or struc
 ---
 
 **72. Should MindTyper adjust spacing after punctuation (e.g. "word. Next" → "word. Next")?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
-**Answer:** Yes—MindTyper will silently correct spacing around punctuation to keep text clean and readable. It removes unnecessary double spaces (e.g. "word.  Next") and adds missing spaces when punctuation is followed directly by another word (e.g. "word.Next" becomes "word. Next").
+**Answer:** Yes—MindTyper will silently correct spacing around punctuation to keep text clean and readable. It removes unnecessary double spaces (e.g. "word. Next") and adds missing spaces when punctuation is followed directly by another word (e.g. "word.Next" becomes "word. Next").
 
 However, if the user is writing in a stylistic format—like poetic lines or deliberately compact phrasing—the system respects those choices and avoids imposing standard spacing.
 
 ---
 
 **73. Should MindTyper normalize capitalization (e.g. fixing "i" to "I", "this Is" to "This is")?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper will normalize capitalization only when it aligns with the user's tone and intent. If the user is clearly writing in standard sentence case, the system will fix things like a lowercase "i" or inconsistent capitalization ("this Is" → "This is").
@@ -164,7 +165,7 @@ But if the user types intentionally in all lowercase—as part of a casual or st
 ---
 
 **74. Should MindTyper detect and fix homophones (e.g. "their" vs "there")?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will silently correct homophones like "their" vs "there" only when context makes the intended meaning unmistakably clear. If confidence is low or the sentence could reasonably support multiple meanings, the word is left unchanged.
@@ -174,7 +175,7 @@ This approach ensures that users aren't second-guessed, while still cleaning up 
 ---
 
 **75. Should MindTyper auto-correct contractions (e.g. "dont" → "don't")?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will silently correct contractions when the intent is clear and the fix improves clarity or flow. For example, "dont" becomes "don't" automatically when used in a sentence like "I dont know."
@@ -186,7 +187,7 @@ The goal is to reduce friction for users who make fast or casual errors, without
 ---
 
 **76. Should MindTyper preserve or clean up slang and internet-speak (e.g. "lol," "gonna," "idk")?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper will preserve slang and internet-speak like "lol," "gonna," or "idk" when it's clearly part of the user's tone. These expressions are part of how people communicate and reflect individual style and context.
@@ -198,7 +199,7 @@ The default is to let it flow naturally, without overcorrecting.
 ---
 
 **77. Should MindTyper correct repetitive filler phrases (e.g. "you know," "like") if they clutter the message?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper will preserve filler words and phrases like "you know," "like," or "I mean" when they contribute to the user's tone or rhythm. These elements are part of natural, expressive writing—especially in casual or conversational settings.
@@ -210,7 +211,7 @@ The guiding principle is: clarity without erasing personality.
 ---
 
 **78. Should MindTyper support auto-expanding acronyms (e.g. "NASA" → "National Aeronautics and Space Administration")?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** No—MindTyper will not auto-expand acronyms. Acronyms like "NASA" or "ETA" will be preserved as typed. These are often deliberate, widely understood, and part of the user's communication style.
@@ -220,7 +221,7 @@ Expanding them would risk disrupting tone or clarity, especially in fast-paced o
 ---
 
 **79. Should MindTyper adapt formatting (e.g. bullet points, numbered lists) based on writing context?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper will gently adapt formatting like bullet points or numbered lists only when the structure is clearly intentional—such as consistent use of dashes, numbers, or line breaks. When it sees a reliable pattern, it may apply light formatting to improve clarity.
@@ -230,7 +231,7 @@ However, if the user's input is informal, fragmented, or creatively styled, Mind
 ---
 
 **80. Should MindTyper adjust formatting when users paste text from elsewhere?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** When users paste content, MindTyper will leave the words completely untouched. It may do light formatting cleanup—like trimming extra spaces or normalizing indentation—but it will not alter the text itself.
@@ -242,7 +243,7 @@ The guiding rule: clean the mess, never the meaning.
 ---
 
 **81. Should MindTyper preserve line breaks, spacing, and paragraph structure exactly as typed?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** MindTyper will preserve all user-added line breaks, spacing, and paragraph structure unless there's clear evidence of accidental formatting. The way a user structures their writing—through rhythm, flow, or visual layout—is part of their voice and should be respected.
@@ -252,7 +253,7 @@ Light adjustments may occur to fix things like multiple empty lines or trailing 
 ---
 
 **82. Should MindTyper detect when a user is writing in code or markup (like HTML) and handle it differently?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will detect when users are typing or pasting code or markup and will pause all corrections in those areas. Code is treated as literal input, and MindTyper will not interfere with formatting, spelling, punctuation, or structure.
@@ -262,7 +263,7 @@ This ensures that technical content stays intact and error-free, without acciden
 ---
 
 **83. Should MindTyper recognize email or URL patterns and treat them differently (e.g. avoid changing punctuation or spacing within them)?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will recognize email addresses, URLs, and other structured patterns and will not correct or modify them in any way. These elements require perfect accuracy, and even tiny changes to punctuation or spacing could break them or confuse the user.
@@ -272,7 +273,7 @@ MindTyper treats these as non-editable blocks—they are preserved exactly as ty
 ---
 
 **84. Should MindTyper treat hashtags, mentions (@name), and handles differently in correction or formatting?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will treat hashtags, mentions, and handles as literal elements and leave them completely untouched. These follow strict platform formatting rules, and any corrections—like altering capitalization or spacing—could break their meaning or functionality.
@@ -282,7 +283,7 @@ MindTyper recognizes them and preserves them exactly as typed.
 ---
 
 **85. Should MindTyper adapt its behavior based on the app or context it's running in (e.g. email vs chat vs doc editor)?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will lightly adapt its behavior based on context, like being more precise and polished in emails or documents, and more relaxed and casual in messaging apps or chats. But this adaptation is never rigid or automatic—it's always guided by the user's actual tone and intent.
@@ -292,7 +293,7 @@ The app context is just a soft signal, not a rule. The user's voice stays in con
 ---
 
 **86. Should MindTyper let users override contextual behavior (e.g. force "formal mode" even in chat apps)?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** No—MindTyper will not offer a manual override like "formal mode." Instead, it focuses on enhancing the user's natural tone, wherever they're typing. The goal isn't to force a specific style, but to tidy and refine what the user already intends.
@@ -302,7 +303,7 @@ MindTyper adapts subtly based on context and content, but never imposes a writin
 ---
 
 **87. Should MindTyper adapt to user behavior over time (e.g. learn their tone and pacing)?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—MindTyper will adapt gradually to each user's tone, pacing, and stylistic habits over time. It builds a lightweight, evolving model that learns from how users naturally write—without locking them into one style.
@@ -312,7 +313,7 @@ This allows corrections to feel more personal, fluid, and aligned with how the u
 ---
 
 **88. Should users be able to reset their personal tone model and start fresh if needed?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 **Answer:** Yes—users should be able to reset their personal tone model at any time, but this option will live quietly in the settings, not as a prominent control. Most users won't need to think about it, but it's there if someone wants a fresh start.
@@ -321,10 +322,10 @@ MindTyper will also tie personalization to each user account, so multiple users 
 
 ---
 
- - Clarifier 5.6.a — Undo Grouping Granularity
-   - Grouping: one atomic rewrite per word or punctuation boundary.
-   - Exceptions: combined corrections across adjacent tokens are applied as a single group when executed within the same debounce window (≤ 12 ms).
-   - Caret & ⌘Z: groups are committed to the host app’s native undo stack; a single ⌘Z reverts the entire MindTyper edit group without moving the caret unexpectedly. ⌘⇧Z reapplies the same group in one step.
+- Clarifier 5.6.a — Undo Grouping Granularity
+  - Grouping: one atomic rewrite per word or punctuation boundary.
+  - Exceptions: combined corrections across adjacent tokens are applied as a single group when executed within the same debounce window (≤ 12 ms).
+  - Caret & ⌘Z: groups are committed to the host app’s native undo stack; a single ⌘Z reverts the entire MindTyper edit group without moving the caret unexpectedly. ⌘⇧Z reapplies the same group in one step.
 
 ---
 

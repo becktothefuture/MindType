@@ -1,4 +1,5 @@
 # Launch Strategy & Success Metrics
+
 _MindTyper Deep-Dive Questionnaire — Section 13 of 13_
 
 **Progress: 8/8 questions (100%)**
@@ -8,7 +9,7 @@ This section defines MindTyper's launch strategy, success metrics, and post-laun
 ---
 
 **200. Launch Sequence & Milestones?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Alpha (2–3 weeks): 50 users (writers/knowledge workers). Goals: install success ≥ 95%, first suggestion within 2 min for ≥ 90%.
@@ -20,7 +21,7 @@ This section defines MindTyper's launch strategy, success metrics, and post-laun
 ---
 
 **201. Launch Success Criteria?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Week 1: 1K installs, activation ≥ 70% (first suggestion applied), p95 latency on device within target, crash‑free ≥ 99.5%.
@@ -31,7 +32,7 @@ This section defines MindTyper's launch strategy, success metrics, and post-laun
 ---
 
 **202. User Onboarding & First Experience?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - 90‑second guided setup: permissions, quick demo, privacy reminder (“input never leaves device”).
@@ -42,7 +43,7 @@ This section defines MindTyper's launch strategy, success metrics, and post-laun
 ---
 
 **203. Performance Monitoring & Optimization?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Real‑time: opt‑in, content‑free telemetry of latency histograms, CPU/RAM envelopes, crash reports.
@@ -53,7 +54,7 @@ This section defines MindTyper's launch strategy, success metrics, and post-laun
 ---
 
 **204. Feedback Collection & Iteration?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Channels: in‑app feedback sheet, support email, lightweight community forum, occasional 15‑min user calls.
@@ -64,7 +65,7 @@ This section defines MindTyper's launch strategy, success metrics, and post-laun
 ---
 
 **205. Growth Strategy & Optimization?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Product‑led: superior latency, privacy stance, and system‑wide coverage drive word‑of‑mouth.
@@ -75,7 +76,7 @@ This section defines MindTyper's launch strategy, success metrics, and post-laun
 ---
 
 **206. Long-term Vision & Roadmap?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Year 1: macOS excellence; language packs; personalization polish; accessibility and design refinement.
@@ -86,7 +87,7 @@ This section defines MindTyper's launch strategy, success metrics, and post-laun
 ---
 
 **207. Risk Mitigation & Contingency Planning?**
-*Primer: Clarifies this decision and why it matters.*
+_Primer: Clarifies this decision and why it matters._
 → Your answer:
 
 - Competitive response: hold niche (noise→clean text, on‑device); focus on feel/latency/design; ship fast via flags.
@@ -96,24 +97,24 @@ This section defines MindTyper's launch strategy, success metrics, and post-laun
 
 ---
 
- - Clarifier 13.4.a — Product Hunt Launch Checklist
-   - Assets: hero video (before/after typing), 5–7 screenshots (light/dark), GIF of Caps‑Lock modal, privacy one‑pager.
-   - Listing: clear tagline, concise maker’s comment, feature bullets, pricing card, FAQ (privacy, latency, offline).
-   - Timing: launch early Tue/Wed; prepare day‑of schedule (founder replies, maker’s update at +6h, thank‑you at +20h).
-   - Prep: press kit link, support coverage for 48h, track questions; no growth hacks.
+- Clarifier 13.4.a — Product Hunt Launch Checklist
+  - Assets: hero video (before/after typing), 5–7 screenshots (light/dark), GIF of Caps‑Lock modal, privacy one‑pager.
+  - Listing: clear tagline, concise maker’s comment, feature bullets, pricing card, FAQ (privacy, latency, offline).
+  - Timing: launch early Tue/Wed; prepare day‑of schedule (founder replies, maker’s update at +6h, thank‑you at +20h).
+  - Prep: press kit link, support coverage for 48h, track questions; no growth hacks.
 
- - Clarifier 13.4.b — Named Outreach List (macOS / writing / privacy)
-   - MacStories (Federico Viticci, John Voorhees) — on‑device privacy + typing flow.
-   - 9to5Mac (Chance Miller) — system‑wide typing utility; ANE/Core ML angle.
-   - Six Colors (Jason Snell) — writing workflow; latency/feel case study.
-   - The Sweet Setup (Shawn Blanc, Josh Ginter) — writing productivity.
-   - Mac Power Users (David Sparks, Stephen Hackett) — workflow + privacy stance.
-   - Setapp Blog — macOS utilities; system integration story.
-   - Daring Fireball (John Gruber) — succinct note on on‑device architecture and taste.
-   - The Verge (Casey Newton/Platformer mention) — privacy‑first productivity tool.
-   - Privacy Guides / PrivacyTools — zero‑content telemetry, local processing.
-   - Indie Hackers Launch post — builder’s story; performance numbers.
-   - YouTube creators: The Sweet Setup, Snazzy Labs (selective) — short demo clips.
+- Clarifier 13.4.b — Named Outreach List (macOS / writing / privacy)
+  - MacStories (Federico Viticci, John Voorhees) — on‑device privacy + typing flow.
+  - 9to5Mac (Chance Miller) — system‑wide typing utility; ANE/Core ML angle.
+  - Six Colors (Jason Snell) — writing workflow; latency/feel case study.
+  - The Sweet Setup (Shawn Blanc, Josh Ginter) — writing productivity.
+  - Mac Power Users (David Sparks, Stephen Hackett) — workflow + privacy stance.
+  - Setapp Blog — macOS utilities; system integration story.
+  - Daring Fireball (John Gruber) — succinct note on on‑device architecture and taste.
+  - The Verge (Casey Newton/Platformer mention) — privacy‑first productivity tool.
+  - Privacy Guides / PrivacyTools — zero‑content telemetry, local processing.
+  - Indie Hackers Launch post — builder’s story; performance numbers.
+  - YouTube creators: The Sweet Setup, Snazzy Labs (selective) — short demo clips.
 
 **Navigation:**
 [← Design System](12_design_system.md) | [Back to Index](index.md)

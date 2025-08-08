@@ -1,0 +1,26 @@
+---
+alwaysApply: true
+---
+
+# Generation Structure Rules
+
+This file contains the generation structure and patterns for the MindTyper project.
+
+## Code Generation Patterns
+
+### File Structure
+- Use TypeScript for all core logic
+- Follow modular architecture principles
+- Maintain separation of concerns
+
+### Naming Conventions
+- Use camelCase for variables and functions
+- Use PascalCase for classes and interfaces
+- Use kebab-case for file names
+
+### Documentation
+- Include JSDoc comments for all public APIs
+- Maintain comprehensive README files
+- Update relevant documentation with changes# Generation Structure Rules
+
+This file contains the generation structure and patterns for the MindTyper project.

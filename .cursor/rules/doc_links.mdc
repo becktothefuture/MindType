@@ -7,6 +7,7 @@ Links to critical files by name for Cursor memory and quick reference.
 
 ## Core Documentation
 - [Implementation Tasks](docs/implementation.md)
+- [PRD](docs/PRD.md)
 - [Project Structure](docs/project_structure.md)
 - [Glossary](context/glossary.md)
 - [Project Overview](context/project_overview.md)
@@ -18,6 +19,11 @@ Links to critical files by name for Cursor memory and quick reference.
 - [UI Components](ui/)
 - [Utilities](utils/)
 - [Tests](tests/)
+ - [Architecture](docs/architecture/)
+ - [ADRs](docs/adr/)
+ - [Acceptance (BDD)](docs/qa/acceptance/)
+ - [Guides](docs/guide/)
+ - [Accessibility](docs/a11y/)
 
 ## Entry Point
 - [Main Index](index.ts)# Critical File Links
