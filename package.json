@@ -12,6 +12,7 @@
     "dev": "vitest watch"
   },
   "devDependencies": {
+    "@types/node": "^24.2.1",
     "@typescript-eslint/eslint-plugin": "^8.4.0",
     "@typescript-eslint/parser": "^8.4.0",
     "eslint": "^9.9.0",

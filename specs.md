@@ -38,9 +38,9 @@ All diagrams & API contracts live in `docs/` and reference sections below.
 ────────────────────────────────────────
 Stage | Detail | Source File
 ---|---|---
-Pause detection | `PauseTimer` (configurable idle_ms) | `src/pause_timer.rs`
+Pause detection | `PauseTimer` (configurable idle*ms) | `src/pause_timer.rs`
 Fragment extraction | Unicode-aware (`.?!。
-` + _Sentence_Terminal_ class); bidi-safe | `src/fragment.rs`
+` + \_Sentence_Terminal* class); bidi-safe | `src/fragment.rs`
 LLM call | Streaming GPT-3.5 or local Core ML via FFI | `src/llm.rs`
 Diff & merge | Incremental diff every ≤4 tokens; idempotent batches | `src/merge.rs`
 Injection | Platform-specific (bindings layer) | —
