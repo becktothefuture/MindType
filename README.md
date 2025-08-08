@@ -100,13 +100,13 @@ MindTyper/
 
 ### engines/
 
-- `engines/tidySweep.ts`: Forward pass that proposes minimal diffs behind the CARET within an `MAX_SWEEP_WINDOW` window.
-- `engines/backfillConsistency.ts`: Reverse pass that proposes consistency diffs in the stable zone when idle.
+- `engines/tidySweep.ts`: Forward pass that proposes minimal diffs behind the CARET within a `MAX_SWEEP_WINDOW` window (stub returns no diff until rules land).
+- `engines/backfillConsistency.ts`: Reverse pass that proposes consistency diffs in the stable zone when idle (stub returns empty array).
 
 ### ui/
 
-- `ui/highlighter.ts`: Visualizes recent changes near the CARET; honours reduced-motion.
-- `ui/groupUndo.ts`: Batches engine diffs so each sweep collapses into a single undo step.
+- `ui/highlighter.ts`: Visualizes recent changes near the CARET; intended to honor reduced-motion.
+- `ui/groupUndo.ts`: Intended to batch engine diffs so each sweep collapses into a single undo step (current stub returns input).
 
 ### utils/
 
@@ -161,7 +161,7 @@ MindTyper/
 
 - `workflow.mdc`: Cursor execution rules (PLAN_ONLY/EXECUTE/LIB_TOUCH, gates, commit style).
 - `generate.mdc`: Structure/naming/documentation conventions for generated code.
-- `glossary.mdc`: Quick terms referencing `context/glossary.md`.
+- `glossary.mdc`: Quick terms reference.
 - `comment_style.mdc`: Boxed comment style (WHAT/WHY/HOW) used across the repo.
 
 ### Root files
@@ -185,8 +185,8 @@ MindTyper/
 ## Task Board & Docs
 
 - Tasks: `docs/implementation.md` (first unchecked drives work in Cursor)
-- System rules: `.cursor/rules/workflow.mdc`
-- Glossary: `.cursor/rules/glossary.mdc` and `context/glossary.md`
+- System rules: `.cursor/rules/workflow.mdc`, `.cursor/rules/comment_style.mdc`, `.cursor/rules/generate.mdc`
+- Glossary: `.cursor/rules/glossary.mdc`
 
 ## License
 
