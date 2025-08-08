@@ -1,6 +1,6 @@
 <!--══════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════╗
-  ║  ░  P U L L   R E Q U E S T   T E M P L A T E  ░░░░  ║
+  ║  ░  A 1 1 Y  —  W C A G   2 . 2   A A  ░░░░░░░░░░░░  ║
   ║                                                      ║
   ║                                                      ║
   ║                                                      ║
@@ -11,22 +11,15 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ PR checklist
-    • WHY  ▸ Enforce gates & conventions
-    • HOW  ▸ Fill and submit with CC + [FT-ID]
+    • WHAT ▸ Accessibility checklist (WCAG 2.2 AA)
+    • WHY  ▸ Bake inclusion into requirements
+    • HOW  ▸ Verify before each release
 -->
 
-# Pull Request
+- Motion: honors `prefers-reduced-motion`; no essential info via motion.
+- Contrast: AA minimum for UI surfaces; AAA for body text where possible.
+- Screen readers: announce applied changes succinctly; labeled controls.
+- Keyboard: full keyboard operation; focus visible.
+- Cognitive: predictable outcomes; no surprise dialogs; clear copy.
 
-## Summary
 
-Describe the change.
-
-## Checklist
-
-- [ ] Conventional Commit message used
-- [ ] Code + tests updated
-- [ ] Typecheck/lint/format/test gates pass (pnpm typecheck | lint | format:check | test)
-- [ ] Docs updated (PRD/ADR/Guides where relevant)
-- [ ] Accessibility considered (reduced motion, SR announces)
-- [ ] No edits at/after caret; diffs grouped for undo

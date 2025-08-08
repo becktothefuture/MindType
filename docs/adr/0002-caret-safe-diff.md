@@ -1,6 +1,6 @@
 <!--══════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════╗
-  ║  ░  P U L L   R E Q U E S T   T E M P L A T E  ░░░░  ║
+  ║  ░  A D R  —  C A R E T - S A F E   D I F F  ░░░░░░  ║
   ║                                                      ║
   ║                                                      ║
   ║                                                      ║
@@ -11,22 +11,28 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ PR checklist
-    • WHY  ▸ Enforce gates & conventions
-    • HOW  ▸ Fill and submit with CC + [FT-ID]
+    • WHAT ▸ Never apply edits at/after the CARET
+    • WHY  ▸ Avoid user surprise; maintain trust & flow
+    • HOW  ▸ Guardrails in `utils/diff.ts`, engine checks
 -->
 
-# Pull Request
+Context
+Users must never see unexpected forward edits; IME/secure fields require
+strict boundaries.
 
-## Summary
+Decision
+All diffs MUST satisfy `end <= caret`. Engines MUST reject proposals that
+cross the caret. (PRD: REQ-IME-CARETSAFE)
 
-Describe the change.
+Consequences
+- Simpler mental model; robust undo integration.
+- Limits certain ahead‑of‑caret fixes; acceptable for trust.
 
-## Checklist
+Alternatives
+- Allow ahead edits with preview/confirm — rejected for flow/latency.
 
-- [ ] Conventional Commit message used
-- [ ] Code + tests updated
-- [ ] Typecheck/lint/format/test gates pass (pnpm typecheck | lint | format:check | test)
-- [ ] Docs updated (PRD/ADR/Guides where relevant)
-- [ ] Accessibility considered (reduced motion, SR announces)
-- [ ] No edits at/after caret; diffs grouped for undo
+Links
+- Code: `utils/diff.ts`, `engines/tidySweep.ts`
+- Tests: `tests/diff.spec.ts`, `tests/tidySweep.spec.ts`
+
+

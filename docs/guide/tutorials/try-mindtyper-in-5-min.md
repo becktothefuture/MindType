@@ -1,6 +1,6 @@
 <!--══════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════╗
-  ║  ░  P U L L   R E Q U E S T   T E M P L A T E  ░░░░  ║
+  ║  ░  T U T O R I A L  —  5 - M I N   D E M O  ░░░░░░  ║
   ║                                                      ║
   ║                                                      ║
   ║                                                      ║
@@ -11,22 +11,14 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ PR checklist
-    • WHY  ▸ Enforce gates & conventions
-    • HOW  ▸ Fill and submit with CC + [FT-ID]
+    • WHAT ▸ Try MindTyper via web demo
+    • WHY  ▸ Experience the first “aha” in minutes
+    • HOW  ▸ Use `web-demo/` with local engine stubs
 -->
 
-# Pull Request
+Steps
+1) `pnpm --filter web-demo i && pnpm --filter web-demo dev`
+2) Open the dev URL; type fast; observe gentle cleanup.
+3) Toggle reduced motion in OS to see motion compliance.
 
-## Summary
 
-Describe the change.
-
-## Checklist
-
-- [ ] Conventional Commit message used
-- [ ] Code + tests updated
-- [ ] Typecheck/lint/format/test gates pass (pnpm typecheck | lint | format:check | test)
-- [ ] Docs updated (PRD/ADR/Guides where relevant)
-- [ ] Accessibility considered (reduced motion, SR announces)
-- [ ] No edits at/after caret; diffs grouped for undo

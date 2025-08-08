@@ -1,6 +1,6 @@
 <!--══════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════╗
-  ║  ░  P U L L   R E Q U E S T   T E M P L A T E  ░░░░  ║
+  ║  ░  A D R   I N D E X  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
   ║                                                      ║
   ║                                                      ║
   ║                                                      ║
@@ -11,22 +11,12 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ PR checklist
-    • WHY  ▸ Enforce gates & conventions
-    • HOW  ▸ Fill and submit with CC + [FT-ID]
+    • WHAT ▸ Architectural decision records
+    • WHY  ▸ Capture consequential choices
+    • HOW  ▸ Short, linked to code and PRD REQs
 -->
 
-# Pull Request
+- 0001-template.md — ADR template
+- 0002-caret-safe-diff.md — Never cross caret in diffs (REQ-IME-CARETSAFE)
 
-## Summary
 
-Describe the change.
-
-## Checklist
-
-- [ ] Conventional Commit message used
-- [ ] Code + tests updated
-- [ ] Typecheck/lint/format/test gates pass (pnpm typecheck | lint | format:check | test)
-- [ ] Docs updated (PRD/ADR/Guides where relevant)
-- [ ] Accessibility considered (reduced motion, SR announces)
-- [ ] No edits at/after caret; diffs grouped for undo

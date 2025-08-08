@@ -1,4 +1,10 @@
 {
+  "singleQuote": true,
+  "semi": true,
+  "printWidth": 88,
+  "trailingComma": "all"
+}
+{
   "$schema": "https://json.schemastore.org/prettierrc",
   "printWidth": 90,
   "singleQuote": true,

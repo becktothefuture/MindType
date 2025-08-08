@@ -1,6 +1,6 @@
 <!--══════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════╗
-  ║  ░  P U L L   R E Q U E S T   T E M P L A T E  ░░░░  ║
+  ║  ░  C 1   —   S Y S T E M   C O N T E X T  ░░░░░░░░░  ║
   ║                                                      ║
   ║                                                      ║
   ║                                                      ║
@@ -11,22 +11,16 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ PR checklist
-    • WHY  ▸ Enforce gates & conventions
-    • HOW  ▸ Fill and submit with CC + [FT-ID]
+    • WHAT ▸ MindTyper context, users, externals
+    • WHY  ▸ Shared view for stakeholders
+    • HOW  ▸ Links to containers/components
 -->
 
-# Pull Request
+MindTyper sits between user keystrokes and apps via macOS Accessibility
+APIs. It processes text locally using a Rust/WASM core and optional
+on‑device ML (Core ML). No input content leaves device.
 
-## Summary
+Externals: Host Apps (Docs, Mail, Editors), macOS Accessibility, Core ML,
+Keychain/SQLite (local settings), optional licensing/sync (no content).
 
-Describe the change.
 
-## Checklist
-
-- [ ] Conventional Commit message used
-- [ ] Code + tests updated
-- [ ] Typecheck/lint/format/test gates pass (pnpm typecheck | lint | format:check | test)
-- [ ] Docs updated (PRD/ADR/Guides where relevant)
-- [ ] Accessibility considered (reduced motion, SR announces)
-- [ ] No edits at/after caret; diffs grouped for undo

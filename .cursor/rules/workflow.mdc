@@ -11,7 +11,7 @@
 ## 0) Preload & Tools
 - Always load `.cursor/rules/comment_style.mdc` and apply its header to any new/edited file.
 - Register MCP **Context7** and use it whenever code touches an external library (fetch version-correct docs before coding).
-- Pin a specific **Context7 MCP** version in your config to avoid breaking changes.
+- Use `@latest` for **Context7 MCP** and include LIB_TOUCH notes in commits.
 
 ```json
 {

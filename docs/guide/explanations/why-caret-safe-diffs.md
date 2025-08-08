@@ -1,6 +1,6 @@
 <!--══════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════╗
-  ║  ░  P U L L   R E Q U E S T   T E M P L A T E  ░░░░  ║
+  ║  ░  E X P L A I N E R  —  C A R E T - S A F E  ░░░░  ║
   ║                                                      ║
   ║                                                      ║
   ║                                                      ║
@@ -11,22 +11,13 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ PR checklist
-    • WHY  ▸ Enforce gates & conventions
-    • HOW  ▸ Fill and submit with CC + [FT-ID]
+    • WHAT ▸ Rationale for never editing ahead of caret
+    • WHY  ▸ Trust, predictability, and undo integration
+    • HOW  ▸ Engine + utils enforce guardrails
 -->
 
-# Pull Request
+Editing ahead of the caret surprises users and breaks trust. By limiting
+edits to behind the caret, we keep ⌘Z atomic, avoid cursor jumps, and
+align with IME/secure field constraints.
 
-## Summary
 
-Describe the change.
-
-## Checklist
-
-- [ ] Conventional Commit message used
-- [ ] Code + tests updated
-- [ ] Typecheck/lint/format/test gates pass (pnpm typecheck | lint | format:check | test)
-- [ ] Docs updated (PRD/ADR/Guides where relevant)
-- [ ] Accessibility considered (reduced motion, SR announces)
-- [ ] No edits at/after caret; diffs grouped for undo

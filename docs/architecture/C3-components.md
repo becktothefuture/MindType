@@ -1,6 +1,6 @@
 <!--══════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════╗
-  ║  ░  P U L L   R E Q U E S T   T E M P L A T E  ░░░░  ║
+  ║  ░  C 3   —   C O M P O N E N T S  ░░░░░░░░░░░░░░░░░  ║
   ║                                                      ║
   ║                                                      ║
   ║                                                      ║
@@ -11,22 +11,19 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ PR checklist
-    • WHY  ▸ Enforce gates & conventions
-    • HOW  ▸ Fill and submit with CC + [FT-ID]
+    • WHAT ▸ Key components with responsibilities
+    • WHY  ▸ Map PRD REQs to code units
+    • HOW  ▸ Keep short; link files
 -->
 
-# Pull Request
+- TypingMonitor (`core/typingMonitor.ts`): emits keystream events.
+- SweepScheduler (`core/sweepScheduler.ts`): orchestrates passes.
+- TidySweep (`engines/tidySweep.ts`): proposes minimal, caret‑safe diffs.
+  - REQ-TIDY-SWEEP, REQ-IME-CARETSAFE
+- BackfillConsistency (`engines/backfillConsistency.ts`): stable‑zone passes.
+- Diff (`utils/diff.ts`): replaceRange with caret safety. REQ-IME-CARETSAFE
+- Highlighter (`ui/highlighter.ts`): 2‑word behind highlight.
+  - REQ-A11Y-MOTION
+- GroupUndo (`ui/groupUndo.ts`): group atomic edits per sweep.
 
-## Summary
 
-Describe the change.
-
-## Checklist
-
-- [ ] Conventional Commit message used
-- [ ] Code + tests updated
-- [ ] Typecheck/lint/format/test gates pass (pnpm typecheck | lint | format:check | test)
-- [ ] Docs updated (PRD/ADR/Guides where relevant)
-- [ ] Accessibility considered (reduced motion, SR announces)
-- [ ] No edits at/after caret; diffs grouped for undo

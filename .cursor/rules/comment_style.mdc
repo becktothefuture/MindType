@@ -76,3 +76,5 @@ alwaysApply: true
 #    ⟢ Guard: skip sweep if pause < SHORT_PAUSE_MS
 #
 #  END OF GUIDE ────────────────────────────────────────────────────────────
+ #  LIB_TOUCH Example:
+ #    use context7: {"@upstash/context7-mcp@latest", topics: ["eslint flat config", "vitest coverage reporter"]}

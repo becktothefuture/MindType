@@ -7,7 +7,7 @@
     "rootDir": ".",
     "outDir": "dist",
     "lib": ["ES2024"],
-    "types": ["node"],
+    "types": ["node", "vitest/globals"],
     "skipLibCheck": true,
     "typeRoots": ["./node_modules/@types"]
   },

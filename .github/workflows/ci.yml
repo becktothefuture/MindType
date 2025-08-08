@@ -1,4 +1,4 @@
-name: MindType CI
+name: MindTyper CI
 
 on:
   push:
@@ -16,18 +16,20 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
+      - run: npm install -g pnpm
+      - run: pnpm install --frozen-lockfile
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           components: clippy, rustfmt
-      - run: npm install -g pnpm
-      - run: pnpm install --frozen-lockfile
       - name: Rust Format
         run: cargo fmt -- --check
       - name: Clippy
         run: cargo clippy -- -D warnings
-      - name: Eslint
-        run: pnpm --prefix web-demo lint
+      - name: TypeScript Lint
+        run: pnpm lint
+      - name: Prettier format check
+        run: pnpm format:check
 
   test:
     name: Test
@@ -46,8 +48,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Run Rust tests
         run: cargo test --workspace
-      - name: Run web-demo tests
-        run: pnpm --prefix web-demo test
+      - name: Run unit tests
+        run: pnpm test
       - name: Run e2e tests
         run: pnpm --prefix e2e test
 
@@ -68,5 +70,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Build WASM
         run: wasm-pack build crates/core-rs --target web --out-dir bindings/wasm/pkg
-      - name: Build web-demo
-        run: pnpm --prefix web-demo build
+      - name: Typecheck project
+        run: pnpm typecheck

@@ -35,6 +35,8 @@
 - Development Workflow & Quality Gates
 - Project Structure (tree)
 - Directory and File Guide (every source file)
+- Deep Directory Guide (purpose, responsibilities, when to change, contracts)
+- Contracts (what this means)
 - Cross-Module Data Flow
 - Task Board & Docs
 - License
@@ -174,6 +176,108 @@ MindTyper/
 - `specs.md`: Product and technical specification notes.
 - `Cargo.toml`, `Cargo.lock`: Rust workspace metadata.
 - `pnpm-lock.yaml`: Node dependency lockfile.
+
+## Deep Directory Guide
+
+### config/
+- **purpose**: Centralizes timing/windows so engines and UI behave consistently.
+- **responsibilities**: Own `SHORT_PAUSE_MS`, `LONG_PAUSE_MS`, `MAX_SWEEP_WINDOW` consumed by `core/` and `engines/`.
+- **when to change**: Tuning feel/latency, A/B variants, environment-specific presets.
+- **contracts**:
+  - Names and units are stable (milliseconds, characters).
+  - Read-only from consumers; do not mutate at runtime.
+
+### core/
+- **purpose**: Orchestration glue: subscribe to typing, debounce, trigger sweeps.
+- **responsibilities**: Emit `TypingEvent` snapshots, schedule `tidySweep` and `backfillConsistency` after pauses.
+- **when to change**: Adjust debounce rules, add/remove sweep phases, connect monitors in hosts.
+- **contracts**:
+  - `TypingEvent` shape is `{ text, caret, atMs }`.
+  - Never trigger engines while keys are actively arriving; respect `SHORT_PAUSE_MS`.
+
+### engines/
+- **purpose**: Propose caret-safe diffs. Forward keeps the live zone clean; reverse polishes earlier text with more context.
+- **responsibilities**: Implement rules and return normalized diff shapes.
+- **when to change**: Add rule detectors (spelling, punctuation, name normalization), refine windows, integrate Rust/WASM helpers.
+- **contracts**:
+  - Tidy: returns `{ diff | null }` where `diff.start/end < caret`.
+  - Backfill: returns `{ diffs: Array<{ start; end; text }> }` strictly in the stable zone.
+  - Never edit at/after the caret; diffs are minimal and reversible.
+
+### utils/
+- **purpose**: Pure helpers that are environment-agnostic.
+- **responsibilities**: Range math, safe replace, future text utilities.
+- **when to change**: Improve diff operations or add pure helpers.
+- **contracts**:
+  - Throw on invalid ranges and caret violations.
+  - No I/O or global state; deterministic.
+
+### ui/
+- **purpose**: Visual affordances and undo grouping around accepted diffs.
+- **responsibilities**: Render highlights; group engine diffs into one undo step per sweep.
+- **when to change**: Modify highlight behavior, reduced-motion support, or host undo semantics.
+- **contracts**:
+  - Consumes ranges/diffs; does not compute business rules.
+  - Platform-specific effects stay here (DOM/Accessibility).
+
+### tests/
+- **purpose**: Guardrails for caret safety, diff shapes, and evolving rules.
+- **responsibilities**: Unit tests for engines and utils; baseline behavior.
+- **when to change**: Add new rule cases or invariants; extend edge coverage.
+- **contracts**:
+  - Runnable in Node (no DOM); keep tests fast and deterministic.
+
+### crates/core-rs/
+- **purpose**: Canonical core (pause timer, fragment extraction, merge, token streaming) compiled to WASM and linked via FFI.
+- **responsibilities**: Provide stable wasm-bindgen/FFI APIs; implement performant algorithms.
+- **when to change**: Algorithmic improvements, bindings, performance, platform features.
+- **contracts**:
+  - No UI concerns; streaming is cancellable; APIs remain minimal and versioned.
+
+### web-demo/
+- **purpose**: Vite/React playground to exercise the core with a debug panel.
+- **responsibilities**: Showcase typing → sweep → apply → highlight; expose knobs for thresholds.
+- **when to change**: Prototype UX, visualize telemetry, validate feel.
+- **contracts**:
+  - Isolated from core tests; consumes WASM package when available.
+
+### e2e/
+- **purpose**: Playwright flows spanning typing through visual feedback.
+- **responsibilities**: Scenario tests; smoke parity as features land.
+- **when to change**: Add user journeys and regression suites.
+- **contracts**:
+  - Separate package scope; do not affect core unit test config.
+
+### docs/
+- **purpose**: Ground truth for architecture, decisions, and active tasks.
+- **responsibilities**: Keep specs aligned with code; document contracts and flows.
+- **when to change**: Any cross-module change or new invariant.
+- **contracts**:
+  - Docs reflect shipped behavior; outdated sections are marked clearly.
+
+### root
+- **purpose**: Entry, tooling, and repo configs.
+- **responsibilities**: `index.ts` bootstrap, lint/test/tsconfig, `Justfile` recipes.
+- **when to change**: Update bootstrap API or dev ergonomics/CI.
+- **contracts**:
+  - Tooling stays consistent with workspace (ESLint v9 flat, Vitest scope, TS target).
+
+## Contracts (what this means)
+
+“Contracts” are the stable promises modules make to each other. They define shapes, timing, and safety rules that let teams change internals without breaking dependents.
+
+- **Shape contracts**: The exact TypeScript/Rust types exchanged.
+  - Example: `TypingEvent` is `{ text: string; caret: number; atMs: number }`.
+  - Example: Tidy returns `{ diff: { start; end; text } | null }`; Backfill returns `{ diffs: Array<{ start; end; text }> }`.
+- **Behavioral contracts**: Rules that must always hold.
+  - Example: Engines never edit at/after the caret; diffs are minimal and reversible in one undo step.
+  - Example: `sweepScheduler` only runs after `SHORT_PAUSE_MS` and cancels on new keystrokes.
+- **Performance contracts**: Bounds or expectations.
+  - Example: Tidy operates within `MAX_SWEEP_WINDOW` behind the caret to keep latency low.
+- **Platform contracts**: Separation of concerns.
+  - Example: Rust core exposes wasm/FFI APIs and stays UI-free; UI modules handle DOM/AX specifics.
+
+Keep these contracts visible in code (types, tests) and docs; if you change one, update both the tests and this section.
 
 ## Cross-Module Data Flow (high level)
 

@@ -5,10 +5,11 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "test": "vitest run",
+    "format:check": "prettier -c .",
+    "format:write": "prettier -w .",
+    "test": "vitest run --reporter=dot --coverage",
     "dev": "vitest watch"
   },
   "devDependencies": {
@@ -16,6 +17,7 @@
     "@typescript-eslint/eslint-plugin": "^8.4.0",
     "@typescript-eslint/parser": "^8.4.0",
     "eslint": "^9.9.0",
+    "eslint-plugin-prettier": "^5.2.1",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.3.3",
     "typescript": "^5.5.4",
