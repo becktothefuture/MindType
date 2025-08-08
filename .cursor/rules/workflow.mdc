@@ -1,0 +1,37 @@
+---
+alwaysApply: true
+---
+
+# Cursor Workflow Rules
+
+This file tells Cursor how to behave and what steps to follow when working on the MindTyper project.
+
+### Core Workflow
+
+1.  **Task Identification**: Start by reading `docs/implementation.md` to identify the next priority task.
+2.  **Context Review**: Before coding, consult:
+    *   `context/glossary.md` for domain-specific terminology.
+    *   `context/system_principles.md` for behavioral guidelines.
+    *   `docs/project_structure.md` for architectural patterns.
+3.  **File Setup**: Open or create the target file(s). Ensure the standard file header from `.cursor/rules/comment_style.mdc` is present.
+4.  **External Libraries**: If using an external library, use **Context7** to fetch documentation for the exact version specified in `package.json`.
+5.  **Implementation**: Generate code and corresponding tests.
+6.  **Self-Correction**: Review generated code against the guidelines in `context/system_principles.md`.
+7.  **Commit**: Commit changes with a message formatted as `[FT-ID] short summary`.
+
+### MCP Registration (Cursor understands this block)
+
+```json
+{
+  "mcpServers": [
+    { "name": "context7", "command": "npx", "args": ["-y", "@upstash/context7-mcp"] }
+  ]
+}
+```
+
+### General Behavior
+
+-   Prioritize user experience and performance.
+-   Maintain consistency with existing patterns.
+-   Document all significant changes.
+-   Test thoroughly before committing.

@@ -1,0 +1,23 @@
+---
+alwaysApply: true
+---
+# Critical File Links
+
+Links to critical files by name for Cursor memory and quick reference.
+
+## Core Documentation
+- [Implementation Tasks](docs/implementation.md)
+- [Project Structure](docs/project_structure.md)
+- [Glossary](context/glossary.md)
+- [Project Overview](context/project_overview.md)
+- [System Principles](context/system_principles.md)
+
+## Key Directories
+- [Core Logic](core/)
+- [Engines](engines/)
+- [UI Components](ui/)
+- [Utilities](utils/)
+- [Tests](tests/)
+
+## Entry Point
+- [Main Index](index.ts)# Critical File Links

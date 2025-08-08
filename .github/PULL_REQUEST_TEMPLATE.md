@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## Checklist
 - [ ] Unit tests pass (`just test-all`)
 - [ ] Lints pass (`cargo clippy`, `eslint`, `swiftlint`)
@@ -8,3 +9,12 @@
 
 ## Summary of changes
 <!-- high-level description --> 
+=======
+# Pull Request
+- [ ] Follows comment_style header
+- [ ] Tests updated/added
+- [ ] No caret edits; diffs only
+- [ ] References [FT-ID] if applicable
+
+**Summary**
+>>>>>>> 12fed98 ([DOCS] Fill incomplete questionnaire items, update index, normalize spacing)
