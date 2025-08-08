@@ -44,6 +44,7 @@
 ### Recommended reading
 
 - Product narrative: see `docs/mindtyper_manifesto.md` for the vision and feel.
+- Changelog: see `CHANGELOG.md` for release history.
 
 ## Overview
 
