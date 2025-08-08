@@ -22,10 +22,10 @@ export function replaceRange(
   caret: number,
 ): string {
   if (start < 0 || end < start || end > original.length) {
-    throw new Error('Invalid range');
+    throw new Error("Invalid range");
   }
   if (end > caret) {
-    throw new Error('Range crosses caret');
+    throw new Error("Range crosses caret");
   }
   return original.slice(0, start) + text + original.slice(end);
 }

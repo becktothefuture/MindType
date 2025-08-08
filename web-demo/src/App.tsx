@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import init, {
   WasmPauseTimer,
   init_logger,
@@ -6,9 +6,9 @@ import init, {
   WasmFragmentExtractor,
   WasmStubStream,
   WasmMerger,
-} from '@mindtype/core';
-import './App.css';
-import DebugPanel from './components/DebugPanel';
+} from "@mindtype/core";
+import "./App.css";
+import DebugPanel from "./components/DebugPanel";
 
 interface LogEntry {
   level: string;
@@ -18,7 +18,7 @@ interface LogEntry {
 
 function App() {
   const [text, setText] = useState(
-    'Hello there. Try typing a sentence and then pausing.',
+    "Hello there. Try typing a sentence and then pausing.",
   );
   const [idleMs, setIdleMs] = useState(1000);
   const [pauseTimer, setPauseTimer] = useState<WasmPauseTimer | null>(null);
@@ -33,7 +33,7 @@ function App() {
     async function loadWasm() {
       await init();
       init_logger();
-      console.log('WASM module initialized.');
+      console.log("WASM module initialized.");
       setWasmInitialized(true);
     }
     loadWasm();
@@ -60,14 +60,14 @@ function App() {
   useEffect(() => {
     async function runCorrection() {
       if (isPaused && wasmInitialized) {
-        console.log('Correction logic triggered.');
+        console.log("Correction logic triggered.");
         setIsThinking(true);
         const extractor = new WasmFragmentExtractor();
         const fragment = extractor.extract_fragment(text);
 
         if (fragment) {
           console.log(`Fragment found: "${fragment}"`);
-          const replacementText = 'This is a corrected sentence. ';
+          const replacementText = "This is a corrected sentence. ";
           let stream = new WasmStubStream(replacementText);
 
           // For simplicity, we replace the last fragment.
@@ -85,7 +85,7 @@ function App() {
             setText(merger.get_result());
           }
         } else {
-          console.log('No fragment found to correct.');
+          console.log("No fragment found to correct.");
         }
         // Reset pause state to prevent re-triggering
         setIsPaused(false);
@@ -109,13 +109,18 @@ function App() {
   // 6. Keyboard shortcut for debug panel
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.altKey && event.shiftKey && event.metaKey && event.key === 'l') {
+      if (
+        event.altKey &&
+        event.shiftKey &&
+        event.metaKey &&
+        event.key === "l"
+      ) {
         setShowDebugPanel((prev) => !prev);
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
@@ -132,17 +137,27 @@ function App() {
 
   return (
     <div className="App">
-      <button className="debug-toggle" onClick={() => setShowDebugPanel((p) => !p)}>
-        {showDebugPanel ? 'Hide' : 'Show'} Debug Panel (⌥⇧⌘L)
+      <button
+        className="debug-toggle"
+        onClick={() => setShowDebugPanel((p) => !p)}
+      >
+        {showDebugPanel ? "Hide" : "Show"} Debug Panel (⌥⇧⌘L)
       </button>
 
       <h1>MindType Web Demo</h1>
 
       <div className="card">
         <h2>Editor</h2>
-        <textarea value={text} onChange={handleTextChange} rows={10} cols={80} />
+        <textarea
+          value={text}
+          onChange={handleTextChange}
+          rows={10}
+          cols={80}
+        />
         <p>
-          <i>Pause for {idleMs}ms after a sentence to trigger the correction.</i>
+          <i>
+            Pause for {idleMs}ms after a sentence to trigger the correction.
+          </i>
         </p>
         {isThinking && <p className="thinking-indicator">Thinking...</p>}
       </div>

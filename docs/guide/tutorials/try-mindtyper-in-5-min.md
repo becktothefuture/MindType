@@ -17,8 +17,7 @@
 -->
 
 Steps
-1) `pnpm --filter web-demo i && pnpm --filter web-demo dev`
-2) Open the dev URL; type fast; observe gentle cleanup.
-3) Toggle reduced motion in OS to see motion compliance.
 
-
+1. `pnpm --filter web-demo i && pnpm --filter web-demo dev`
+2. Open the dev URL; type fast; observe gentle cleanup.
+3. Toggle reduced motion in OS to see motion compliance.

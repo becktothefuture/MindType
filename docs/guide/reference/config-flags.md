@@ -19,5 +19,3 @@
 - SWEEP_WINDOW_MAX: 80 chars behind CARET (tidy sweep).
 - HIGHLIGHT_FADE_MS: ≤ 250 ms; respects reduced motion.
 - DEBOUNCE_MS: 8–12 ms for keystrokes.
-
-

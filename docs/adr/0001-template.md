@@ -24,5 +24,3 @@ Decision
 Consequences
 Alternatives considered
 Links (PRD REQs, code paths)
-
-

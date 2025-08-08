@@ -133,16 +133,16 @@ Example default:
 ```json5
 {
   idleMs: 500,
-  backend: 'cloud', // cloud | local | auto
-  cloudEndpoint: 'https://api.openai.com/v1/chat/completions',
-  apiKeyEnv: 'OPENAI_API_KEY',
-  localModelPath: '~/Library/MindType/grammar.mlmodelc',
+  backend: "cloud", // cloud | local | auto
+  cloudEndpoint: "https://api.openai.com/v1/chat/completions",
+  apiKeyEnv: "OPENAI_API_KEY",
+  localModelPath: "~/Library/MindType/grammar.mlmodelc",
   temperature: 0.0,
   diffTokens: 4,
   minConfidence: 0.85,
   telemetry: true,
   retentionDays: 14,
-  logLevel: 'info',
+  logLevel: "info",
   flags: {
     disableSecureFields: true,
     showDebugPanel: false,

@@ -24,8 +24,7 @@
 - UI Shell: minimal visuals (`ui/`) honoring reduced motion.
 
 Contracts
+
 - REQ-IME-CARETSAFE: applies within Engine/Accessibility boundary.
 - REQ-TIDY-SWEEP: `engines/tidySweep.ts` public function contract.
 - REQ-A11Y-MOTION: `ui/highlighter.ts` honors motion prefs.
-
-

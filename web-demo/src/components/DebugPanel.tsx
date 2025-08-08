@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import './DebugPanel.css';
-import SettingsTab from './SettingsTab';
-import LogsTab from './LogsTab';
+import React, { useState } from "react";
+import "./DebugPanel.css";
+import SettingsTab from "./SettingsTab";
+import LogsTab from "./LogsTab";
 
-type Tab = 'Metrics' | 'Settings' | 'Inspector' | 'Logs';
+type Tab = "Metrics" | "Settings" | "Inspector" | "Logs";
 
 interface LogEntry {
   level: string;
@@ -17,18 +17,22 @@ interface DebugPanelProps {
   logs: LogEntry[];
 }
 
-const DebugPanel: React.FC<DebugPanelProps> = ({ idleMs, onIdleMsChange, logs }) => {
-  const [activeTab, setActiveTab] = useState<Tab>('Logs');
+const DebugPanel: React.FC<DebugPanelProps> = ({
+  idleMs,
+  onIdleMsChange,
+  logs,
+}) => {
+  const [activeTab, setActiveTab] = useState<Tab>("Logs");
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'Metrics':
+      case "Metrics":
         return <div>Metrics content will go here.</div>;
-      case 'Settings':
+      case "Settings":
         return <SettingsTab idleMs={idleMs} onIdleMsChange={onIdleMsChange} />;
-      case 'Inspector':
+      case "Inspector":
         return <div>Inspector content will go here.</div>;
-      case 'Logs':
+      case "Logs":
         return <LogsTab logs={logs} />;
       default:
         return null;
@@ -39,26 +43,26 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ idleMs, onIdleMsChange, logs })
     <div className="debug-panel">
       <div className="tabs">
         <button
-          onClick={() => setActiveTab('Metrics')}
-          className={activeTab === 'Metrics' ? 'active' : ''}
+          onClick={() => setActiveTab("Metrics")}
+          className={activeTab === "Metrics" ? "active" : ""}
         >
           Metrics
         </button>
         <button
-          onClick={() => setActiveTab('Settings')}
-          className={activeTab === 'Settings' ? 'active' : ''}
+          onClick={() => setActiveTab("Settings")}
+          className={activeTab === "Settings" ? "active" : ""}
         >
           Settings
         </button>
         <button
-          onClick={() => setActiveTab('Inspector')}
-          className={activeTab === 'Inspector' ? 'active' : ''}
+          onClick={() => setActiveTab("Inspector")}
+          className={activeTab === "Inspector" ? "active" : ""}
         >
           Inspector
         </button>
         <button
-          onClick={() => setActiveTab('Logs')}
-          className={activeTab === 'Logs' ? 'active' : ''}
+          onClick={() => setActiveTab("Logs")}
+          className={activeTab === "Logs" ? "active" : ""}
         >
           Logs
         </button>

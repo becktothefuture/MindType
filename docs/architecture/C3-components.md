@@ -25,5 +25,3 @@
 - Highlighter (`ui/highlighter.ts`): 2‑word behind highlight.
   - REQ-A11Y-MOTION
 - GroupUndo (`ui/groupUndo.ts`): group atomic edits per sweep.
-
-

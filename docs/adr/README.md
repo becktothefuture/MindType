@@ -18,5 +18,3 @@
 
 - 0001-template.md — ADR template
 - 0002-caret-safe-diff.md — Never cross caret in diffs (REQ-IME-CARETSAFE)
-
-

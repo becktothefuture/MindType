@@ -21,5 +21,3 @@
 - Screen readers: announce applied changes succinctly; labeled controls.
 - Keyboard: full keyboard operation; focus visible.
 - Cognitive: predictable outcomes; no surprise dialogs; clear copy.
-
-

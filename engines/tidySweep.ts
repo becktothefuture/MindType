@@ -22,7 +22,7 @@ export interface SweepResult {
   diff: { start: number; end: number; text: string } | null;
 }
 
-export function tidySweep(input: SweepInput): SweepResult {
+export function tidySweep(_input: SweepInput): SweepResult {
   /* ⟢ TODO: rule stubs; never cross the caret */
   return { diff: null };
 }

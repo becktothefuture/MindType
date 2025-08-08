@@ -17,8 +17,7 @@
 -->
 
 Checklist
+
 - Never cross CARET; operate ≤ 80 chars behind it.
 - Confidence gate; return null if unsure.
 - Add unit tests in `tests/tidySweep.spec.ts`.
-
-

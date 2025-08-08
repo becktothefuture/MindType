@@ -14,8 +14,8 @@
   • HOW  ▸ Imports core modules; returns handles for control
 */
 
-import { createTypingMonitor } from './core/typingMonitor';
-import { createSweepScheduler } from './core/sweepScheduler';
+import { createTypingMonitor } from "./core/typingMonitor";
+import { createSweepScheduler } from "./core/sweepScheduler";
 
 export function boot() {
   const monitor = createTypingMonitor();

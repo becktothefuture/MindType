@@ -19,5 +19,3 @@
 Editing ahead of the caret surprises users and breaks trust. By limiting
 edits to behind the caret, we keep ⌘Z atomic, avoid cursor jumps, and
 align with IME/secure field constraints.
-
-
