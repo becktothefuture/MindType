@@ -65,4 +65,4 @@ Further details on specific components can be found in the accompanying document
 
 This overview aims to answer **why** each component exists before diving into code. The shared pipeline enforces consistent behaviour, while individual modules stay small enough to be unit tested in isolation. Developers should be able to run the core on its own (node-based tests) or through the demo/mac front-ends without rewriting logic.
 
-The additional documents referenced in the main spec – including [core_details.md](core_details.md), [web_demo_details.md](web_demo_details.md) and [mac_app_details.md](mac_app_details.md) – provide step-by-step guidance on implementation choices.
+The additional documents referenced in the main spec – including [web_demo_details.md](web_demo_details.md) and [mac_app_details.md](mac_app_details.md) – provide step-by-step guidance on implementation choices.

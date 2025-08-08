@@ -125,7 +125,7 @@ MindTyper/
 - Core guides:
   - `docs/architecture_overview.md`: Topology and major components.
   - `docs/code_overview_simple.md`: Intro to code layout.
-  - `docs/core_details.md`, `docs/core_rust_details.md`: Deeper core/Rust insights.
+  - `docs/core_rust_details.md`: Deeper Rust core insights.
   - `docs/developer_tasks.md`: Task conventions.
   - `docs/implementation.md`: Live task board (used by workflow).
   - `docs/mac_app_details.md`: macOS app build notes.
