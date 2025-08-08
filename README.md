@@ -41,6 +41,10 @@
 - Task Board & Docs
 - License
 
+### Recommended reading
+
+- Product narrative: see `docs/mindtyper_manifesto.md` for the vision and feel.
+
 ## Overview
 
 MindTyper turns noisy keystreams into clean text via small, reversible diffs. Forward passes keep typing tidy; reverse passes backfill consistency using accumulating context. All edits respect the CARET and are designed to be grouped into coherent undo steps.
