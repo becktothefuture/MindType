@@ -1,12 +1,18 @@
-# Project Structure (compact)
+# Project Structure (beginner-friendly)
 
-| Folder             | Purpose                         |
-| ------------------ | ------------------------------- |
-| core/              | platform-agnostic orchestrators |
-| engines/           | TidySweep & BackfillConsistency |
-| utils/             | diff & timing helpers           |
-| ui/                | highlights & grouped undo       |
-| config/            | tweakable constants             |
-| tests/             | unit & integration specs        |
-| platform/web_demo/ | React/Vite WASM demo (later)    |
-| meta/brand/        | tokens, fonts, logo             |
+| Folder            | Purpose                                   |
+| ----------------- | ----------------------------------------- |
+| `config/`         | Global thresholds/tunables                |
+| `core/`           | Orchestration (typing monitor, scheduler) |
+| `engines/`        | TidySweep & BackfillConsistency (rules)   |
+| `utils/`          | Pure helpers (diff/caret safety)          |
+| `ui/`             | Visuals and undo grouping                 |
+| `tests/`          | Unit tests for TS core/engines/utils      |
+| `crates/core-rs/` | Rust core (compiled to WASM for the web)  |
+| `web-demo/`       | React/Vite demo consuming the WASM core   |
+| `docs/`           | Specs, guides, plans                      |
+| Root configs      | Lint/test/tsconfig, `Justfile`, scripts   |
+
+Notes:
+
+- The previous path `platform/web_demo/` is deprecated; the demo lives in `web-demo/` now.

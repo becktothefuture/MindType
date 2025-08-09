@@ -10,19 +10,24 @@ The demo serves three goals:
 2. **Collect interested users** – A small email capture form invites visitors to sign up for the macOS beta.
 3. **Gather telemetry** – With consent, we log anonymised latency and token counts to help tune the algorithm.
 
-## Components
+Current state:
 
-- **Editable.tsx** – A `div` with `contentEditable` that mimics a normal text box. It listens for keystrokes and maintains selection when React re-renders.
-- **usePauseTimer.ts** – Debounces typing using `requestAnimationFrame` for precision. When the timer fires, it triggers the correction pipeline.
-- **useMindType.ts** – Hooks the shared algorithm into React. It handles cancellation when new keys arrive mid-stream and exposes the current latency.
-- **LLMClient.ts** – Wraps the network call to OpenAI with an SSE polyfill so we can stream tokens as soon as they are available.
-- **UI Polish** – A subtle flash highlights the corrected fragment. A badge displays current latency in milliseconds.
+- The demo currently uses a simple `<textarea>` and calls the Rust WASM directly.
+- `Editable.tsx`, `usePauseTimer.ts`, and `useMindType.ts` are planned improvements; the names here describe intent.
 
-## User Flow
+## Components (what each piece does)
+
+- **Editable.tsx**: A `contentEditable` surface (like a rich textarea). Listens for keystrokes and keeps the caret stable across React renders.
+- **usePauseTimer.ts**: A small hook that wraps the Rust `WasmPauseTimer`. It exposes `isIdle` so you can run a correction when the user pauses.
+- **useMindType.ts**: Orchestrates the flow: on idle → extract fragment → stream tokens → merge → apply. Cancels mid‑stream if the user resumes typing.
+- **LLMClient.ts**: In future, wraps a real model (OpenAI/CoreML) with streaming tokens. Today we use a stub token stream from Rust.
+- **UI Polish**: Subtle highlight for the changed fragment; latency badge; keyboard toggle for the Debug Panel.
+
+## User Flow (step-by-step)
 
 1. The user starts typing into the editable area.
-2. After ~500 ms of idle time, the current sentence is sent for correction.
-3. Tokens stream back and the text updates in place. Each patch is applied with `document.execCommand('insertText')` to preserve the undo stack.
+2. After ~500 ms of idle time, the current sentence (fragment) is selected for correction.
+3. Tokens (words) stream back and the text updates in place. Each patch will be applied with caret safety and one‑step undo in mind.
 4. If the user resumes typing mid-stream, the current correction is cancelled and a new pause cycle begins.
 
 ## Reasoning
@@ -33,10 +38,17 @@ The demo serves three goals:
 
 The web demo is intentionally lightweight; it mirrors the eventual macOS experience but runs entirely in the browser.
 
-### Implementation Notes
+### Implementation Notes (how to run and tinker)
 
-- Set up a Vite project with React and TypeScript. Import the shared logic from the WASM package `@mindtype/core` (compiled from `crates/core-rs`) so the demo remains thin.
+- Import the shared logic from the WASM package `@mindtype/core` (compiled from `crates/core-rs`) so the demo remains thin.
 - Build the `usePauseTimer` hook to wrap the Rust `PauseTimer` and expose an `idle` event to React components.
 - Implement `Editable.tsx` so it never resets the DOM tree — rely on refs and `contentEditable` to maintain cursor position.
 - When integrating `LLMClient.ts`, mock the network layer first with a small async generator to feed tokens for local testing.
 - Add a small Express server to store email sign-ups; keep telemetry logging optional via a checkbox.
+
+### Glossary
+
+- **WASM (WebAssembly)**: Runs compiled Rust in the browser for speed.
+- **FFI (Foreign Function Interface)**: Lets native apps like Swift/SwiftUI call Rust.
+- **Fragment**: The last complete sentence to the left of the caret.
+- **Token**: Typically a word or subword emitted by a model; we use words for the stub stream.

@@ -1,6 +1,6 @@
 # Rust Core Details (`crates/core-rs`)
 
-This document provides low-level information for contributors working inside the Rust crate. It complements the high-level spec (§2).
+This document explains the Rust part of MindTyper in plain language, with examples. It complements the high‑level spec and the README. Acronyms are expanded when first used.
 
 ## Crate Layout
 
@@ -15,10 +15,15 @@ core-rs/
 │  └─ tests/
 ├─ benches/           # criterion benchmarks
 ├─ Cargo.toml         # `wasm` + `ffi` features
-└─ build.rs           # generates C header if `ffi` enabled
+└─ build.rs           # generates C header if `ffi` enabled (for Swift/FFI)
 ```
 
 ## Public API (simplified)
+
+“Public API” means the functions/types other parts of the app can call. We ship two flavors:
+
+- **FFI (Foreign Function Interface)** for native apps (Swift on macOS)
+- **WASM (WebAssembly)** for the web demo (TypeScript/React)
 
 ```rust
 // lib.rs
@@ -26,7 +31,7 @@ core-rs/
 #[no_mangle]
 pub extern "C" fn mindtype_touch_timer(handle: *mut PauseTimer);
 
-#[cfg(feature = "wasm")] // wasm-bindgen for TS
+#[cfg(feature = "wasm")] // wasm-bindgen for TS/JS in the browser
 #[wasm_bindgen]
 impl PauseTimer {
     #[wasm_bindgen(constructor)]
@@ -35,18 +40,49 @@ impl PauseTimer {
 }
 ```
 
-All exported functions are `#![no_std]`-friendly to enable future embedded targets.
+All exported functions are designed to be portable.
+
+### WASM bindings in this repo (already available)
+
+From `src/lib.rs`:
+
+```rust
+#[wasm_bindgen]
+pub fn init_logger() { /* ... */ }
+
+#[wasm_bindgen]
+pub struct WasmPauseTimer { /* new(), record_activity(), is_paused() */ }
+
+#[wasm_bindgen]
+pub struct WasmFragmentExtractor { /* new(), extract_fragment(&str) -> Option<String> */ }
+
+#[wasm_bindgen]
+pub struct WasmMerger { /* new(&str), apply_token(&str), get_result() -> String */ }
+
+#[wasm_bindgen]
+pub struct WasmStubStream { /* new(&str), async next_token() -> Option<String> */ }
+```
+
+You can call these directly from TypeScript after the WASM package is built.
 
 ## Fragment Extraction Rules
 
 1. Look back ≤250 code points for Unicode category _Sentence_Terminal_ plus full-width `。`.
 2. Respect bidirectional text order using the `unicode-bidi` crate.
-3. Provide 100-char context both sides, clamped to buffer bounds.
+3. Provide 100‑char context both sides, clamped to buffer bounds.
+
+Simple example (what it does today):
+
+Input: `"Hello world. This is a test."` → Output: `"This is a test."`
+
+Why this matters: We only correct complete sentences, avoiding awkward mid‑word edits.
 
 ## Diff Strategy
 
-- Uses the `dmp` crate fork with streaming patches.
-- Patch window limited to the fragment range for O(Δ) behaviour.
+Today the `Merger` is intentionally simple (append tokens). In the future:
+
+- Use a streaming diff/patch strategy limited to the fragment to keep latency low.
+- Apply changes with caret safety (never edit at/after the caret).
 
 ## LLM Abstraction
 
@@ -56,8 +92,19 @@ The core defers transport to consumer:
 pub trait TokenStream: AsyncIterator<Item = String> + Send {}
 ```
 
-Bindings provide concrete impls (`OpenAIStream`, `CoreMLStream`). This keeps the core free of TLS/HTTP deps unless `cloud` feature is enabled.
+Bindings will provide concrete impls (`OpenAIStream`, `CoreMLStream`). This keeps the core free of networking until explicitly enabled.
+
+Today we ship a stub stream for demos/tests:
+
+```rust
+let mut stream = WasmStubStream::new("This is a corrected sentence.");
+while let Some(token) = stream.next_token().await { /* feed into Merger */ }
+```
 
 ## Testing & Benchmarks
 
-Run `cargo test` for correctness, `cargo bench` for performance baselines. Golden vectors in `shared-tests/` are loaded via `serde_json`.
+Run `cargo test` for correctness. When we add benchmarks we’ll use Criterion (`cargo bench`).
+
+### Tip: WASM time sources
+
+If you see time/clock errors when building for WASM (due to `chrono`), we’ll switch to the browser clock via `js_sys::Date::now()` for WASM builds and keep `chrono` for native.

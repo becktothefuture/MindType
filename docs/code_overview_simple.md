@@ -1,3 +1,21 @@
+<!--══════════════════════════════════════════════════
+  ╔══════════════════════════════════════════════════════╗
+  ║  ░  CODE OVERVIEW (PLAIN-ENGLISH)  ░░░░░░░░░░░░░░░░  ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ╚══════════════════════════════════════════════════════╝
+    • WHAT ▸ Friendly tour of the codebase
+    • WHY  ▸ Help newcomers build a deep mental model
+    • HOW  ▸ Gentle definitions, diagrams, and examples
+-->
+
 # MindType – Plain-English Code Map
 
 Below is a friendly tour of what each piece of the codebase does. Think of it as the “I’m new here – point me in the right direction” guide.
@@ -28,6 +46,42 @@ This blend means each piece speaks the native language of its environment while 
 5. **Personal dictionary & multi-lang** → incremental polish after MVP.
 
 Building from core → thin UI → platform shell avoids rewriting logic and keeps bugs in one place.
+
+What those bold phrases mean (in simple terms):
+
+- **Unit tests**: tiny, fast checks that run in seconds and prove each
+  small piece works on its own. In this repo:
+  - TypeScript unit tests (Vitest) live in `tests/**` and check things
+    like “never cross the caret” and future engine rules.
+  - Rust unit tests live next to the Rust code (e.g.,
+    `crates/core-rs/src/*.rs`) and check fragment extraction, merging,
+    and streaming stubs.
+
+- **Playwright E2E tests**: End‑to‑end tests that click the UI like a
+  human would. They spin up the web demo in a real browser, type, wait
+  for an idle pause, and verify the visible outcome. These live in
+  `e2e/` and help catch integration issues.
+
+- **OS‑specific plumbing**: platform glue that only exists on macOS,
+  such as:
+  - Event taps (listen to keystrokes without interfering)
+  - Accessibility (AX) APIs (to find the focused text field)
+  - Applying the diff in a way that preserves one undo step
+    None of this logic belongs in the core; we keep it in the Swift app.
+
+- **Local Core ML model**: Apple’s on‑device machine‑learning runtime.
+  We can package a small language model that runs entirely offline on a
+  Mac (no network). When we say “Local Core ML model,” we mean using
+  Core ML to stream tokens (words) for the corrected sentence without
+  calling a cloud API.
+
+- **Are we using an LLM?** Today, in the web demo, we use a stub token
+  stream that pretends to be an LLM to exercise the pipeline. In the
+  future, you can plug in:
+  - A cloud LLM (e.g., OpenAI) with streaming responses, or
+  - A local Core ML model for offline use.
+    The model proposes “better” text; our rule‑based engines (Tidy/Backfill)
+    keep edits small, safe, and caret‑aware.
 
 ## Clever Things We’re Doing
 
@@ -64,6 +118,29 @@ _Language: TypeScript + React + WASM_
    - `useMindType` – Connects extractor → LLM → merge engine.
 4. **Debug Panel** – React portal opened with ⌥⇧⌘L; lets you tweak settings live.
 
+### How the layers talk (ASCII map)
+
+```
+   [Your typing]
+        |
+        v
+   TypingMonitor (TS) -- emits {text, caret, atMs}
+        |
+        v         SHORT_PAUSE_MS timer
+   SweepScheduler (TS) ---- waits → triggers
+        |
+        v
+   Rust (WASM) core
+   ┌───────────────────────────────────────────────┐
+   │ FragmentExtractor → finds last complete sentence
+   │ StubTokenStream   → yields "This | is | corrected | ..."
+   │ Merger            → builds new text incrementally
+   └───────────────────────────────────────────────┘
+        |
+        v
+   Apply change in UI (caret‑safe) → Highlighter flash → Logs
+```
+
 ## 3. macOS Layer – `mac/`
 
 _Language: Swift + SwiftUI + Rust static lib_
@@ -75,11 +152,30 @@ _Language: Swift + SwiftUI + Rust static lib_
 5. **MacInjector** – Uses Accessibility APIs (or clipboard fallback) to drop the diff into the field.
 6. **Debug Window** – SwiftUI version of the web panel, talking to Rust over FFI.
 
+### macOS vs Web (same brain, different shells)
+
+```
+              Shared Core Logic (Rust)
+                    │
+     ┌──────────────┴──────────────┐
+     v                             v
+  Web Demo (TS/React + WASM)   macOS App (Swift/SwiftUI + FFI)
+     │                             │
+  DOM, hooks, hot reload        AX APIs, event taps, menu bar
+```
+
 ## 4. Backends
 
 1. **OpenAI Cloud** – Default; simple HTTPS SSE request.
 2. **Core ML Local Model** – Downloaded once, ~110 MB, runs completely offline.
 3. **StubStream** – Fake generator spitting out canned tokens for unit tests.
+
+Which backend creates the “clear text”?
+
+- For simple clean‑ups, our rule‑based engines do the job (no ML).
+- For richer rewrites (e.g., grammar/style), an LLM backend proposes a
+  better sentence. We then apply it safely as tiny diffs behind the
+  caret so it feels native and undo‑friendly.
 
 ## 5. Configuration
 
@@ -90,6 +186,15 @@ _Hot-reloaded JSON5 file_ → event bus → all layers pick up changes instantly
 - `just build-web` – Rust → WASM, Vite build.
 - `just build-mac` – Xcode + static Rust link.
 - GitHub Actions run lint + tests + Playwright e2e on every PR.
+
+### Tests in this repo (quick guide)
+
+- Unit (TS): `pnpm test` (Vitest). Fast, checks individual functions.
+- Unit (Rust): `cargo test` in `crates/core-rs`. Fast, checks core ops.
+- E2E (Web): `pnpm --prefix e2e test` (Playwright). Slower, full flow.
+
+Think “pyramid of speed”: most tests are fast unit tests; a few are
+browser‑level to ensure everything fits together.
 
 ## 7. How a Character Becomes Correct
 

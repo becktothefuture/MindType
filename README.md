@@ -50,6 +50,19 @@
 
 MindTyper turns noisy keystreams into clean text via small, reversible diffs. Forward passes keep typing tidy; reverse passes backfill consistency using accumulating context. All edits respect the CARET and are designed to be grouped into coherent undo steps.
 
+### Beginner primer: key terms
+
+- **Rust crate**: A Rust library/package. Our core logic is in `crates/core-rs`.
+- **TypeScript (TS) core**: Lightweight glue in `core/`, `engines/`, and `utils/` that orchestrates typing events and rules.
+- **Tests**: Small programs that verify behavior. TS tests live in `tests/**`; Rust tests live next to Rust files.
+- **WASM (WebAssembly)**: Lets Rust run in the browser. We compile Rust to a `.wasm` file and import it from TS.
+- **wasm-bindgen**: Rust tooling that makes Rust functions callable from JS/TS.
+- **Local dependency**: The web demo imports the locally built WASM package from a folder on disk (no publishing needed).
+- **Fragment extractor**: Finds the last finished sentence near the end of your text so we only correct complete thoughts.
+- **Merger**: Combines incoming tokens into text. Today it appends words; later it will apply precise diffs.
+- **Stub token stream**: A fake “stream of words” used to test our pipeline without a real network.
+- **In-memory logger**: Collects logs in Rust and exposes them to the web demo.
+
 ## Quick Start
 
 1. Install toolchain
@@ -58,6 +71,17 @@ MindTyper turns noisy keystreams into clean text via small, reversible diffs. Fo
 3. Run unit tests: `pnpm test`
 4. Run quality gates: `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test`
 5. Explore tasks: open `docs/implementation.md`
+
+### Web demo: build and run
+
+1. Install tools (once): Rust toolchain, `wasm-pack`, Node, pnpm
+2. From repo root, build the WASM package and the demo:
+   - With `just`: `just build-web`
+   - Or manually:
+     - `wasm-pack build crates/core-rs --target web --out-dir bindings/wasm/pkg`
+     - `pnpm --prefix web-demo install`
+3. Run: `pnpm --prefix web-demo dev` → open the printed URL
+4. Type a sentence, pause, and watch the simple correction kick in.
 
 ## Development Workflow & Quality Gates
 
@@ -301,6 +325,48 @@ Keep these contracts visible in code (types, tests) and docs; if you change one,
 - `core/sweepScheduler` → triggers `engines/tidySweep` (short pause) and `engines/backfillConsistency` (idle)
 - Engines propose diffs → `ui/groupUndo` batches → host applies → `ui/highlighter` shows feedback
 - Rust crate primitives (WASM) may augment extraction/merging/logging when integrated into the demo or apps
+
+## How Rust and TypeScript work together
+
+- We compile the Rust crate to WASM and import it in the web demo as a normal package. The demo calls Rust functions directly.
+- Example JS/TS flow:
+
+```ts
+const extractor = new WasmFragmentExtractor();
+const fragment = extractor.extract_fragment(text);
+if (fragment) {
+  const fragmentIndex = text.lastIndexOf(fragment);
+  const prefix = text.substring(0, fragmentIndex);
+  let merger = new WasmMerger(prefix);
+  let stream = new WasmStubStream('This is a corrected sentence.');
+  let token = await stream.next_token();
+  while (token) {
+    merger.apply_token(token);
+    token = await stream.next_token();
+  }
+  setText(merger.get_result());
+}
+```
+
+Corresponding Rust exports (simplified):
+
+```rust
+#[wasm_bindgen]
+impl WasmFragmentExtractor { /* new(), extract_fragment(&str) -> Option<String> */ }
+#[wasm_bindgen]
+impl WasmMerger { /* new(&str), apply_token(&str), get_result() -> String */ }
+#[wasm_bindgen]
+impl WasmStubStream { /* new(&str), async next_token() -> Option<String> */ }
+```
+
+Why both languages?
+
+- Rust provides speed and safety for fragmenting, merging, and timing.
+- TypeScript/React provides rapid UI development and ecosystem tooling.
+
+Where Swift fits (mac app):
+
+- The macOS app UI will be Swift/SwiftUI calling the same Rust core via FFI (native interface). The Swift project isn’t in this repo yet.
 
 ## Task Board & Docs
 

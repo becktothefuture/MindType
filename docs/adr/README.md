@@ -18,3 +18,4 @@
 
 - 0001-template.md — ADR template
 - 0002-caret-safe-diff.md — Never cross caret in diffs (REQ-IME-CARETSAFE)
+- 0003-architecture-constraints.md — On‑device processing & UI constraints (PRD)

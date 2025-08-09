@@ -21,11 +21,25 @@
 > Plan (auto) — 2025-08-09
 >
 > Core milestones in sequence:
+>
 > 1. Foundation (Dev Environment + Core Utils)
 > 2. Core Engine Implementation
 > 3. UI/UX Integration
 > 4. Performance Optimization
 > 5. Extended Features
+
+> Current status (beginner-friendly)
+>
+> - We have the scaffolding in place:
+>   - Rust crate compiles to WebAssembly (WASM) with exports for: pause timer, fragment extractor, simple merger, stub token stream, and an in‑memory logger.
+>   - TypeScript core has a typing monitor and a sweep scheduler scaffold.
+>   - Engines (`tidySweep`, `backfillConsistency`) are stubs. Thresholds exist.
+>   - Web demo is wired to import the local WASM package and triggers a simple “correction on pause.”
+> - What’s not done yet:
+>   - Real engine rules (diffs behind the caret, punctuation, transpositions)
+>   - Proper caret‑safe apply in the demo (we currently rebuild a prefix string)
+>   - React hooks (`usePauseTimer`, `useMindType`) and richer UI feedback
+>   - CI and coverage thresholds
 
 > **How Cursor uses this file**
 >
@@ -37,48 +51,45 @@
 
 ### Architecture Constraints (P1)
 
-- [ ] (P1) [FT-105] Document architecture constraints  
-       **AC:** 
-       - Document on-device processing requirement
-       - List prohibited features (cloud processing, heavy UI)
-       - Create architecture decision record (ADR)
-       **Owner:** @alex  
+- [x] (P1) [FT-105] Document architecture constraints  
+       **AC:** - Document on-device processing requirement - List prohibited features (cloud processing, heavy UI) - Create architecture decision record (ADR)
+      **Owner:** @alex  
        **DependsOn:** None  
        **Source:** PRD → Goals (MUST/WON'T)
 
 ### Development Environment (P1)
 
-- [ ] (P1) [FT-110] Initialize project structure  
+- [x] (P1) [FT-110] Initialize project structure  
        **AC:** Directory structure matches PRD; README updated  
        **Owner:** @alex  
        **DependsOn:** None  
        **Source:** Project Structure Doc
 
-- [ ] (P1) [FT-111] Setup TypeScript configuration  
+- [x] (P1) [FT-111] Setup TypeScript configuration  
        **AC:** `tsconfig.json` with strict mode; ES2024 target  
        **Owner:** @alex  
        **DependsOn:** FT-110  
        **Source:** README.md → Development
 
-- [ ] (P1) [FT-112] Configure ESLint v9 flat config  
+- [x] (P1) [FT-112] Configure ESLint v9 flat config  
        **AC:** TypeScript + Prettier integration; documented rules  
        **Owner:** @alex  
        **DependsOn:** FT-111  
        **Source:** README.md → Development
 
-- [ ] (P1) [FT-113] Setup Vitest with coverage  
+- [x] (P1) [FT-113] Setup Vitest with coverage  
        **AC:** Unit tests run; coverage reports generated  
        **Owner:** @alex  
        **DependsOn:** FT-111  
        **Source:** PRD → Quality Gates
 
-- [ ] (P1) [FT-114] Configure Prettier and add format gates  
+- [x] (P1) [FT-114] Configure Prettier and add format gates  
        **AC:** `pnpm format` and `pnpm format:check` scripts exist; `.prettierrc` checked in; repo runs format check in CI  
        **Owner:** @alex  
        **DependsOn:** FT-111  
        **Source:** README.md → Development Workflow
 
-- [ ] (P1) [FT-117] Add CI pipeline (GitHub Actions) for quality gates  
+- [x] (P1) [FT-117] Add CI pipeline (GitHub Actions) for quality gates  
        **AC:** CI runs `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test`; caches pnpm; uploads coverage artifact  
        **Owner:** @alex  
        **DependsOn:** FT-112, FT-113, FT-114  
@@ -93,50 +104,34 @@
 ### Security & Privacy Implementation (P1)
 
 - [ ] (P1) [FT-115] Implement secure field detection  
-       **AC:** 
-       - Detect password/secure input fields
-       - Disable corrections automatically
-       - Test coverage for all field types
-       **Owner:** @alex  
+       **AC:** - Detect password/secure input fields - Disable corrections automatically - Test coverage for all field types
+      **Owner:** @alex  
        **DependsOn:** FT-113  
        **Source:** PRD REQ-SECURE-FIELDS
 
 - [ ] (P1) [FT-116] Add IME composition handling  
-       **AC:** 
-       - Detect active IME composition
-       - Disable corrections during composition
-       - Support major IME systems
-       **Owner:** @alex  
+       **AC:** - Detect active IME composition - Disable corrections during composition - Support major IME systems
+      **Owner:** @alex  
        **DependsOn:** FT-115  
        **Source:** PRD REQ-SECURE-FIELDS
 
 ### Core Utils Implementation (P1)
 
-- [ ] (P1) [FT-120] Implement caret-safe diff core  
-       **AC:** 
-       - `utils/diff.ts` with `replaceRange` function
-       - Never crosses caret position
-       - Handles UTF-16 surrogate pairs
-       - 100% test coverage
-       **Owner:** @alex  
+- [x] (P1) [FT-120] Implement caret-safe diff core  
+       **AC:** - `utils/diff.ts` with `replaceRange` function - Never crosses caret position - Handles UTF-16 surrogate pairs - 100% test coverage
+      **Owner:** @alex  
        **DependsOn:** FT-113  
        **Source:** PRD REQ-IME-CARETSAFE
 
 - [ ] (P1) [FT-121] Create typing monitor  
-       **AC:** 
-       - `core/typingMonitor.ts` emits timestamped events
-       - Event shape: `{text, caret, atMs}`
-       - Unit tests for event emission
-       **Owner:** @alex  
+       **AC:** - `core/typingMonitor.ts` emits timestamped events - Event shape: `{text, caret, atMs}` - Unit tests for event emission
+      **Owner:** @alex  
        **DependsOn:** FT-120  
        **Source:** Manifesto → Performance
 
 - [ ] (P1) [FT-122] Implement pause detection  
-       **AC:**
-       - Detect SHORT_PAUSE_MS (500ms) and LONG_PAUSE_MS (2000ms)
-       - Cancellable timer implementation
-       - Unit tests for timing accuracy
-       **Owner:** @alex  
+       **AC:** - Detect SHORT_PAUSE_MS (500ms) and LONG_PAUSE_MS (2000ms) - Cancellable timer implementation - Unit tests for timing accuracy
+      **Owner:** @alex  
        **DependsOn:** FT-121  
        **Source:** PRD → Performance
 
@@ -155,20 +150,14 @@
 ### Rust Core Setup (P1)
 
 - [ ] (P1) [FT-130] Setup Rust crate structure  
-       **AC:** 
-       - `crates/core-rs` initialized
-       - WASM target configured
-       - Basic FFI bindings
-       **Owner:** @alex  
+       **AC:** - `crates/core-rs` initialized - WASM target configured - Basic FFI bindings
+      **Owner:** @alex  
        **DependsOn:** FT-110  
        **Source:** Core Rust Details
 
 - [ ] (P1) [FT-131] Implement fragment extraction  
-       **AC:**
-       - Unicode-aware sentence segmentation
-       - Handles bidirectional text
-       - Performance benchmarks
-       **Owner:** @alex  
+       **AC:** - Unicode-aware sentence segmentation - Handles bidirectional text - Performance benchmarks
+      **Owner:** @alex  
        **DependsOn:** FT-130  
        **Source:** Core Rust Details
 
@@ -177,29 +166,20 @@
 ### Tidy Sweep Implementation (P1)
 
 - [ ] (P1) [FT-210] Create tidy sweep engine scaffold  
-       **AC:**
-       - Basic engine structure in `engines/tidySweep.ts`
-       - Rule interface defined
-       - Test infrastructure
-       **Owner:** @alex  
+       **AC:** - Basic engine structure in `engines/tidySweep.ts` - Rule interface defined - Test infrastructure
+      **Owner:** @alex  
        **DependsOn:** FT-120  
        **Source:** PRD REQ-TIDY-SWEEP
 
 - [ ] (P1) [FT-211] Implement transposition detection  
-       **AC:**
-       - Detect common character swaps
-       - Stay within 80-char window
-       - Return null when uncertain
-       **Owner:** @alex  
+       **AC:** - Detect common character swaps - Stay within 80-char window - Return null when uncertain
+      **Owner:** @alex  
        **DependsOn:** FT-210  
        **Source:** Manifesto → Features
 
 - [ ] (P1) [FT-212] Add punctuation normalization  
-       **AC:**
-       - Fix spacing around punctuation
-       - Handle quotes and apostrophes
-       - Language-aware rules
-       **Owner:** @alex  
+       **AC:** - Fix spacing around punctuation - Handle quotes and apostrophes - Language-aware rules
+      **Owner:** @alex  
        **DependsOn:** FT-211  
        **Source:** Manifesto → Features
 
@@ -224,20 +204,14 @@
 ### Backfill Implementation (P2)
 
 - [ ] (P2) [FT-220] Create backfill consistency engine  
-       **AC:**
-       - Engine structure in `engines/backfillConsistency.ts`
-       - Stable zone detection
-       - Test framework
-       **Owner:** @alex  
+       **AC:** - Engine structure in `engines/backfillConsistency.ts` - Stable zone detection - Test framework
+      **Owner:** @alex  
        **DependsOn:** FT-210  
        **Source:** Manifesto → Features
 
 - [ ] (P2) [FT-221] Implement name consistency  
-       **AC:**
-       - Track name variants
-       - Propose normalizations
-       - Context-aware confidence
-       **Owner:** @alex  
+       **AC:** - Track name variants - Propose normalizations - Context-aware confidence
+      **Owner:** @alex  
        **DependsOn:** FT-220  
        **Source:** PRD → Consistency
 
@@ -258,22 +232,14 @@
 ### Visual Feedback (P1)
 
 - [ ] (P1) [FT-310] Implement highlighter core  
-       **AC:**
-       - Two-word highlight behind caret
-       - Fade duration ≤ 250ms
-       - Reduced motion support
-       - Minimal, non-intrusive UI
-       - No suggestion popups or heavy UI elements
-       **Owner:** @alex  
+       **AC:** - Two-word highlight behind caret - Fade duration ≤ 250ms - Reduced motion support - Minimal, non-intrusive UI - No suggestion popups or heavy UI elements
+      **Owner:** @alex  
        **DependsOn:** FT-210  
        **Source:** PRD REQ-A11Y-MOTION
 
 - [ ] (P1) [FT-311] Add ARIA announcements  
-       **AC:**
-       - Screen reader notifications
-       - Configurable verbosity
-       - WCAG 2.2 AA compliant
-       **Owner:** @alex  
+       **AC:** - Screen reader notifications - Configurable verbosity - WCAG 2.2 AA compliant
+      **Owner:** @alex  
        **DependsOn:** FT-310  
        **Source:** PRD → Accessibility
 
@@ -286,11 +252,8 @@
 ### Undo Integration (P2)
 
 - [ ] (P2) [FT-320] Implement undo grouping  
-       **AC:**
-       - Group changes per sweep
-       - Single undo step
-       - Preserve caret position
-       **Owner:** @alex  
+       **AC:** - Group changes per sweep - Single undo step - Preserve caret position
+      **Owner:** @alex  
        **DependsOn:** FT-310  
        **Source:** Manifesto → Features
 
@@ -317,20 +280,14 @@
 ### Profiling & Monitoring (P2)
 
 - [ ] (P2) [FT-410] Setup performance monitoring  
-       **AC:**
-       - Track p95 latency (≤15ms target)
-       - Memory usage monitoring
-       - Telemetry infrastructure
-       **Owner:** @alex  
+       **AC:** - Track p95 latency (≤15ms target) - Memory usage monitoring - Telemetry infrastructure
+      **Owner:** @alex  
        **DependsOn:** FT-320  
        **Source:** PRD → Performance
 
 - [ ] (P2) [FT-411] Implement Rust benchmarks  
-       **AC:**
-       - Criterion benchmarks for core operations
-       - Performance regression testing
-       - Documentation
-       **Owner:** @alex  
+       **AC:** - Criterion benchmarks for core operations - Performance regression testing - Documentation
+      **Owner:** @alex  
        **DependsOn:** FT-131  
        **Source:** Core Rust Details
 
@@ -343,11 +300,8 @@
 ### Memory Optimization (P2)
 
 - [ ] (P2) [FT-420] Optimize memory usage  
-       **AC:**
-       - Stay under 150MB typical
-       - Memory leak detection
-       - Garbage collection tuning
-       **Owner:** @alex  
+       **AC:** - Stay under 150MB typical - Memory leak detection - Garbage collection tuning
+      **Owner:** @alex  
        **DependsOn:** FT-410  
        **Source:** PRD → Performance
 
@@ -368,20 +322,14 @@
 ### Web Demo (P3)
 
 - [ ] (P3) [FT-510] Create web demo scaffold  
-       **AC:**
-       - React/Vite setup
-       - WASM integration
-       - Basic UI components
-       **Owner:** @alex  
+       **AC:** - React/Vite setup - WASM integration - Basic UI components
+      **Owner:** @alex  
        **DependsOn:** FT-320  
        **Source:** Web Demo Details
 
 - [ ] (P3) [FT-511] Implement demo features  
-       **AC:**
-       - Live typing demo
-       - Performance display
-       - Error handling
-       **Owner:** @alex  
+       **AC:** - Live typing demo - Performance display - Error handling
+      **Owner:** @alex  
        **DependsOn:** FT-510  
        **Source:** Web Demo Details
 
@@ -390,14 +338,14 @@
 > - [ ] (P3) [FT-901] Plugin system for custom rules
 > - [ ] (P3) [FT-902] Language-specific rule sets
 > - [ ] (P3) [FT-903] Cloud sync infrastructure (if requested)
-> - [ ] (P3) [FT-904] macOS secure field enforcement (AX)  
->   - **AC:** Detect secure fields via AX; disable edits; unit test in sample app  
+> - [ ] (P3) [FT-904] macOS secure field enforcement (AX)
+>   - **AC:** Detect secure fields via AX; disable edits; unit test in sample app
 >   - **Source:** mac_app_details.md
-> - [ ] (P3) [FT-905] Demo signup server (email capture)  
->   - **AC:** Minimal Express server; opt-in telemetry; GDPR note  
+> - [ ] (P3) [FT-905] Demo signup server (email capture)
+>   - **AC:** Minimal Express server; opt-in telemetry; GDPR note
 >   - **Source:** web_demo_details.md → Implementation Notes
-> - [ ] (P3) [FT-906] Activation/NPS measurement plan  
->   - **AC:** Define measurement approach; optional prompts in demo; docs updated  
+> - [ ] (P3) [FT-906] Activation/NPS measurement plan
+>   - **AC:** Define measurement approach; optional prompts in demo; docs updated
 >   - **Source:** PRD → Success Metrics
 
 ## Traceability Matrix
@@ -413,11 +361,11 @@
    - FT-210: Tidy sweep engine
    - FT-211: Transposition detection
 
-2. REQ-TIDY-SWEEP
+3. REQ-TIDY-SWEEP
    - FT-210, FT-211, FT-212: Sweep engine and rules
    - FT-220: Backfill consistency
 
-3. REQ-A11Y-MOTION
+4. REQ-A11Y-MOTION
    - FT-310: Highlighter with motion preferences
    - FT-311: ARIA support
 
@@ -448,6 +396,7 @@
 ### Completion Criteria
 
 Stage completion requires:
+
 1. All tasks marked complete
 2. Tests passing (100% coverage for core)
 3. Performance targets met
