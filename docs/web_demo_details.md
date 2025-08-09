@@ -12,15 +12,15 @@ The demo serves three goals:
 
 Current state:
 
-- The demo currently uses a simple `<textarea>` and calls the Rust WASM directly.
-- `Editable.tsx`, `usePauseTimer.ts`, and `useMindType.ts` are planned improvements; the names here describe intent.
+- The demo uses a simple `<textarea>` and will be wired to the TypeScript streaming pipeline (TypingMonitor → SweepScheduler → DiffusionController) for real‑time validation band and corrections.
+- `Editable.tsx`, `useTypingTick.ts` (replacing pause‑only logic), and `useMindType.ts` are planned improvements; the names here describe intent.
 
 ## Components (what each piece does)
 
 - **Editable.tsx**: A `contentEditable` surface (like a rich textarea). Listens for keystrokes and keeps the caret stable across React renders.
-- **usePauseTimer.ts**: A small hook that wraps the Rust `WasmPauseTimer`. It exposes `isIdle` so you can run a correction when the user pauses.
-- **useMindType.ts**: Orchestrates the flow: on idle → extract fragment → stream tokens → merge → apply. Cancels mid‑stream if the user resumes typing.
-- **LLMClient.ts**: In future, wraps a real model (OpenAI/CoreML) with streaming tokens. Today we use a stub token stream from Rust.
+- **useTypingTick.ts**: Drives a ~60–90 ms cadence during typing for streamed diffusion; pairs with pause detection for catch‑up.
+- **useMindType.ts**: Orchestrates the flow: on typing tick → band‑bounded tidy sweep; on idle → catch‑up. Cancels mid‑stream if the user resumes typing.
+- **LMClient.ts**: In future, wraps a local model via Transformers.js (Qwen2.5‑0.5B‑Instruct, q4, WebGPU) with streaming tokens. Today we use rule‑based tidy sweep.
 - **UI Polish**: Subtle highlight for the changed fragment; latency badge; keyboard toggle for the Debug Panel.
 
 ## User Flow (step-by-step)
@@ -41,10 +41,10 @@ The web demo is intentionally lightweight; it mirrors the eventual macOS experie
 
 ### Implementation Notes (how to run and tinker)
 
-- Import the shared logic from the WASM package `@mindtype/core` (compiled from `crates/core-rs`) so the demo remains thin.
+- Import the TypeScript streaming pipeline for immediate realism; optionally augment with the WASM package `@mindtype/core` (compiled from `crates/core-rs`) when Rust components land.
 - Build the `usePauseTimer` hook to wrap the Rust `PauseTimer` and expose an `idle` event to React components.
 - Implement `Editable.tsx` so it never resets the DOM tree — rely on refs and `contentEditable` to maintain cursor position.
-- When integrating `LLMClient.ts`, mock the network layer first with a small async generator to feed tokens for local testing.
+- When integrating `LMClient.ts`, start with Transformers.js streaming in a Web Worker and a `TextStreamer`; keep corrections band‑bounded and caret‑safe.
 - Add a small Express server to store email sign-ups; keep telemetry logging optional via a checkbox.
 
 ### Glossary

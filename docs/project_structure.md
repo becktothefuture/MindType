@@ -1,17 +1,17 @@
 # Project Structure (beginner-friendly)
 
-| Folder            | Purpose                                   |
-| ----------------- | ----------------------------------------- |
-| `config/`         | Global thresholds/tunables                |
-| `core/`           | Orchestration (typing monitor, scheduler) |
-| `engines/`        | TidySweep & BackfillConsistency (rules)   |
-| `utils/`          | Pure helpers (diff/caret safety)          |
-| `ui/`             | Visuals and undo grouping                 |
-| `tests/`          | Unit tests for TS core/engines/utils      |
-| `crates/core-rs/` | Rust core (compiled to WASM for the web)  |
-| `web-demo/`       | React/Vite demo consuming the WASM core   |
-| `docs/`           | Specs, guides, plans                      |
-| Root configs      | Lint/test/tsconfig, `Justfile`, scripts   |
+| Folder            | Purpose                                    |
+| ----------------- | ------------------------------------------ |
+| `config/`         | Global thresholds/tunables                 |
+| `core/`           | Orchestration (typing monitor, scheduler)  |
+| `engines/`        | TidySweep & BackfillConsistency (rules)    |
+| `utils/`          | Pure helpers (diff/caret safety)           |
+| `ui/`             | Visuals and undo grouping                  |
+| `tests/`          | Unit tests for TS core/engines/utils       |
+| `crates/core-rs/` | Rust core (compiled to WASM for the web)   |
+| `web-demo/`       | React/Vite demo with TS streaming pipeline |
+| `docs/`           | Specs, guides, plans                       |
+| Root configs      | Lint/test/tsconfig, `Justfile`, scripts    |
 
 Notes:
 

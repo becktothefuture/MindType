@@ -22,8 +22,8 @@
 
 ### TL;DR
 
-- Typing engines propose caret-safe diffs in real time (Tidy Sweep) and during idle (Backfill Consistency).
-- A small TypeScript core wires input monitoring and scheduling. A Rust crate powers WASM-ready primitives.
+- Typing engines propose caret-safe diffs in real time (Tidy Sweep) and during idle (Backfill Consistency). A validation band (3–8 words) trails the caret and “draws in” corrections.
+- A small TypeScript core wires input monitoring and scheduling. A Rust crate powers WASM-ready primitives. Local LM target: Transformers.js + Qwen2.5‑0.5B‑Instruct (q4, WebGPU) with graceful fallback to rules.
 - Quality gates: pnpm typecheck, lint, format:check, test. Tasks live in `docs/implementation.md`.
 
 ### Demo • _add GIF here_

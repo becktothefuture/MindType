@@ -53,7 +53,7 @@ MindTyper turns messy, mid‑stream typing into clean, confident prose — in re
 - Caret‑safe diffs: Edits happen only in the stable zone behind your cursor.
 - Tidy Sweep: A forward pass that fixes small errors within a short window.
 - Backfill Consistency: A reverse pass that polishes with context when you pause.
-- Local Intelligence: Small on-device language models handle semantic and grammatical corrections, falling back gracefully to rule-based fixes. No cloud, no data collection, no latency.
+- Local Intelligence: Small on‑device language models handle semantic and grammatical corrections, falling back gracefully to rule‑based fixes. No cloud, no data collection, no latency. First target: Qwen2.5‑0.5B‑Instruct via Transformers.js with q4 quantization and WebGPU acceleration (privacy‑preserving, fast, text‑centric).
 - Gentle visuals: A subtle shimmer band shows the region currently being validated (typically 3–8 words behind the caret), and a brief, understated flash marks applied fixes. Honors reduced‑motion.
 - Undo grouping: One command to revert a whole sweep, not death‑by‑undo.
 - System‑wide mindset: Designed to feel native across apps and editors.
@@ -75,10 +75,17 @@ You’re right to question magic. So here’s the contract:
 
 No mystery, no hand‑waving. You can inspect the checks, the tests, and the rules behind every decision. The point isn’t to impress you — it’s to disappear while you work.
 
+### The promise (near‑term)
+
+- Backspace‑less flow: your thoughts land as you intend, while tiny fixes settle quietly behind you.
+- Visual testing ground: live controls for timing, band size (3–8 words), and correction aggressiveness, so we can tune the feel together.
+- Confidence‑gated intelligence: when unsure, it does nothing; when certain, it draws in the correction with a subtle shimmer.
+
 ### Roadmap at a glance
 
-- On‑device model path (Core ML) with the same safety rules.
-- WebAssembly packaging of the Rust core for browser demos.
+- TypeScript streaming pipeline (today) with planned on‑device model via Transformers.js (Qwen2.5‑0.5B‑Instruct, q4) under the same safety rules.
+- Web demo “Flow State” playground with real‑time controls and metrics; reduced‑motion compliance.
+- WebAssembly packaging of the Rust core (later) for shared algorithms and performance portability.
 - Expanded consistency rules that remain reversible and subtle.
 
 ### Try it

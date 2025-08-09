@@ -6,7 +6,7 @@ This document expands on the engineering spec and explains how the parts of the 
 
 1. **Keystroke Handling** – Every printable key resets the pause timer and advances a typing tick (~60–90 ms cadence) for streamed diffusion.
 2. **Fragment Extraction** – The active fragment is the sentence behind the caret within 250 characters (± context). Diffusion operates within a trailing band of ~3–8 words.
-3. **LM/Rules Correction** – Word‑sized chunks are validated and corrected in the trailing band while typing continues. On‑device language models (llama.cpp/WASM or Core ML) handle semantic corrections with graceful fallback to rule-based fixes.
+3. **LM/Rules Correction** – Word‑sized chunks are validated and corrected in the trailing band while typing continues. On‑device language models (Transformers.js + Qwen2.5‑0.5B‑Instruct, q4, WebGPU) handle semantic corrections with graceful fallback to rule‑based fixes.
 4. **Incremental Diff and Merge** – Patches are caret‑safe and word‑bounded. During typing, a frontier advances toward the caret; on pause (~500 ms), diffusion catches up.
 5. **Injection** – Apply in place, preserving formatting, undo grouping, and cursor position. Visuals: subtle shimmer band; reduced‑motion fallback.
 
@@ -20,9 +20,9 @@ key press → [PauseTimer] → idle
 
 The arrows illustrate how a typing pause triggers the fragment extractor. Streaming can be aborted if a new key arrives mid-flight. This diagram mirrors both the browser and macOS implementations.
 
-This pipeline is **implemented in Rust** (`crates/core-rs`) and surfaced to each platform via generated bindings. A small TypeScript `DiffusionController` orchestrates streaming ticks and visuals while delegating heavy lifting to the core:
+This pipeline is **implemented in Rust** (`crates/core-rs`) and surfaced to each platform via generated bindings. A small TypeScript `DiffusionController` orchestrates streaming ticks and visuals while delegating heavy lifting to the core. For browser demos, a TypeScript‑first pipeline is used immediately, with Rust WASM integrated as it lands:
 
-- **Web** → WebAssembly package `@mindtype/core` consumed by React hooks.
+- **Web** → TypeScript streaming pipeline now; WebAssembly package `@mindtype/core` to augment as Rust components land.
 - **macOS** → Static library `libmindtype.a` + Swift module created with `cbindgen`.
 
 Maintaining one canonical codebase removes divergence between TypeScript and Swift implementations that were planned in the earlier draft.

@@ -171,10 +171,10 @@
 
 ## Stage 2 — Core Engines & Integration
 
-### Pipeline Integration (P1) **← NEW SECTION**
+### Pipeline Integration (P1) **← PRIORITY**
 
 - [ ] (P1) [FT-201] Wire main pipeline in index.ts  
-       **AC:** Connect TypingMonitor → SweepScheduler → DiffusionController signals; start event loop; export unified API for host apps; unit tests verify signal flow  
+       **AC:** Connect TypingMonitor → SweepScheduler → DiffusionController signals; start event loop; export unified API for host apps; unit tests verify signal flow; add minimal `LMAdapter` stub to keep API stable  
        **Owner:** @alex  
        **DependsOn:** FT-125  
        **Source:** index.ts TODO comment
@@ -238,10 +238,10 @@
        **Source:** User example: "raw → corrected" transformation quality
 
 - [ ] (P1) [FT-231] Implement local model bootstrap  
-       **AC:** WASM-based llama.cpp integration OR Core ML adapter; load small grammar model (1-3B params); streaming token interface; memory constraints (<150MB)  
+       **AC:** Transformers.js integration with Qwen2.5-0.5B-Instruct (q4 quantized ~150MB); WebGPU acceleration; streaming token interface; grammar/style correction focus  
        **Owner:** @alex  
        **DependsOn:** FT-230  
-       **Source:** On-device processing requirement
+       **Source:** Transformers.js research + on-device processing
 
 - [ ] (P1) [FT-232] Add LM streaming merge policy  
        **AC:** Stream tokens into validation band only; merge with rule-based fixes; confidence weighting; rollback on user input; extensive caret safety tests  
@@ -303,16 +303,16 @@
        **DependsOn:** FT-311  
        **Source:** PRD REQ-A11Y-MOTION
 
-### Live Demo Integration (P1) **← UPDATED SECTION**
+### Live Demo Integration (P1) **← PRIORITY**
 
 - [ ] (P1) [FT-315] Wire TypeScript pipeline to web demo  
-       **AC:** Replace WASM usage with TS streaming pipeline; connect textarea events to TypingMonitor; render validation band and corrections in real-time  
+       **AC:** Replace WASM usage with TS streaming pipeline; connect textarea events to TypingMonitor; render validation band and corrections in real-time; add parameter controls (tick, band size)  
        **Owner:** @alex  
        **DependsOn:** FT-310, FT-201  
        **Source:** Web demo needs live testing capability
 
 - [ ] (P1) [FT-316] Add demo controls and settings  
-       **AC:** Toggle for rules vs LM mode; band size adjustment; timing controls; performance display; reset functionality  
+       **AC:** Toggle for rules vs LM mode; band size adjustment; timing controls; performance display; reset functionality; export/import presets  
        **Owner:** @alex  
        **DependsOn:** FT-315  
        **Source:** Demo usability for testing different configurations
