@@ -18,28 +18,30 @@
 
 # Implementation Plan (live)
 
-> Plan (auto) — 2025-08-09
+> Plan (auto) — 2025-08-09 (Updated for Local LM Integration)
 >
 > Core milestones in sequence:
 >
-> 1. Foundation (Dev Environment + Core Utils)
-> 2. Core Engine Implementation
-> 3. UI/UX Integration
+> 1. Foundation (Dev Environment + Core Utils) ✅
+> 2. Core Engine Implementation (Rules + LM Integration)
+> 3. UI/UX Integration (Streaming Visuals + Demo)
 > 4. Performance Optimization
 > 5. Extended Features
 
 > Current status (beginner-friendly)
 >
-> - We have the scaffolding in place:
->   - Rust crate compiles to WebAssembly (WASM) with exports for: pause timer, fragment extractor, simple merger, stub token stream, and an in‑memory logger.
->   - TypeScript core has a typing monitor and a sweep scheduler scaffold.
->   - Engines (`tidySweep`, `backfillConsistency`) are stubs. Thresholds exist.
->   - Web demo is wired to import the local WASM package and triggers a simple "correction on pause."
+> - We have the streaming foundation complete:
+>   - ✅ TypeScript streaming pipeline: TypingMonitor → SweepScheduler → DiffusionController → TidySweep
+>   - ✅ Word-by-word diffusion with Unicode segmentation and validation band (3-8 words)
+>   - ✅ Caret safety enforced at all levels; comprehensive tests (23 passing)
+>   - ✅ Basic rule engine with 5 common typo corrections
+>   - ✅ Integration tests proving end-to-end functionality
 > - What's not done yet:
->   - Real engine rules (diffs behind the caret, punctuation, transpositions)
->   - Proper caret‑safe apply in the demo (we currently rebuild a prefix string)
->   - React hooks (`usePauseTimer`, `useMindType`) and richer UI feedback
->   - CI and coverage thresholds
+>   - **Pipeline Integration:** `index.ts` wiring TODO; web demo uses WASM not TS pipeline
+>   - **Contextual Rules:** Only simple word substitutions; need transpositions, punctuation, capitalization
+>   - **Local LM:** No on-device model integration yet for semantic/grammatical corrections
+>   - **Visual Feedback:** `renderValidationBand()` is stub; no actual DOM shimmer/highlight
+>   - **Demo Integration:** Web demo needs connection to TS pipeline for live testing
 
 > **How Cursor uses this file**
 >
@@ -47,9 +49,9 @@
 > - **PLAN_ONLY** may append tasks using the Task Schema; **EXECUTE** fulfils them.
 > - Keep tasks atomic; prefer many small boxes over one vague one.
 
-## Stage 1 — Foundation & Setup
+## Stage 1 — Foundation & Setup ✅
 
-### Architecture Constraints (P1)
+### Architecture Constraints (P1) ✅
 
 - [x] (P1) [FT-105] Document architecture constraints  
        **AC:** - Document on-device processing requirement - List prohibited features (cloud processing, heavy UI) - Create architecture decision record (ADR)
@@ -57,7 +59,7 @@
        **DependsOn:** None  
        **Source:** PRD → Goals (MUST/WON'T)
 
-### Development Environment (P1)
+### Development Environment (P1) ✅
 
 - [x] (P1) [FT-110] Initialize project structure  
        **AC:** Directory structure matches PRD; README updated  
@@ -115,7 +117,7 @@
        **DependsOn:** FT-115  
        **Source:** PRD REQ-SECURE-FIELDS
 
-### Core Utils Implementation (P1)
+### Core Utils Implementation (P1) ✅
 
 - [x] (P1) [FT-120] Implement caret-safe diff core  
        **AC:** - `utils/diff.ts` with `replaceRange` function - Never crosses caret position - Handles UTF-16 surrogate pairs - 100% test coverage
@@ -167,45 +169,91 @@
        **DependsOn:** FT-130  
        **Source:** Core Rust Details
 
-## Stage 2 — Core Engines
+## Stage 2 — Core Engines & Integration
+
+### Pipeline Integration (P1) **← NEW SECTION**
+
+- [ ] (P1) [FT-201] Wire main pipeline in index.ts  
+       **AC:** Connect TypingMonitor → SweepScheduler → DiffusionController signals; start event loop; export unified API for host apps; unit tests verify signal flow  
+       **Owner:** @alex  
+       **DependsOn:** FT-125  
+       **Source:** index.ts TODO comment
+
+- [ ] (P1) [FT-202] Create integration test harness  
+       **AC:** End-to-end test simulating user typing → corrections applied; verify caret safety, timing, and band progression; performance baseline  
+       **Owner:** @alex  
+       **DependsOn:** FT-201  
+       **Source:** Integration requirements
 
 ### Tidy Sweep Implementation (P1)
 
-- [ ] (P1) [FT-210] Create tidy sweep engine scaffold  
+- [x] (P1) [FT-210] Create tidy sweep engine scaffold  
        **AC:** - Basic engine structure in `engines/tidySweep.ts` - Rule interface defined - Test infrastructure
       **Owner:** @alex  
        **DependsOn:** FT-120  
        **Source:** PRD REQ-TIDY-SWEEP
 
 - [ ] (P1) [FT-211] Implement transposition detection  
-       **AC:** - Detect common character swaps - Stay within 80-char window - Return null when uncertain
+       **AC:** - Detect common character swaps ("nto"→"not", "precsson"→"precision") - Stay within 80-char window - Return null when uncertain - Handle contextual transpositions
       **Owner:** @alex  
        **DependsOn:** FT-210  
-       **Source:** Manifesto → Features
+       **Source:** User example: "mindtypr is nto a tooll" → "MindTyper is not a tool"
 
 - [ ] (P1) [FT-212] Add punctuation normalization  
-       **AC:** - Fix spacing around punctuation - Handle quotes and apostrophes - Language-aware rules
+       **AC:** - Fix spacing around punctuation ("page — a sweep" formatting) - Handle quotes, apostrophes, emdashes - Language-aware rules - Sentence boundaries
       **Owner:** @alex  
        **DependsOn:** FT-211  
-       **Source:** Manifesto → Features
+       **Source:** User example: punctuation spacing issues
 
 - [ ] (P1) [FT-213] Implement confidence gating and null-return conditions  
-       **AC:** Define confidence thresholds per rule; return `null` below threshold; unit tests cover low-confidence cases  
+       **AC:** Define confidence thresholds per rule; return `null` below threshold; unit tests cover low-confidence cases; never apply uncertain fixes  
        **Owner:** @alex  
        **DependsOn:** FT-210  
        **Source:** PRD REQ-TIDY-SWEEP (return null when unsure)
 
 - [ ] (P1) [FT-214] Add whitespace normalization rules  
-       **AC:** Collapse multiple spaces, normalize trailing spaces in window; never cross caret; unit tests for boundary cases  
+       **AC:** Collapse multiple spaces ("mov it lstens" → "move it listens"); normalize trailing spaces in window; never cross caret; unit tests for boundary cases  
        **Owner:** @alex  
        **DependsOn:** FT-210  
-       **Source:** PRD REQ-TIDY-SWEEP
+       **Source:** User example: missing spaces between words
+
+- [ ] (P1) [FT-216] Add capitalization rules  
+       **AC:** Sentence-start capitalization; "I" pronoun fixes; proper noun detection; context-aware confidence scoring  
+       **Owner:** @alex  
+       **DependsOn:** FT-212  
+       **Source:** User example: "mindtypr" → "MindTyper", sentence starts
 
 - [ ] (P2) [FT-215] Establish rule priority and conflict resolution  
        **AC:** Document rule ordering; deterministic application; tests for conflicting suggestions  
        **Owner:** @alex  
-       **DependsOn:** FT-211, FT-212, FT-214  
+       **DependsOn:** FT-211, FT-212, FT-214, FT-216  
        **Source:** Manifesto → Safety guarantees
+
+### Local LM Integration (P1) **← NEW SECTION**
+
+- [ ] (P1) [FT-230] Design LM adapter interface  
+       **AC:** Define `LMAdapter` interface for streaming corrections; support band-bounded context; fallback to rules when LM unavailable; caret-safe constraints  
+       **Owner:** @alex  
+       **DependsOn:** FT-213  
+       **Source:** User example: "raw → corrected" transformation quality
+
+- [ ] (P1) [FT-231] Implement local model bootstrap  
+       **AC:** WASM-based llama.cpp integration OR Core ML adapter; load small grammar model (1-3B params); streaming token interface; memory constraints (<150MB)  
+       **Owner:** @alex  
+       **DependsOn:** FT-230  
+       **Source:** On-device processing requirement
+
+- [ ] (P1) [FT-232] Add LM streaming merge policy  
+       **AC:** Stream tokens into validation band only; merge with rule-based fixes; confidence weighting; rollback on user input; extensive caret safety tests  
+       **Owner:** @alex  
+       **DependsOn:** FT-231  
+       **Source:** REQ-STREAMED-DIFFUSION + LM quality
+
+- [ ] (P2) [FT-233] Implement LM fallback and settings  
+       **AC:** Graceful degradation to rules-only mode; user toggle for LM vs rules; performance monitoring; A/B testing framework  
+       **Owner:** @alex  
+       **DependsOn:** FT-232  
+       **Source:** Reliability requirements
 
 ### Backfill Implementation (P2)
 
@@ -233,18 +281,18 @@
        **DependsOn:** FT-220, FT-124  
        **Source:** PRD → Constraints
 
-## Stage 3 — UI & Feedback
+## Stage 3 — UI & Live Demo Integration
 
 ### Visual Feedback (P1)
 
 - [ ] (P1) [FT-310] Implement highlighter core  
-       **AC:** - Validation band (3–8 words) trailing behind caret - Subtle shimmer; fade/static when reduced‑motion - Minimal, non-intrusive UI - No suggestion popups or heavy UI elements
+       **AC:** - Validation band (3–8 words) trailing behind caret with DOM manipulation - Subtle shimmer animation; fade/static when reduced‑motion - Applied correction highlights - Minimal, non-intrusive UI
       **Owner:** @alex  
-       **DependsOn:** FT-210  
-       **Source:** PRD REQ-A11Y-MOTION
+       **DependsOn:** FT-201  
+       **Source:** PRD REQ-A11Y-MOTION + REQ-VALIDATION-BAND
 
 - [ ] (P1) [FT-311] Add ARIA announcements  
-       **AC:** - Screen reader notifications - Configurable verbosity - WCAG 2.2 AA compliant
+       **AC:** - Screen reader notifications for corrections - Configurable verbosity - WCAG 2.2 AA compliant
       **Owner:** @alex  
        **DependsOn:** FT-310  
        **Source:** PRD → Accessibility
@@ -254,6 +302,26 @@
        **Owner:** @alex  
        **DependsOn:** FT-311  
        **Source:** PRD REQ-A11Y-MOTION
+
+### Live Demo Integration (P1) **← UPDATED SECTION**
+
+- [ ] (P1) [FT-315] Wire TypeScript pipeline to web demo  
+       **AC:** Replace WASM usage with TS streaming pipeline; connect textarea events to TypingMonitor; render validation band and corrections in real-time  
+       **Owner:** @alex  
+       **DependsOn:** FT-310, FT-201  
+       **Source:** Web demo needs live testing capability
+
+- [ ] (P1) [FT-316] Add demo controls and settings  
+       **AC:** Toggle for rules vs LM mode; band size adjustment; timing controls; performance display; reset functionality  
+       **Owner:** @alex  
+       **DependsOn:** FT-315  
+       **Source:** Demo usability for testing different configurations
+
+- [ ] (P1) [FT-317] Create demo scenarios  
+       **AC:** Pre-loaded text samples showing "raw → corrected" transformations; step-through mode; before/after comparisons; performance metrics  
+       **Owner:** @alex  
+       **DependsOn:** FT-316  
+       **Source:** User example transformations for validation
 
 ### Undo Integration (P2)
 
@@ -267,10 +335,10 @@
        **AC:** Deterministic timers for tests; data-testids for highlight; unit tests assert caret unchanged  
        **Owner:** @alex  
        **DependsOn:** FT-320  
-       **Source:** BDD → Two‑word highlight
+       **Source:** BDD → Validation band scenarios
 
 - [ ] (P2) [FT-322] Add Playwright e2e for BDD scenarios  
-       **AC:** Tests for caret safety and two-word highlight mapped to `docs/qa/acceptance/*.feature`; CI job runs on PR  
+       **AC:** Tests for caret safety and streaming diffusion mapped to `docs/qa/acceptance/*.feature`; CI job runs on PR  
        **Owner:** @alex  
        **DependsOn:** FT-321  
        **Source:** PRD → Scenarios (BDD)
@@ -325,34 +393,34 @@
 
 ## Stage 5 — Extended Features
 
-### Web Demo (P3)
+### Advanced LM Features (P2) **← NEW SECTION**
 
-- [ ] (P3) [FT-510] Create web demo scaffold  
-       **AC:** - React/Vite setup - WASM integration - Basic UI components
-      **Owner:** @alex  
-       **DependsOn:** FT-320  
-       **Source:** Web Demo Details
+- [ ] (P2) [FT-520] Context-aware semantic corrections  
+       **AC:** Use broader context for semantic coherence; handle agreement, tense consistency; confidence scoring for semantic vs syntactic fixes  
+       **Owner:** @alex  
+       **DependsOn:** FT-232  
+       **Source:** User example: advanced grammatical corrections
 
-- [ ] (P3) [FT-511] Implement demo features  
-       **AC:** - Live typing demo - Performance display - Error handling
-      **Owner:** @alex  
-       **DependsOn:** FT-510  
-       **Source:** Web Demo Details
+- [ ] (P2) [FT-521] Adaptive learning from user patterns  
+       **AC:** Local learning from user corrections/undos; adapt correction confidence; personalized vocabulary; privacy-preserving local storage  
+       **Owner:** @alex  
+       **DependsOn:** FT-421  
+       **Source:** Personalization without cloud data
 
-> **Backlog**
->
-> - [ ] (P3) [FT-901] Plugin system for custom rules
-> - [ ] (P3) [FT-902] Language-specific rule sets
-> - [ ] (P3) [FT-903] Cloud sync infrastructure (if requested)
-> - [ ] (P3) [FT-904] macOS secure field enforcement (AX)
->   - **AC:** Detect secure fields via AX; disable edits; unit test in sample app
->   - **Source:** mac_app_details.md
-> - [ ] (P3) [FT-905] Demo signup server (email capture)
->   - **AC:** Minimal Express server; opt-in telemetry; GDPR note
->   - **Source:** web_demo_details.md → Implementation Notes
-> - [ ] (P3) [FT-906] Activation/NPS measurement plan
->   - **AC:** Define measurement approach; optional prompts in demo; docs updated
->   - **Source:** PRD → Success Metrics
+### Production Features (P3)
+
+- [ ] (P3) [FT-901] Plugin system for custom rules
+- [ ] (P3) [FT-902] Language-specific rule sets
+- [ ] (P3) [FT-903] Cloud sync infrastructure (if requested)
+- [ ] (P3) [FT-904] macOS secure field enforcement (AX)
+  - **AC:** Detect secure fields via AX; disable edits; unit test in sample app
+  - **Source:** mac_app_details.md
+- [ ] (P3) [FT-905] Demo signup server (email capture)
+  - **AC:** Minimal Express server; opt-in telemetry; GDPR note
+  - **Source:** web_demo_details.md → Implementation Notes
+- [ ] (P3) [FT-906] Activation/NPS measurement plan
+  - **AC:** Define measurement approach; optional prompts in demo; docs updated
+  - **Source:** PRD → Success Metrics
 
 ## Traceability Matrix
 
@@ -375,11 +443,26 @@
    - FT-310: Highlighter with motion preferences
    - FT-311: ARIA support
 
+5. REQ-STREAMED-DIFFUSION ← NEW
+   - FT-125: DiffusionController implementation
+   - FT-201: Pipeline integration
+   - FT-310: Validation band rendering
+
+6. REQ-VALIDATION-BAND ← NEW
+   - FT-310: Band visualization (3-8 words)
+   - FT-315: Live demo integration
+
+7. REQ-LOCAL-LM-INTEGRATION ← NEW
+   - FT-230: LM adapter interface
+   - FT-231: Local model bootstrap
+   - FT-232: Streaming merge policy
+
 ### Architecture Requirements
 
 - On-device Processing
   - FT-105: Architecture constraints
   - FT-130: Rust core setup (WASM-ready)
+  - FT-231: Local LM (no cloud)
 
 ### Performance Requirements
 
@@ -390,6 +473,7 @@
 - Memory (≤ 150MB typical)
   - FT-420: Memory optimization
   - FT-422: Memory tracking harness
+  - FT-231: LM memory constraints
 
 ### Success Metrics
 

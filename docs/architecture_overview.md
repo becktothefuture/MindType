@@ -6,7 +6,7 @@ This document expands on the engineering spec and explains how the parts of the 
 
 1. **Keystroke Handling** – Every printable key resets the pause timer and advances a typing tick (~60–90 ms cadence) for streamed diffusion.
 2. **Fragment Extraction** – The active fragment is the sentence behind the caret within 250 characters (± context). Diffusion operates within a trailing band of ~3–8 words.
-3. **LLM/Rules Correction** – Word‑sized chunks are validated and corrected in the trailing band while typing continues. Long‑term goal: on‑device Core ML; stub/remote acceptable for demos.
+3. **LM/Rules Correction** – Word‑sized chunks are validated and corrected in the trailing band while typing continues. On‑device language models (llama.cpp/WASM or Core ML) handle semantic corrections with graceful fallback to rule-based fixes.
 4. **Incremental Diff and Merge** – Patches are caret‑safe and word‑bounded. During typing, a frontier advances toward the caret; on pause (~500 ms), diffusion catches up.
 5. **Injection** – Apply in place, preserving formatting, undo grouping, and cursor position. Visuals: subtle shimmer band; reduced‑motion fallback.
 

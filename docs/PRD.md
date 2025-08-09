@@ -50,6 +50,8 @@ on‑device, system‑wide, with zero input sent to cloud. Target uplift:
   active IME composition.
 - REQ-STREAMED-DIFFUSION: Corrections MUST stream word‑by‑word behind the caret during typing; on pause (~500 ms), diffusion MUST catch up until the band reaches the caret.
 - REQ-VALIDATION-BAND: The UI MUST render a subtle validation band indicating the currently validated region (typically 3–8 words). Exact visual styling remains configurable; reduced‑motion MUST degrade to a gentle static band/fade.
+- REQ-LOCAL-LM-INTEGRATION: The system MUST support on-device language model integration for semantic and grammatical corrections; MUST fallback gracefully to rule-based corrections when LM unavailable; MUST maintain <150MB memory footprint including model.
+- REQ-CONTEXTUAL-CORRECTIONS: Beyond word substitutions, the engine MUST handle transpositions, punctuation spacing, capitalization, and semantic coherence using broader context while maintaining caret safety.
 
 ### Scenarios (BDD)
 

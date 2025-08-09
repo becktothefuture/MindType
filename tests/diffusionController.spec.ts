@@ -46,15 +46,12 @@ describe('DiffusionController', () => {
     controller.update('Hello world', 11);
     controller.tickOnce();
 
-    let state = controller.getState();
-    const initialFrontier = state.frontier;
-
     // Move caret backward
     controller.update('Hello world', 5);
-    state = controller.getState();
+    const finalState = controller.getState();
 
     // Frontier should be clamped to not exceed new caret position
-    expect(state.frontier).toBeLessThanOrEqual(5);
+    expect(finalState.frontier).toBeLessThanOrEqual(5);
   });
 
   it('handles empty text gracefully', () => {

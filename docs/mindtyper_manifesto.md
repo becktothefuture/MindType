@@ -53,6 +53,7 @@ MindTyper turns messy, mid‑stream typing into clean, confident prose — in re
 - Caret‑safe diffs: Edits happen only in the stable zone behind your cursor.
 - Tidy Sweep: A forward pass that fixes small errors within a short window.
 - Backfill Consistency: A reverse pass that polishes with context when you pause.
+- Local Intelligence: Small on-device language models handle semantic and grammatical corrections, falling back gracefully to rule-based fixes. No cloud, no data collection, no latency.
 - Gentle visuals: A subtle shimmer band shows the region currently being validated (typically 3–8 words behind the caret), and a brief, understated flash marks applied fixes. Honors reduced‑motion.
 - Undo grouping: One command to revert a whole sweep, not death‑by‑undo.
 - System‑wide mindset: Designed to feel native across apps and editors.
@@ -60,7 +61,7 @@ MindTyper turns messy, mid‑stream typing into clean, confident prose — in re
 ### The vibe (by design)
 
 - Swiss‑grid restraint: clean lines, no clutter, purpose over ornament.
-- Cyber‑punk practical: high‑performance, local, resilient. Tools, not toys.
+- Cyber‑punk practical: high‑performance, local, resilient. On-device intelligence that never phones home. Tools, not toys.
 - Calm technology: respects attention; blends into your workflow.
 
 ### A note to skeptics
