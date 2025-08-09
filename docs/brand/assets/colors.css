@@ -1,0 +1,25 @@
+/*╔══════════════════════════════════════════════════════╗
+  ║  ░  COLOR TOKENS (CSS CUSTOM PROPERTIES)  ░░░░░░░░░  ║
+  ║                                                      ║
+  ║  WHAT ▸ Single source of truth for brand colors      ║
+  ║  WHY  ▸ Consistent theming across web artifacts      ║
+  ║  HOW  ▸ Import and reference via var(--token)        ║
+  ╚══════════════════════════════════════════════════════╝ */
+
+:root {
+  --mt-accent-teal: #3cc5cc;
+  --mt-optional-rose: #ff6b6b;
+
+  --mt-white: #ffffff;
+  --mt-almost-white: #f5f5f5;
+  --mt-charcoal: #111111;
+  --mt-black: #000000;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Optional overrides go here if needed */
+  }
+}
+
+

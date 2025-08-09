@@ -1,0 +1,53 @@
+<!--
+╔══════════════════════════════════════════════════════╗
+║  ░  KEY VISUAL — TEAL GLOW WITH GRAIN (SVG)  ░░░░░░░  ║
+║                                                      ║
+║  WHAT ▸ Master key visual approximating the attached  ║
+║         screenshot: central teal glow, dark vignette, ║
+║         subtle film grain.                            ║
+║  WHY  ▸ Establish mood and art direction baseline     ║
+║  HOW  ▸ Radial gradients + turbulence noise overlay   ║
+╚══════════════════════════════════════════════════════╝
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Mind::Type key visual — teal glow with grain">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#29D3DA" stop-opacity="0.95"/>
+      <stop offset="35%" stop-color="#18B8BF" stop-opacity="0.6"/>
+      <stop offset="65%" stop-color="#0A7A80" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.08"/>
+      </feComponentTransfer>
+    </filter>
+    <filter id="soften">
+      <feGaussianBlur stdDeviation="1.2"/>
+    </filter>
+    <linearGradient id="vignette" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.55"/>
+      <stop offset="50%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.65"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background glow -->
+  <rect width="1600" height="900" fill="url(#glow)"/>
+
+  <!-- Grain overlay -->
+  <rect width="1600" height="900" filter="url(#grain)"/>
+
+  <!-- Soft vignette -->
+  <rect width="1600" height="900" fill="url(#vignette)" filter="url(#soften)"/>
+
+  <!-- Optional caption placement guide (hidden by default) -->
+  <g opacity="0">
+    <text x="30%" y="52%" text-anchor="middle" fill="#FFFFFF" font-size="48" font-family="system-ui">Mind::Type</text>
+    <text x="70%" y="52%" text-anchor="middle" fill="#FFFFFF" font-size="36" font-family="system-ui">approaching in 2026</text>
+  </g>
+</svg>
+
+

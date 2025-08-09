@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schemas.mindtype.dev/color-tokens.schema.json",
+  "brand": {
+    "accent": { "teal": "#3CC5CC" },
+    "optional": { "rose": "#FF6B6B" }
+  },
+  "neutral": {
+    "white": "#FFFFFF",
+    "almostWhite": "#F5F5F5",
+    "charcoal": "#111111",
+    "black": "#000000"
+  }
+}
+
