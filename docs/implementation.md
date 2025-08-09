@@ -173,7 +173,7 @@
 
 ### Pipeline Integration (P1) **← PRIORITY**
 
-- [ ] (P1) [FT-201] Wire main pipeline in index.ts  
+- [x] (P1) [FT-201] Wire main pipeline in index.ts  
        **AC:** Connect TypingMonitor → SweepScheduler → DiffusionController signals; start event loop; export unified API for host apps; unit tests verify signal flow; add minimal `LMAdapter` stub to keep API stable  
        **Owner:** @alex  
        **DependsOn:** FT-125  
@@ -305,18 +305,18 @@
 
 ### Live Demo Integration (P1) **← PRIORITY**
 
-- [ ] (P1) [FT-315] Wire TypeScript pipeline to web demo  
+- [x] (P1) [FT-315] Wire TypeScript pipeline to web demo  
        **AC:** Replace WASM usage with TS streaming pipeline; connect textarea events to TypingMonitor; render validation band and corrections in real-time; add parameter controls (tick, band size)  
        **Owner:** @alex  
        **DependsOn:** FT-310, FT-201  
        **Source:** Web demo needs live testing capability
-  - [ ] (P1) [FT-315A] Add typing cadence control (slider)  
+  - [x] (P1) [FT-315A] Add typing cadence control (slider)  
          **AC:** UI slider mapped to `TYPING_TICK_MS` (30–150 ms); live update without reload; persisted to `localStorage`; reduced‑motion toggle respects slower defaults  
          **Owner:** @alex  
          **DependsOn:** FT-315  
          **Source:** Flow tuning / visual playground
 
-  - [ ] (P1) [FT-315B] Add validation band size controls (sliders)  
+  - [x] (P1) [FT-315B] Add validation band size controls (sliders)  
          **AC:** Two sliders mapped to `MIN_VALIDATION_WORDS` (1–5) and `MAX_VALIDATION_WORDS` (3–12); enforce `min ≤ max`; live update; persisted to `localStorage`  
          **Owner:** @alex  
          **DependsOn:** FT-315  
