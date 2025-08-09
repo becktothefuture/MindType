@@ -26,24 +26,26 @@ Both return `{ ok: true }` and ignore additional properties.
 ## Basic Implementation Sketch
 
 ```ts
-import express from "express";
-import Database from "better-sqlite3";
+import express from 'express';
+import Database from 'better-sqlite3';
 
-const db = new Database("data.db");
+const db = new Database('data.db');
 const app = express();
 app.use(express.json());
 
-app.post("/api/signup", (req, res) => {
-  const email = String(req.body.email || "").trim();
-  if (email) db.prepare("INSERT INTO signups(email) VALUES (?)").run(email);
+app.post('/api/signup', (req, res) => {
+  const email = String(req.body.email || '').trim();
+  if (email) db.prepare('INSERT INTO signups(email) VALUES (?)').run(email);
   res.json({ ok: true });
 });
 
-app.post("/api/metrics", (req, res) => {
+app.post('/api/metrics', (req, res) => {
   const { latencyMs, tokensIn, tokensOut } = req.body;
-  db.prepare(
-    "INSERT INTO metrics(latencyMs, tokensIn, tokensOut) VALUES (?,?,?)",
-  ).run(latencyMs, tokensIn, tokensOut);
+  db.prepare('INSERT INTO metrics(latencyMs, tokensIn, tokensOut) VALUES (?,?,?)').run(
+    latencyMs,
+    tokensIn,
+    tokensOut,
+  );
   res.json({ ok: true });
 });
 

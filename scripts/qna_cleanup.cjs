@@ -8,26 +8,26 @@
   - Remove heavy "Primer:" marker lines that are not in italic one-liner form (e.g., leading "**Primer:**" or plain "Primer:")
 */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const path = require('path');
 
-const root = path.resolve("/Users/alexanderbeck/Coding Folder /MindTyper");
-const qDir = path.join(root, "docs", "questionnaire");
+const root = path.resolve('/Users/alexanderbeck/Coding Folder /MindTyper');
+const qDir = path.join(root, 'docs', 'questionnaire');
 
 function listTargets() {
   return fs
     .readdirSync(qDir)
-    .filter((f) => f.endsWith(".md"))
+    .filter((f) => f.endsWith('.md'))
     .filter(
       (f) =>
         ![
-          "index.md",
-          "README.md",
-          "answer_quality_review.md",
-          "questions-incomplete.md",
+          'index.md',
+          'README.md',
+          'answer_quality_review.md',
+          'questions-incomplete.md',
         ].includes(f),
     )
-    .filter((f) => !f.startsWith("archive"))
+    .filter((f) => !f.startsWith('archive'))
     .sort();
 }
 
@@ -51,7 +51,7 @@ function isHeavyPrimerMarker(line) {
 }
 
 function cleanupFile(filePath) {
-  const orig = fs.readFileSync(filePath, "utf8");
+  const orig = fs.readFileSync(filePath, 'utf8');
   const lines = orig.split(/\r?\n/);
   const out = [];
   let withinQuestion = false;
@@ -71,7 +71,7 @@ function cleanupFile(filePath) {
     if (withinQuestion) {
       if (isArrowLine(line)) {
         if (!arrowSeen) {
-          out.push("→ Your answer:");
+          out.push('→ Your answer:');
           arrowSeen = true;
         }
         // Skip any duplicates
@@ -93,9 +93,9 @@ function cleanupFile(filePath) {
     // Reset withinQuestion on hard separators followed by blank lines? Better to reset only when encountering next question header
   }
 
-  const next = out.join("\n");
+  const next = out.join('\n');
   if (next !== orig) {
-    fs.writeFileSync(filePath, next, "utf8");
+    fs.writeFileSync(filePath, next, 'utf8');
     return true;
   }
   return false;

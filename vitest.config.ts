@@ -6,11 +6,11 @@
   • WHY  ▸ Avoids pulling Playwright/React deps into unit run
   • HOW  ▸ Configure include/exclude patterns
 */
-import { defineConfig } from "vitest/config";
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ["tests/**/*.spec.ts"],
-    exclude: ["e2e/**", "web-demo/**"],
+    include: ['tests/**/*.spec.ts'],
+    exclude: ['e2e/**', 'web-demo/**'],
   },
 });

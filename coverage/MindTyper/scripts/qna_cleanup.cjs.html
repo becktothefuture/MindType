@@ -301,26 +301,26 @@
 <span class="cstat-no" title="statement not covered" >  - Remove heavy "Primer:" marker lines that are not in italic one-liner form (e.g., leading "**Primer:**" or plain "Primer:")</span>
 <span class="cstat-no" title="statement not covered" >*/</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >const fs = require("fs");</span>
-<span class="cstat-no" title="statement not covered" >const path = require("path");</span>
+<span class="cstat-no" title="statement not covered" >const fs = require('fs');</span>
+<span class="cstat-no" title="statement not covered" >const path = require('path');</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >const root = path.resolve("/Users/alexanderbeck/Coding Folder /MindTyper");</span>
-<span class="cstat-no" title="statement not covered" >const qDir = path.join(root, "docs", "questionnaire");</span>
+<span class="cstat-no" title="statement not covered" >const root = path.resolve('/Users/alexanderbeck/Coding Folder /MindTyper');</span>
+<span class="cstat-no" title="statement not covered" >const qDir = path.join(root, 'docs', 'questionnaire');</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >function listTargets() {</span>
 <span class="cstat-no" title="statement not covered" >  return fs</span>
 <span class="cstat-no" title="statement not covered" >    .readdirSync(qDir)</span>
-<span class="cstat-no" title="statement not covered" >    .filter((f) =&gt; f.endsWith(".md"))</span>
+<span class="cstat-no" title="statement not covered" >    .filter((f) =&gt; f.endsWith('.md'))</span>
 <span class="cstat-no" title="statement not covered" >    .filter(</span>
 <span class="cstat-no" title="statement not covered" >      (f) =&gt;</span>
 <span class="cstat-no" title="statement not covered" >        ![</span>
-<span class="cstat-no" title="statement not covered" >          "index.md",</span>
-<span class="cstat-no" title="statement not covered" >          "README.md",</span>
-<span class="cstat-no" title="statement not covered" >          "answer_quality_review.md",</span>
-<span class="cstat-no" title="statement not covered" >          "questions-incomplete.md",</span>
+<span class="cstat-no" title="statement not covered" >          'index.md',</span>
+<span class="cstat-no" title="statement not covered" >          'README.md',</span>
+<span class="cstat-no" title="statement not covered" >          'answer_quality_review.md',</span>
+<span class="cstat-no" title="statement not covered" >          'questions-incomplete.md',</span>
 <span class="cstat-no" title="statement not covered" >        ].includes(f),</span>
 <span class="cstat-no" title="statement not covered" >    )</span>
-<span class="cstat-no" title="statement not covered" >    .filter((f) =&gt; !f.startsWith("archive"))</span>
+<span class="cstat-no" title="statement not covered" >    .filter((f) =&gt; !f.startsWith('archive'))</span>
 <span class="cstat-no" title="statement not covered" >    .sort();</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 <span class="cstat-no" title="statement not covered" ></span>
@@ -344,7 +344,7 @@
 <span class="cstat-no" title="statement not covered" >}</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >function cleanupFile(filePath) {</span>
-<span class="cstat-no" title="statement not covered" >  const orig = fs.readFileSync(filePath, "utf8");</span>
+<span class="cstat-no" title="statement not covered" >  const orig = fs.readFileSync(filePath, 'utf8');</span>
 <span class="cstat-no" title="statement not covered" >  const lines = orig.split(/\r?\n/);</span>
 <span class="cstat-no" title="statement not covered" >  const out = [];</span>
 <span class="cstat-no" title="statement not covered" >  let withinQuestion = false;</span>
@@ -364,7 +364,7 @@
 <span class="cstat-no" title="statement not covered" >    if (withinQuestion) {</span>
 <span class="cstat-no" title="statement not covered" >      if (isArrowLine(line)) {</span>
 <span class="cstat-no" title="statement not covered" >        if (!arrowSeen) {</span>
-<span class="cstat-no" title="statement not covered" >          out.push("→ Your answer:");</span>
+<span class="cstat-no" title="statement not covered" >          out.push('→ Your answer:');</span>
 <span class="cstat-no" title="statement not covered" >          arrowSeen = true;</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        // Skip any duplicates</span>
@@ -386,9 +386,9 @@
 <span class="cstat-no" title="statement not covered" >    // Reset withinQuestion on hard separators followed by blank lines? Better to reset only when encountering next question header</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >  const next = out.join("\n");</span>
+<span class="cstat-no" title="statement not covered" >  const next = out.join('\n');</span>
 <span class="cstat-no" title="statement not covered" >  if (next !== orig) {</span>
-<span class="cstat-no" title="statement not covered" >    fs.writeFileSync(filePath, next, "utf8");</span>
+<span class="cstat-no" title="statement not covered" >    fs.writeFileSync(filePath, next, 'utf8');</span>
 <span class="cstat-no" title="statement not covered" >    return true;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  return false;</span>
@@ -412,7 +412,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-08T19:14:27.925Z
+                at 2025-08-08T20:51:30.047Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -18,28 +18,14 @@
 
 # Implementation Plan (live)
 
-> Plan (auto) — 2025-08-08
+> Plan (auto) — 2025-08-09
 >
-> - [ ] (P1) [FT-100] Tooling gates — `package.json`, CI, lint/format/test
->   - AC: pnpm typecheck|test|lint|format:check green locally and in CI
->   - Owner: @alex
->   - DependsOn: None
->   - Source: PRD Quality Gates; Testing & QA (Section 11)
-> - [ ] (P1) [FT-101] Caret-safe diff — `utils/diff.ts` + `tests/diff.spec.ts`
->   - AC: never crosses caret; minimal ops; 100% branch coverage for utils
->   - Owner: @alex
->   - DependsOn: FT-100
->   - Source: PRD REQ-IME-CARETSAFE; C3 Diff; ADR-0002
-> - [ ] (P1) [FT-200] Forward tidy sweep — `engines/tidySweep.ts`
->   - AC: forward window ≤ 80 chars behind caret; minimal diffs or null; doc latency notes
->   - Owner: @alex
->   - DependsOn: FT-101
->   - Source: PRD REQ-TIDY-SWEEP; C3 SweepScheduler/TidySweep
-> - [ ] (P1) [FT-300] Two-word highlight — `ui/highlighter.ts`
->   - AC: highlights two words behind caret on short pause; respects prefers-reduced-motion; tests where feasible
->   - Owner: @alex
->   - DependsOn: FT-100
->   - Source: PRD REQ-A11Y-MOTION; Design System § Motion; BDD features
+> Core milestones in sequence:
+> 1. Foundation (Dev Environment + Core Utils)
+> 2. Core Engine Implementation
+> 3. UI/UX Integration
+> 4. Performance Optimization
+> 5. Extended Features
 
 > **How Cursor uses this file**
 >
@@ -49,63 +35,421 @@
 
 ## Stage 1 — Foundation & Setup
 
-- [ ] (P1) [FT-100] Tooling: ESLint + Prettier harmony + Vitest scripts  
-       **AC:** `pnpm typecheck|test|lint|format:check` run locally; CI passes on PR.  
-       **Owner:** @alex • **Source:** PRD → Quality Gates
-- [ ] (P1) [FT-101] Utils: `utils/diff.ts` + `tests/diff.spec.ts`  
-       **AC:** replaceRange works; never crosses caret; 100% branch coverage for utils.
-- [ ] (P1) [FT-102] Core: `core/typingMonitor.ts` observable API  
-       **AC:** emits events with timestamps; unit tests assert event shapes.
+### Architecture Constraints (P1)
 
-### TODOs (Gaps to Close)
-- [ ] (P1) Bindings: Create `bindings/wasm/` package scaffold.
-  - **AC:** `wasm-pack build crates/core-rs --target web` outputs to `bindings/wasm/pkg`; re-export TS types with `wasm-bindgen` generated JS/TS.
-  - **Notes:** Add minimal README and `package.json` for local linking.
-- [ ] (P1) TS adapter for LLM transport.
-  - **AC:** Provide `LLMClient` mock in TS that implements a token AsyncGenerator; add tests.
-  - **Notes:** Keep Rust core free of HTTP deps unless `cloud` feature is enabled.
-- [ ] (P1) Utils coverage to 100%.
-  - **AC:** Expand `tests/diff.spec.ts` to cover invalid ranges and caret violations.
-- [ ] (P1) Reconcile docs to Rust-first truth.
-  - **AC:** Remove outdated references to deprecated TS core; ensure README and architecture docs reference `core_rust_details.md`.
+- [ ] (P1) [FT-105] Document architecture constraints  
+       **AC:** 
+       - Document on-device processing requirement
+       - List prohibited features (cloud processing, heavy UI)
+       - Create architecture decision record (ADR)
+       **Owner:** @alex  
+       **DependsOn:** None  
+       **Source:** PRD → Goals (MUST/WON'T)
+
+### Development Environment (P1)
+
+- [ ] (P1) [FT-110] Initialize project structure  
+       **AC:** Directory structure matches PRD; README updated  
+       **Owner:** @alex  
+       **DependsOn:** None  
+       **Source:** Project Structure Doc
+
+- [ ] (P1) [FT-111] Setup TypeScript configuration  
+       **AC:** `tsconfig.json` with strict mode; ES2024 target  
+       **Owner:** @alex  
+       **DependsOn:** FT-110  
+       **Source:** README.md → Development
+
+- [ ] (P1) [FT-112] Configure ESLint v9 flat config  
+       **AC:** TypeScript + Prettier integration; documented rules  
+       **Owner:** @alex  
+       **DependsOn:** FT-111  
+       **Source:** README.md → Development
+
+- [ ] (P1) [FT-113] Setup Vitest with coverage  
+       **AC:** Unit tests run; coverage reports generated  
+       **Owner:** @alex  
+       **DependsOn:** FT-111  
+       **Source:** PRD → Quality Gates
+
+- [ ] (P1) [FT-114] Configure Prettier and add format gates  
+       **AC:** `pnpm format` and `pnpm format:check` scripts exist; `.prettierrc` checked in; repo runs format check in CI  
+       **Owner:** @alex  
+       **DependsOn:** FT-111  
+       **Source:** README.md → Development Workflow
+
+- [ ] (P1) [FT-117] Add CI pipeline (GitHub Actions) for quality gates  
+       **AC:** CI runs `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test`; caches pnpm; uploads coverage artifact  
+       **Owner:** @alex  
+       **DependsOn:** FT-112, FT-113, FT-114  
+       **Source:** PRD → Quality Gates
+
+- [ ] (P1) [FT-118] Enforce coverage thresholds  
+       **AC:** Vitest config enforces ≥90% lines/statements overall; `utils/**` at 100% branches; CI fails below thresholds  
+       **Owner:** @alex  
+       **DependsOn:** FT-113, FT-117  
+       **Source:** PRD → Testing & QA
+
+### Security & Privacy Implementation (P1)
+
+- [ ] (P1) [FT-115] Implement secure field detection  
+       **AC:** 
+       - Detect password/secure input fields
+       - Disable corrections automatically
+       - Test coverage for all field types
+       **Owner:** @alex  
+       **DependsOn:** FT-113  
+       **Source:** PRD REQ-SECURE-FIELDS
+
+- [ ] (P1) [FT-116] Add IME composition handling  
+       **AC:** 
+       - Detect active IME composition
+       - Disable corrections during composition
+       - Support major IME systems
+       **Owner:** @alex  
+       **DependsOn:** FT-115  
+       **Source:** PRD REQ-SECURE-FIELDS
+
+### Core Utils Implementation (P1)
+
+- [ ] (P1) [FT-120] Implement caret-safe diff core  
+       **AC:** 
+       - `utils/diff.ts` with `replaceRange` function
+       - Never crosses caret position
+       - Handles UTF-16 surrogate pairs
+       - 100% test coverage
+       **Owner:** @alex  
+       **DependsOn:** FT-113  
+       **Source:** PRD REQ-IME-CARETSAFE
+
+- [ ] (P1) [FT-121] Create typing monitor  
+       **AC:** 
+       - `core/typingMonitor.ts` emits timestamped events
+       - Event shape: `{text, caret, atMs}`
+       - Unit tests for event emission
+       **Owner:** @alex  
+       **DependsOn:** FT-120  
+       **Source:** Manifesto → Performance
+
+- [ ] (P1) [FT-122] Implement pause detection  
+       **AC:**
+       - Detect SHORT_PAUSE_MS (500ms) and LONG_PAUSE_MS (2000ms)
+       - Cancellable timer implementation
+       - Unit tests for timing accuracy
+       **Owner:** @alex  
+       **DependsOn:** FT-121  
+       **Source:** PRD → Performance
+
+- [ ] (P1) [FT-123] Add basic logging and error paths  
+       **AC:** Minimal logger util with levels; logs timing and rule decisions behind a debug flag; unit tests verify no output when disabled  
+       **Owner:** @alex  
+       **DependsOn:** FT-121  
+       **Source:** PRD → Observability
+
+- [ ] (P1) [FT-124] Parameterize thresholds in `config/defaultThresholds.ts`  
+       **AC:** Expose `SHORT_PAUSE_MS`, `LONG_PAUSE_MS`, `MAX_SWEEP_WINDOW`; add unit tests asserting invariants and ranges; docs link to PRD  
+       **Owner:** @alex  
+       **DependsOn:** FT-122  
+       **Source:** PRD → Constraints / Performance
+
+### Rust Core Setup (P1)
+
+- [ ] (P1) [FT-130] Setup Rust crate structure  
+       **AC:** 
+       - `crates/core-rs` initialized
+       - WASM target configured
+       - Basic FFI bindings
+       **Owner:** @alex  
+       **DependsOn:** FT-110  
+       **Source:** Core Rust Details
+
+- [ ] (P1) [FT-131] Implement fragment extraction  
+       **AC:**
+       - Unicode-aware sentence segmentation
+       - Handles bidirectional text
+       - Performance benchmarks
+       **Owner:** @alex  
+       **DependsOn:** FT-130  
+       **Source:** Core Rust Details
 
 ## Stage 2 — Core Engines
 
-- [ ] (P1) [FT-200] `engines/tidySweep.ts` (≤ **80 chars** window; caret-safe)  
-       **AC:** fixes common transpositions; never crosses caret; latency notes in docstring.
-- [ ] (P2) [FT-201] `engines/backfillConsistency.ts` (stable-zone passes)  
-       **AC:** proposes diffs only in stable zone; groups by sweep id.
+### Tidy Sweep Implementation (P1)
 
-### TODOs (Gaps to Close)
-- [ ] (P1) Implement minimal tidy rules within `MAX_SWEEP_WINDOW`.
-  - **AC:** No caret crossing; returns null when confidence low; add unit tests for common transpositions/punctuation.
-- [ ] (P2) Backfill stable-zone rules and normalization.
-  - **AC:** Return normalized diff array; verify grouping behavior.
+- [ ] (P1) [FT-210] Create tidy sweep engine scaffold  
+       **AC:**
+       - Basic engine structure in `engines/tidySweep.ts`
+       - Rule interface defined
+       - Test infrastructure
+       **Owner:** @alex  
+       **DependsOn:** FT-120  
+       **Source:** PRD REQ-TIDY-SWEEP
+
+- [ ] (P1) [FT-211] Implement transposition detection  
+       **AC:**
+       - Detect common character swaps
+       - Stay within 80-char window
+       - Return null when uncertain
+       **Owner:** @alex  
+       **DependsOn:** FT-210  
+       **Source:** Manifesto → Features
+
+- [ ] (P1) [FT-212] Add punctuation normalization  
+       **AC:**
+       - Fix spacing around punctuation
+       - Handle quotes and apostrophes
+       - Language-aware rules
+       **Owner:** @alex  
+       **DependsOn:** FT-211  
+       **Source:** Manifesto → Features
+
+- [ ] (P1) [FT-213] Implement confidence gating and null-return conditions  
+       **AC:** Define confidence thresholds per rule; return `null` below threshold; unit tests cover low-confidence cases  
+       **Owner:** @alex  
+       **DependsOn:** FT-210  
+       **Source:** PRD REQ-TIDY-SWEEP (return null when unsure)
+
+- [ ] (P1) [FT-214] Add whitespace normalization rules  
+       **AC:** Collapse multiple spaces, normalize trailing spaces in window; never cross caret; unit tests for boundary cases  
+       **Owner:** @alex  
+       **DependsOn:** FT-210  
+       **Source:** PRD REQ-TIDY-SWEEP
+
+- [ ] (P2) [FT-215] Establish rule priority and conflict resolution  
+       **AC:** Document rule ordering; deterministic application; tests for conflicting suggestions  
+       **Owner:** @alex  
+       **DependsOn:** FT-211, FT-212, FT-214  
+       **Source:** Manifesto → Safety guarantees
+
+### Backfill Implementation (P2)
+
+- [ ] (P2) [FT-220] Create backfill consistency engine  
+       **AC:**
+       - Engine structure in `engines/backfillConsistency.ts`
+       - Stable zone detection
+       - Test framework
+       **Owner:** @alex  
+       **DependsOn:** FT-210  
+       **Source:** Manifesto → Features
+
+- [ ] (P2) [FT-221] Implement name consistency  
+       **AC:**
+       - Track name variants
+       - Propose normalizations
+       - Context-aware confidence
+       **Owner:** @alex  
+       **DependsOn:** FT-220  
+       **Source:** PRD → Consistency
+
+- [ ] (P2) [FT-222] Add punctuation/capitalization normalization (stable zone)  
+       **AC:** Normalize double spaces, terminal punctuation, sentence case only in stable zone; unit tests verify zone boundaries  
+       **Owner:** @alex  
+       **DependsOn:** FT-220  
+       **Source:** PRD → Consistency
+
+- [ ] (P2) [FT-223] Enforce stable-zone boundaries  
+       **AC:** No edits at/after caret; clamp edits ≥ MAX_SWEEP_WINDOW behind caret; unit tests for off-by-one bounds  
+       **Owner:** @alex  
+       **DependsOn:** FT-220, FT-124  
+       **Source:** PRD → Constraints
 
 ## Stage 3 — UI & Feedback
 
-- [ ] (P1) [FT-300] `ui/highlighter.ts` (2-word-behind highlight)  
-       **AC:** fade ≤ **250 ms**; respects `prefers-reduced-motion`.
-- [ ] (P2) [FT-301] `ui/groupUndo.ts` (batch AI diffs)  
-       **AC:** single undo step per sweep; tests cover grouping edges.
+### Visual Feedback (P1)
 
-### TODOs (Gaps to Close)
-- [ ] (P1) Reduced-motion support and tests.
-  - **AC:** `ui/highlighter.ts` respects `prefers-reduced-motion`; add unit or integration tests.
-- [ ] (P2) Screen reader announcement plan.
-  - **AC:** Document strategy for announcing changes; ensure ARIA notes in demo.
+- [ ] (P1) [FT-310] Implement highlighter core  
+       **AC:**
+       - Two-word highlight behind caret
+       - Fade duration ≤ 250ms
+       - Reduced motion support
+       - Minimal, non-intrusive UI
+       - No suggestion popups or heavy UI elements
+       **Owner:** @alex  
+       **DependsOn:** FT-210  
+       **Source:** PRD REQ-A11Y-MOTION
 
-## Stage 4 — Optimisation & Polish
+- [ ] (P1) [FT-311] Add ARIA announcements  
+       **AC:**
+       - Screen reader notifications
+       - Configurable verbosity
+       - WCAG 2.2 AA compliant
+       **Owner:** @alex  
+       **DependsOn:** FT-310  
+       **Source:** PRD → Accessibility
 
-- [ ] (P2) [FT-400] Latency profiling + thresholds in `config/defaultThresholds.ts`  
-       **AC:** p95 echo < **10 ms** documented; params configurable per env.
+- [ ] (P1) [FT-312] Run accessibility audit and reduced-motion tests  
+       **AC:** Add axe checks for color/aria; unit test for `prefers-reduced-motion`; document SR announcement copy  
+       **Owner:** @alex  
+       **DependsOn:** FT-311  
+       **Source:** PRD REQ-A11Y-MOTION
 
-### TODOs (Gaps to Close)
-- [ ] (P2) Add `criterion` benches in `crates/core-rs/benches`.
-  - **AC:** Baselines for pause timer and fragment extraction; tracked locally.
-- [ ] (P2) PRD Traceability appendix.
-  - **AC:** Map REQ → tests/modules; add file and keep updated as features land.
+### Undo Integration (P2)
 
-> **Backlog (append here via PLAN_ONLY)**
+- [ ] (P2) [FT-320] Implement undo grouping  
+       **AC:**
+       - Group changes per sweep
+       - Single undo step
+       - Preserve caret position
+       **Owner:** @alex  
+       **DependsOn:** FT-310  
+       **Source:** Manifesto → Features
+
+- [ ] (P2) [FT-321] Expose test hooks for UI timing and selection  
+       **AC:** Deterministic timers for tests; data-testids for highlight; unit tests assert caret unchanged  
+       **Owner:** @alex  
+       **DependsOn:** FT-320  
+       **Source:** BDD → Two‑word highlight
+
+- [ ] (P2) [FT-322] Add Playwright e2e for BDD scenarios  
+       **AC:** Tests for caret safety and two-word highlight mapped to `docs/qa/acceptance/*.feature`; CI job runs on PR  
+       **Owner:** @alex  
+       **DependsOn:** FT-321  
+       **Source:** PRD → Scenarios (BDD)
+
+- [ ] (P2) [FT-323] Add screen-reader announcement tests (jsdom)  
+       **AC:** Verify aria-live updates and politeness; snapshot SR copy  
+       **Owner:** @alex  
+       **DependsOn:** FT-311  
+       **Source:** PRD → Accessibility
+
+## Stage 4 — Performance Optimization
+
+### Profiling & Monitoring (P2)
+
+- [ ] (P2) [FT-410] Setup performance monitoring  
+       **AC:**
+       - Track p95 latency (≤15ms target)
+       - Memory usage monitoring
+       - Telemetry infrastructure
+       **Owner:** @alex  
+       **DependsOn:** FT-320  
+       **Source:** PRD → Performance
+
+- [ ] (P2) [FT-411] Implement Rust benchmarks  
+       **AC:**
+       - Criterion benchmarks for core operations
+       - Performance regression testing
+       - Documentation
+       **Owner:** @alex  
+       **DependsOn:** FT-131  
+       **Source:** Core Rust Details
+
+- [ ] (P2) [FT-412] Add latency test harness  
+       **AC:** Harness records keystroke→correction latency; reports p95; failing test if > targets; docs capture results  
+       **Owner:** @alex  
+       **DependsOn:** FT-410  
+       **Source:** PRD → Success Metrics (Latency)
+
+### Memory Optimization (P2)
+
+- [ ] (P2) [FT-420] Optimize memory usage  
+       **AC:**
+       - Stay under 150MB typical
+       - Memory leak detection
+       - Garbage collection tuning
+       **Owner:** @alex  
+       **DependsOn:** FT-410  
+       **Source:** PRD → Performance
+
+- [ ] (P2) [FT-421] Instrument undo-rate metric  
+       **AC:** Capture total edits vs. user undos; compute % and report; goal ≤0.5%; CI prints current baseline  
+       **Owner:** @alex  
+       **DependsOn:** FT-320, FT-410  
+       **Source:** PRD → Success Metrics (Undo rate)
+
+- [ ] (P2) [FT-422] Add memory tracking harness  
+       **AC:** Script captures Node/V8 heap during sweeps; alerts if typical >150MB or cap >200MB; docs include snapshot  
+       **Owner:** @alex  
+       **DependsOn:** FT-410  
+       **Source:** PRD → Success Metrics (Memory)
+
+## Stage 5 — Extended Features
+
+### Web Demo (P3)
+
+- [ ] (P3) [FT-510] Create web demo scaffold  
+       **AC:**
+       - React/Vite setup
+       - WASM integration
+       - Basic UI components
+       **Owner:** @alex  
+       **DependsOn:** FT-320  
+       **Source:** Web Demo Details
+
+- [ ] (P3) [FT-511] Implement demo features  
+       **AC:**
+       - Live typing demo
+       - Performance display
+       - Error handling
+       **Owner:** @alex  
+       **DependsOn:** FT-510  
+       **Source:** Web Demo Details
+
+> **Backlog**
 >
-> - [ ] (P3) [FT-999] Web demo shell scaffold (React/Vite + WASM hook)
+> - [ ] (P3) [FT-901] Plugin system for custom rules
+> - [ ] (P3) [FT-902] Language-specific rule sets
+> - [ ] (P3) [FT-903] Cloud sync infrastructure (if requested)
+> - [ ] (P3) [FT-904] macOS secure field enforcement (AX)  
+>   - **AC:** Detect secure fields via AX; disable edits; unit test in sample app  
+>   - **Source:** mac_app_details.md
+> - [ ] (P3) [FT-905] Demo signup server (email capture)  
+>   - **AC:** Minimal Express server; opt-in telemetry; GDPR note  
+>   - **Source:** web_demo_details.md → Implementation Notes
+> - [ ] (P3) [FT-906] Activation/NPS measurement plan  
+>   - **AC:** Define measurement approach; optional prompts in demo; docs updated  
+>   - **Source:** PRD → Success Metrics
+
+## Traceability Matrix
+
+### Core Requirements
+
+1. REQ-SECURE-FIELDS
+   - FT-115: Secure field detection
+   - FT-116: IME composition handling
+
+2. REQ-IME-CARETSAFE
+   - FT-120: Caret-safe diff implementation
+   - FT-210: Tidy sweep engine
+   - FT-211: Transposition detection
+
+2. REQ-TIDY-SWEEP
+   - FT-210, FT-211, FT-212: Sweep engine and rules
+   - FT-220: Backfill consistency
+
+3. REQ-A11Y-MOTION
+   - FT-310: Highlighter with motion preferences
+   - FT-311: ARIA support
+
+### Architecture Requirements
+
+- On-device Processing
+  - FT-105: Architecture constraints
+  - FT-130: Rust core setup (WASM-ready)
+
+### Performance Requirements
+
+- Latency (p95 ≤ 15ms)
+  - FT-410: Performance monitoring
+  - FT-411: Rust benchmarks
+
+- Memory (≤ 150MB typical)
+  - FT-420: Memory optimization
+  - FT-422: Memory tracking harness
+
+### Success Metrics
+
+- Undo rate ≤ 0.5%
+  - FT-421: Undo-rate instrumentation
+
+- Activation ≥ 70% (week 1), NPS ≥ 50
+  - FT-906: Measurement plan (demo/backlog)
+
+### Completion Criteria
+
+Stage completion requires:
+1. All tasks marked complete
+2. Tests passing (100% coverage for core)
+3. Performance targets met
+4. Accessibility compliance verified
+5. Documentation updated

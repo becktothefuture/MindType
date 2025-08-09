@@ -14,10 +14,10 @@
   • HOW  ▸ Subscribes to TypingMonitor; invokes engines with input
 */
 
-import { SHORT_PAUSE_MS } from "../config/defaultThresholds";
-import { tidySweep } from "../engines/tidySweep";
-import { backfillConsistency } from "../engines/backfillConsistency";
-import type { TypingMonitor, TypingEvent } from "./typingMonitor";
+import { SHORT_PAUSE_MS } from '../config/defaultThresholds';
+import { tidySweep } from '../engines/tidySweep';
+import { backfillConsistency } from '../engines/backfillConsistency';
+import type { TypingMonitor, TypingEvent } from './typingMonitor';
 
 export interface SweepScheduler {
   start(): void;

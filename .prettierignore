@@ -1,7 +1,23 @@
-dist
-target
-node_modules
-web-demo/node_modules
-crates/**
-target/**
+# Generated artifacts and vendor
+coverage/
+node_modules/
+dist/
+target/
+crates/**/target/
+.vite/
+
+# Locks and caches
+pnpm-lock.yaml
+e2e/pnpm-lock.yaml
+web-demo/pnpm-lock.yaml
+
+# CI and config noise
+.github/**
+
+# Subpackages manage their own formatting
+web-demo/**
+e2e/**
+
+# Future generated bindings
+bindings/**
 

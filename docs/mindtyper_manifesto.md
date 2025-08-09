@@ -85,5 +85,3 @@ No mystery, no hand‑waving. You can inspect the checks, the tests, and the rul
 Start typing. Pause. Watch tiny edits settle behind the caret. Then keep writing.
 
 If it ever feels opinionated instead of helpful, tell us — or turn it off. Your writing, your rules.
-
-

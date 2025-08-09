@@ -46,3 +46,5 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 - `README.md` links to the Manifesto under "Recommended reading".
 
 [0.0.1-alpha]: https://github.com/becktothefuture/mindtyper-qna/releases/tag/v0.0.1-alpha
+
+
