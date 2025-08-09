@@ -31,6 +31,13 @@ export function createSweepScheduler(monitor?: TypingMonitor): SweepScheduler {
   let typingInterval: ReturnType<typeof setInterval> | null = null;
   const diffusion = createDiffusionController();
 
+  function clearIntervals() {
+    if (timer) clearTimeout(timer);
+    if (typingInterval) clearInterval(typingInterval);
+    timer = null;
+    typingInterval = null;
+  }
+
   function onEvent(ev: TypingEvent) {
     lastEvent = ev;
     diffusion.update(ev.text, ev.caret);
@@ -39,14 +46,33 @@ export function createSweepScheduler(monitor?: TypingMonitor): SweepScheduler {
     timer = setTimeout(() => runSweeps(), SHORT_PAUSE_MS);
     // ensure streaming tick during active typing
     if (!typingInterval) {
-      typingInterval = setInterval(() => diffusion.tickOnce(), getTypingTickMs());
+      typingInterval = setInterval(() => {
+        try {
+          diffusion.tickOnce();
+        } catch {
+          // fail-safe: stop streaming to avoid runaway loops
+          clearIntervals();
+        }
+      }, getTypingTickMs());
     }
   }
 
-  function runSweeps() {
+  async function runSweeps() {
     if (!lastEvent) return;
-    // Final catch-up of streamed diffusion on pause
-    diffusion.catchUp();
+    // Final catch-up of streamed diffusion on pause with safety cap
+    try {
+      let steps = 0;
+      const MAX_STEPS = 200; // cap to avoid infinite loops in edge cases
+      while (
+        diffusion.getState().frontier < diffusion.getState().caret &&
+        steps < MAX_STEPS
+      ) {
+        await diffusion.catchUp();
+        steps += 1;
+      }
+    } catch {
+      // swallow to keep UI responsive
+    }
     // Legacy engines can still run after catch-up
     tidySweep({ text: lastEvent.text, caret: lastEvent.caret });
     backfillConsistency({ text: lastEvent.text, caret: lastEvent.caret });
@@ -60,10 +86,7 @@ export function createSweepScheduler(monitor?: TypingMonitor): SweepScheduler {
     },
     stop() {
       if (unsubscribe) unsubscribe();
-      if (timer) clearTimeout(timer);
-      if (typingInterval) clearInterval(typingInterval);
-      timer = null;
-      typingInterval = null;
+      clearIntervals();
     },
   };
 }

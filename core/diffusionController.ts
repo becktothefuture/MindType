@@ -31,6 +31,17 @@ export function createDiffusionController() {
   const seg = new Intl.Segmenter(undefined, { granularity: 'word' });
 
   let state: DiffusionState = { text: '', caret: 0, frontier: 0 };
+  // Throttle rendering to avoid UI storms (esp. Safari). ~60fps ceiling.
+  let lastRenderMs = 0;
+  const MIN_RENDER_INTERVAL_MS = 16;
+
+  function maybeRender() {
+    const now = Date.now();
+    if (now - lastRenderMs >= MIN_RENDER_INTERVAL_MS) {
+      lastRenderMs = now;
+      renderValidationBand(bandRange());
+    }
+  }
 
   function clampFrontier() {
     const minFrontier = Math.max(0, state.caret - MAX_SWEEP_WINDOW);
@@ -41,7 +52,7 @@ export function createDiffusionController() {
     state.text = text;
     state.caret = caret;
     clampFrontier();
-    renderValidationBand(bandRange());
+    maybeRender();
   }
 
   function bandRange(): { start: number; end: number } {
@@ -91,16 +102,21 @@ export function createDiffusionController() {
       state.frontier = Math.max(state.frontier, r.end);
     }
     clampFrontier();
-    renderValidationBand(bandRange());
+    maybeRender();
   }
 
   async function catchUp() {
-    // Run a short, fast loop until frontier reaches caret
-    // Note: caller controls cadence; we spin with minimal delay here
-    while (state.frontier < state.caret) {
+    // Process in small chunks to avoid blocking the UI/event loop.
+    const MAX_PER_CHUNK = 20;
+    let processed = 0;
+    while (state.frontier < state.caret && processed < MAX_PER_CHUNK) {
       tickOnce();
-      // small microtask yield to avoid blocking
-      await Promise.resolve();
+      processed += 1;
+    }
+    if (state.frontier < state.caret) {
+      // Yield via macrotask so Safari/WebKit can render and handle input.
+      await new Promise((r) => setTimeout(r, 0));
+      return catchUp();
     }
   }
 

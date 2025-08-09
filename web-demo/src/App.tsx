@@ -242,12 +242,14 @@ function App() {
         <textarea
           value={text}
           onChange={handleTextChange}
-          onSelect={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            pipeline.ingest(target.value, target.selectionStart ?? target.value.length);
-          }}
           rows={10}
           cols={80}
+          // discourage writing-assistant extensions that inject content scripts
+          data-gramm="false"
+          data-lt-active="false"
+          spellCheck={false}
+          autoCorrect="off"
+          autoCapitalize="off"
         />
         {bandRange && (
           <div style={{ fontFamily: "monospace", marginTop: 8 }}>

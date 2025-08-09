@@ -25,56 +25,56 @@ describe('Streaming Diffusion Integration', () => {
   it('demonstrates the complete flow from typing to correction', () => {
     // Set up the pipeline
     const monitor = createTypingMonitor();
-    const scheduler = createSweepScheduler(monitor);
+    createSweepScheduler(monitor);
     const diffusion = createDiffusionController();
-    
+
     // Simulate user typing "Hello teh world"
     const text = 'Hello teh world';
     const caret = 15; // At end
-    
+
     // Test 1: DiffusionController processes the text
     diffusion.update(text, caret);
-    
+
     // Test 2: Get a word range hint from diffusion
     const state = diffusion.getState();
     expect(state.text).toBe(text);
     expect(state.caret).toBe(caret);
     expect(state.frontier).toBe(0); // Starts at beginning
-    
+
     // Test 3: Simulate a tick that would request a correction
-    const nextRange = diffusion.getState();
+    diffusion.getState();
     const hint = { start: 5, end: 10 }; // " teh " with spaces
-    
+
     // Test 4: TidySweep engine processes the hint
     const sweepResult = tidySweep({
       text,
       caret,
       hint,
     });
-    
+
     expect(sweepResult.diff).not.toBeNull();
     expect(sweepResult.diff!.start).toBe(5); // Start of " teh "
-    expect(sweepResult.diff!.end).toBe(10);   // End of " teh "
+    expect(sweepResult.diff!.end).toBe(10); // End of " teh "
     expect(sweepResult.diff!.text).toBe(' the ');
-    
+
     // Test 5: Verify caret safety
     expect(sweepResult.diff!.end).toBeLessThanOrEqual(caret);
   });
 
   it('handles streaming tick-by-tick progression', () => {
     const diffusion = createDiffusionController();
-    
+
     // Simulate typing with multiple words
     diffusion.update('Fix teh adn hte issues', 23); // At end
-    
+
     // First tick should advance frontier
     const initialState = diffusion.getState();
     expect(initialState.frontier).toBe(0);
-    
+
     diffusion.tickOnce();
     const afterFirstTick = diffusion.getState();
     expect(afterFirstTick.frontier).toBeGreaterThan(0);
-    
+
     // Multiple ticks should advance but never cross caret
     diffusion.tickOnce();
     diffusion.tickOnce();
@@ -86,19 +86,17 @@ describe('Streaming Diffusion Integration', () => {
     // Test the key promise: corrections happen behind the caret
     const text = 'I was typing teh wrong word here';
     const caretPosition = 32; // At end
-    
+
     const result = tidySweep({
       text,
       caret: caretPosition,
     });
-    
+
     if (result.diff) {
       // Apply the correction (simulating what the real system would do)
-      const correctedText = 
-        text.slice(0, result.diff.start) + 
-        result.diff.text + 
-        text.slice(result.diff.end);
-      
+      const correctedText =
+        text.slice(0, result.diff.start) + result.diff.text + text.slice(result.diff.end);
+
       expect(correctedText).toBe('I was typing the wrong word here');
       expect(result.diff.end).toBeLessThanOrEqual(caretPosition);
     }
@@ -111,13 +109,13 @@ describe('Streaming Diffusion Integration', () => {
       { text: 'see hte movie', expected: 'the' },
       { text: 'fix yuor code works', expected: 'your' }, // Added space before
     ];
-    
+
     testCases.forEach(({ text, expected }) => {
       const result = tidySweep({
         text,
         caret: text.length,
       });
-      
+
       expect(result.diff).not.toBeNull();
       expect(result.diff!.text).toContain(expected);
     });
