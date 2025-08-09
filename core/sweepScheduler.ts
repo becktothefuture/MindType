@@ -14,7 +14,7 @@
   • HOW  ▸ Subscribes to TypingMonitor; invokes engines with input
 */
 
-import { SHORT_PAUSE_MS, TYPING_TICK_MS } from '../config/defaultThresholds';
+import { SHORT_PAUSE_MS, getTypingTickMs } from '../config/defaultThresholds';
 import { tidySweep } from '../engines/tidySweep';
 import { backfillConsistency } from '../engines/backfillConsistency';
 import type { TypingMonitor, TypingEvent } from './typingMonitor';
@@ -39,7 +39,7 @@ export function createSweepScheduler(monitor?: TypingMonitor): SweepScheduler {
     timer = setTimeout(() => runSweeps(), SHORT_PAUSE_MS);
     // ensure streaming tick during active typing
     if (!typingInterval) {
-      typingInterval = setInterval(() => diffusion.tickOnce(), TYPING_TICK_MS);
+      typingInterval = setInterval(() => diffusion.tickOnce(), getTypingTickMs());
     }
   }
 

@@ -17,9 +17,30 @@ export const SHORT_PAUSE_MS = 500; // aligned with plan/docs
 export const LONG_PAUSE_MS = 2000; // aligned with plan/docs
 export const MAX_SWEEP_WINDOW = 80; // chars behind caret
 
-// ⟢ Streaming cadence while typing (advances diffusion frontier)
-export const TYPING_TICK_MS = 75; // 60–90 ms sweet spot
+// Mutable runtime-configurable thresholds (with safe defaults)
+let typingTickMs = 75; // 60–90 ms sweet spot
+let minValidationWords = 3;
+let maxValidationWords = 8;
 
-// ⟢ Word-by-word diffusion band sizing (Unicode words)
-export const MIN_VALIDATION_WORDS = 3;
-export const MAX_VALIDATION_WORDS = 8;
+// Accessors to support live tuning (demo controls)
+export function getTypingTickMs(): number {
+  return typingTickMs;
+}
+export function setTypingTickMs(value: number): void {
+  const clamped = Math.max(10, Math.min(500, Math.floor(value)));
+  typingTickMs = clamped;
+}
+
+export function getMinValidationWords(): number {
+  return minValidationWords;
+}
+export function getMaxValidationWords(): number {
+  return maxValidationWords;
+}
+export function setValidationBandWords(minWords: number, maxWords: number): void {
+  const min = Math.max(1, Math.min(5, Math.floor(minWords)));
+  const max = Math.max(3, Math.min(12, Math.floor(maxWords)));
+  // enforce min ≤ max
+  minValidationWords = Math.min(min, max);
+  maxValidationWords = Math.max(min, max);
+}

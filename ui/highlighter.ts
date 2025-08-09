@@ -15,10 +15,22 @@
 */
 
 export function renderHighlight(_range: { start: number; end: number }) {
-  /* ⟢ TODO: apply CSS class / accessibility cues */
+  const g: any = globalThis as any;
+  if (g && typeof g.dispatchEvent === 'function' && typeof g.CustomEvent === 'function') {
+    const event = new g.CustomEvent('mindtyper:highlight', {
+      detail: { start: _range.start, end: _range.end },
+    });
+    g.dispatchEvent(event);
+  }
 }
 
 // Subtle shimmer band showing currently validated text behind caret
 export function renderValidationBand(_range: { start: number; end: number }) {
-  /* ⟢ TODO: translucent band/shimmer honoring prefers-reduced-motion */
+  const g: any = globalThis as any;
+  if (g && typeof g.dispatchEvent === 'function' && typeof g.CustomEvent === 'function') {
+    const event = new g.CustomEvent('mindtyper:validationBand', {
+      detail: { start: _range.start, end: _range.end },
+    });
+    g.dispatchEvent(event);
+  }
 }

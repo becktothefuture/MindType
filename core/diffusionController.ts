@@ -12,8 +12,8 @@
 
 import {
   MAX_SWEEP_WINDOW,
-  MIN_VALIDATION_WORDS,
-  MAX_VALIDATION_WORDS,
+  getMinValidationWords,
+  getMaxValidationWords,
 } from '../config/defaultThresholds';
 import { tidySweep } from '../engines/tidySweep';
 import { renderValidationBand, renderHighlight } from '../ui/highlighter';
@@ -58,10 +58,9 @@ export function createDiffusionController() {
       }
     }
     if (words.length === 0) return { start: state.frontier, end: state.caret };
-    const take = Math.min(
-      Math.max(words.length, MIN_VALIDATION_WORDS),
-      MAX_VALIDATION_WORDS,
-    );
+    const minWords = getMinValidationWords();
+    const maxWords = getMaxValidationWords();
+    const take = Math.min(Math.max(words.length, minWords), maxWords);
     const start = words[Math.max(0, words.length - take)].start;
     return { start, end: state.caret };
   }
