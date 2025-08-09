@@ -310,6 +310,17 @@
        **Owner:** @alex  
        **DependsOn:** FT-310, FT-201  
        **Source:** Web demo needs live testing capability
+  - [ ] (P1) [FT-315A] Add typing cadence control (slider)  
+         **AC:** UI slider mapped to `TYPING_TICK_MS` (30–150 ms); live update without reload; persisted to `localStorage`; reduced‑motion toggle respects slower defaults  
+         **Owner:** @alex  
+         **DependsOn:** FT-315  
+         **Source:** Flow tuning / visual playground
+
+  - [ ] (P1) [FT-315B] Add validation band size controls (sliders)  
+         **AC:** Two sliders mapped to `MIN_VALIDATION_WORDS` (1–5) and `MAX_VALIDATION_WORDS` (3–12); enforce `min ≤ max`; live update; persisted to `localStorage`  
+         **Owner:** @alex  
+         **DependsOn:** FT-315  
+         **Source:** Flow tuning / visual playground
 
 - [ ] (P1) [FT-316] Add demo controls and settings  
        **AC:** Toggle for rules vs LM mode; band size adjustment; timing controls; performance display; reset functionality; export/import presets  
