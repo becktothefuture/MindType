@@ -81,7 +81,7 @@ MindTyper turns noisy keystreams into clean text via small, reversible diffs. Fo
      - `wasm-pack build crates/core-rs --target web --out-dir bindings/wasm/pkg`
      - `pnpm --prefix web-demo install`
 3. Run: `pnpm --prefix web-demo dev` → open the printed URL
-4. Type a sentence, pause, and watch the simple correction kick in.
+4. Type a sentence and watch the validation band trail behind your cursor; pause to see diffusion catch up.
 
 ## Development Workflow & Quality Gates
 
@@ -127,16 +127,17 @@ MindTyper/
 ### core/
 
 - `core/typingMonitor.ts`: Emits timestamped typing events; decouples input capture from processing.
-- `core/sweepScheduler.ts`: Debounces typing activity; triggers `tidySweep` and `backfillConsistency` after short pauses.
+- `core/sweepScheduler.ts`: Orchestrates streamed diffusion via typing ticks and pause catch-up; integrates with `DiffusionController`.
+- `core/diffusionController.ts`: Advances a validation frontier word-by-word behind the caret; renders validation band; catches up on pause.
 
 ### engines/
 
 - `engines/tidySweep.ts`: Forward pass that proposes minimal diffs behind the CARET within a `MAX_SWEEP_WINDOW` window (stub returns no diff until rules land).
-- `engines/backfillConsistency.ts`: Reverse pass that proposes consistency diffs in the stable zone when idle (stub returns empty array).
+- `engines/backfillConsistency.ts`: Reverse pass that proposes consistency diffs in the stable zone behind the caret (stub returns empty array).
 
 ### ui/
 
-- `ui/highlighter.ts`: Visualizes recent changes near the CARET; intended to honor reduced-motion.
+- `ui/highlighter.ts`: Renders validation band (3–8 words behind caret) and applied fix highlights; honors reduced-motion.
 - `ui/groupUndo.ts`: Intended to batch engine diffs so each sweep collapses into a single undo step (current stub returns input).
 
 ### utils/

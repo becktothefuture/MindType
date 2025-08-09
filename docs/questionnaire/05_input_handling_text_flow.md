@@ -12,11 +12,9 @@ This section defines how MindTyper processes and handles different types of inpu
 _Primer: Clarifies this decision and why it matters._
 → Your answer:
 
-**Answer:** MindTyper will not correct partial words while the user is still typing them. Instead, it waits until there's sufficient context—guided by word boundaries like spaces or punctuation—but ultimately shaped by the overall sentence structure.
+**Answer:** MindTyper never edits the word at the caret. Once a word boundary appears (space/punctuation), that word becomes eligible for streamed correction in the trailing zone. Diffusion proceeds word‑by‑word behind the caret while typing continues, preserving flow and intent.
 
-Spaces, capitalization, and phrasing cues are used as input signals, but the system doesn't rely solely on them. It looks at the full linguistic and temporal context to determine whether a word is complete, combined, or meant to stand alone.
-
-This approach protects user flow and intent, ensuring MindTyper never intrudes mid-word or makes premature assumptions.
+Spaces, capitalization, and phrasing cues are input signals, but the system looks at full linguistic + temporal context to decide when a word is complete and ready for diffusion.
 
 ---
 
@@ -60,9 +58,7 @@ If the user doesn't add breaks or prefers dense, casual flow, MindTyper respects
 _Primer: Clarifies this decision and why it matters._
 → Your answer:
 
-**Answer:** Yes—MindTyper will pause mid-thought corrections to avoid interrupting the user's natural flow. Corrections only begin once a complete idea is detected—either through punctuation, sentence structure, or a brief pause (e.g. two or more seconds without typing).
-
-This approach ensures that users don't feel like they're being "edited while thinking." It respects their drafting process and lets MindTyper apply corrections after intention becomes clear.
+**Answer:** Corrections stream word‑by‑word behind the caret even while typing. A short pause (~500 ms) simply allows diffusion to catch up faster until the band reaches the caret. We never edit at/after the caret, so drafting remains uninterrupted.
 
 ---
 

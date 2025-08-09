@@ -180,13 +180,9 @@ The system will recognize and adapt to writing context naturally without requiri
 _Primer: Clarifies this decision and why it matters._
 → Your answer:
 
-**Answer:** Yes, MindTyper will have a subtle visual indicator when it's active—likely through a lightly animated or glowing cursor/caret. It might appear slightly larger, move with a soft pulse, or show a glow effect while idle.
+**Answer:** The primary indicator is a subtle shimmer band in the trailing validation zone behind the caret. It shows which words are currently being validated/diffused, without altering the caret itself. When `prefers-reduced-motion` is on, it degrades to a gentle static band or fade.
 
-But this visual cue must stay fully OS-compliant and never interfere with native input behavior. If implementing this cursor styling proves too invasive, it'll be skipped in favor of a less obtrusive method.
-
-There will be no visible status bar icons, no notifications, no constant indicators. Users can toggle the system easily—potentially via the caps lock long-press modifier, as with other controls.
-
-The whole goal: presence that feels natural, quiet, and intentional.
+No glowing cursor; we avoid invasive caret styling. No persistent status chrome. Presence remains quiet and intentional.
 
 ---
 

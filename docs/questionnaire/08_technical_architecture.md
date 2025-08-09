@@ -113,6 +113,7 @@ _Primer: Clarifies this decision and why it matters._
 - I/O & sync: background queues (QoS utility).
 - State: Swift actors guard shared state; Rust uses message‑passing channels; cross‑boundary calls via FFI are synchronous and short.
 - Debounce: 8–12 ms debounce for keystrokes to avoid stampedes; immediate on pause.
+- Typing tick: 60–90 ms cadence to advance a diffusion frontier that validates/corrects word‑by‑word behind the caret.
 - Cancellation: every job cancellable; newest keystroke supersedes older tasks.
 
 ---

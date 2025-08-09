@@ -34,8 +34,8 @@
 >   - Rust crate compiles to WebAssembly (WASM) with exports for: pause timer, fragment extractor, simple merger, stub token stream, and an in‑memory logger.
 >   - TypeScript core has a typing monitor and a sweep scheduler scaffold.
 >   - Engines (`tidySweep`, `backfillConsistency`) are stubs. Thresholds exist.
->   - Web demo is wired to import the local WASM package and triggers a simple “correction on pause.”
-> - What’s not done yet:
+>   - Web demo is wired to import the local WASM package and triggers a simple "correction on pause."
+> - What's not done yet:
 >   - Real engine rules (diffs behind the caret, punctuation, transpositions)
 >   - Proper caret‑safe apply in the demo (we currently rebuild a prefix string)
 >   - React hooks (`usePauseTimer`, `useMindType`) and richer UI feedback
@@ -123,13 +123,13 @@
        **DependsOn:** FT-113  
        **Source:** PRD REQ-IME-CARETSAFE
 
-- [ ] (P1) [FT-121] Create typing monitor  
+- [x] (P1) [FT-121] Create typing monitor  
        **AC:** - `core/typingMonitor.ts` emits timestamped events - Event shape: `{text, caret, atMs}` - Unit tests for event emission
       **Owner:** @alex  
        **DependsOn:** FT-120  
        **Source:** Manifesto → Performance
 
-- [ ] (P1) [FT-122] Implement pause detection  
+- [x] (P1) [FT-122] Implement pause detection  
        **AC:** - Detect SHORT_PAUSE_MS (500ms) and LONG_PAUSE_MS (2000ms) - Cancellable timer implementation - Unit tests for timing accuracy
       **Owner:** @alex  
        **DependsOn:** FT-121  
@@ -141,11 +141,17 @@
        **DependsOn:** FT-121  
        **Source:** PRD → Observability
 
-- [ ] (P1) [FT-124] Parameterize thresholds in `config/defaultThresholds.ts`  
-       **AC:** Expose `SHORT_PAUSE_MS`, `LONG_PAUSE_MS`, `MAX_SWEEP_WINDOW`; add unit tests asserting invariants and ranges; docs link to PRD  
+- [x] (P1) [FT-124] Parameterize thresholds in `config/defaultThresholds.ts`  
+       **AC:** Expose `SHORT_PAUSE_MS`, `LONG_PAUSE_MS`, `MAX_SWEEP_WINDOW`, `TYPING_TICK_MS`, `MIN_VALIDATION_WORDS`, `MAX_VALIDATION_WORDS`; add unit tests asserting invariants and ranges; docs link to PRD  
        **Owner:** @alex  
        **DependsOn:** FT-122  
        **Source:** PRD → Constraints / Performance
+
+- [x] (P1) [FT-125] Implement DiffusionController  
+       **AC:** `core/diffusionController.ts` with Unicode word segmentation; advances frontier word-by-word; integrates with validation band renderer; catch-up on pause  
+       **Owner:** @alex  
+       **DependsOn:** FT-124  
+       **Source:** REQ-STREAMED-DIFFUSION, REQ-VALIDATION-BAND
 
 ### Rust Core Setup (P1)
 
@@ -232,7 +238,7 @@
 ### Visual Feedback (P1)
 
 - [ ] (P1) [FT-310] Implement highlighter core  
-       **AC:** - Two-word highlight behind caret - Fade duration ≤ 250ms - Reduced motion support - Minimal, non-intrusive UI - No suggestion popups or heavy UI elements
+       **AC:** - Validation band (3–8 words) trailing behind caret - Subtle shimmer; fade/static when reduced‑motion - Minimal, non-intrusive UI - No suggestion popups or heavy UI elements
       **Owner:** @alex  
        **DependsOn:** FT-210  
        **Source:** PRD REQ-A11Y-MOTION

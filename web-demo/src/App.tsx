@@ -156,7 +156,7 @@ function App() {
         />
         <p>
           <i>
-            Pause for {idleMs}ms after a sentence to trigger the correction.
+            Type to see the validation band trail behind your cursor. Pause for {idleMs}ms to watch diffusion catch up.
           </i>
         </p>
         {isThinking && <p className="thinking-indicator">Thinking...</p>}

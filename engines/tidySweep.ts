@@ -17,6 +17,8 @@
 export interface SweepInput {
   text: string;
   caret: number;
+  // Optional hint constraining the proposed edit to a word range
+  hint?: { start: number; end: number };
 }
 export interface SweepResult {
   diff: { start: number; end: number; text: string } | null;

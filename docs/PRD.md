@@ -48,13 +48,15 @@ on‑device, system‑wide, with zero input sent to cloud. Target uplift:
 - REQ-A11Y-MOTION: Visual feedback MUST honor `prefers-reduced-motion`.
 - REQ-SECURE-FIELDS: The system MUST disable in secure fields and during
   active IME composition.
+- REQ-STREAMED-DIFFUSION: Corrections MUST stream word‑by‑word behind the caret during typing; on pause (~500 ms), diffusion MUST catch up until the band reaches the caret.
+- REQ-VALIDATION-BAND: The UI MUST render a subtle validation band indicating the currently validated region (typically 3–8 words). Exact visual styling remains configurable; reduced‑motion MUST degrade to a gentle static band/fade.
 
 ### Scenarios (BDD)
 
 - Caret safety: Given caret sits mid‑word, When sweep runs, Then no edit
   occurs. (maps: docs/qa/acceptance/caret_safety.feature)
-- Two‑word highlight: Given short pause, Then last two words behind caret
-  are gently highlighted. (maps: docs/qa/acceptance/two_word_highlight.feature)
+- Streamed diffusion: Given active typing, When diffusion runs, Then validation band trails behind caret word‑by‑word; on pause, band catches up. (maps: docs/qa/acceptance/streamed_diffusion.feature)
+- Visual feedback: Given corrections apply, Then brief highlight shows changes and validation band shows active region. (maps: docs/qa/acceptance/two_word_highlight.feature)
 
 ### Constraints
 

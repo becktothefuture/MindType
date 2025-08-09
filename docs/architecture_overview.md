@@ -4,23 +4,23 @@ This document expands on the engineering spec and explains how the parts of the 
 
 ## High-Level Pipeline
 
-1. **Keystroke Handling** – Every printable key resets the pause timer. This keeps the system passive until the user naturally pauses.
-2. **Fragment Extraction** – Once idle time elapses, the extractor looks back for a sentence boundary within 250 characters. This fragment plus ~100 characters of context is packaged for correction.
-3. **LLM Correction** – A streaming call is made to the language model. The initial version uses GPT‑3.5 via HTTPS; the long‑term goal is an on‑device Core ML model. Prompting focuses purely on grammar and spelling fixes.
-4. **Incremental Diff and Merge** – The output stream is patched into the existing buffer using diff‑match‑patch. Patches are small and applied incrementally so the user sees text update as tokens arrive.
-5. **Injection** – The corrected fragment replaces the original text in place, preserving formatting, undo stack integrity and cursor position.
+1. **Keystroke Handling** – Every printable key resets the pause timer and advances a typing tick (~60–90 ms cadence) for streamed diffusion.
+2. **Fragment Extraction** – The active fragment is the sentence behind the caret within 250 characters (± context). Diffusion operates within a trailing band of ~3–8 words.
+3. **LLM/Rules Correction** – Word‑sized chunks are validated and corrected in the trailing band while typing continues. Long‑term goal: on‑device Core ML; stub/remote acceptable for demos.
+4. **Incremental Diff and Merge** – Patches are caret‑safe and word‑bounded. During typing, a frontier advances toward the caret; on pause (~500 ms), diffusion catches up.
+5. **Injection** – Apply in place, preserving formatting, undo grouping, and cursor position. Visuals: subtle shimmer band; reduced‑motion fallback.
 
 ```
 key press → [PauseTimer] → idle
            ↓                    ↘
     [FragmentExtractor]   [Abort stream if new key]
            ↓                    ↘
-    [LLMClient] → token stream → [MergeEngine] → patches → [Injector]
+   [LLMClient] → word stream → [MergeEngine] → patches → [Injector]
 ```
 
 The arrows illustrate how a typing pause triggers the fragment extractor. Streaming can be aborted if a new key arrives mid-flight. This diagram mirrors both the browser and macOS implementations.
 
-This pipeline is now **implemented once in Rust** (`crates/core-rs`) and surfaced to each platform via generated bindings:
+This pipeline is **implemented in Rust** (`crates/core-rs`) and surfaced to each platform via generated bindings. A small TypeScript `DiffusionController` orchestrates streaming ticks and visuals while delegating heavy lifting to the core:
 
 - **Web** → WebAssembly package `@mindtype/core` consumed by React hooks.
 - **macOS** → Static library `libmindtype.a` + Swift module created with `cbindgen`.

@@ -26,9 +26,10 @@ Current state:
 ## User Flow (step-by-step)
 
 1. The user starts typing into the editable area.
-2. After ~500 ms of idle time, the current sentence (fragment) is selected for correction.
-3. Tokens (words) stream back and the text updates in place. Each patch will be applied with caret safety and one‑step undo in mind.
-4. If the user resumes typing mid-stream, the current correction is cancelled and a new pause cycle begins.
+2. While typing, a typing tick (~60–90 ms) advances a trailing validation band (typically 3–8 words long) behind the caret.
+3. Words stream back and apply as tiny, caret‑safe patches within that band. The UI uses a subtle shimmer; reduced-motion falls back to a gentle fade.
+4. After ~500 ms of idle time, the diffusion catches up until the band reaches the caret.
+5. If the user resumes typing mid-stream, diffusion continues behind the moving caret; any word at the caret is skipped until a boundary appears.
 
 ## Reasoning
 

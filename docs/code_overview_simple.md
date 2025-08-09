@@ -101,10 +101,10 @@ What those bold phrases mean (in simple terms):
 
 _Language: Rust_
 
-1. **PauseTimer** – Watches your keystrokes; when you stop for ~½ second it yells “Idle!”.
+1. **PauseTimer** – Watches your keystrokes; typing ticks stream corrections while you type; pause triggers catch-up.
 2. **FragmentExtractor** – Looks back to the last sentence ending (`. ? !` etc.) and grabs just that bit.
-3. **LLM Client** – Streams the fragment to the AI (cloud or local) and gets corrected words back one token at a time.
-4. **MergeEngine** – Figures out the tiny diff between old and new text so we can patch without moving the cursor.
+3. **LLM Client** – Streams word-sized corrections to the AI (cloud or local) and gets fixes back one word at a time.
+4. **MergeEngine** – Figures out the tiny diff between old and new text so we can patch word-by-word without crossing the cursor.
 5. **Public API / FFI** – A handful of C-style functions the outside world (WASM or Swift) can call.
 
 ## 2. Web Layer – `web-demo/`
@@ -114,8 +114,9 @@ _Language: TypeScript + React + WASM_
 1. **`@mindtype/core` WASM package** – Compiled Rust brain that runs in the browser.
 2. **Editable.tsx** – A `<div contentEditable>` that acts like a giant text box.
 3. **Hooks**
-   - `usePauseTimer` – Wraps PauseTimer and triggers when idle.
-   - `useMindType` – Connects extractor → LLM → merge engine.
+   - `usePauseTimer` – Wraps PauseTimer and triggers typing ticks + pause catch-up.
+   - `useMindType` – Connects diffusion → LLM → word-by-word merge.
+   - `DiffusionController` – Advances validation frontier; renders shimmer band.
 4. **Debug Panel** – React portal opened with ⌥⇧⌘L; lets you tweak settings live.
 
 ### How the layers talk (ASCII map)
@@ -126,19 +127,16 @@ _Language: TypeScript + React + WASM_
         v
    TypingMonitor (TS) -- emits {text, caret, atMs}
         |
-        v         SHORT_PAUSE_MS timer
-   SweepScheduler (TS) ---- waits → triggers
-        |
-        v
-   Rust (WASM) core
-   ┌───────────────────────────────────────────────┐
-   │ FragmentExtractor → finds last complete sentence
-   │ StubTokenStream   → yields "This | is | corrected | ..."
-   │ Merger            → builds new text incrementally
-   └───────────────────────────────────────────────┘
-        |
-        v
-   Apply change in UI (caret‑safe) → Highlighter flash → Logs
+        v         TYPING_TICK_MS (streaming) + SHORT_PAUSE_MS (catch-up)
+   SweepScheduler (TS) ──── DiffusionController ──── ticks → word-by-word
+        |                           |
+        v                           v
+   Rust (WASM) core         Validation Band (3–8 words, shimmer)
+   ┌───────────────────┐           |
+   │ FragmentExtractor │           v
+   │ StubTokenStream   │    Apply word (caret‑safe) → Flash → Logs
+   │ Merger            │
+   └───────────────────┘
 ```
 
 ## 3. macOS Layer – `mac/`

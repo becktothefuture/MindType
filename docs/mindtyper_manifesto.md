@@ -22,7 +22,7 @@ MindTyper turns messy, mid‑stream typing into clean, confident prose — in re
 
 ### What it feels like
 
-- Invisible until it helps. You type. When you pause, small corrections land behind the caret — never where you’re actively writing.
+- Invisible until it helps. You type. A subtle validation band trails your cursor, quietly diffusing noisy input into clean text word‑by‑word behind the caret. When you pause, the band catches up — never touching where you’re actively writing.
 - Calm, not cute. Minimal highlights. No dopamine tricks. Respect for your focus and your preferences, including reduced motion.
 - Yours, not ours. Your text never leaves your device. Secure fields are off‑limits. Offline works fine.
 
@@ -35,7 +35,7 @@ MindTyper turns messy, mid‑stream typing into clean, confident prose — in re
 ### What it does (and what it won’t)
 
 - Proposes tiny, reversible edits just behind your cursor (the “tidy sweep”).
-- Backfills consistency when you’re idle — punctuation, capitalization, names.
+- Backfills consistency across stable zones — punctuation, capitalization, names.
 - Groups fixes into a single undo step so you stay in control.
 - Honors system accessibility settings; keeps visuals subtle.
 - Won’t nag, won’t second‑guess, won’t touch secure fields, and won’t send your words to the cloud.
@@ -53,7 +53,7 @@ MindTyper turns messy, mid‑stream typing into clean, confident prose — in re
 - Caret‑safe diffs: Edits happen only in the stable zone behind your cursor.
 - Tidy Sweep: A forward pass that fixes small errors within a short window.
 - Backfill Consistency: A reverse pass that polishes with context when you pause.
-- Gentle highlights: A soft two‑word glow shows what changed, then fades.
+- Gentle visuals: A subtle shimmer band shows the region currently being validated (typically 3–8 words behind the caret), and a brief, understated flash marks applied fixes. Honors reduced‑motion.
 - Undo grouping: One command to revert a whole sweep, not death‑by‑undo.
 - System‑wide mindset: Designed to feel native across apps and editors.
 

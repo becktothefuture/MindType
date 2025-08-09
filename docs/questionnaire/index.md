@@ -124,7 +124,7 @@ This is the comprehensive index for all MindTyper Deep-Dive Questionnaire questi
 | 24  | Language-model size & quantisation.           | ✅ **Answered**   | ML, models, optimization                      |
 | 25  | Personal dictionary storage format.           | ✅ **Answered**   | storage, dictionaries, performance            |
 | 26  | Offline language-pack strategy.               | ❌ **Unanswered** | internationalization, storage, languages      |
-| 27  | Caret safety when cursor sits mid-word.       | ❌ **Unanswered** | UX, cursor-handling, safety                   |
+| 27  | Caret safety when cursor sits mid-word.       | ✅ **Answered**   | UX, cursor-handling, safety                   |
 | 28  | Surfacing low-confidence suggestions UI.      | ❌ **Unanswered** | UX, confidence, suggestions                   |
 | 29  | IME & secure-field rules.                     | ❌ **Unanswered** | internationalization, security, input-methods |
 | 30  | Maximum RAM footprint allowed (MB).           | ❌ **Unanswered** | performance, memory, constraints              |
