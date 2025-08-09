@@ -1,0 +1,22 @@
+#╔════════════════════════════════════════════════════╗
+#║  █  G I T I G N O R E  █░░░░░░░░░░░░░░░░░░░░░░░░  ║
+#╚════════════════════════════════════════════════════╝
+# WHAT ▸ Ignore build artifacts and local-only files
+# WHY  ▸ Keep repo clean and reproducible
+# HOW  ▸ Applies across TS + Rust + web-demo
+
+# Node/TypeScript
+node_modules/
+dist/
+coverage/
+
+# Rust/Cargo
+target/
+
+# OS files
+.DS_Store
+
+# Web demo caches
+web-demo/node_modules/
+
+
