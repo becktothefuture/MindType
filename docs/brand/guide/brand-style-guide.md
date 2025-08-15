@@ -96,5 +96,3 @@ This keeps depth shallow (≤ 2 levels) and subfolder count to three.
 This is a living guide. Propose changes via PR with rationale and before/after
 examples. Maintain accessibility, contrast, and cross‑links. Tag releases in
 sync with product milestones.
-
-

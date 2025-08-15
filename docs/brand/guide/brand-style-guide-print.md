@@ -31,8 +31,8 @@ typography to imagery and motion ensure consistency and clarity.
 
 ## Manifesto & Vision (Summary)
 
-Typing should be as seamless and quietly intuitive as thinking. Tools, not 
-toys. Open‑source at heart — collaborative, transparent, inclusive. By 2026, 
+Typing should be as seamless and quietly intuitive as thinking. Tools, not
+toys. Open‑source at heart — collaborative, transparent, inclusive. By 2026,
 Mind::Type is the everyday typing companion.
 
 → Full: `../specs/manifesto.md`
@@ -41,8 +41,8 @@ Mind::Type is the everyday typing companion.
 
 ## Logo & Identity (Summary)
 
-Wordmark: “Mind::Type” in Geist Sans. Clear space ≥ “M” height; min size 24px 
-screen/0.25in print. Black on light; white on dark. No distortion, effects, 
+Wordmark: “Mind::Type” in Geist Sans. Clear space ≥ “M” height; min size 24px
+screen/0.25in print. Black on light; white on dark. No distortion, effects,
 or recoloring beyond palette.
 
 → Full: `../specs/logo-identity.md`
@@ -51,7 +51,7 @@ or recoloring beyond palette.
 
 ## Typography (Summary)
 
-Primary: Geist Sans for headings and body. Companion: Geist Mono for code. 
+Primary: Geist Sans for headings and body. Companion: Geist Mono for code.
 Body Regular 400; headings Bold/Medium; line-height ≥ 1.4.
 
 → Full: `../specs/typography.md`
@@ -60,8 +60,8 @@ Body Regular 400; headings Bold/Medium; line-height ≥ 1.4.
 
 ## Color Palette (Summary)
 
-Accent Teal `#3CC5CC`; neutrals White `#FFFFFF`, Almost‑white `#F5F5F5`, 
-Charcoal `#111111`, Black `#000000`; optional Soft Rose `#FF6B6B` for errors. 
+Accent Teal `#3CC5CC`; neutrals White `#FFFFFF`, Almost‑white `#F5F5F5`,
+Charcoal `#111111`, Black `#000000`; optional Soft Rose `#FF6B6B` for errors.
 Use teal sparingly; ensure WCAG AA contrast.
 
 → Full: `../specs/colors.md`
@@ -70,7 +70,7 @@ Use teal sparingly; ensure WCAG AA contrast.
 
 ## Imagery & Photography (Summary)
 
-Calm, authentic, human‑centric; soft light; muted tones with subtle teal. 
+Calm, authentic, human‑centric; soft light; muted tones with subtle teal.
 Real moments; diverse subjects; minimal outline graphics.
 
 → Full: `../specs/imagery.md`
@@ -79,7 +79,7 @@ Real moments; diverse subjects; minimal outline graphics.
 
 ## Iconography & Graphics (Summary)
 
-Thin line icons; monochrome by default; teal for active states; pair with 
+Thin line icons; monochrome by default; teal for active states; pair with
 labels; reserve illustrations for key moments.
 
 → Full: `../specs/iconography.md`
@@ -88,7 +88,7 @@ labels; reserve illustrations for key moments.
 
 ## Motion & Interaction (Summary)
 
-Purposeful, subtle, 150–300ms, soft easing. Suggestions fade in; confirmations 
+Purposeful, subtle, 150–300ms, soft easing. Suggestions fade in; confirmations
 briefly underline/glow; dialogs subtly rise/fade; success draws checkmark.
 
 → Full: `../specs/motion.md`
@@ -97,7 +97,7 @@ briefly underline/glow; dialogs subtly rise/fade; success draws checkmark.
 
 ## Voice & Tone (Summary)
 
-Honest, clear; empowering, inclusive; calm, optimistic. Tone adapts 
+Honest, clear; empowering, inclusive; calm, optimistic. Tone adapts
 contextually; taglines: “The Quiet Evolution of Typing.” and “Tools, Not Toys.”
 
 → Full: `../specs/voice-tone.md`
@@ -106,8 +106,8 @@ contextually; taglines: “The Quiet Evolution of Typing.” and “Tools, Not T
 
 ## Usage Examples (Summary)
 
-Web home: calm photography, wordmark, teal CTA with soft hover. Product: dark 
-theme, ghosted suggestions, teal underline; menus simple; code in Geist Mono. 
+Web home: calm photography, wordmark, teal CTA with soft hover. Product: dark
+theme, ghosted suggestions, teal underline; menus simple; code in Geist Mono.
 Social: templates with :: motif; captions thank community.
 
 → Full: `../specs/usage-examples.md`
@@ -263,5 +263,3 @@ imagery, motion, voice; swatches include HEX/RGB.
 Modern, minimal, and meaningful. Cohesive identity for 2025/2026: trustworthy
 and understated. We uphold “tools, not toys” while delivering a natural,
 inclusive evolution of typing.
-
-

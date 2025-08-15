@@ -25,5 +25,3 @@
 - Assets: [`assets/`](./assets)
 - Guide: [`guide/`](./guide)
 - Specs: [`specs/`](./specs)
-
-

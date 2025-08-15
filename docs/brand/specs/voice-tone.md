@@ -40,5 +40,3 @@
 - [Brand Manifesto & Vision](./manifesto.md)
 - [Usage Examples & Applications](./usage-examples.md)
 - [Brand One‑Pager](../guide/brand-one-pager.md)
-
-

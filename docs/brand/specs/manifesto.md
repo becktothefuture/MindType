@@ -58,4 +58,3 @@ anyone can adopt instantly and feel at home with — not just power users.
 - [Voice & Tone](./voice-tone.md)
 - [Usage Examples & Applications](./usage-examples.md)
 - [Brand One‑Pager](../guide/brand-one-pager.md)
-

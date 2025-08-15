@@ -41,5 +41,3 @@ Prefer monochrome or single‑accent styles.
 - [Color Palette](./colors.md)
 - [Voice & Tone](./voice-tone.md)
 - [Usage Examples & Applications](./usage-examples.md)
-
-

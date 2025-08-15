@@ -16,5 +16,3 @@
 - Master Key Visual: `../assets/moodboard/key-visual-hero.svg`
 - Tiles: `../assets/moodboard/tiles.svg`
 - Detailed notes: `../moodboard.md`
-
-

@@ -13,7 +13,5 @@
     • HOW  ▸ Link to detailed specs
 -->
 
-See the canonical one‑pager at `../brand-one-pager.md` and the live master 
+See the canonical one‑pager at `../brand-one-pager.md` and the live master
 guide at `./brand-style-guide.md`.
-
-

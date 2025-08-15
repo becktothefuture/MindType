@@ -71,5 +71,3 @@ graphics, not in running body copy.
 - [Typography](./typography.md)
 - [Color Palette](./colors.md)
 - [Imagery & Photography](./imagery.md)
-
-

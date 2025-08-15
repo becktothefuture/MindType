@@ -49,5 +49,3 @@
 - [Typography](./typography.md)
 - [Imagery & Photography](./imagery.md)
 - [Motion & Interaction](./motion.md)
-
-

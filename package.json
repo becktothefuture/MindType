@@ -10,6 +10,7 @@
     "format:check": "prettier -c .",
     "format:write": "prettier -w .",
     "test": "vitest run --reporter=dot --coverage",
+    "posttest": "node scripts/coverage-guard.cjs",
     "dev": "vitest watch"
   },
   "devDependencies": {

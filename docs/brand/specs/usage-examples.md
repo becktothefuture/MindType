@@ -45,5 +45,3 @@ colors, imagery, motion, and voice. Swatches include HEX/RGB.
 - [Imagery & Photography](./imagery.md)
 - [Motion & Interaction](./motion.md)
 - [Voice & Tone](./voice-tone.md)
-
-

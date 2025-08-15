@@ -38,5 +38,3 @@ accessible.
 - [Usage Examples & Applications](./usage-examples.md)
 - [Color Palette](./colors.md)
 - [Voice & Tone](./voice-tone.md)
-
-

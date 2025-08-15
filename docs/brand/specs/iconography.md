@@ -36,5 +36,3 @@ exist. Keep stroke weight consistent.
 - [Motion & Interaction](./motion.md)
 - [Typography](./typography.md)
 - [Usage Examples & Applications](./usage-examples.md)
-
-
