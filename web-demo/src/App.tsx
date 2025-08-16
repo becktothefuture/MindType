@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import init, {
   WasmPauseTimer,
   init_logger,
@@ -40,7 +40,18 @@ function App() {
   const [lastHighlight, setLastHighlight] = useState<
     { start: number; end: number } | null
   >(null);
-  const [pipeline] = useState(() => boot());
+  const secureRef = useRef(false);
+  const imeRef = useRef(false);
+  const [isSecure, setIsSecure] = useState(false);
+  const [isIMEComposing, setIsIMEComposing] = useState(false);
+  const [pipeline] = useState(() =>
+    boot({
+      security: {
+        isSecure: () => secureRef.current,
+        isIMEComposing: () => imeRef.current,
+      },
+    }),
+  );
   const [pauseTimer, setPauseTimer] = useState<WasmPauseTimer | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
@@ -64,6 +75,16 @@ function App() {
   useEffect(() => {
     pipeline.start();
     return () => pipeline.stop();
+  }, [pipeline]);
+
+  // Console access for quick manual testing
+  useEffect(() => {
+    // @ts-expect-error attach for debugging
+    (window as any).mt = pipeline;
+    return () => {
+      // @ts-expect-error detach
+      delete (window as any).mt;
+    };
   }, [pipeline]);
 
   // 2. Create and recreate the pause timer when settings change (WASM demo only)
@@ -242,6 +263,14 @@ function App() {
         <textarea
           value={text}
           onChange={handleTextChange}
+          onCompositionStart={() => {
+            setIsIMEComposing(true);
+            imeRef.current = true;
+          }}
+          onCompositionEnd={() => {
+            setIsIMEComposing(false);
+            imeRef.current = false;
+          }}
           rows={10}
           cols={80}
           // discourage writing-assistant extensions that inject content scripts
@@ -325,6 +354,20 @@ function App() {
             />
             Use WASM demo corrections (legacy)
           </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input
+              type="checkbox"
+              checked={isSecure}
+              onChange={(e) => {
+                setIsSecure(e.target.checked);
+                secureRef.current = e.target.checked;
+              }}
+            />
+            Secure field (disable corrections)
+          </label>
+          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            IME composing: {isIMEComposing ? "yes" : "no"}
+          </span>
         </div>
       </div>
     </div>

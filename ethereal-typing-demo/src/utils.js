@@ -76,10 +76,10 @@ export function valueNoise2(x, y) {
 // Curl-like perturbation from noise by sampling gradients
 export function curl2(out, x, y, t, amp = 1) {
   const e = 0.01;
-  const n1 = valueNoise2((x + e) * 1.3 + 0.7 * t, (y) * 1.3 + 0.3 * t);
-  const n2 = valueNoise2((x - e) * 1.3 + 0.7 * t, (y) * 1.3 + 0.3 * t);
-  const n3 = valueNoise2((x) * 1.3 + 0.7 * t, (y + e) * 1.3 + 0.3 * t);
-  const n4 = valueNoise2((x) * 1.3 + 0.7 * t, (y - e) * 1.3 + 0.3 * t);
+  const n1 = valueNoise2((x + e) * 1.3 + 0.7 * t, y * 1.3 + 0.3 * t);
+  const n2 = valueNoise2((x - e) * 1.3 + 0.7 * t, y * 1.3 + 0.3 * t);
+  const n3 = valueNoise2(x * 1.3 + 0.7 * t, (y + e) * 1.3 + 0.3 * t);
+  const n4 = valueNoise2(x * 1.3 + 0.7 * t, (y - e) * 1.3 + 0.3 * t);
   out[0] = (n1 - n2) * amp;
   out[1] = (n3 - n4) * amp;
   return out;
@@ -115,5 +115,3 @@ export function makeGrainDataURL(size = 256) {
   ctx.putImageData(img, 0, 0);
   return c.toDataURL('image/png');
 }
-
-

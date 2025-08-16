@@ -1,5 +1,13 @@
 import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-import { clamp, lerp, randRange, hslToRgb, rgbToHex, randUnitVec2, curl2 } from './utils.js';
+import {
+  clamp,
+  lerp,
+  randRange,
+  hslToRgb,
+  rgbToHex,
+  randUnitVec2,
+  curl2,
+} from './utils.js';
 
 // Palette in hex; we convert to HSL for variation when spawning
 const PALETTE = [
@@ -14,19 +22,24 @@ function hexToHsl(hex) {
   const r = ((hex >> 16) & 255) / 255;
   const g = ((hex >> 8) & 255) / 255;
   const b = (hex & 255) / 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h = 0, s = 0;
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
+  let h = 0,
+    s = 0;
   const l = (max + min) / 2;
   const d = max - min;
   if (d !== 0) {
     s = d / (1 - Math.abs(2 * l - 1));
     switch (max) {
       case r:
-        h = ((g - b) / d) % 6; break;
+        h = ((g - b) / d) % 6;
+        break;
       case g:
-        h = (b - r) / d + 2; break;
+        h = (b - r) / d + 2;
+        break;
       default:
-        h = (r - g) / d + 4; break;
+        h = (r - g) / d + 4;
+        break;
     }
     h /= 6;
     if (h < 0) h += 1;
@@ -71,7 +84,10 @@ export class BurstSystem {
         void main(){
           float t = clamp(aAge / aLife, 0.0, 1.0);
           float size = mix(aSize0, aSize1, t);
-          float a = 1.0 - t*t*t;
+          // Ease-out curve: slower fade, longer linger time
+          float fadeStart = 0.4; // fade begins at 40% of lifetime
+          float easedAlpha = t < fadeStart ? 1.0 : 1.0 - pow((t - fadeStart) / (1.0 - fadeStart), 1.8);
+          float a = easedAlpha;
           vAlpha = a * aAlphaBase; 
           // Boost saturation as particles fade to prevent desaturation
           vec3 col = color;
@@ -120,7 +136,10 @@ export class BurstSystem {
         void main(){
           float t = clamp(aAge / aLife, 0.0, 1.0);
           float size = mix(aSize0, aSize1, t);
-          float a = 1.0 - t*t*t;
+          // Same ease-out curve for boost particles
+          float fadeStart = 0.4;
+          float easedAlpha = t < fadeStart ? 1.0 : 1.0 - pow((t - fadeStart) / (1.0 - fadeStart), 1.8);
+          float a = easedAlpha;
           vAlpha = a * aAlphaBase;
           // Boost particles get saturated teal/blue color that intensifies over time
           vec3 baseColor = vec3(0.2, 0.8, 0.9); // saturated cyan-teal
@@ -149,10 +168,23 @@ export class BurstSystem {
 
     // Initialize inactive entries to be invisible and numerically safe
     for (let i = 0; i < this.max; i++) {
-      this.age[i] = 1; this.life[i] = 1; this.size0[i] = 0; this.size1[i] = 0; this.alphaBase[i] = 0;
-      const i3 = i * 3; this.positions[i3] = this.positions[i3+1] = this.positions[i3+2] = 0; this.color[i3]=this.color[i3+1]=this.color[i3+2]=0;
-      this.boostAge[i] = 1; this.boostLife[i] = 1; this.boostSize0[i] = 0; this.boostSize1[i] = 0; this.boostAlphaBase[i] = 0;
-      this.boostPositions[i3] = this.boostPositions[i3+1] = this.boostPositions[i3+2] = 0;
+      this.age[i] = 1;
+      this.life[i] = 1;
+      this.size0[i] = 0;
+      this.size1[i] = 0;
+      this.alphaBase[i] = 0;
+      const i3 = i * 3;
+      this.positions[i3] = this.positions[i3 + 1] = this.positions[i3 + 2] = 0;
+      this.color[i3] = this.color[i3 + 1] = this.color[i3 + 2] = 0;
+      this.boostAge[i] = 1;
+      this.boostLife[i] = 1;
+      this.boostSize0[i] = 0;
+      this.boostSize1[i] = 0;
+      this.boostAlphaBase[i] = 0;
+      this.boostPositions[i3] =
+        this.boostPositions[i3 + 1] =
+        this.boostPositions[i3 + 2] =
+          0;
     }
   }
 
@@ -176,7 +208,11 @@ export class BurstSystem {
     // Gate emission: when density/energy pad at (0,0), emit nothing
     const energy = Math.max(0, Math.min(1, xy.x * xy.y));
     if (energy <= 0.001) return;
-    const count = Math.round(lerp(6, 120, intensity) * Math.max(0.0001, Math.pow(xy.x, 2)) * this.config.particles.countScale);
+    const count = Math.round(
+      lerp(6, 120, intensity) *
+        Math.max(0.0001, Math.pow(xy.x, 2)) *
+        this.config.particles.countScale,
+    );
     const speed = lerp(0.6, 2.8, intensity) * lerp(0.5, 3.0, xy.y);
     const size0 = lerp(10, 20, intensity) * this.config.particles.sizeScale;
     const size1 = lerp(0, 8, intensity * 0.6) * this.config.particles.sizeScale;
@@ -193,7 +229,7 @@ export class BurstSystem {
       this.positions[i3 + 1] = 0;
       this.positions[i3 + 2] = 0;
       this.age[i] = 0;
-      const life = randRange(0.9, 1.6) * lerp(0.9, 1.1, xy.x);
+      const life = randRange(2.7, 4.8) * lerp(0.9, 1.1, xy.x); // 3x longer lifespan
       this.life[i] = life;
       this.size0[i] = size0;
       this.size1[i] = size1;
@@ -216,12 +252,22 @@ export class BurstSystem {
       this.color[i3] = r;
       this.color[i3 + 1] = g;
       this.color[i3 + 2] = b;
-      const burstAlphaMul = (typeof window !== 'undefined' && window.__burstAlpha != null) ? window.__burstAlpha : 1.0;
-      this.alphaBase[i] = 0.85 * burstAlphaMul * this.config.particles.brightnessScale * glowBoost * (0.6 + 0.4 * energy);
+      const burstAlphaMul =
+        typeof window !== 'undefined' && window.__burstAlpha != null
+          ? window.__burstAlpha
+          : 1.0;
+      this.alphaBase[i] =
+        0.85 *
+        burstAlphaMul *
+        this.config.particles.brightnessScale *
+        glowBoost *
+        (0.6 + 0.4 * energy);
     }
 
     // Bloom booster particles (subset)
-    const boostCount = Math.round(randRange(6, 12) * 0.7 * Math.max(0.6, glowBoost) * (0.4 + 0.6 * energy));
+    const boostCount = Math.round(
+      randRange(6, 12) * 0.7 * Math.max(0.6, glowBoost) * (0.4 + 0.6 * energy),
+    );
     const boostIdx = this._alloc(boostCount);
     for (let k = 0; k < boostIdx.length; k++) {
       const i = boostIdx[k];
@@ -230,12 +276,16 @@ export class BurstSystem {
       this.boostPositions[i3 + 1] = 0;
       this.boostPositions[i3 + 2] = 0;
       this.boostAge[i] = 0;
-      const life = randRange(0.9, 1.6) * lerp(0.9, 1.1, xy.x);
+      const life = randRange(2.7, 4.8) * lerp(0.9, 1.1, xy.x); // 3x longer lifespan for boost too
       this.boostLife[i] = life;
       this.boostSize0[i] = size0 * 1.8;
       this.boostSize1[i] = size1 * 1.8;
-      const burstAlphaMul2 = (typeof window !== 'undefined' && window.__burstAlpha != null) ? window.__burstAlpha : 1.0;
-      this.boostAlphaBase[i] = 0.22 * burstAlphaMul2 * this.config.particles.brightnessScale * glowBoost;
+      const burstAlphaMul2 =
+        typeof window !== 'undefined' && window.__burstAlpha != null
+          ? window.__burstAlpha
+          : 1.0;
+      this.boostAlphaBase[i] =
+        0.22 * burstAlphaMul2 * this.config.particles.brightnessScale * glowBoost;
       // Share velocity field for booster as slower drift
       randUnitVec2(this._dir);
       const vx = this._dir[0] * speed * 0.6;
@@ -284,11 +334,21 @@ export class BurstSystem {
       const t = nAge / life;
       if (t >= 1.0) {
         // recycle invisibly (avoid NaNs in shader)
-        this.age[i] = 1; this.life[i] = 1; this.alphaBase[i] = 0; this.size0[i]=0; this.size1[i]=0;
+        this.age[i] = 1;
+        this.life[i] = 1;
+        this.alphaBase[i] = 0;
+        this.size0[i] = 0;
+        this.size1[i] = 0;
         continue;
       }
       // Curl perturbation
-      curl2(this._curl, this.positions[i3], this.positions[i3 + 1], this.time * curlHz, curlAmp * dt);
+      curl2(
+        this._curl,
+        this.positions[i3],
+        this.positions[i3 + 1],
+        this.time * curlHz,
+        curlAmp * dt,
+      );
       this.velocities[i3] += this._curl[0];
       this.velocities[i3 + 1] += this._curl[1];
       // Integrate
@@ -306,7 +366,11 @@ export class BurstSystem {
       this.boostAge[i] = nAge;
       const t = nAge / life;
       if (t >= 1.0) {
-        this.boostAge[i] = 1; this.boostLife[i] = 1; this.boostAlphaBase[i] = 0; this.boostSize0[i]=0; this.boostSize1[i]=0;
+        this.boostAge[i] = 1;
+        this.boostLife[i] = 1;
+        this.boostAlphaBase[i] = 0;
+        this.boostSize0[i] = 0;
+        this.boostSize1[i] = 0;
         continue;
       }
       const i3 = i * 3;
@@ -327,5 +391,3 @@ export class BurstSystem {
     gb.attributes.aAlphaBase.needsUpdate = true;
   }
 }
-
-

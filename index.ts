@@ -16,6 +16,7 @@
 
 import { createTypingMonitor, type TypingEvent } from './core/typingMonitor';
 import { createSweepScheduler } from './core/sweepScheduler';
+import { createDefaultSecurityContext, type SecurityContext } from './core/security';
 
 // Minimal LM adapter stub to stabilise the public API. Will be wired in FT-230+.
 export interface LMAdapter {
@@ -35,9 +36,10 @@ export function createNoopLMAdapter(): LMAdapter {
   return { stream: () => empty() };
 }
 
-export function boot() {
+export function boot(options?: { security?: SecurityContext }) {
   const monitor = createTypingMonitor();
-  const scheduler = createSweepScheduler(monitor);
+  const security = options?.security ?? createDefaultSecurityContext();
+  const scheduler = createSweepScheduler(monitor, security);
 
   let lmAdapter: LMAdapter = createNoopLMAdapter();
 
@@ -68,5 +70,6 @@ export function boot() {
     // exposed handles for advanced hosts/tests
     monitor,
     scheduler,
+    security,
   };
 }

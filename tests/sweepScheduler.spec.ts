@@ -60,8 +60,8 @@ describe('SweepScheduler', () => {
     vi.useFakeTimers();
     tickOnce.mockClear();
     catchUp.mockClear();
-    ;(tidySweep as unknown as jest.Mock | typeof tidySweep & { mockClear?: () => void }).mockClear?.();
-    ;(backfillConsistency as unknown as jest.Mock | typeof backfillConsistency & { mockClear?: () => void }).mockClear?.();
+    (tidySweep as unknown as { mockClear?: () => void }).mockClear?.();
+    (backfillConsistency as unknown as { mockClear?: () => void }).mockClear?.();
     state = { text: '', caret: 0, frontier: 0 };
   });
 
@@ -119,5 +119,3 @@ describe('SweepScheduler', () => {
     expect(tickOnce).toHaveBeenCalledTimes(1);
   });
 });
-
-

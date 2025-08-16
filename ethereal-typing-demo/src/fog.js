@@ -98,18 +98,33 @@ export class FogSystem {
     this.wrap = 150; // depth distance to wrap by
   }
 
-  setAlpha(a){ for (const l of this.layers) l.mesh.material.uniforms.uAlpha.value = a; }
-  setScale(s){ for (const l of this.layers) l.mesh.material.uniforms.uRadialScale.value = s; }
-  setPulse(p){ for (const l of this.layers) l.mesh.material.uniforms.uPulse.value = p; }
-  setSpeedScale(s){ this.fogSpeedScale = s; }
-  setAspect(a){ for (const l of this.layers) l.mesh.material.uniforms.uAspect.value = a; }
-  setPush(p){ this._push = p; for (const l of this.layers) l.mesh.material.uniforms.uPush.value = p; }
-  impulse(amount){
+  setAlpha(a) {
+    for (const l of this.layers) l.mesh.material.uniforms.uAlpha.value = a;
+  }
+  setScale(s) {
+    for (const l of this.layers) l.mesh.material.uniforms.uRadialScale.value = s;
+  }
+  setPulse(p) {
+    for (const l of this.layers) l.mesh.material.uniforms.uPulse.value = p;
+  }
+  setSpeedScale(s) {
+    this.fogSpeedScale = s;
+  }
+  setAspect(a) {
+    for (const l of this.layers) l.mesh.material.uniforms.uAspect.value = a;
+  }
+  setPush(p) {
+    this._push = p;
+    for (const l of this.layers) l.mesh.material.uniforms.uPush.value = p;
+  }
+  impulse(amount) {
     // add a short shock that decays in update()
     this._shock = Math.min(1.5, this._shock + amount);
     for (const l of this.layers) l.mesh.material.uniforms.uShock.value = this._shock;
   }
-  setVignette(v){ for (const l of this.layers) l.mesh.material.uniforms.uVignette.value = v; }
+  setVignette(v) {
+    for (const l of this.layers) l.mesh.material.uniforms.uVignette.value = v;
+  }
 
   update(dt, time) {
     // decay shock
@@ -126,5 +141,3 @@ export class FogSystem {
     }
   }
 }
-
-

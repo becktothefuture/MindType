@@ -46,6 +46,3 @@ describe('defaultThresholds', () => {
     expect(getMaxValidationWords()).toBe(8);
   });
 });
-
-
-

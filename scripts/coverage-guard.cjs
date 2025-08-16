@@ -54,6 +54,3 @@ if (failures.length > 0) {
 
 console.log('Utils coverage guard passed: 100% branches for utils/**');
 process.exit(0);
-
-
-

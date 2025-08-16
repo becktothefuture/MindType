@@ -19,13 +19,17 @@ import { tidySweep } from '../engines/tidySweep';
 import { backfillConsistency } from '../engines/backfillConsistency';
 import type { TypingMonitor, TypingEvent } from './typingMonitor';
 import { createDiffusionController } from './diffusionController';
+import type { SecurityContext } from './security';
 
 export interface SweepScheduler {
   start(): void;
   stop(): void;
 }
 
-export function createSweepScheduler(monitor?: TypingMonitor): SweepScheduler {
+export function createSweepScheduler(
+  monitor?: TypingMonitor,
+  security?: SecurityContext,
+): SweepScheduler {
   let lastEvent: TypingEvent | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
   let typingInterval: ReturnType<typeof setInterval> | null = null;
@@ -39,6 +43,11 @@ export function createSweepScheduler(monitor?: TypingMonitor): SweepScheduler {
   }
 
   function onEvent(ev: TypingEvent) {
+    if (security?.isSecure?.() || security?.isIMEComposing?.()) {
+      // In secure contexts, stop timers and ignore events
+      clearIntervals();
+      return;
+    }
     lastEvent = ev;
     diffusion.update(ev.text, ev.caret);
     if (timer) clearTimeout(timer);

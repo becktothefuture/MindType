@@ -17,12 +17,7 @@ export default defineConfig({
       all: true,
       reporter: ['text', 'html', 'lcov', 'json-summary'],
       // Count coverage only for core library code
-      include: [
-        'core/**/*.ts',
-        'engines/**/*.ts',
-        'utils/**/*.ts',
-        'config/**/*.ts',
-      ],
+      include: ['core/**/*.ts', 'engines/**/*.ts', 'utils/**/*.ts', 'config/**/*.ts'],
       exclude: [
         'index.ts',
         'e2e/**',

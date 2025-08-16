@@ -1,5 +1,6 @@
 export class XYPad {
   constructor(container, id = 'xypad', label = 'Pad', defaults = { x: 0.6, y: 0.5 }) {
+    this.id = id; // Store id as instance property
     this.wrap = document.createElement('div');
     this.wrap.className = 'pad-wrap';
     this.canvas = document.createElement('canvas');
@@ -37,13 +38,18 @@ export class XYPad {
   _bind() {
     const pick = (e) => {
       const rect = this.canvas.getBoundingClientRect();
-      const px = (('touches' in e ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width;
-      const py = (('touches' in e ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height;
+      const px =
+        (('touches' in e ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width;
+      const py =
+        (('touches' in e ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height;
       this.x = Math.min(Math.max(px, 0), 1);
       this.y = Math.min(Math.max(py, 0), 1);
       this._render();
       this._emit();
-      localStorage.setItem('ethereal_xy_' + id, JSON.stringify({ x: this.x, y: this.y }));
+      localStorage.setItem(
+        'ethereal_xy_' + this.id,
+        JSON.stringify({ x: this.x, y: this.y }),
+      );
     };
     this.canvas.addEventListener('mousedown', (e) => {
       this._drag = true;
@@ -56,14 +62,22 @@ export class XYPad {
     window.addEventListener('mouseup', () => {
       this._drag = false;
     });
-    this.canvas.addEventListener('touchstart', (e) => {
-      this._drag = true;
-      pick(e);
-    }, { passive: true });
-    window.addEventListener('touchmove', (e) => {
-      if (!this._drag) return;
-      pick(e);
-    }, { passive: true });
+    this.canvas.addEventListener(
+      'touchstart',
+      (e) => {
+        this._drag = true;
+        pick(e);
+      },
+      { passive: true },
+    );
+    window.addEventListener(
+      'touchmove',
+      (e) => {
+        if (!this._drag) return;
+        pick(e);
+      },
+      { passive: true },
+    );
     window.addEventListener('touchend', () => {
       this._drag = false;
     });
@@ -73,9 +87,15 @@ export class XYPad {
     for (const cb of this._listeners) cb(this.x, this.y);
   }
 
-  onChange(cb) { this._listeners.push(cb); }
-  getX() { return this.x; }
-  getY() { return this.y; }
+  onChange(cb) {
+    this._listeners.push(cb);
+  }
+  getX() {
+    return this.x;
+  }
+  getY() {
+    return this.y;
+  }
 
   _render() {
     const ctx = this.ctx;
@@ -89,8 +109,10 @@ export class XYPad {
     ctx.strokeStyle = 'rgba(255,255,255,0.12)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(w / 2, 8); ctx.lineTo(w / 2, h - 8);
-    ctx.moveTo(8, h / 2); ctx.lineTo(w - 8, h / 2);
+    ctx.moveTo(w / 2, 8);
+    ctx.lineTo(w / 2, h - 8);
+    ctx.moveTo(8, h / 2);
+    ctx.lineTo(w - 8, h / 2);
     ctx.stroke();
 
     // Dot
@@ -105,5 +127,3 @@ export class XYPad {
     this.readouts.textContent = `Density: ${this.x.toFixed(2)}  |  Energy: ${this.y.toFixed(2)}`;
   }
 }
-
-

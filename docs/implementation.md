@@ -97,7 +97,7 @@
        **DependsOn:** FT-112, FT-113, FT-114  
        **Source:** PRD → Quality Gates
 
-- [ ] (P1) [FT-118] Enforce coverage thresholds  
+- [x] (P1) [FT-118] Enforce coverage thresholds  
        **AC:** Vitest config enforces ≥90% lines/statements overall; `utils/**` at 100% branches; CI fails below thresholds  
        **Owner:** @alex  
        **DependsOn:** FT-113, FT-117  
@@ -111,7 +111,7 @@
        **DependsOn:** FT-113  
        **Source:** PRD REQ-SECURE-FIELDS
 
-- [ ] (P1) [FT-116] Add IME composition handling  
+- [x] (P1) [FT-116] Add IME composition handling  
        **AC:** - Detect active IME composition - Disable corrections during composition - Support major IME systems
       **Owner:** @alex  
        **DependsOn:** FT-115  

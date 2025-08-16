@@ -32,6 +32,3 @@ describe('TypingMonitor', () => {
     expect(l2).toHaveBeenCalledTimes(2);
   });
 });
-
-
-
