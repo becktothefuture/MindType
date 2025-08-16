@@ -97,6 +97,71 @@ const wordSubstitutionRule: SweepRule = {
   },
 };
 
+// Whitespace normalization: collapse multiple spaces/tabs; trim trailing spaces before newline
+const whitespaceNormalizationRule: SweepRule = {
+  name: 'whitespace-normalization',
+  priority: 1,
+  apply(input: SweepInput): SweepResult {
+    const { text, caret, hint } = input;
+    const windowStart = Math.max(0, caret - MAX_SWEEP_WINDOW);
+    const windowEnd = caret;
+    const searchStart = hint ? Math.max(windowStart, hint.start) : windowStart;
+    const searchEnd = hint ? Math.min(windowEnd, hint.end) : windowEnd;
+    if (searchStart >= searchEnd) return { diff: null };
+
+    const searchText = text.slice(searchStart, searchEnd);
+    type Candidate = { start: number; end: number; text: string };
+    let best: Candidate | null = null;
+
+    const push = (absStart: number, absEnd: number, replacement: string) => {
+      if (absEnd > caret) return;
+      const confidence = 1;
+      if (confidence < MIN_CONFIDENCE) return;
+      if (!best || absStart > best.start)
+        best = { start: absStart, end: absEnd, text: replacement };
+    };
+
+    // 1) Collapse runs of spaces/tabs between non-newline non-space tokens → single space
+    {
+      const regex = /(\S)[ \t]{2,}(\S)/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        const localStart = m.index + 1; // start of the whitespace run
+        const localEnd = m.index + m[0].length - 1; // end just before the second token
+        const absStart = searchStart + localStart;
+        const absEnd = searchStart + localEnd;
+        push(absStart, absEnd, ' ');
+      }
+    }
+
+    // 2) Tabs between tokens (even single) → single space
+    {
+      const regex = /(\S)\t+(\S)/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        const localStart = m.index + 1;
+        const localEnd = m.index + m[0].length - 1;
+        const absStart = searchStart + localStart;
+        const absEnd = searchStart + localEnd;
+        push(absStart, absEnd, ' ');
+      }
+    }
+
+    // 3) Trailing spaces/tabs before newline → remove entirely
+    {
+      const regex = /[ \t]+\n/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        const absStart = searchStart + m.index;
+        const absEnd = absStart + m[0].length - 1; // exclude the newline itself
+        push(absStart, absEnd, '');
+      }
+    }
+
+    return { diff: best };
+  },
+};
+
 const MIN_CONFIDENCE = 0.8;
 
 function isWordBoundary(char: string | undefined): boolean {
@@ -283,6 +348,7 @@ const RULES: SweepRule[] = [
   transpositionRule,
   punctuationNormalizationRule,
   capitalizationRule,
+  whitespaceNormalizationRule,
   wordSubstitutionRule,
   // ⟢ Future rules will be added here
 ];

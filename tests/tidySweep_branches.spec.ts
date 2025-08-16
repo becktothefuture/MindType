@@ -18,16 +18,22 @@ describe('TidySweep branch edges: empty hint window', () => {
   });
 
   it('punctuation: searchStart >= searchEnd returns null', () => {
-    const input: SweepInput = { text: 'word ,next', caret: 0, hint: { start: 0, end: 0 } };
+    const input: SweepInput = {
+      text: 'word ,next',
+      caret: 0,
+      hint: { start: 0, end: 0 },
+    };
     const r = tidySweep(input);
     expect(r.diff).toBeNull();
   });
 
   it('capitalization: searchStart >= searchEnd returns null', () => {
-    const input: SweepInput = { text: 'hello. world', caret: 0, hint: { start: 0, end: 0 } };
+    const input: SweepInput = {
+      text: 'hello. world',
+      caret: 0,
+      hint: { start: 0, end: 0 },
+    };
     const r = tidySweep(input);
     expect(r.diff).toBeNull();
   });
 });
-
-
