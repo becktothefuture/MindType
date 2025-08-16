@@ -47,5 +47,3 @@ describe('SweepScheduler error branch', () => {
     expect(tickOnce).toHaveBeenCalledTimes(1);
   });
 });
-
-

@@ -228,10 +228,61 @@ const punctuationNormalizationRule: SweepRule = {
   },
 };
 
+// Capitalization rules: sentence-start capitalization; standalone 'i' pronoun → 'I'
+const capitalizationRule: SweepRule = {
+  name: 'capitalization',
+  priority: 1,
+  apply(input: SweepInput): SweepResult {
+    const { text, caret, hint } = input;
+    const windowStart = Math.max(0, caret - MAX_SWEEP_WINDOW);
+    const windowEnd = caret;
+    const searchStart = hint ? Math.max(windowStart, hint.start) : windowStart;
+    const searchEnd = hint ? Math.min(windowEnd, hint.end) : windowEnd;
+    if (searchStart >= searchEnd) return { diff: null };
+
+    const searchText = text.slice(searchStart, searchEnd);
+    type Candidate = { start: number; end: number; text: string };
+    let best: Candidate | null = null;
+
+    const push = (absStart: number, absEnd: number, replacement: string) => {
+      if (absEnd > caret) return;
+      if (!best || absStart > best.start)
+        best = { start: absStart, end: absEnd, text: replacement };
+    };
+
+    // 1) Sentence-start capitalization (only after . ! ? followed by spaces; avoid start-of-text to reduce noise)
+    {
+      const regex = /([\.\!\?]\s+)([a-z])/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        const localStart = m.index + m[1].length;
+        const absStart = searchStart + localStart;
+        const absEnd = absStart + 1;
+        const upper = m[2].toUpperCase();
+        push(absStart, absEnd, upper);
+      }
+    }
+
+    // 2) Standalone pronoun 'i' (space/i/space or start/end boundaries)
+    {
+      const regex = /(?<=^|\s)i(?=\s|$)/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        const absStart = searchStart + m.index;
+        const absEnd = absStart + 1;
+        push(absStart, absEnd, 'I');
+      }
+    }
+
+    return { diff: best };
+  },
+};
+
 // Registry of all rules, ordered by priority
 const RULES: SweepRule[] = [
   transpositionRule,
   punctuationNormalizationRule,
+  capitalizationRule,
   wordSubstitutionRule,
   // ⟢ Future rules will be added here
 ];

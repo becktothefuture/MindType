@@ -19,5 +19,3 @@ describe('DiffusionController.catchUp recursion', () => {
     expect(state.frontier).toBe(state.caret);
   });
 });
-
-

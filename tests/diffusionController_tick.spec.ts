@@ -18,5 +18,3 @@ describe('DiffusionController.tickOnce early return', () => {
     expect(after).toBe(before);
   });
 });
-
-

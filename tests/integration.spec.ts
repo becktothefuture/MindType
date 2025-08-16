@@ -107,7 +107,7 @@ describe('Streaming Diffusion Integration', () => {
       { text: 'Hello teh world', expected: 'the' },
       { text: 'cats adn dogs', expected: 'and' },
       { text: 'see hte movie', expected: 'the' },
-      { text: 'fix yuor code works', expected: 'your' }, // Added space before
+      { text: 'fix yuor code works', expected: 'your' },
     ];
 
     testCases.forEach(({ text, expected }) => {

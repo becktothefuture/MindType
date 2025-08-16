@@ -29,5 +29,3 @@ describe('DiffusionController bandRange edge', () => {
     expect(last).toEqual({ start: 0, end: 3 });
   });
 });
-
-
