@@ -191,7 +191,7 @@ body {
 .preset-buttons {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: 4px;
   margin-bottom: 8px;
 }
 

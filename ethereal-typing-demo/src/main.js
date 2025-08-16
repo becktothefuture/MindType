@@ -438,46 +438,74 @@ resetBtn.addEventListener('click', () => {
 function applyPreset(name){
   const P = {
     whisper: {
-      // The first gentle whisper - minimal fog, subtle particles
-      meterInc: '0.04', meterDecay: '0.03', burstAlpha: '0.08', partBright: '0.15', lightStrength: '0.8', impact: '0.3',
-      partCount: '0.2', partSize: '0.8', fogAlpha: '0.03', fogScale: '1.8', fogSpeed: '0.3', fogPush: '0.1',
-      blurMin: '8', blurMax: '4', glassAlpha: '0.02', grainOpacity: '0.05', bgDark: '-0.1',
-      padSettings: { density: [0.2, 0.3], blur: [0.1, 0.2], fog: [0.3, 0.1] }
+      // The first gentle whisper - minimal fog, subtle particles, but VISIBLE
+      meterInc: '0.06', meterDecay: '0.04', burstAlpha: '0.20', partBright: '0.30', lightStrength: '1.5', impact: '0.8',
+      partCount: '0.4', partSize: '1.0', fogAlpha: '0.06', fogScale: '1.8', fogSpeed: '0.4', fogPush: '0.2',
+      blurMin: '16', blurMax: '8', glassAlpha: '0.04', grainOpacity: '0.08', bgDark: '0.0',
+      padSettings: { density: [0.35, 0.4], blur: [0.2, 0.3], fog: [0.4, 0.2] }
     },
     echo: {
       // Continuing whispers becoming sequence of tones
-      meterInc: '0.06', meterDecay: '0.06', burstAlpha: '0.12', partBright: '0.25', lightStrength: '1.2', impact: '0.5',
-      partCount: '0.35', partSize: '1.0', fogAlpha: '0.05', fogScale: '1.5', fogSpeed: '0.6', fogPush: '0.3',
-      blurMin: '12', blurMax: '8', glassAlpha: '0.04', grainOpacity: '0.08', bgDark: '0.0',
-      padSettings: { density: [0.4, 0.5], blur: [0.3, 0.4], fog: [0.5, 0.3] }
+      meterInc: '0.08', meterDecay: '0.06', burstAlpha: '0.18', partBright: '0.35', lightStrength: '1.8', impact: '0.6',
+      partCount: '0.5', partSize: '1.1', fogAlpha: '0.08', fogScale: '1.4', fogSpeed: '0.7', fogPush: '0.4',
+      blurMin: '18', blurMax: '10', glassAlpha: '0.05', grainOpacity: '0.10', bgDark: '0.05',
+      padSettings: { density: [0.5, 0.55], blur: [0.35, 0.45], fog: [0.55, 0.35] }
+    },
+    aurora: {
+      // Gentle northern lights - slow, flowing, mysterious
+      meterInc: '0.05', meterDecay: '0.03', burstAlpha: '0.25', partBright: '0.45', lightStrength: '2.2', impact: '0.4',
+      partCount: '0.3', partSize: '1.8', fogAlpha: '0.12', fogScale: '1.6', fogSpeed: '0.5', fogPush: '0.1',
+      blurMin: '28', blurMax: '16', glassAlpha: '0.08', grainOpacity: '0.18', bgDark: '0.15',
+      padSettings: { density: [0.3, 0.7], blur: [0.6, 0.4], fog: [0.7, 0.2] }
     },
     glow: {
       // Playful dance of colours and illumination
-      meterInc: '0.08', meterDecay: '0.08', burstAlpha: '0.18', partBright: '0.4', lightStrength: '2.0', impact: '0.75',
-      partCount: '0.5', partSize: '1.2', fogAlpha: '0.08', fogScale: '1.2', fogSpeed: '1.0', fogPush: '0.5',
-      blurMin: '20', blurMax: '12', glassAlpha: '0.06', grainOpacity: '0.12', bgDark: '0.1',
-      padSettings: { density: [0.6, 0.6], blur: [0.5, 0.6], fog: [0.7, 0.5] }
+      meterInc: '0.10', meterDecay: '0.08', burstAlpha: '0.22', partBright: '0.5', lightStrength: '2.5', impact: '0.9',
+      partCount: '0.65', partSize: '1.3', fogAlpha: '0.10', fogScale: '1.2', fogSpeed: '1.2', fogPush: '0.6',
+      blurMin: '24', blurMax: '14', glassAlpha: '0.07', grainOpacity: '0.14', bgDark: '0.1',
+      padSettings: { density: [0.65, 0.65], blur: [0.55, 0.65], fog: [0.65, 0.55] }
     },
     symphony: {
       // Fluid typing, growing illumination through heartbeats of colour
-      meterInc: '0.12', meterDecay: '0.12', burstAlpha: '0.25', partBright: '0.6', lightStrength: '3.5', impact: '1.2',
-      partCount: '0.8', partSize: '1.6', fogAlpha: '0.12', fogScale: '1.0', fogSpeed: '1.5', fogPush: '0.8',
-      blurMin: '32', blurMax: '18', glassAlpha: '0.08', grainOpacity: '0.15', bgDark: '0.2',
-      padSettings: { density: [0.8, 0.75], blur: [0.7, 0.8], fog: [0.85, 0.7] }
+      meterInc: '0.14', meterDecay: '0.10', burstAlpha: '0.28', partBright: '0.7', lightStrength: '3.8', impact: '1.4',
+      partCount: '0.9', partSize: '1.7', fogAlpha: '0.14', fogScale: '1.0', fogSpeed: '1.8', fogPush: '0.9',
+      blurMin: '36', blurMax: '20', glassAlpha: '0.09', grainOpacity: '0.16', bgDark: '0.2',
+      padSettings: { density: [0.8, 0.78], blur: [0.75, 0.82], fog: [0.8, 0.75] }
+    },
+    storm: {
+      // Chaotic energy, rapid bursts, turbulent fog
+      meterInc: '0.20', meterDecay: '0.25', burstAlpha: '0.35', partBright: '0.8', lightStrength: '4.5', impact: '1.8',
+      partCount: '1.2', partSize: '1.4', fogAlpha: '0.16', fogScale: '0.7', fogSpeed: '3.2', fogPush: '1.8',
+      blurMin: '20', blurMax: '35', glassAlpha: '0.06', grainOpacity: '0.08', bgDark: '0.1',
+      padSettings: { density: [0.9, 0.85], blur: [0.4, 0.9], fog: [0.6, 0.95] }
     },
     tempest: {
       // Explosive bursts, maximum energy unleashed
-      meterInc: '0.18', meterDecay: '0.18', burstAlpha: '0.4', partBright: '0.9', lightStrength: '6.0', impact: '2.0',
-      partCount: '1.5', partSize: '2.2', fogAlpha: '0.18', fogScale: '0.8', fogSpeed: '2.5', fogPush: '1.5',
-      blurMin: '48', blurMax: '28', glassAlpha: '0.12', grainOpacity: '0.25', bgDark: '0.3',
-      padSettings: { density: [0.95, 0.9], blur: [0.9, 0.95], fog: [0.95, 0.9] }
+      meterInc: '0.25', meterDecay: '0.15', burstAlpha: '0.45', partBright: '1.0', lightStrength: '6.5', impact: '2.5',
+      partCount: '1.8', partSize: '2.5', fogAlpha: '0.20', fogScale: '0.8', fogSpeed: '3.0', fogPush: '2.0',
+      blurMin: '50', blurMax: '30', glassAlpha: '0.12', grainOpacity: '0.28', bgDark: '0.35',
+      padSettings: { density: [0.98, 0.95], blur: [0.95, 0.98], fog: [0.9, 0.92] }
+    },
+    cosmic: {
+      // Deep space feel - sparse but intense, slow movements
+      meterInc: '0.04', meterDecay: '0.02', burstAlpha: '0.35', partBright: '0.6', lightStrength: '3.0', impact: '0.5',
+      partCount: '0.25', partSize: '2.8', fogAlpha: '0.18', fogScale: '3.0', fogSpeed: '0.3', fogPush: '-0.1',
+      blurMin: '45', blurMax: '25', glassAlpha: '0.12', grainOpacity: '0.35', bgDark: '0.6',
+      padSettings: { density: [0.2, 0.8], blur: [0.7, 0.3], fog: [0.95, 0.1] }
+    },
+    deep: {
+      // Underwater/deep ocean - slow, heavy, mysterious
+      meterInc: '0.06', meterDecay: '0.03', burstAlpha: '0.15', partBright: '0.4', lightStrength: '1.8', impact: '0.6',
+      partCount: '0.6', partSize: '2.0', fogAlpha: '0.22', fogScale: '2.2', fogSpeed: '0.6', fogPush: '0.0',
+      blurMin: '35', blurMax: '20', glassAlpha: '0.14', grainOpacity: '0.25', bgDark: '0.4',
+      padSettings: { density: [0.6, 0.4], blur: [0.8, 0.2], fog: [0.85, 0.3] }
     },
     void: {
-      // Return to darkness, wandering through fog again
-      meterInc: '0.02', meterDecay: '0.02', burstAlpha: '0.05', partBright: '0.1', lightStrength: '0.3', impact: '0.1',
-      partCount: '0.1', partSize: '0.5', fogAlpha: '0.25', fogScale: '2.5', fogSpeed: '0.8', fogPush: '-0.2',
-      blurMin: '60', blurMax: '40', glassAlpha: '0.15', grainOpacity: '0.4', bgDark: '0.5',
-      padSettings: { density: [0.05, 0.1], blur: [0.2, 0.1], fog: [0.9, 0.8] }
+      // Return to darkness, wandering through fog again - but VISIBLE
+      meterInc: '0.03', meterDecay: '0.015', burstAlpha: '0.12', partBright: '0.25', lightStrength: '1.0', impact: '0.3',
+      partCount: '0.3', partSize: '1.5', fogAlpha: '0.30', fogScale: '2.8', fogSpeed: '0.4', fogPush: '-0.3',
+      blurMin: '65', blurMax: '45', glassAlpha: '0.18', grainOpacity: '0.5', bgDark: '0.7',
+      padSettings: { density: [0.15, 0.25], blur: [0.9, 0.1], fog: [0.95, 0.9] }
     }
   }[name];
   if (!P) return;
