@@ -49,6 +49,25 @@
 > - **PLAN_ONLY** may append tasks using the Task Schema; **EXECUTE** fulfils them.
 > - Keep tasks atomic; prefer many small boxes over one vague one.
 
+## Quality Gates & Definition of Done (RULE)
+
+For every task (especially P1), the following must be true before marking complete:
+
+- Tests: Unit tests for new logic; at least one integration or acceptance test if user-observable behaviour changes.
+- Gates: `pnpm typecheck && pnpm lint && pnpm run -s format:check && pnpm test` all pass locally and in CI; coverage guard remains green.
+- Coverage: Maintain overall ≥90% and preserve 100% branches for `utils/**`; new surfaces aim for ≥90% branches unless justified.
+- A11y/Perf (when applicable): Reduced‑motion branches tested; p95 latency and memory constraints not regressed.
+- Docs: Update this plan and PRD traceability; note any toggles/flags.
+
+Task checklist template (copy into PR description):
+
+- [ ] Unit tests added/updated
+- [ ] Integration/acceptance test mapped to `docs/qa/acceptance/*` (if applicable)
+- [ ] Typecheck, lint, format:check green
+- [ ] Coverage thresholds satisfied
+- [ ] Accessibility/performance checks (if applicable)
+- [ ] `docs/implementation.md` + PRD traceability updated
+
 ## Stage 1 — Foundation & Setup ✅
 
 ### Architecture Constraints (P1) ✅
@@ -63,53 +82,53 @@
 
 - [x] (P1) [FT-110] Initialize project structure  
        **AC:** Directory structure matches PRD; README updated  
-       **Owner:** @alex  
+      **Owner:** @alex  
        **DependsOn:** None  
        **Source:** Project Structure Doc
 
 - [x] (P1) [FT-111] Setup TypeScript configuration  
        **AC:** `tsconfig.json` with strict mode; ES2024 target  
-       **Owner:** @alex  
+      **Owner:** @alex  
        **DependsOn:** FT-110  
        **Source:** README.md → Development
 
 - [x] (P1) [FT-112] Configure ESLint v9 flat config  
        **AC:** TypeScript + Prettier integration; documented rules  
-       **Owner:** @alex  
+      **Owner:** @alex  
        **DependsOn:** FT-111  
        **Source:** README.md → Development
 
 - [x] (P1) [FT-113] Setup Vitest with coverage  
        **AC:** Unit tests run; coverage reports generated  
-       **Owner:** @alex  
+      **Owner:** @alex  
        **DependsOn:** FT-111  
        **Source:** PRD → Quality Gates
 
 - [x] (P1) [FT-114] Configure Prettier and add format gates  
        **AC:** `pnpm format` and `pnpm format:check` scripts exist; `.prettierrc` checked in; repo runs format check in CI  
-       **Owner:** @alex  
+      **Owner:** @alex  
        **DependsOn:** FT-111  
        **Source:** README.md → Development Workflow
 
 - [x] (P1) [FT-117] Add CI pipeline (GitHub Actions) for quality gates  
        **AC:** CI runs `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test`; caches pnpm; uploads coverage artifact  
-       **Owner:** @alex  
+      **Owner:** @alex  
        **DependsOn:** FT-112, FT-113, FT-114  
        **Source:** PRD → Quality Gates
 
 - [x] (P1) [FT-118] Enforce coverage thresholds  
        **AC:** Vitest config enforces ≥90% lines/statements overall; `utils/**` at 100% branches; CI fails below thresholds  
-       **Owner:** @alex  
+      **Owner:** @alex  
        **DependsOn:** FT-113, FT-117  
        **Source:** PRD → Testing & QA
 
 ### Security & Privacy Implementation (P1)
 
-- [ ] (P1) [FT-115] Implement secure field detection  
-       **AC:** - Detect password/secure input fields - Disable corrections automatically - Test coverage for all field types
-      **Owner:** @alex  
-       **DependsOn:** FT-113  
-       **Source:** PRD REQ-SECURE-FIELDS
+- [x] (P1) [FT-115] Implement secure field detection  
+        **AC:** - Detect password/secure input fields - Disable corrections automatically - Test coverage for all field types
+       **Owner:** @alex  
+        **DependsOn:** FT-113  
+        **Source:** PRD REQ-SECURE-FIELDS
 
 - [x] (P1) [FT-116] Add IME composition handling  
        **AC:** - Detect active IME composition - Disable corrections during composition - Support major IME systems

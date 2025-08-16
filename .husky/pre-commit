@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+cd -P -- "$(git rev-parse --show-toplevel)"
+pnpm exec lint-staged

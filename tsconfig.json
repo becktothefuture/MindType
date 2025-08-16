@@ -6,7 +6,7 @@
     "strict": true,
     "rootDir": ".",
     "outDir": "dist",
-    "lib": ["ES2024"],
+    "lib": ["ES2024", "DOM"],
     "types": ["node", "vitest"],
     "skipLibCheck": true
   },

@@ -5,11 +5,5 @@
   // • WHAT ▸ Custom dictionary entries for cSpell
   // • WHY  ▸ Silence false positives for product keywords
   // • HOW  ▸ Editor-only; no runtime impact
-  "cSpell.words": [
-    "mindtyper",
-    "mindtype",
-    "gramm"
-  ]
+  "cSpell.words": ["mindtyper", "mindtype", "gramm"]
 }
-
-
