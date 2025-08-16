@@ -199,25 +199,25 @@
        **DependsOn:** FT-210  
        **Source:** User example: "mindtypr is nto a tooll" → "MindTyper is not a tool"
 
-- [ ] (P1) [FT-212] Add punctuation normalization  
+- [x] (P1) [FT-212] Add punctuation normalization  
        **AC:** - Fix spacing around punctuation ("page — a sweep" formatting) - Handle quotes, apostrophes, emdashes - Language-aware rules - Sentence boundaries
       **Owner:** @alex  
        **DependsOn:** FT-211  
        **Source:** User example: punctuation spacing issues
 
-- [ ] (P1) [FT-213] Implement confidence gating and null-return conditions  
+- [x] (P1) [FT-213] Implement confidence gating and null-return conditions  
        **AC:** Define confidence thresholds per rule; return `null` below threshold; unit tests cover low-confidence cases; never apply uncertain fixes  
        **Owner:** @alex  
        **DependsOn:** FT-210  
        **Source:** PRD REQ-TIDY-SWEEP (return null when unsure)
 
-- [ ] (P1) [FT-214] Add whitespace normalization rules  
+- [x] (P1) [FT-214] Add whitespace normalization rules  
        **AC:** Collapse multiple spaces ("mov it lstens" → "move it listens"); normalize trailing spaces in window; never cross caret; unit tests for boundary cases  
        **Owner:** @alex  
        **DependsOn:** FT-210  
        **Source:** User example: missing spaces between words
 
-- [ ] (P1) [FT-216] Add capitalization rules  
+- [x] (P1) [FT-216] Add capitalization rules  
        **AC:** Sentence-start capitalization; "I" pronoun fixes; proper noun detection; context-aware confidence scoring  
        **Owner:** @alex  
        **DependsOn:** FT-212  
