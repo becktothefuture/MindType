@@ -179,7 +179,7 @@
        **DependsOn:** FT-125  
        **Source:** index.ts TODO comment
 
-- [ ] (P1) [FT-202] Create integration test harness  
+- [x] (P1) [FT-202] Create integration test harness  
        **AC:** End-to-end test simulating user typing → corrections applied; verify caret safety, timing, and band progression; performance baseline  
        **Owner:** @alex  
        **DependsOn:** FT-201  
@@ -285,7 +285,7 @@
 
 ### Visual Feedback (P1)
 
-- [ ] (P1) [FT-310] Implement highlighter core  
+- [x] (P1) [FT-310] Implement highlighter core  
        **AC:** - Validation band (3–8 words) trailing behind caret with DOM manipulation - Subtle shimmer animation; fade/static when reduced‑motion - Applied correction highlights - Minimal, non-intrusive UI
       **Owner:** @alex  
        **DependsOn:** FT-201  
