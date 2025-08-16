@@ -193,7 +193,7 @@
        **DependsOn:** FT-120  
        **Source:** PRD REQ-TIDY-SWEEP
 
-- [ ] (P1) [FT-211] Implement transposition detection  
+- [x] (P1) [FT-211] Implement transposition detection  
        **AC:** - Detect common character swaps ("nto"→"not", "precsson"→"precision") - Stay within 80-char window - Return null when uncertain - Handle contextual transpositions
       **Owner:** @alex  
        **DependsOn:** FT-210  

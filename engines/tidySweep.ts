@@ -37,7 +37,7 @@ export interface SweepRule {
 // ⟢ Future: Confidence threshold for applying corrections
 // const CONFIDENCE_THRESHOLD = 0.7;
 
-// Basic rule: Simple word substitutions
+// Basic rule: Simple word substitutions (space-delimited for safety)
 const wordSubstitutionRule: SweepRule = {
   name: 'word-substitution',
   priority: 1,
@@ -97,8 +97,56 @@ const wordSubstitutionRule: SweepRule = {
   },
 };
 
+// Transposition detection rule: detects common letter swaps inside words
+const transpositionRule: SweepRule = {
+  name: 'transposition-detection',
+  priority: 0,
+  apply(input: SweepInput): SweepResult {
+    const { text, caret, hint } = input;
+
+    const windowStart = Math.max(0, caret - MAX_SWEEP_WINDOW);
+    const windowEnd = caret;
+    const searchStart = hint ? Math.max(windowStart, hint.start) : windowStart;
+    const searchEnd = hint ? Math.min(windowEnd, hint.end) : windowEnd;
+    if (searchStart >= searchEnd) return { diff: null };
+
+    const searchText = text.slice(searchStart, searchEnd);
+
+    // Common transposition patterns (word-internal) with replacements
+    const patterns: Array<{
+      regex: RegExp;
+      replacement: (m: RegExpExecArray) => string;
+    }> = [
+      { regex: /\bnto\b/g, replacement: () => 'not' },
+      { regex: /\btaht\b/g, replacement: () => 'that' },
+      { regex: /\bwaht\b/g, replacement: () => 'what' },
+      { regex: /\bthier\b/g, replacement: () => 'their' },
+    ];
+
+    let best: { start: number; end: number; text: string } | null = null;
+
+    for (const { regex, replacement } of patterns) {
+      let match: RegExpExecArray | null;
+      regex.lastIndex = 0;
+      while ((match = regex.exec(searchText)) !== null) {
+        const absStart = searchStart + match.index;
+        const absEnd = absStart + match[0].length;
+        if (absEnd <= caret) {
+          const rep = replacement(match);
+          if (!best || absStart > best.start) {
+            best = { start: absStart, end: absEnd, text: rep };
+          }
+        }
+      }
+    }
+
+    return { diff: best };
+  },
+};
+
 // Registry of all rules, ordered by priority
 const RULES: SweepRule[] = [
+  transpositionRule,
   wordSubstitutionRule,
   // ⟢ Future rules will be added here
 ];

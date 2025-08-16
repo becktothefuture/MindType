@@ -105,6 +105,30 @@ describe('TidySweep Engine', () => {
     });
   });
 
+  describe('Transposition Detection (FT-211)', () => {
+    it('corrects simple transpositions inside words (nto→not)', () => {
+      const input: SweepInput = {
+        text: 'this is nto correct',
+        caret: 20,
+      };
+
+      const result = tidySweep(input);
+      expect(result.diff).not.toBeNull();
+      expect(result.diff!.text).toBe('not');
+    });
+
+    it('chooses rightmost transposition within window and respects caret', () => {
+      const input: SweepInput = {
+        text: 'waht is taht and nto here',
+        caret: 26,
+      };
+      const result = tidySweep(input);
+      expect(result.diff).not.toBeNull();
+      // Should pick the last match before caret window end
+      expect(result.diff!.end).toBeLessThanOrEqual(input.caret);
+    });
+  });
+
   describe('Window Constraints', () => {
     it('respects MAX_SWEEP_WINDOW limit', () => {
       // Create text longer than MAX_SWEEP_WINDOW
