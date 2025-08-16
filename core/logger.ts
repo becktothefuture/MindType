@@ -76,7 +76,6 @@ function defaultSink(record: LogRecord): void {
   // Map to console methods; fall back to console.log
   const method: 'error' | 'warn' | 'log' =
     level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log';
-  // eslint-disable-next-line no-console
   (console[method] as (msg?: unknown, ...optionalParams: unknown[]) => void)(
     line,
     data ?? '',

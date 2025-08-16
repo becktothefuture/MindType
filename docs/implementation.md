@@ -158,7 +158,7 @@ Task checklist template (copy into PR description):
 
 - [x] (P1) [FT-123] Add basic logging and error paths  
        **AC:** Minimal logger util with levels; logs timing and rule decisions behind a debug flag; unit tests verify no output when disabled  
-      **Owner:** @alex  
+       **Owner:** @alex  
        **DependsOn:** FT-121  
        **Source:** PRD → Observability
 
@@ -310,7 +310,7 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-201  
        **Source:** PRD REQ-A11Y-MOTION + REQ-VALIDATION-BAND
 
-- [ ] (P1) [FT-311] Add ARIA announcements  
+- [x] (P1) [FT-311] Add ARIA announcements  
        **AC:** - Screen reader notifications for corrections - Configurable verbosity - WCAG 2.2 AA compliant
       **Owner:** @alex  
        **DependsOn:** FT-310  
