@@ -19,6 +19,7 @@ import { tidySweep } from '../engines/tidySweep';
 import { backfillConsistency } from '../engines/backfillConsistency';
 import type { TypingMonitor, TypingEvent } from './typingMonitor';
 import { createDiffusionController } from './diffusionController';
+import { createLogger } from './logger';
 import type { SecurityContext } from './security';
 
 export interface SweepScheduler {
@@ -34,6 +35,7 @@ export function createSweepScheduler(
   let timer: ReturnType<typeof setTimeout> | null = null;
   let typingInterval: ReturnType<typeof setInterval> | null = null;
   const diffusion = createDiffusionController();
+  const log = createLogger('sweep');
 
   function clearIntervals() {
     if (timer) clearTimeout(timer);
@@ -46,6 +48,7 @@ export function createSweepScheduler(
     if (security?.isSecure?.() || security?.isIMEComposing?.()) {
       // In secure contexts, stop timers and ignore events
       clearIntervals();
+      log.debug('event dropped due to security/ime');
       return;
     }
     lastEvent = ev;
@@ -61,6 +64,7 @@ export function createSweepScheduler(
         } catch {
           // fail-safe: stop streaming to avoid runaway loops
           clearIntervals();
+          log.warn('tickOnce threw; cleared intervals');
         }
       }, getTypingTickMs());
     }
@@ -81,6 +85,7 @@ export function createSweepScheduler(
       }
     } catch {
       // swallow to keep UI responsive
+      log.warn('catchUp threw; continuing');
     }
     // Legacy engines can still run after catch-up
     tidySweep({ text: lastEvent.text, caret: lastEvent.caret });
