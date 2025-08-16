@@ -97,6 +97,12 @@ const wordSubstitutionRule: SweepRule = {
   },
 };
 
+const MIN_CONFIDENCE = 0.8;
+
+function isWordBoundary(char: string | undefined): boolean {
+  return !char || /[^\p{L}\p{N}_]/u.test(char);
+}
+
 // Transposition detection rule: detects common letter swaps inside words
 const transpositionRule: SweepRule = {
   name: 'transposition-detection',
@@ -133,10 +139,88 @@ const transpositionRule: SweepRule = {
         const absEnd = absStart + match[0].length;
         if (absEnd <= caret) {
           const rep = replacement(match);
-          if (!best || absStart > best.start) {
-            best = { start: absStart, end: absEnd, text: rep };
+          // Confidence gating: require word boundaries around the token
+          const left = text[absStart - 1];
+          const right = text[absEnd];
+          const confidence = isWordBoundary(left) && isWordBoundary(right) ? 1 : 0.5;
+          if (confidence >= MIN_CONFIDENCE) {
+            if (!best || absStart > best.start) {
+              best = { start: absStart, end: absEnd, text: rep };
+            }
           }
         }
+      }
+    }
+
+    return { diff: best };
+  },
+};
+
+// Punctuation normalization rule: spacing around commas, periods, em dashes, quotes
+const punctuationNormalizationRule: SweepRule = {
+  name: 'punctuation-normalization',
+  priority: 0,
+  apply(input: SweepInput): SweepResult {
+    const { text, caret, hint } = input;
+    const windowStart = Math.max(0, caret - MAX_SWEEP_WINDOW);
+    const windowEnd = caret;
+    const searchStart = hint ? Math.max(windowStart, hint.start) : windowStart;
+    const searchEnd = hint ? Math.min(windowEnd, hint.end) : windowEnd;
+    if (searchStart >= searchEnd) return { diff: null };
+
+    // Look for last offending pattern inside the search window
+    const searchText = text.slice(searchStart, searchEnd);
+    type Candidate = { start: number; end: number; text: string };
+    let best: Candidate | null = null;
+
+    const push = (absStart: number, absEnd: number, replacement: string) => {
+      if (absEnd > caret) return;
+      // Deterministic normalization → high confidence
+      const confidence = 1;
+      if (confidence < MIN_CONFIDENCE) return;
+      if (!best || absStart > best.start)
+        best = { start: absStart, end: absEnd, text: replacement };
+    };
+
+    // 1) Space before comma/period → remove
+    // e.g., "word ,next" => "word, next"
+    {
+      const regex = /\s+([,\.])/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        const localStart = m.index;
+        const localEnd = m.index + m[0].length;
+        const absStart = searchStart + localStart;
+        const absEnd = searchStart + localEnd;
+        push(absStart, absEnd, m[1]);
+      }
+    }
+
+    // 2) Missing space after comma/period (unless end of line) → add one
+    {
+      const regex = /([,\.])(\S)/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        // skip if next is newline
+        if (m[2] === '\n') continue;
+        const localStart = m.index;
+        const localEnd = m.index + m[0].length;
+        const absStart = searchStart + localStart;
+        const absEnd = searchStart + localEnd;
+        push(absStart, absEnd, `${m[1]} ${m[2]}`);
+      }
+    }
+
+    // 3) Em dash spacing: ensure spaces around — ("word—next" → "word — next")
+    {
+      const regex = /\s?—\s?/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        // Skip if already exactly ' — '
+        if (m[0] === ' — ') continue;
+        const absStart = searchStart + m.index;
+        const absEnd = absStart + m[0].length;
+        push(absStart, absEnd, ' — ');
       }
     }
 
@@ -147,6 +231,7 @@ const transpositionRule: SweepRule = {
 // Registry of all rules, ordered by priority
 const RULES: SweepRule[] = [
   transpositionRule,
+  punctuationNormalizationRule,
   wordSubstitutionRule,
   // ⟢ Future rules will be added here
 ];
