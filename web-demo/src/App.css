@@ -45,3 +45,44 @@
   color: #999;
   font-style: italic;
 }
+
+/* Editor overlay for validation band inside the field */
+.editor-wrap {
+  position: relative;
+  display: inline-block;
+}
+.editor-textarea {
+  position: relative;
+  background: transparent;
+  box-sizing: border-box;
+}
+.editor-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  white-space: pre-wrap;
+  overflow: auto;
+  box-sizing: border-box;
+  color: transparent; /* only show backgrounds */
+}
+.editor-overlay .band {
+  background-image: linear-gradient(90deg, rgba(0, 200, 120, 0.18), rgba(0, 200, 120, 0.32), rgba(0, 200, 120, 0.18));
+  background-size: 200% 100%;
+  animation: mt-shimmer 1800ms linear infinite;
+  border-radius: 2px;
+  display: inline-block;
+  min-width: 0.6ch; /* ensure visibility even when band length is 0 */
+  outline: 1px solid rgba(0, 200, 120, 0.35);
+}
+
+@keyframes mt-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editor-overlay .band {
+    animation: none;
+    background-image: linear-gradient(90deg, rgba(255, 223, 128, 0.2), rgba(255, 223, 128, 0.2));
+  }
+}

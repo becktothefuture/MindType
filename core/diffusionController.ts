@@ -45,7 +45,8 @@ export function createDiffusionController() {
 
   function clampFrontier() {
     const minFrontier = Math.max(0, state.caret - MAX_SWEEP_WINDOW);
-    state.frontier = Math.max(state.frontier, minFrontier);
+    // Keep frontier within [minFrontier, caret]
+    state.frontier = Math.min(state.caret, Math.max(state.frontier, minFrontier));
   }
 
   function update(text: string, caret: number) {
