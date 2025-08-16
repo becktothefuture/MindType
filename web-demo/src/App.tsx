@@ -177,10 +177,8 @@ function App() {
 
   // Console access for quick manual testing
   useEffect(() => {
-    // @ts-expect-error attach for debugging
     (window as any).mt = pipeline;
     return () => {
-      // @ts-expect-error detach
       delete (window as any).mt;
     };
   }, [pipeline]);

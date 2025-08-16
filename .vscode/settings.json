@@ -1,0 +1,15 @@
+{
+  //╔══════════════════════════════════════════════════════════════╗
+  //║  ░  W O R K S P A C E   S E T T I N G S  ░░░░░░░░░░░░░░░░░░  ║
+  //╚══════════════════════════════════════════════════════════════╝
+  // • WHAT ▸ Custom dictionary entries for cSpell
+  // • WHY  ▸ Silence false positives for product keywords
+  // • HOW  ▸ Editor-only; no runtime impact
+  "cSpell.words": [
+    "mindtyper",
+    "mindtype",
+    "gramm"
+  ]
+}
+
+
