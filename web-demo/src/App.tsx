@@ -9,6 +9,7 @@ import init, {
 } from "@mindtype/core";
 import "./App.css";
 import DebugPanel from "./components/DebugPanel";
+import { SCENARIOS } from "./scenarios";
 // TS pipeline imports
 import { boot } from "../../index";
 import {
@@ -80,6 +81,8 @@ function App() {
   const [text, setText] = useState(
     "Hello there. Try typing a sentence and then pausing.",
   );
+  const [scenarioId, setScenarioId] = useState<string | null>(null);
+  const [stepIndex, setStepIndex] = useState<number>(0);
   const [idleMs, setIdleMs] = useState(1000);
   const [useWasmDemo, setUseWasmDemo] = useState(false);
   const [tickMs, setTickMs] = useState<number>(getTypingTickMs());
@@ -112,6 +115,10 @@ function App() {
   const [showDebugPanel, setShowDebugPanel] = useState(false);
   const [wasmInitialized, setWasmInitialized] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  // FT-316 additions
+  const [lmMode, setLmMode] = useState<'rules' | 'lm'>('rules');
+  const [perfStartMs, setPerfStartMs] = useState<number | null>(null);
+  const [lastLatencyMs, setLastLatencyMs] = useState<number | null>(null);
 
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -192,6 +199,7 @@ function App() {
   }, [idleMs, wasmInitialized, useWasmDemo]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setPerfStartMs(Date.now());
     setText(e.target.value);
     if (pauseTimer) {
       pauseTimer.record_activity();
@@ -201,6 +209,15 @@ function App() {
     pipeline.ingest(e.target.value, caret);
     syncOverlayScroll();
   };
+
+  // Scenario step-through: progressively reveal scenario.raw
+  useEffect(() => {
+    if (!scenarioId) return;
+    const s = SCENARIOS.find((x) => x.id === scenarioId);
+    if (!s) return;
+    const next = s.raw.slice(0, Math.min(stepIndex, s.raw.length));
+    setText(next);
+  }, [scenarioId, stepIndex]);
 
   // Suppress band briefly after Enter to avoid flicker at line breaks
   useEffect(() => {
@@ -314,6 +331,10 @@ function App() {
       };
       setLastHighlight({ start, end });
       setTimeout(() => setLastHighlight(null), 800);
+      if (perfStartMs != null) {
+        setLastLatencyMs(Date.now() - perfStartMs);
+        setPerfStartMs(null);
+      }
     };
     window.addEventListener("mindtyper:validationBand", onBand as EventListener);
     window.addEventListener("mindtyper:highlight", onHighlight as EventListener);
@@ -453,6 +474,45 @@ function App() {
       <div className="card" style={{ marginTop: 16 }}>
         <h2>Live controls</h2>
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span>Scenario</span>
+            <select
+              aria-label="Scenario"
+              value={scenarioId ?? ''}
+              onChange={(e) => {
+                const v = e.target.value || null;
+                setScenarioId(v);
+                setStepIndex(0);
+                if (!v) setText("Hello there. Try typing a sentence and then pausing.");
+              }}
+            >
+              <option value="">None</option>
+              {SCENARIOS.map((s) => (
+                <option key={s.id} value={s.id}>{s.title}</option>
+              ))}
+            </select>
+          </label>
+          {scenarioId && (
+            <>
+              <button onClick={() => setStepIndex((i) => Math.max(0, i - 1))}>Step back</button>
+              <button onClick={() => setStepIndex((i) => i + 1)}>Step</button>
+              <button onClick={() => {
+                const s = SCENARIOS.find((x) => x.id === scenarioId);
+                if (s) setText(s.corrected);
+              }}>Apply corrected</button>
+            </>
+          )}
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <select
+              aria-label="Mode"
+              value={lmMode}
+              onChange={(e) => setLmMode(e.target.value as 'rules' | 'lm')}
+            >
+              <option value="rules">Rules only</option>
+              <option value="lm">LM (stub)</option>
+            </select>
+            Mode
+          </label>
           <label>
             Tick (ms): {tickMs}
             <input
@@ -531,6 +591,39 @@ function App() {
               onChange={(e) => setBandDelayMs(parseInt(e.target.value, 10))}
             />
           </label>
+          <button
+            onClick={() => {
+              const preset = {
+                tickMs,
+                minBand,
+                maxBand,
+                useWasmDemo,
+              };
+              navigator.clipboard?.writeText(JSON.stringify(preset)).catch(() => {});
+            }}
+          >
+            Copy preset
+          </button>
+          <button
+            onClick={() => {
+              const raw = prompt('Paste preset JSON');
+              if (!raw) return;
+              try {
+                const p = JSON.parse(raw);
+                if (typeof p.tickMs === 'number') setTickMs(p.tickMs);
+                if (typeof p.minBand === 'number') setMinBand(p.minBand);
+                if (typeof p.maxBand === 'number') setMaxBand(p.maxBand);
+                if (typeof p.useWasmDemo === 'boolean') setUseWasmDemo(p.useWasmDemo);
+              } catch {}
+            }}
+          >
+            Import preset
+          </button>
+        </div>
+        <div style={{ marginTop: 8 }}>
+          <small>
+            {lastLatencyMs != null ? `Last keystroke→highlight latency: ${lastLatencyMs} ms` : 'Interact to record latency'}
+          </small>
         </div>
       </div>
     </div>

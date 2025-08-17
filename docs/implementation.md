@@ -316,7 +316,7 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-310  
        **Source:** PRD → Accessibility
 
-- [ ] (P1) [FT-312] Run accessibility audit and reduced-motion tests  
+- [x] (P1) [FT-312] Run accessibility audit and reduced-motion tests  
        **AC:** Add axe checks for color/aria; unit test for `prefers-reduced-motion`; document SR announcement copy  
        **Owner:** @alex  
        **DependsOn:** FT-311  
@@ -341,13 +341,13 @@ Task checklist template (copy into PR description):
          **DependsOn:** FT-315  
          **Source:** Flow tuning / visual playground
 
-- [ ] (P1) [FT-316] Add demo controls and settings  
+- [x] (P1) [FT-316] Add demo controls and settings  
        **AC:** Toggle for rules vs LM mode; band size adjustment; timing controls; performance display; reset functionality; export/import presets  
        **Owner:** @alex  
        **DependsOn:** FT-315  
        **Source:** Demo usability for testing different configurations
 
-- [ ] (P1) [FT-317] Create demo scenarios  
+- [x] (P1) [FT-317] Create demo scenarios  
        **AC:** Pre-loaded text samples showing "raw → corrected" transformations; step-through mode; before/after comparisons; performance metrics  
        **Owner:** @alex  
        **DependsOn:** FT-316  
