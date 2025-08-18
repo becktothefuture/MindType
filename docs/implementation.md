@@ -250,20 +250,20 @@ Task checklist template (copy into PR description):
 
 ### Local LM Integration (P1) **← NEW SECTION**
 
-- [ ] (P1) [FT-230] Design LM adapter interface  
-       **AC:** Define `LMAdapter` interface for streaming corrections; support band-bounded context; fallback to rules when LM unavailable; caret-safe constraints  
+- [x] (P1) [FT-230] Design LM adapter interface  
+       **AC:** Define `LMAdapter` interface for streaming corrections; support band-bounded context; fallback to rules when LM unavailable; caret-safe constraints. Add backend detection and a mock adapter; optional wiring into controller without behaviour change.  
        **Owner:** @alex  
        **DependsOn:** FT-213  
        **Source:** User example: "raw → corrected" transformation quality
 
 - [ ] (P1) [FT-231] Implement local model bootstrap  
-       **AC:** Transformers.js integration with Qwen2.5-0.5B-Instruct (q4 quantized ~150MB); WebGPU acceleration; streaming token interface; grammar/style correction focus  
+       **AC:** Transformers.js integration with Qwen2.5-0.5B-Instruct (q4 quantized ~150MB); WebGPU acceleration; streaming token interface; grammar/style correction focus; lazy load + warm-up; UI load/unload; fallback to rules on failure; abort-on-input within ≤1 tick; perf/memory smoke tests.  
        **Owner:** @alex  
        **DependsOn:** FT-230  
        **Source:** Transformers.js research + on-device processing
 
 - [ ] (P1) [FT-232] Add LM streaming merge policy  
-       **AC:** Stream tokens into validation band only; merge with rule-based fixes; confidence weighting; rollback on user input; extensive caret safety tests  
+       **AC:** Stream tokens into validation band only; merge with rule-based fixes; deterministic precedence (rules > LM on structural conflicts; LM > rules on semantic-only with confidence); cancel on input; rollback on conflicts; extensive caret safety tests.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** REQ-STREAMED-DIFFUSION + LM quality

@@ -43,6 +43,13 @@
   - Contract: Mock `LMAdapter` streaming; merge policy respects caret
   - Perf/Memory: Harness thresholds logged in CI (non-blocking initially)
 
+### LM Testing Notes
+
+- Runner init: verify backend detection (webgpu/wasm/cpu), lazy model load, warm-up.
+- Streaming: ensure `abort()` on input within ≤1 tick; stream confined to the validation band.
+- Fallback: simulate load/stream errors → rules-only fallback with no caret change.
+- Demo: use Mode = LM, “Load LM”, pick a scenario (e.g., Light grammar), step through and observe streamed fixes; compare against Rules only.
+
 ### CI Gate Order
 
 1. Typecheck → 2) Lint → 3) Format:check → 4) Unit+Integration tests (coverage) → 5) Coverage guard → 6) E2E/A11y smoke (non-blocking; report only)

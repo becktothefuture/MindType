@@ -16,6 +16,7 @@ import {
   getMaxValidationWords,
 } from '../config/defaultThresholds';
 import { tidySweep } from '../engines/tidySweep';
+import type { LMAdapter } from './lm/types';
 import { renderValidationBand, renderHighlight } from '../ui/highlighter';
 
 export interface DiffusionState {
@@ -35,7 +36,7 @@ export interface BandPolicy {
 // LIB_TOUCH: Using Intl.Segmenter for Unicode-aware word boundary detection
 // Context7 docs: Intl.Segmenter provides granularity: 'word' for word-like segments
 // The isWordLike property indicates segments that are actual words vs punctuation/spaces
-export function createDiffusionController(policy?: BandPolicy) {
+export function createDiffusionController(policy?: BandPolicy, _lmAdapter?: LMAdapter) {
   const seg = new Intl.Segmenter(undefined, { granularity: 'word' });
 
   let state: DiffusionState = { text: '', caret: 0, frontier: 0 };
