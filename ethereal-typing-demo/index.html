@@ -499,6 +499,20 @@
             title="Targets ~120 fps on fast GPUs: lowers blur cost, reduces particle count, and tightens the pixelRatio governor."
           />
         </div>
+
+        <div class="control-row">
+          <label for="timeScale">Time Scale</label>
+          <span class="val" id="timeScaleVal">1.00</span>
+          <input
+            id="timeScale"
+            type="range"
+            min="0.10"
+            max="2.00"
+            step="0.01"
+            value="1.00"
+            title="Global simulation speed multiplier. 0.5 = half speed, 2.0 = double speed."
+          />
+        </div>
       </div>
 
       <!-- CONFIG JSON -->

@@ -23,6 +23,7 @@ const CONFIG = {
     minSaturation: 0.45,
     hueJitterDeg: 8,
   },
+  timeScale: 1.0,
 };
 
 // Scene setup
@@ -71,6 +72,7 @@ let fogSystem, burstSystem;
 let lastT = performance.now();
 let meter = 0;
 let intensity = 0;
+let simTime = 0;
 
 // XY pads: integrated into control groups
 const densityContainer = document.getElementById('density-pad-container');
@@ -147,8 +149,11 @@ function init() {
 }
 
 function loop(t) {
-  const dt = Math.min(0.05, (t - lastT) / 1000);
+  const rawDt = Math.min(0.05, (t - lastT) / 1000);
   lastT = t;
+  const ts = Math.max(0.1, CONFIG.timeScale || 1.0);
+  const dt = rawDt * ts;
+  simTime += dt;
   // Update meter
   meter = Math.max(0, meter - CONFIG.meter.decayPerSec * dt);
   intensity = smoothstep(0.0, 1.0, meter / 1.2);
@@ -188,14 +193,15 @@ function loop(t) {
   fogSystem.setScale(fogScaleBase * fogScaleFromPad);
   fogSystem.setPulse(fogPulseBase + fogPulseFromPad);
 
-  // Update systems
-  fogSystem.update(dt, t * 0.001);
+  // Update systems (use scaled sim time for coherent slow/fast motion)
+  fogSystem.update(dt, simTime);
   burstSystem.update(dt);
 
   renderer.render(scene, camera);
 
   // FPS
-  accum += dt;
+  // FPS measured on real time, not scaled sim time
+  accum += rawDt;
   frames++;
   if (t - lastFpsUpdate > 300) {
     const fps = (frames / accum) | 0;
@@ -289,6 +295,8 @@ const shockRadiusVal = document.getElementById('shockRadiusVal');
 const vignetteEl = document.getElementById('vignette');
 const vignetteVal = document.getElementById('vignetteVal');
 const hz120El = document.getElementById('hz120');
+const timeScaleEl = document.getElementById('timeScale');
+const timeScaleVal = document.getElementById('timeScaleVal');
 const exportJsonBtn = document.getElementById('exportJson');
 const importJsonBtn = document.getElementById('importJson');
 const importJsonFile = document.getElementById('importJsonFile');
@@ -354,10 +362,9 @@ function updateFogUI() {
   grain.style.backgroundSize = `${gSc}px ${gSc}px`;
   const gSp = parseFloat(grainSpeed.value);
   grainSpeedVal.textContent = gSp.toFixed(0);
-  // simple offset animation via requestAnimationFrame step in loop
-  const t = performance.now() * 0.001;
-  const ox = Math.sin(t * 0.7) * gSp;
-  const oy = Math.cos(t * 0.5) * gSp;
+  // Use scaled simulation time for grain motion
+  const ox = Math.sin(simTime * 0.7) * gSp;
+  const oy = Math.cos(simTime * 0.5) * gSp;
   grain.style.backgroundPosition = `${ox.toFixed(1)}px ${oy.toFixed(1)}px`;
 
   // Particles
@@ -385,6 +392,13 @@ function updateFogUI() {
   const hj = parseFloat(hueJitter.value);
   hueJitterVal.textContent = hj.toFixed(0);
   CONFIG.particles.hueJitterDeg = hj;
+
+  // Time scale
+  if (timeScaleEl && timeScaleVal) {
+    const ts = clamp(parseFloat(timeScaleEl.value) || 1, 0.1, 2.0);
+    timeScaleVal.textContent = ts.toFixed(2);
+    CONFIG.timeScale = ts;
+  }
 
   // Auto mode readout
   if (autoSensEl && autoSensVal)
@@ -446,6 +460,7 @@ const allControlElements = [
   meterIncEl,
   shockRadiusEl,
   vignetteEl,
+  timeScaleEl,
 ];
 for (const el of allControlElements) {
   if (el) el.addEventListener('input', updateFogUI);
@@ -483,6 +498,7 @@ const CONTROL_KEYS = [
   'shockRadius',
   'vignette',
   'hz120',
+  'timeScale',
 ];
 
 const LS_CONTROLS_KEY = 'ethereal_controls'; // legacy flat values
@@ -551,6 +567,7 @@ function buildFullConfigObject() {
     },
     ui: {
       hz120: !!(hz120El && hz120El.checked),
+      timeScale: CONFIG.timeScale,
     },
     controls,
   };
@@ -589,6 +606,10 @@ function applyFullConfigObject(obj) {
   // UI
   if (obj.ui && typeof obj.ui === 'object') {
     if (hz120El && obj.ui.hz120 != null) hz120El.checked = !!obj.ui.hz120;
+    if (timeScaleEl && obj.ui.timeScale != null) {
+      timeScaleEl.value = String(obj.ui.timeScale);
+      CONFIG.timeScale = clamp(parseFloat(timeScaleEl.value) || 1, 0.1, 2.0);
+    }
   }
   updateFogUI();
   return true;
@@ -649,6 +670,7 @@ resetBtn.addEventListener('click', () => {
     vignette: '0.12',
     autoMode: 'true',
     autoSens: '0.60',
+    timeScale: '1.00',
   };
   for (const k of CONTROL_KEYS) {
     const el = document.getElementById(k);
