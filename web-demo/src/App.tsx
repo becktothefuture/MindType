@@ -14,6 +14,7 @@ import { SCENARIOS } from "./scenarios";
 import { boot } from "../../index";
 import { createQwenTokenStreamer } from "../../core/lm/transformersRunner";
 import { createTransformersAdapter } from "../../core/lm/transformersClient";
+import { selectSpanAndPrompt, postProcessLMOutput } from "../../core/lm/policy";
 import {
   getTypingTickMs,
   setTypingTickMs,
@@ -117,6 +118,9 @@ function App() {
   const [showDebugPanel, setShowDebugPanel] = useState(false);
   const [wasmInitialized, setWasmInitialized] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [lmPrompt, setLmPrompt] = useState<string>("");
+  const [lmOutput, setLmOutput] = useState<string>("");
+  const [lmBand, setLmBand] = useState<{ start: number; end: number } | null>(null);
   // FT-316 additions
   const [lmMode, setLmMode] = useState<'rules' | 'lm'>('lm');
   const [perfStartMs, setPerfStartMs] = useState<number | null>(null);
@@ -124,6 +128,8 @@ function App() {
   const [lmLoaded, setLmLoaded] = useState(false);
   const [localOnly, setLocalOnly] = useState(false);
   const [backend, setBackend] = useState<string>("-");
+  const [metrics, setMetrics] = useState({ prompts: 0, completes: 0, aborts: 0, staleDrops: 0, autoDegraded: false });
+  const [chaseDistance, setChaseDistance] = useState<number>(24);
 
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -133,6 +139,7 @@ function App() {
   const adapterRef = useRef<any>(null);
   const genCounterRef = useRef(0);
   const lastCompleteRef = useRef<number>(0);
+  const latestBandRef = useRef<{ start: number; end: number } | null>(null);
 
   function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const v = e.target.value;
@@ -240,55 +247,62 @@ function App() {
     }
     // Cancel any in-flight generation
     try { adapterRef.current?.abort?.(); } catch {}
+    setMetrics((m) => ({ ...m, aborts: m.aborts + 1 }));
     const myGen = ++genCounterRef.current;
     // Trailing debounce; give user time to finish a word
     lmTimerRef.current = window.setTimeout(async () => {
       const tStart = performance.now();
       const caretIndex = caretRef.current;
       if (!runnerRef.current) return;
-      const band = computeSimpleBand(textValue, caretIndex);
-      const span = textValue.slice(band.start, band.end);
-      if (span.length < 3) return;
-      // Require boundary at the end of span to avoid mid-word edits
-      if (/\w$/.test(span)) return;
-      // Avoid very long spans
-      if (span.length > 80) return;
+      let chaseCaret = caretIndex;
+      if (latestBandRef.current) {
+        const end = latestBandRef.current.end;
+        chaseCaret = Math.max(0, Math.min(caretIndex, end + chaseDistance));
+      }
+      const sel = selectSpanAndPrompt(textValue, chaseCaret);
+      const band = sel.band;
+      const prompt = sel.prompt;
+      const span = sel.span;
+      const maxNewTokens = sel.maxNewTokens;
+      if (!band || !prompt || !span) return;
       // Cooldown to prevent rapid consecutive merges
       if (performance.now() - lastCompleteRef.current < 400) return;
-      const ctxLeft = Math.max(0, band.start - 60);
-      const ctxRight = Math.min(textValue.length, band.end + 60);
-      const ctxBefore = textValue.slice(ctxLeft, band.start);
-      const ctxAfter = textValue.slice(band.end, ctxRight);
-      const instruction =
-        'Correct ONLY the Span. Do not add explanations or extra words. Return just the corrected Span.';
-      const prompt = `${instruction}\nContext before: «${ctxBefore}»\nSpan: «${span}»\nContext after: «${ctxAfter}»`;
       console.info('[LM] prompt', { band, promptLength: span.length });
+      setMetrics((m) => ({ ...m, prompts: m.prompts + 1 }));
+      setLmBand(band);
+      setLmPrompt(prompt);
+      setLmOutput("");
       let acc = "";
       const bandLen = Math.max(1, band.end - band.start);
-      const dynMax = Math.min(Math.ceil(bandLen * 1.1) + 6, 32);
-      for await (const c of runnerRef.current.generateStream({ prompt, maxNewTokens: dynMax })) {
+      for await (const c of runnerRef.current.generateStream({ prompt, maxNewTokens })) {
         acc += c;
+        setLmOutput(acc);
         if (acc.length % 32 === 0) {
           console.debug('[LM] chunk', { length: acc.length });
         }
       }
       if (!acc) return;
-      // Post-process: take first line and trim quotes; clamp to reasonable length
-      let fixed = acc.split(/\r?\n/)[0] ?? acc;
-      fixed = fixed.replace(/^["'`]+|["'`]+$/g, '').trim();
-      if (fixed.length > bandLen * 2) {
-        fixed = fixed.slice(0, Math.max(bandLen + 8, 24));
-      }
-      console.info('[LM] complete', { outLength: fixed.length, ms: Math.round(performance.now() - tStart) });
+      const fixed = postProcessLMOutput(acc, bandLen);
+      const took = Math.round(performance.now() - tStart);
+      console.info('[LM] complete', { outLength: fixed.length, ms: took });
+      setMetrics((m) => ({ ...m, completes: m.completes + 1 }));
       // Ignore stale generations
       if (myGen !== genCounterRef.current) {
         console.debug('[LM] drop stale generation');
+        setMetrics((m) => ({ ...m, staleDrops: m.staleDrops + 1 }));
         return;
       }
       const next = textValue.slice(0, band.start) + fixed + textValue.slice(band.end);
       const delta = fixed.length - (band.end - band.start);
       setText(next);
       lastCompleteRef.current = performance.now();
+      setPerfStartMs(null);
+      setLastLatencyMs(took);
+      // Auto-degrade if slow repeatedly
+      if (took > 5000) {
+        setMetrics((m) => ({ ...m, autoDegraded: true }));
+        // Optionally extend debounce/cooldown or temporarily switch to rules-only
+      }
       // restore caret after React update
       requestAnimationFrame(() => {
         const ta = textareaRef.current;
@@ -451,6 +465,7 @@ function App() {
           const band = escapeHtml(t.slice(adjusted.start, adjusted.end));
           const after = escapeHtml(t.slice(adjusted.end));
           ov.innerHTML = `${before}<span class="band">${band || "\u200b"}</span>${after}`;
+          latestBandRef.current = { start: adjusted.start, end: adjusted.end };
         }
       };
       if (bandDelayMs > 0) setTimeout(apply, bandDelayMs);
@@ -601,7 +616,7 @@ function App() {
       </div>
 
       {showDebugPanel && (
-        <DebugPanel idleMs={idleMs} onIdleMsChange={setIdleMs} logs={logs} />
+        <DebugPanel idleMs={idleMs} onIdleMsChange={setIdleMs} logs={logs} lmDebug={{ prompt: lmPrompt, output: lmOutput, band: lmBand }} metrics={{ ...metrics, backend, lastLatencyMs }} />
       )}
 
       <div className="card" style={{ marginTop: 16 }}>

@@ -20,3 +20,5 @@ target/
 web-demo/node_modules/
 
 
+
+web-demo/public/models/

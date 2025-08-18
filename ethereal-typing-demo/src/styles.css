@@ -185,6 +185,25 @@ body {
   line-height: 1.3;
 }
 
+/* Accessible collapsible details */
+details.advanced {
+  margin-top: 6px;
+}
+details.advanced > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  margin: 6px 0 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #cdd6e0;
+  user-select: none;
+}
+details.advanced[open] > summary {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .control-row {
   display: grid;
   grid-template-columns: 1fr 56px;

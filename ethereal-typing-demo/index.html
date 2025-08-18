@@ -133,6 +133,8 @@
         <h3>Particle System</h3>
         <p class="group-desc">Controls the light bursts that appear when you type.</p>
 
+        <div class="xypad-container" id="bias-pad-container"></div>
+
         <!-- Critical at-a-glance controls -->
         <div class="control-row">
           <label for="lightStrength">Light Strength</label>
@@ -400,6 +402,28 @@
               id="hz120"
               type="checkbox"
               title="Targets ~120 fps on fast GPUs: lowers blur cost, reduces particle count, and tightens the pixelRatio governor."
+            />
+          </div>
+          <div class="control-row">
+            <label for="ditherFilm">Film Grain</label>
+            <span class="val"></span>
+            <input
+              id="ditherFilm"
+              type="checkbox"
+              title="Adds subtle colored film grain to help hide banding."
+            />
+          </div>
+          <div class="control-row">
+            <label for="ditherStrength">Dither Strength</label>
+            <span class="val" id="ditherStrengthVal">0.50</span>
+            <input
+              id="ditherStrength"
+              type="range"
+              min="0.00"
+              max="2.00"
+              step="0.05"
+              value="0.50"
+              title="Tiny offset before gamma to hide banding (in 1/255 steps)."
             />
           </div>
         </details>

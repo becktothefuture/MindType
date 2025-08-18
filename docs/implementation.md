@@ -248,7 +248,7 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-211, FT-212, FT-214, FT-216  
        **Source:** Manifesto → Safety guarantees
 
-### Local LM Integration (P1) **← NEW SECTION**
+### Local LM Integration (P1) **← UPDATED**
 
 - [x] (P1) [FT-230] Design LM adapter interface  
        **AC:** Define `LMAdapter` interface for streaming corrections; support band-bounded context; fallback to rules when LM unavailable; caret-safe constraints. Add backend detection and a mock adapter; optional wiring into controller without behaviour change.  
@@ -256,14 +256,14 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-213  
        **Source:** User example: "raw → corrected" transformation quality
 
-- [ ] (P1) [FT-231] Implement local model bootstrap  
-       **AC:** Transformers.js integration with Qwen2.5-0.5B-Instruct (q4 quantized ~150MB); WebGPU acceleration; streaming token interface; grammar/style correction focus; lazy load + warm-up; UI load/unload; fallback to rules on failure; abort-on-input within ≤1 tick; perf/memory smoke tests.  
+- [x] (P1) [FT-231] Implement local model bootstrap  
+       **AC:** Transformers.js integration with Qwen2.5-0.5B-Instruct (q4); backend detection (WebGPU→WASM→CPU); centralized LM behavior policy (`core/lm/policy.ts`); auto-load in web demo; span-only prompting and guarded merges; single-flight generation with abort and stale-drop; debounce/cooldown to reduce requests.  
        **Owner:** @alex  
        **DependsOn:** FT-230  
        **Source:** Transformers.js research + on-device processing
 
 - [ ] (P1) [FT-232] Add LM streaming merge policy  
-       **AC:** Stream tokens into validation band only; merge with rule-based fixes; deterministic precedence (rules > LM on structural conflicts; LM > rules on semantic-only with confidence); cancel on input; rollback on conflicts; extensive caret safety tests.  
+       **AC:** Stream tokens into validation band only; merge with rule-based fixes; deterministic precedence (rules > LM on structural conflicts; LM > rules on semantic-only with confidence); cancel on input; rollback on conflicts; extensive caret safety tests; sentence-aware band growth with confidence gating.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** REQ-STREAMED-DIFFUSION + LM quality

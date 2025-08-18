@@ -276,8 +276,25 @@ export class BurstSystem {
       randUnitVec2(this._dir);
       const spread = lerp(0.6, 1.0, xy.y);
       const motionScale = this.config.particles.motionScale || 1.0;
-      const vx = this._dir[0] * speed * spread * motionScale;
-      const vy = this._dir[1] * speed * spread * motionScale;
+      const upBias =
+        this.config.particles.upwardBias != null
+          ? this.config.particles.upwardBias
+          : 0.25;
+      const bias = upBias * (0.5 + 0.5 * intensity) * (0.6 + 0.4 * xy.y);
+      let dx = this._dir[0];
+      let dy = this._dir[1] + bias;
+      // User pad drift (stronger) and per-keystroke keyboard-side push
+      if (typeof this.config.particles.userDriftX === 'number')
+        dx += this.config.particles.userDriftX * 0.35;
+      if (typeof this.config.particles.lastKeySidePush === 'number')
+        dx += this.config.particles.lastKeySidePush * 0.65;
+      const invLen = 1.0 / Math.max(1e-6, Math.hypot(dx, dy));
+      dx *= invLen;
+      dy *= invLen;
+      let vx = dx * speed * spread * motionScale;
+      let vy = dy * speed * spread * motionScale;
+      const minDown = -0.2 * speed * spread * motionScale;
+      if (vy < minDown) vy = minDown;
       this.velocities[i3] = vx;
       this.velocities[i3 + 1] = vy;
       this.velocities[i3 + 2] = 0;
@@ -335,8 +352,24 @@ export class BurstSystem {
       // Share velocity field for booster as slower drift
       randUnitVec2(this._dir);
       const motionScale = this.config.particles.motionScale || 1.0;
-      const vx = this._dir[0] * speed * 0.6 * motionScale;
-      const vy = this._dir[1] * speed * 0.6 * motionScale;
+      const upBias2 =
+        this.config.particles.upwardBias != null
+          ? this.config.particles.upwardBias
+          : 0.25;
+      const bias2 = upBias2 * (0.5 + 0.5 * intensity) * (0.6 + 0.4 * xy.y);
+      let dx2 = this._dir[0];
+      let dy2 = this._dir[1] + bias2;
+      if (typeof this.config.particles.userDriftX === 'number')
+        dx2 += this.config.particles.userDriftX * 0.35;
+      if (typeof this.config.particles.lastKeySidePush === 'number')
+        dx2 += this.config.particles.lastKeySidePush * 0.65;
+      const invLen2 = 1.0 / Math.max(1e-6, Math.hypot(dx2, dy2));
+      dx2 *= invLen2;
+      dy2 *= invLen2;
+      let vx = dx2 * speed * 0.6 * motionScale;
+      let vy = dy2 * speed * 0.6 * motionScale;
+      const minDown2 = -0.2 * speed * 0.6 * motionScale;
+      if (vy < minDown2) vy = minDown2;
       // Store in same velocity buffer for convenience (share motion)
       this.velocities[i3] = vx;
       this.velocities[i3 + 1] = vy;

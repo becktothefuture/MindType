@@ -12,7 +12,14 @@ import {
 // Config (tuneable)
 const CONFIG = {
   meter: { inc: 0.15, decayPerSec: 0.4, max: 1.5 },
-  renderer: { maxPixelRatio: 1.5 },
+  renderer: {
+    maxPixelRatio: 1.5,
+    // Dithering controls (nearly invisible by default)
+    ditherMode: 'auto', // 'auto'|'ordered'|'white'
+    ditherStrength: 0.5, // in 1/255 steps; 0.5 ≈ half an sRGB step
+    ditherChroma: 0.15, // 0..0.3 small color grain when Film enabled
+    ditherTemporal: true,
+  },
   particles: {
     maxActive: 2000,
     curlAmp: 0.25,
@@ -24,6 +31,9 @@ const CONFIG = {
     motionScale: 0.5, // globally slow motion ~50%
     lifeScale: 1.6, // longer lifetime to slow growth/decay
     dragPerSec: 0.35, // simple physics damping
+    upwardBias: 0.25, // slight upward bias for keystroke push
+    userDriftX: 0.0, // from Bias XY pad (X)
+    keySideBias: 0.35, // additional per-keystroke drift from keyboard side
   },
   timeScale: 1.0,
 };
@@ -48,6 +58,12 @@ let targetPixelRatio = Math.min(
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
 camera.position.z = 5;
+// Optional HDR pipeline to increase color precision of glow (half-float)
+let useHDR = false;
+let hdrTarget = null;
+let blitScene = null;
+let blitCamera = null;
+let blitMaterial = null;
 
 // Generate textures
 const particleURL = makeSoftParticleDataURL(128);
@@ -82,15 +98,32 @@ window.__dynamoGain = window.__dynamoGain || 1.2;
 // XY pads: integrated into control groups
 const densityContainer = document.getElementById('density-pad-container');
 const blurContainer = document.getElementById('blur-pad-container');
+const biasContainer = document.getElementById('bias-pad-container');
 const padDensity = new XYPad(densityContainer, 'pad-density', 'Density / Energy', {
   x: 0.83,
   y: 0.64,
 });
 const padBlur = new XYPad(blurContainer, 'pad-blur', 'Blur / Glow', { x: 0.77, y: 0.41 });
+const padBias = new XYPad(biasContainer, 'pad-bias', 'Drift / Up Bias', {
+  x: 0.5,
+  y: 0.6,
+});
 let xy = { x: padDensity.getX(), y: padDensity.getY() };
 padDensity.onChange((x, y) => {
   xy.x = x;
   xy.y = y;
+  try {
+    saveFullConfigToLocalStorage();
+  } catch {}
+});
+// Bias pad: X = horizontal drift (-1..+1), Y = upward bias (0..1)
+padBias.onChange((x, y) => {
+  const driftX = (x - 0.5) * 2.0;
+  CONFIG.particles.userDriftX = driftX;
+  CONFIG.particles.upwardBias = 0.1 + y * 0.6;
+  try {
+    saveFullConfigToLocalStorage();
+  } catch {}
 });
 
 // FPS meter (rolling avg)
@@ -105,6 +138,67 @@ function resize() {
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   renderer.setSize(w, h, false);
+  // Lazy-init HDR once we have size and a GL context
+  if (!useHDR) {
+    try {
+      const isWebGL2 = renderer.capabilities.isWebGL2;
+      const hasHalf = isWebGL2 || renderer.extensions.has('OES_texture_half_float');
+      const hasHalfColor =
+        isWebGL2 || renderer.extensions.has('EXT_color_buffer_half_float');
+      const hasFloatColor = isWebGL2 && renderer.extensions.has('EXT_color_buffer_float');
+
+      // Prefer full 32F render target when supported; otherwise use 16F
+      let selectedType = null;
+      let msaaSamples = 0;
+      if (hasFloatColor) {
+        selectedType = THREE.FloatType;
+        msaaSamples = 0; // avoid MSAA cost on 32F for perf
+      } else if (hasHalf && hasHalfColor) {
+        selectedType = THREE.HalfFloatType;
+        msaaSamples = isWebGL2 ? 4 : 0;
+      }
+
+      if (selectedType) {
+        hdrTarget = new THREE.WebGLRenderTarget(w, h, {
+          type: selectedType,
+          format: THREE.RGBAFormat,
+          depthBuffer: true,
+          stencilBuffer: false,
+          samples: msaaSamples,
+        });
+      } else {
+        // Fallback 8-bit target to enable final-pass tonemap + dither everywhere
+        hdrTarget = new THREE.WebGLRenderTarget(w, h, {
+          format: THREE.RGBAFormat,
+          depthBuffer: true,
+          stencilBuffer: false,
+          samples: isWebGL2 ? 4 : 0,
+        });
+      }
+      blitScene = new THREE.Scene();
+      blitCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      const blitGeo = new THREE.PlaneGeometry(2, 2);
+      blitMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          uTex: { value: hdrTarget.texture },
+          uResolution: { value: new THREE.Vector2(w, h) },
+          uFrame: { value: 0 },
+          uDitherStrength: { value: CONFIG.renderer.ditherStrength / 255.0 },
+          uDitherChroma: { value: CONFIG.renderer.ditherChroma },
+          uDitherMode: { value: 1 }, // 1=ordered, 2=white
+          uTemporal: { value: CONFIG.renderer.ditherTemporal ? 1 : 0 },
+        },
+        vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+        fragmentShader: `#ifdef GL_OES_standard_derivatives\n#extension GL_OES_standard_derivatives : enable\n#endif\nprecision mediump float; uniform sampler2D uTex; uniform vec2 uResolution; uniform float uFrame; uniform float uDitherStrength; uniform float uDitherChroma; uniform int uDitherMode; uniform int uTemporal; varying vec2 vUv; float luma(vec3 c){ return dot(c, vec3(0.2126,0.7152,0.0722)); } float hash(vec2 p){ p = fract(p*vec2(123.34, 345.45)); p += dot(p, p+34.345); return fract(p.x*p.y); } float bayer4(vec2 p){ vec2 f = floor(mod(p, 4.0)); float x = f.x; float y = f.y; float idx = x + y*4.0; float t = 0.0; if (idx==0.0) t=0.0; else if (idx==1.0) t=8.0; else if (idx==2.0) t=2.0; else if (idx==3.0) t=10.0; else if (idx==4.0) t=12.0; else if (idx==5.0) t=4.0; else if (idx==6.0) t=14.0; else if (idx==7.0) t=6.0; else if (idx==8.0) t=3.0; else if (idx==9.0) t=11.0; else if (idx==10.0) t=1.0; else if (idx==11.0) t=9.0; else if (idx==12.0) t=15.0; else if (idx==13.0) t=7.0; else if (idx==14.0) t=13.0; else t=5.0; return t / 16.0; } vec3 tonemapACES(vec3 c){ float a=2.51, b=0.03, c1=2.43, d=0.59, e=0.14; return clamp((c*(a*c+b))/(c*(c1*c+d)+e), 0.0, 1.0); } void main(){ vec3 lin = texture2D(uTex, vUv).rgb; vec3 mapped = tonemapACES(lin); float Y = luma(mapped); float g = length(vec2(dFdx(Y), dFdy(Y))); float flatness = 1.0 - smoothstep(0.002, 0.02, g); float n = 0.0; float tt = (uTemporal==1) ? uFrame : 0.0; if (uDitherMode==1) { n = bayer4(gl_FragCoord.xy + tt) * 2.0 - 1.0; } else { n = (hash(gl_FragCoord.xy + tt) - hash(gl_FragCoord.yx + tt*1.37)); } float s = uDitherStrength * flatness; float mono = n * s; vec3 dither = vec3(mono); dither += (uDitherChroma>0.0 ? vec3(hash(gl_FragCoord.yx + tt*2.13), hash(gl_FragCoord.xy + tt*3.31), hash(gl_FragCoord.yx + tt*4.79))*2.0-1.0 : vec3(0.0)) * (s * uDitherChroma); vec3 outLin = mapped + dither; vec3 srgb = pow(clamp(outLin, 0.0, 1.0), vec3(1.0/2.2)); gl_FragColor = vec4(srgb, 1.0); }`,
+        depthTest: false,
+        depthWrite: false,
+        extensions: { derivatives: true },
+      });
+      blitScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), blitMaterial));
+      useHDR = true;
+    } catch {}
+  }
+  if (useHDR && hdrTarget) hdrTarget.setSize(w, h);
 }
 window.addEventListener('resize', () => {
   // micro debounce by rAF
@@ -133,6 +227,18 @@ window.addEventListener('keydown', (e) => {
   // Dynamo: each keystroke adds impulse to rotational energy
   if (window.__dynamoEnabled)
     dynOmega = Math.min(DYN_MAX, dynOmega + 0.35 * (1 + intensity));
+  // Keyboard-side directional bias: left side pushes right; right side pushes left
+  // Map common keyboard regions roughly by key code/character
+  let sideDrift = 0.0; // -1 (left), +1 (right) relative drift then flipped to push opposite
+  const k = (e.key || '').toLowerCase();
+  // Alphanumeric grid columns heuristic (letters/digits only for safety)
+  const left = '12345qwertasdfgzxcvb';
+  const right = '67890yuiophjklbnm';
+  if (left.includes(k)) sideDrift = -1.0;
+  else if (right.includes(k)) sideDrift = 1.0;
+  // Push opposite direction to feel like energy flows across center
+  const keyPush = -sideDrift * (CONFIG.particles.keySideBias || 0.35);
+  CONFIG.particles.lastKeySidePush = keyPush; // consumed at spawn
   burstSystem.spawnBurst(localIntensity, xy, glowBoost);
 });
 
@@ -191,7 +297,28 @@ function loop(t) {
   }
   burstSystem.update(dt);
 
-  renderer.render(scene, camera);
+  if (useHDR && hdrTarget && blitScene && blitCamera) {
+    renderer.setRenderTarget(hdrTarget);
+    renderer.render(scene, camera);
+    renderer.setRenderTarget(null);
+    if (blitMaterial) {
+      blitMaterial.uniforms.uTex.value = hdrTarget.texture;
+      blitMaterial.uniforms.uResolution.value.set(
+        renderer.domElement.width,
+        renderer.domElement.height,
+      );
+      blitMaterial.uniforms.uFrame.value = (t / 16.67) | 0;
+      blitMaterial.uniforms.uDitherStrength.value =
+        CONFIG.renderer.ditherStrength / 255.0;
+      blitMaterial.uniforms.uDitherChroma.value = CONFIG.renderer.ditherChroma;
+      // Mode: ordered on 8/16f, white on others for now (blue optional later)
+      blitMaterial.uniforms.uDitherMode.value = 1; // ordered default
+      blitMaterial.uniforms.uTemporal.value = CONFIG.renderer.ditherTemporal ? 1 : 0;
+    }
+    renderer.render(blitScene, blitCamera);
+  } else {
+    renderer.render(scene, camera);
+  }
 
   // FPS
   // FPS measured on real time, not scaled sim time
@@ -275,6 +402,9 @@ const toggleUIBtn = document.getElementById('toggleUI');
 const hz120El = document.getElementById('hz120');
 const timeScaleEl = document.getElementById('timeScale');
 const timeScaleVal = document.getElementById('timeScaleVal');
+const ditherFilmEl = document.getElementById('ditherFilm');
+const ditherStrengthEl = document.getElementById('ditherStrength');
+const ditherStrengthVal = document.getElementById('ditherStrengthVal');
 const exportJsonBtn = document.getElementById('exportJson');
 const importJsonBtn = document.getElementById('importJson');
 const importJsonFile = document.getElementById('importJsonFile');
@@ -346,6 +476,16 @@ function updateFogUI() {
     timeScaleVal.textContent = ts.toFixed(2);
     CONFIG.timeScale = ts;
   }
+  // Dither controls
+  if (ditherFilmEl) {
+    const film = !!ditherFilmEl.checked;
+    CONFIG.renderer.ditherChroma = film ? 0.15 : 0.0;
+  }
+  if (ditherStrengthEl && ditherStrengthVal) {
+    const ds = clamp(parseFloat(ditherStrengthEl.value) || 0.5, 0.0, 2.0);
+    ditherStrengthVal.textContent = ds.toFixed(2);
+    CONFIG.renderer.ditherStrength = ds;
+  }
 
   // Auto mode readout
   if (autoSensEl && autoSensVal)
@@ -390,6 +530,8 @@ const allControlElements = [
   burstAlphaEl,
   meterIncEl,
   timeScaleEl,
+  ditherFilmEl,
+  ditherStrengthEl,
 ];
 for (const el of allControlElements) {
   if (el) el.addEventListener('input', updateFogUI);
@@ -419,6 +561,7 @@ const CONTROL_KEYS = [
   'meterInc',
   'hz120',
   'timeScale',
+  // xy pads are stored separately; bias pad implicit via engine.particles in full config
 ];
 
 const LS_CONTROLS_KEY = 'ethereal_controls'; // legacy flat values
@@ -446,6 +589,26 @@ function writeControlValue(id, value) {
   }
 }
 
+// Cookie helpers (optional redundancy for persistence)
+function setCookie(name, value, days = 365) {
+  try {
+    const d = new Date();
+    d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${encodeURIComponent(value)};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+  } catch {}
+}
+function getCookie(name) {
+  try {
+    const key = name + '=';
+    const parts = document.cookie.split(';');
+    for (let c of parts) {
+      c = c.trim();
+      if (c.indexOf(key) === 0) return decodeURIComponent(c.substring(key.length));
+    }
+  } catch {}
+  return null;
+}
+
 function saveControls() {
   // Back-compat: flat map of control values (strings/booleans as-is)
   const flat = {};
@@ -458,6 +621,7 @@ function saveControls() {
 function loadControls() {
   // Prefer full config; fall back to legacy flat controls
   if (loadFullConfigFromLocalStorage()) return;
+  if (loadFullConfigFromCookie()) return;
   const raw = localStorage.getItem(LS_CONTROLS_KEY);
   if (!raw) return false;
   try {
@@ -478,6 +642,7 @@ function buildFullConfigObject() {
     pads: {
       density: { x: padDensity.getX(), y: padDensity.getY() },
       blur: { x: padBlur.getX(), y: padBlur.getY() },
+      bias: { x: padBias.getX(), y: padBias.getY() },
     },
     engine: {
       meter: { ...CONFIG.meter },
@@ -503,6 +668,7 @@ function applyFullConfigObject(obj) {
   const pads = obj.pads || {};
   const d = pads.density || {};
   const b = pads.blur || {};
+  const bi = pads.bias || {};
   if (typeof d.x === 'number') padDensity.x = Math.min(Math.max(d.x, 0), 1);
   if (typeof d.y === 'number') padDensity.y = Math.min(Math.max(d.y, 0), 1);
   padDensity._render();
@@ -511,6 +677,10 @@ function applyFullConfigObject(obj) {
   if (typeof b.y === 'number') padBlur.y = Math.min(Math.max(b.y, 0), 1);
   padBlur._render();
   padBlur._emit();
+  if (typeof bi.x === 'number') padBias.x = Math.min(Math.max(bi.x, 0), 1);
+  if (typeof bi.y === 'number') padBias.y = Math.min(Math.max(bi.y, 0), 1);
+  padBias._render();
+  padBias._emit();
   // Engine merges (forward-compatible)
   if (obj.engine && typeof obj.engine === 'object') {
     if (obj.engine.meter) Object.assign(CONFIG.meter, obj.engine.meter);
@@ -531,7 +701,9 @@ function applyFullConfigObject(obj) {
 
 function saveFullConfigToLocalStorage() {
   try {
-    localStorage.setItem(LS_FULLCFG_KEY, JSON.stringify(buildFullConfigObject()));
+    const json = JSON.stringify(buildFullConfigObject());
+    localStorage.setItem(LS_FULLCFG_KEY, json);
+    setCookie(LS_FULLCFG_KEY, json, 365);
   } catch {}
 }
 
@@ -546,9 +718,23 @@ function loadFullConfigFromLocalStorage() {
   }
 }
 
+function loadFullConfigFromCookie() {
+  try {
+    const raw = getCookie(LS_FULLCFG_KEY);
+    if (!raw) return false;
+    const obj = JSON.parse(raw);
+    return applyFullConfigObject(obj);
+  } catch {
+    return false;
+  }
+}
+
 for (const k of CONTROL_KEYS) {
   const el = document.getElementById(k);
-  if (el) el.addEventListener('change', saveControls);
+  if (el) {
+    el.addEventListener('change', saveControls);
+    el.addEventListener('input', saveControls);
+  }
 }
 loadControls();
 updateFogUI();
