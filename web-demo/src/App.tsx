@@ -12,6 +12,8 @@ import DebugPanel from "./components/DebugPanel";
 import { SCENARIOS } from "./scenarios";
 // TS pipeline imports
 import { boot } from "../../index";
+import { createQwenTokenStreamer } from "../../core/lm/transformersRunner";
+import { createTransformersAdapter } from "../../core/lm/transformersClient";
 import {
   getTypingTickMs,
   setTypingTickMs,
@@ -119,6 +121,9 @@ function App() {
   const [lmMode, setLmMode] = useState<'rules' | 'lm'>('rules');
   const [perfStartMs, setPerfStartMs] = useState<number | null>(null);
   const [lastLatencyMs, setLastLatencyMs] = useState<number | null>(null);
+  const [lmLoaded, setLmLoaded] = useState(false);
+  const [localOnly, setLocalOnly] = useState(false);
+  const [backend, setBackend] = useState<string>("-");
 
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -154,6 +159,32 @@ function App() {
     ov.style.borderColor = "transparent";
     ov.style.width = cs.width;
     ov.style.height = cs.height;
+  }
+  async function loadLM() {
+    try {
+      const streamer = createQwenTokenStreamer({
+        localOnly,
+        localModelPath: "/models/",
+        wasmPaths: "/wasm/",
+      });
+      const adapter = createTransformersAdapter(streamer);
+      pipeline.setLMAdapter(adapter as any);
+      setLmLoaded(true);
+      // Detect backend via adapter init
+      const caps = (adapter as any).init?.({});
+      if (caps?.backend) setBackend(String(caps.backend));
+    } catch {
+      setLmLoaded(false);
+    }
+  }
+
+  function unloadLM() {
+    // swap back to a noop adapter to disable LM
+    pipeline.setLMAdapter({
+      async *stream() {},
+    } as any);
+    setLmLoaded(false);
+    setBackend("-");
   }
 
   function syncOverlayScroll() {
@@ -509,10 +540,28 @@ function App() {
               onChange={(e) => setLmMode(e.target.value as 'rules' | 'lm')}
             >
               <option value="rules">Rules only</option>
-              <option value="lm">LM (stub)</option>
+              <option value="lm">LM</option>
             </select>
             Mode
           </label>
+          {lmMode === 'lm' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <input
+                  type="checkbox"
+                  checked={localOnly}
+                  onChange={(e) => setLocalOnly(e.target.checked)}
+                />
+                Local models only
+              </label>
+              {!lmLoaded ? (
+                <button onClick={loadLM}>Load LM</button>
+              ) : (
+                <button onClick={unloadLM}>Unload LM</button>
+              )}
+              <span>Backend: {backend}</span>
+            </div>
+          )}
           <label>
             Tick (ms): {tickMs}
             <input
