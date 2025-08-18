@@ -70,7 +70,7 @@ export function selectSpanAndPrompt(
 export function postProcessLMOutput(
   raw: string,
   bandLength: number,
-  cfg: LMBehaviorConfig = defaultLMBehaviorConfig,
+  _cfg: LMBehaviorConfig = defaultLMBehaviorConfig,
 ): string {
   if (!raw) return '';
   let fixed = raw.split(/\r?\n/)[0] ?? raw;

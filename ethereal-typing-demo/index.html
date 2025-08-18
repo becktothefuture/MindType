@@ -181,6 +181,48 @@
           </div>
 
           <div class="control-row">
+            <label for="emitAngleDeg">Emit Angle (deg)</label>
+            <span class="val" id="emitAngleDegVal">5.0</span>
+            <input
+              id="emitAngleDeg"
+              type="range"
+              min="0.0"
+              max="10.0"
+              step="0.1"
+              value="5.0"
+              title="Maximum diagonal tilt from vertical for emission (each side)."
+            />
+          </div>
+
+          <div class="control-row">
+            <label for="originX">Origin X</label>
+            <span class="val" id="originXVal">0.00</span>
+            <input
+              id="originX"
+              type="range"
+              min="-0.50"
+              max="0.50"
+              step="0.01"
+              value="0.00"
+              title="Horizontal offset of the emission origin (world units)."
+            />
+          </div>
+
+          <div class="control-row">
+            <label for="originY">Origin Y</label>
+            <span class="val" id="originYVal">0.00</span>
+            <input
+              id="originY"
+              type="range"
+              min="-0.50"
+              max="0.50"
+              step="0.01"
+              value="0.00"
+              title="Vertical offset of the emission origin (world units)."
+            />
+          </div>
+
+          <div class="control-row">
             <label for="partBright">Particle Brightness</label>
             <span class="val" id="partBrightVal">0.40</span>
             <input
@@ -424,6 +466,41 @@
               step="0.05"
               value="0.50"
               title="Tiny offset before gamma to hide banding (in 1/255 steps)."
+            />
+          </div>
+
+          <div class="control-row">
+            <label for="ditherMode">Dither Mode</label>
+            <span class="val"></span>
+            <select id="ditherMode" title="Choose dithering pattern">
+              <option value="auto" selected>Auto</option>
+              <option value="ordered">Ordered</option>
+              <option value="white">White</option>
+            </select>
+          </div>
+
+          <div class="control-row">
+            <label for="ditherTemporal">Temporal Jitter</label>
+            <span class="val"></span>
+            <input
+              id="ditherTemporal"
+              type="checkbox"
+              checked
+              title="Animate dithering slightly over time to avoid patterns."
+            />
+          </div>
+
+          <div class="control-row">
+            <label for="ditherChroma">Film Chroma</label>
+            <span class="val" id="ditherChromaVal">0.15</span>
+            <input
+              id="ditherChroma"
+              type="range"
+              min="0.00"
+              max="0.30"
+              step="0.01"
+              value="0.15"
+              title="Amount of colored grain mixed into luminance dither."
             />
           </div>
         </details>

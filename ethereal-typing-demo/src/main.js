@@ -31,9 +31,11 @@ const CONFIG = {
     motionScale: 0.5, // globally slow motion ~50%
     lifeScale: 1.6, // longer lifetime to slow growth/decay
     dragPerSec: 0.35, // simple physics damping
-    upwardBias: 0.25, // slight upward bias for keystroke push
+    upwardBias: 0.0, // reset to center; upward lift comes from emission base
     userDriftX: 0.0, // from Bias XY pad (X)
-    keySideBias: 0.35, // additional per-keystroke drift from keyboard side
+    emitMaxAngleDeg: 5.0,
+    originX: 0.0,
+    originY: 0.0,
   },
   timeScale: 1.0,
 };
@@ -116,11 +118,12 @@ padDensity.onChange((x, y) => {
     saveFullConfigToLocalStorage();
   } catch {}
 });
-// Bias pad: X = horizontal drift (-1..+1), Y = upward bias (0..1)
+// Bias pad: X = horizontal drift (-1..+1); Y no longer affects upward drift
 padBias.onChange((x, y) => {
   const driftX = (x - 0.5) * 2.0;
   CONFIG.particles.userDriftX = driftX;
-  CONFIG.particles.upwardBias = 0.1 + y * 0.6;
+  // Upward drift disabled
+  CONFIG.particles.upwardBias = 0.0;
   try {
     saveFullConfigToLocalStorage();
   } catch {}
@@ -227,18 +230,8 @@ window.addEventListener('keydown', (e) => {
   // Dynamo: each keystroke adds impulse to rotational energy
   if (window.__dynamoEnabled)
     dynOmega = Math.min(DYN_MAX, dynOmega + 0.35 * (1 + intensity));
-  // Keyboard-side directional bias: left side pushes right; right side pushes left
-  // Map common keyboard regions roughly by key code/character
-  let sideDrift = 0.0; // -1 (left), +1 (right) relative drift then flipped to push opposite
-  const k = (e.key || '').toLowerCase();
-  // Alphanumeric grid columns heuristic (letters/digits only for safety)
-  const left = '12345qwertasdfgzxcvb';
-  const right = '67890yuiophjklbnm';
-  if (left.includes(k)) sideDrift = -1.0;
-  else if (right.includes(k)) sideDrift = 1.0;
-  // Push opposite direction to feel like energy flows across center
-  const keyPush = -sideDrift * (CONFIG.particles.keySideBias || 0.35);
-  CONFIG.particles.lastKeySidePush = keyPush; // consumed at spawn
+  // Restore organic behavior: no keyboard-side directional bias
+  CONFIG.particles.lastKeySideDir = 0.0;
   burstSystem.spawnBurst(localIntensity, xy, glowBoost);
 });
 
@@ -405,6 +398,16 @@ const timeScaleVal = document.getElementById('timeScaleVal');
 const ditherFilmEl = document.getElementById('ditherFilm');
 const ditherStrengthEl = document.getElementById('ditherStrength');
 const ditherStrengthVal = document.getElementById('ditherStrengthVal');
+const ditherModeEl = document.getElementById('ditherMode');
+const ditherTemporalEl = document.getElementById('ditherTemporal');
+const ditherChromaEl = document.getElementById('ditherChroma');
+const ditherChromaVal = document.getElementById('ditherChromaVal');
+const emitAngleDegEl = document.getElementById('emitAngleDeg');
+const emitAngleDegVal = document.getElementById('emitAngleDegVal');
+const originXEl = document.getElementById('originX');
+const originXVal = document.getElementById('originXVal');
+const originYEl = document.getElementById('originY');
+const originYVal = document.getElementById('originYVal');
 const exportJsonBtn = document.getElementById('exportJson');
 const importJsonBtn = document.getElementById('importJson');
 const importJsonFile = document.getElementById('importJsonFile');
@@ -486,6 +489,34 @@ function updateFogUI() {
     ditherStrengthVal.textContent = ds.toFixed(2);
     CONFIG.renderer.ditherStrength = ds;
   }
+  if (ditherModeEl) {
+    const mode = ditherModeEl.value || 'auto';
+    CONFIG.renderer.ditherMode = mode;
+  }
+  if (ditherTemporalEl) {
+    CONFIG.renderer.ditherTemporal = !!ditherTemporalEl.checked;
+  }
+  if (ditherChromaEl && ditherChromaVal) {
+    const chroma = clamp(parseFloat(ditherChromaEl.value) || 0.15, 0.0, 0.3);
+    ditherChromaVal.textContent = chroma.toFixed(2);
+    CONFIG.renderer.ditherChroma = chroma;
+  }
+  // Emission angle and origin
+  if (emitAngleDegEl && emitAngleDegVal) {
+    const ang = clamp(parseFloat(emitAngleDegEl.value) || 5.0, 0.0, 15.0);
+    emitAngleDegVal.textContent = ang.toFixed(1);
+    CONFIG.particles.emitMaxAngleDeg = ang;
+  }
+  if (originXEl && originXVal) {
+    const ox = clamp(parseFloat(originXEl.value) || 0.0, -1.0, 1.0);
+    originXVal.textContent = ox.toFixed(2);
+    CONFIG.particles.originX = ox;
+  }
+  if (originYEl && originYVal) {
+    const oy = clamp(parseFloat(originYEl.value) || 0.0, -1.0, 1.0);
+    originYVal.textContent = oy.toFixed(2);
+    CONFIG.particles.originY = oy;
+  }
 
   // Auto mode readout
   if (autoSensEl && autoSensVal)
@@ -532,6 +563,12 @@ const allControlElements = [
   timeScaleEl,
   ditherFilmEl,
   ditherStrengthEl,
+  ditherModeEl,
+  ditherTemporalEl,
+  ditherChromaEl,
+  emitAngleDegEl,
+  originXEl,
+  originYEl,
 ];
 for (const el of allControlElements) {
   if (el) el.addEventListener('input', updateFogUI);
@@ -561,6 +598,9 @@ const CONTROL_KEYS = [
   'meterInc',
   'hz120',
   'timeScale',
+  'emitAngleDeg',
+  'originX',
+  'originY',
   // xy pads are stored separately; bias pad implicit via engine.particles in full config
 ];
 
@@ -652,6 +692,12 @@ function buildFullConfigObject() {
     ui: {
       hz120: !!(hz120El && hz120El.checked),
       timeScale: CONFIG.timeScale,
+      dither: {
+        mode: CONFIG.renderer.ditherMode,
+        temporal: CONFIG.renderer.ditherTemporal,
+        strength: CONFIG.renderer.ditherStrength,
+        chroma: CONFIG.renderer.ditherChroma,
+      },
     },
     controls,
   };
@@ -693,6 +739,23 @@ function applyFullConfigObject(obj) {
     if (timeScaleEl && obj.ui.timeScale != null) {
       timeScaleEl.value = String(obj.ui.timeScale);
       CONFIG.timeScale = clamp(parseFloat(timeScaleEl.value) || 1, 0.1, 2.0);
+    }
+    if (obj.ui.dither) {
+      const d = obj.ui.dither;
+      if (ditherModeEl && d.mode != null) ditherModeEl.value = String(d.mode);
+      if (ditherTemporalEl && d.temporal != null) ditherTemporalEl.checked = !!d.temporal;
+      if (ditherStrengthEl && d.strength != null)
+        ditherStrengthEl.value = String(d.strength);
+      if (ditherChromaEl && d.chroma != null) ditherChromaEl.value = String(d.chroma);
+    }
+    if (emitAngleDegEl && obj.controls && obj.controls.emitAngleDeg != null) {
+      emitAngleDegEl.value = String(obj.controls.emitAngleDeg);
+    }
+    if (originXEl && obj.controls && obj.controls.originX != null) {
+      originXEl.value = String(obj.controls.originX);
+    }
+    if (originYEl && obj.controls && obj.controls.originY != null) {
+      originYEl.value = String(obj.controls.originY);
     }
   }
   updateFogUI();

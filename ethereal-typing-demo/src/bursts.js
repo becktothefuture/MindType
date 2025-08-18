@@ -249,6 +249,7 @@ export class BurstSystem {
         this.config.particles.countScale,
     );
     const speed = lerp(0.6, 2.8, intensity) * lerp(0.5, 3.0, xy.y);
+    // Restore organic emission: random unit direction modulated by bias
     const size0 = lerp(10, 20, intensity) * this.config.particles.sizeScale;
     const size1 = lerp(0, 8, intensity * 0.6) * this.config.particles.sizeScale;
 
@@ -261,8 +262,11 @@ export class BurstSystem {
       const i = mainIdx[k];
       const i3 = i * 3;
       // small spawn jitter to break symmetry
-      this.positions[i3] = randRange(-0.05, 0.05);
-      this.positions[i3 + 1] = randRange(-0.05, 0.05);
+      // User-controlled origin offset
+      const ox = this.config.particles.originX || 0.0;
+      const oy = this.config.particles.originY || 0.0;
+      this.positions[i3] = ox + randRange(-0.05, 0.05);
+      this.positions[i3 + 1] = oy + randRange(-0.05, 0.05);
       this.positions[i3 + 2] = 0;
       this.age[i] = 0;
       const life =
@@ -273,21 +277,12 @@ export class BurstSystem {
       this.size0[i] = size0;
       this.size1[i] = size1;
 
-      randUnitVec2(this._dir);
       const spread = lerp(0.6, 1.0, xy.y);
       const motionScale = this.config.particles.motionScale || 1.0;
-      const upBias =
-        this.config.particles.upwardBias != null
-          ? this.config.particles.upwardBias
-          : 0.25;
-      const bias = upBias * (0.5 + 0.5 * intensity) * (0.6 + 0.4 * xy.y);
-      let dx = this._dir[0];
-      let dy = this._dir[1] + bias;
-      // User pad drift (stronger) and per-keystroke keyboard-side push
-      if (typeof this.config.particles.userDriftX === 'number')
-        dx += this.config.particles.userDriftX * 0.35;
-      if (typeof this.config.particles.lastKeySidePush === 'number')
-        dx += this.config.particles.lastKeySidePush * 0.65;
+      // Organic direction: random unit vector, small jitter
+      randUnitVec2(this._dir);
+      let dx = this._dir[0] + randRange(-0.02, 0.02);
+      let dy = this._dir[1] + randRange(-0.02, 0.02);
       const invLen = 1.0 / Math.max(1e-6, Math.hypot(dx, dy));
       dx *= invLen;
       dy *= invLen;
@@ -349,26 +344,17 @@ export class BurstSystem {
       this.boostAlphaBase[i] =
         0.22 * burstAlphaMul2 * this.config.particles.brightnessScale * glowBoost;
       this.boostSeed[i] = Math.random();
-      // Share velocity field for booster as slower drift
+      // Booster uses same organic scheme but slower
+      const motionScale2 = this.config.particles.motionScale || 1.0;
       randUnitVec2(this._dir);
-      const motionScale = this.config.particles.motionScale || 1.0;
-      const upBias2 =
-        this.config.particles.upwardBias != null
-          ? this.config.particles.upwardBias
-          : 0.25;
-      const bias2 = upBias2 * (0.5 + 0.5 * intensity) * (0.6 + 0.4 * xy.y);
-      let dx2 = this._dir[0];
-      let dy2 = this._dir[1] + bias2;
-      if (typeof this.config.particles.userDriftX === 'number')
-        dx2 += this.config.particles.userDriftX * 0.35;
-      if (typeof this.config.particles.lastKeySidePush === 'number')
-        dx2 += this.config.particles.lastKeySidePush * 0.65;
+      let dx2 = this._dir[0] + randRange(-0.02, 0.02);
+      let dy2 = this._dir[1] + randRange(-0.02, 0.02);
       const invLen2 = 1.0 / Math.max(1e-6, Math.hypot(dx2, dy2));
       dx2 *= invLen2;
       dy2 *= invLen2;
-      let vx = dx2 * speed * 0.6 * motionScale;
-      let vy = dy2 * speed * 0.6 * motionScale;
-      const minDown2 = -0.2 * speed * 0.6 * motionScale;
+      let vx = dx2 * speed * 0.6 * motionScale2;
+      let vy = dy2 * speed * 0.6 * motionScale2;
+      const minDown2 = -0.2 * speed * 0.6 * motionScale2;
       if (vy < minDown2) vy = minDown2;
       // Store in same velocity buffer for convenience (share motion)
       this.velocities[i3] = vx;

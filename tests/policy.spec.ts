@@ -13,7 +13,7 @@ import {
 
 describe('LM policy', () => {
   it('rejects span shorter than min', () => {
-    const cfg = { ...defaultLMBehaviorConfig, minSpanChars: 3 } as any;
+    const cfg = { ...defaultLMBehaviorConfig, minSpanChars: 3 };
     const text = 'hi';
     const caret = text.length;
     const res = selectSpanAndPrompt(text, caret, cfg);
@@ -23,7 +23,7 @@ describe('LM policy', () => {
     const cfg = { ...defaultLMBehaviorConfig, minSpanChars: 5 };
     const text = 'short';
     const caret = text.length; // span will be 5 but ends with word char
-    const res = selectSpanAndPrompt(text, caret, cfg as any);
+    const res = selectSpanAndPrompt(text, caret, cfg);
     expect(res.band).toBeNull();
     expect(res.prompt).toBeNull();
   });
@@ -32,7 +32,7 @@ describe('LM policy', () => {
     const cfg = { ...defaultLMBehaviorConfig, maxSpanChars: 3 };
     const text = 'hello world';
     const caret = text.indexOf('world') + 1;
-    const res = selectSpanAndPrompt(text, caret, cfg as any);
+    const res = selectSpanAndPrompt(text, caret, cfg);
     expect(res.band).toBeNull();
   });
 
@@ -40,13 +40,13 @@ describe('LM policy', () => {
     const cfg = { ...defaultLMBehaviorConfig, enforceWordBoundaryAtEnd: false };
     const text = 'hello world';
     const caret = text.indexOf('world'); // before word end
-    const res = selectSpanAndPrompt(text, caret, cfg as any);
+    const res = selectSpanAndPrompt(text, caret, cfg);
     expect(res.band).not.toBeNull();
     expect(typeof res.maxNewTokens).toBe('number');
   });
 
   it('passes word-boundary check when ending in punctuation', () => {
-    const cfg = { ...defaultLMBehaviorConfig, enforceWordBoundaryAtEnd: true } as any;
+    const cfg = { ...defaultLMBehaviorConfig, enforceWordBoundaryAtEnd: true };
     const text = 'hello.';
     const caret = text.length; // span ends with '.' -> not a word char
     const res = selectSpanAndPrompt(text, caret, cfg);
@@ -75,7 +75,7 @@ describe('LM policy', () => {
       maxSpanChars: 1000,
       maxTokensCap: 10,
       enforceWordBoundaryAtEnd: false,
-    } as any;
+    };
     const res = selectSpanAndPrompt(text, caret, cfg);
     expect(typeof res.maxNewTokens).toBe('number');
     expect(res.maxNewTokens).toBe(10);

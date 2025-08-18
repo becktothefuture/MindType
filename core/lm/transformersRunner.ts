@@ -92,15 +92,12 @@ export function createQwenTokenStreamer(options?: QwenRunnerOptions): TokenStrea
         device,
       } as Record<string, unknown>);
 
-      try {
-        // eslint-disable-next-line no-console
-        console.info('[LM] ready', {
-          modelId,
-          backend,
-          device,
-          localOnly: options?.localOnly,
-        });
-      } catch {}
+      console.info('[LM] ready', {
+        modelId,
+        backend,
+        device,
+        localOnly: options?.localOnly,
+      });
 
       return { gen, TextStreamer } as LoadedGenerator;
     })();

@@ -130,6 +130,7 @@ function App() {
   const [backend, setBackend] = useState<string>("-");
   const [metrics, setMetrics] = useState({ prompts: 0, completes: 0, aborts: 0, staleDrops: 0, autoDegraded: false });
   const [chaseDistance, setChaseDistance] = useState<number>(24);
+  const [isTyping, setIsTyping] = useState(false);
 
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -140,12 +141,22 @@ function App() {
   const genCounterRef = useRef(0);
   const lastCompleteRef = useRef<number>(0);
   const latestBandRef = useRef<{ start: number; end: number } | null>(null);
+  const typingGlowTimerRef = useRef<number | null>(null);
+  const inFlightRef = useRef<boolean>(false);
+  const lastScheduleAtRef = useRef<number>(0);
 
   function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const v = e.target.value;
     setText(v);
     caretRef.current = e.target.selectionStart ?? v.length;
-    scheduleAutoLM(v);
+    const caret = e.target.selectionStart ?? v.length;
+    const prevChar = caret > 0 ? v[caret - 1] : '';
+    const isBoundary = /[\s\.!?;,\)\]]/.test(prevChar);
+    // glow on key input
+    setIsTyping(true);
+    if (typingGlowTimerRef.current) window.clearTimeout(typingGlowTimerRef.current);
+    typingGlowTimerRef.current = window.setTimeout(() => setIsTyping(false), 1200);
+    scheduleAutoLM(v, isBoundary ? 150 : 700);
   }
 
   function syncOverlayStyles() {
@@ -210,6 +221,13 @@ function App() {
       // Detect backend via adapter init
       const caps = (adapter as any).init?.({});
       if (caps?.backend) setBackend(String(caps.backend));
+      try {
+        let dummy = '';
+        for await (const c of streamer.generateStream({ prompt: 'Hello.', maxNewTokens: 8 })) {
+          dummy += c;
+          if (dummy.length > 8) break;
+        }
+      } catch {}
     } catch {
       console.error('[LM] load failed');
       setLmLoaded(false);
@@ -234,7 +252,13 @@ function App() {
     }
   }, [lmMode, lmLoaded]);
 
-  function scheduleAutoLM(textValue: string) {
+  function scheduleAutoLM(textValue: string, debounceMs = 500) {
+    const now = performance.now();
+    // Throttle schedule attempts
+    if (now - lastScheduleAtRef.current < 120) return;
+    lastScheduleAtRef.current = now;
+    // Avoid piling on while a generation is about to finish
+    if (inFlightRef.current && now - lastCompleteRef.current < 250) return;
     if (lmTimerRef.current) window.clearTimeout(lmTimerRef.current);
     if (!(lmMode === 'lm' && lmLoaded && runnerRef.current && textareaRef.current)) {
       console.debug('[LM] skip', {
@@ -259,7 +283,7 @@ function App() {
         const end = latestBandRef.current.end;
         chaseCaret = Math.max(0, Math.min(caretIndex, end + chaseDistance));
       }
-      const sel = selectSpanAndPrompt(textValue, chaseCaret);
+      const sel = selectSpanAndPrompt(textValue, chaseCaret, { ...defaultLMBehaviorConfig, enforceWordBoundaryAtEnd: true });
       const band = sel.band;
       const prompt = sel.prompt;
       const span = sel.span;
@@ -274,6 +298,7 @@ function App() {
       setLmOutput("");
       let acc = "";
       const bandLen = Math.max(1, band.end - band.start);
+      inFlightRef.current = true;
       for await (const c of runnerRef.current.generateStream({ prompt, maxNewTokens })) {
         acc += c;
         setLmOutput(acc);
@@ -284,14 +309,15 @@ function App() {
       if (!acc) return;
       const fixed = postProcessLMOutput(acc, bandLen);
       const took = Math.round(performance.now() - tStart);
-      console.info('[LM] complete', { outLength: fixed.length, ms: took });
-      setMetrics((m) => ({ ...m, completes: m.completes + 1 }));
-      // Ignore stale generations
+      // Ignore stale generations (do not log as complete)
       if (myGen !== genCounterRef.current) {
         console.debug('[LM] drop stale generation');
         setMetrics((m) => ({ ...m, staleDrops: m.staleDrops + 1 }));
+        inFlightRef.current = false;
         return;
       }
+      console.info('[LM] complete', { outLength: fixed.length, ms: took });
+      setMetrics((m) => ({ ...m, completes: m.completes + 1 }));
       const next = textValue.slice(0, band.start) + fixed + textValue.slice(band.end);
       const delta = fixed.length - (band.end - band.start);
       setText(next);
@@ -310,8 +336,9 @@ function App() {
         const newCaret = Math.max(0, Math.min(next.length, caretIndex + delta));
         ta.setSelectionRange(newCaret, newCaret);
         caretRef.current = newCaret;
+        inFlightRef.current = false;
       });
-    }, 500);
+    }, debounceMs);
   }
 
   function syncOverlayScroll() {
@@ -388,6 +415,13 @@ function App() {
     return () => {
       ta.removeEventListener("scroll", onScroll);
       ro.disconnect();
+    };
+  }, []);
+
+  // Cleanup typing glow timer on unmount
+  useEffect(() => {
+    return () => {
+      if (typingGlowTimerRef.current) window.clearTimeout(typingGlowTimerRef.current);
     };
   }, []);
 
@@ -568,7 +602,7 @@ function App() {
 
       <div className="card">
         <h2>Editor</h2>
-        <div className="editor-wrap">
+        <div className={`editor-wrap ${isTyping ? 'typing' : ''}`}>
           <div className="editor-overlay" aria-hidden id="mt-overlay" ref={overlayRef} />
           <textarea
             className="editor-textarea"
@@ -576,13 +610,17 @@ function App() {
             value={text}
             placeholder="Type here. Pause to see live corrections."
             onChange={handleTextChange}
+            onBlur={() => setIsTyping(false)}
             onCompositionStart={() => {
               setIsIMEComposing(true);
               imeRef.current = true;
+              setIsTyping(true);
             }}
             onCompositionEnd={() => {
               setIsIMEComposing(false);
               imeRef.current = false;
+              if (typingGlowTimerRef.current) window.clearTimeout(typingGlowTimerRef.current);
+              typingGlowTimerRef.current = window.setTimeout(() => setIsTyping(false), 1200);
             }}
             rows={10}
             cols={80}

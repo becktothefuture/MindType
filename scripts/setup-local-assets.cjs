@@ -11,7 +11,6 @@
   • HOW  ▸ Copy wasm; fetch model tree from HF and stream to disk
 */
 
-/* eslint-disable no-console */
 const fs = require('node:fs');
 const path = require('node:path');
 const ROOT = path.resolve(__dirname, '..');
