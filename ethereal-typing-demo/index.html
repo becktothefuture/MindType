@@ -28,6 +28,7 @@
     <!-- Frosted glass overlay with grain -->
     <div id="glass" style="--blur-amount: 24px">
       <div id="grain"></div>
+      <div id="lens" aria-hidden="true"></div>
     </div>
 
     <!-- FPS badge -->
@@ -241,139 +242,14 @@
         </div>
       </div>
 
-      <!-- FOG SYSTEM -->
+      <!-- GLASS PRESETS -->
       <div class="control-group">
-        <h3>Fog System</h3>
-        <p class="group-desc">
-          Controls the atmospheric fog layers that move in the background.
-        </p>
-
-        <div class="xypad-container" id="fog-pad-container"></div>
-
-        <div class="control-row">
-          <label for="fogAlpha">Fog Alpha</label>
-          <span class="val" id="fogAlphaVal">0.00</span>
-          <input
-            id="fogAlpha"
-            type="range"
-            min="0.00"
-            max="1.00"
-            step="0.01"
-            value="0.00"
-            title="Overall fog opacity (shader uniform uAlpha)."
-          />
-        </div>
-
-        <div class="control-row">
-          <label for="fogScale">Fog Scale</label>
-          <span class="val" id="fogScaleVal">1.20</span>
-          <input
-            id="fogScale"
-            type="range"
-            min="0.00"
-            max="10.00"
-            step="0.01"
-            value="1.20"
-            title="Radial scale of fog field (uRadialScale)."
-          />
-        </div>
-
-        <div class="control-row">
-          <label for="fogPulse">Fog Pulse</label>
-          <span class="val" id="fogPulseVal">0.00</span>
-          <input
-            id="fogPulse"
-            type="range"
-            min="-5.00"
-            max="5.00"
-            step="0.01"
-            value="0.00"
-            title="Bulge/pulse amount across radius (uPulse)."
-          />
-        </div>
-
-        <div class="control-row">
-          <label for="fogSpeed">Fog Speed (Z)</label>
-          <span class="val" id="fogSpeedVal">2.00</span>
-          <input
-            id="fogSpeed"
-            type="range"
-            min="0.00"
-            max="20.00"
-            step="0.01"
-            value="2.00"
-            title="Depth scrolling speed of layers (multiplies base speeds)."
-          />
-        </div>
-
-        <div class="control-row">
-          <label for="fogPush">Fog Push Gain</label>
-          <span class="val" id="fogPushVal">0.00</span>
-          <input
-            id="fogPush"
-            type="range"
-            min="-10.00"
-            max="10.00"
-            step="0.01"
-            value="0.00"
-            title="How strongly typing clears the center (gain for uPush)."
-          />
-        </div>
-
-        <div class="control-row">
-          <label for="fogRot">Fog Rotation</label>
-          <span class="val" id="fogRotVal">2.00</span>
-          <input
-            id="fogRot"
-            type="range"
-            min="0.00"
-            max="20.00"
-            step="0.01"
-            value="2.00"
-            title="Angular swirl speed of fog layers."
-          />
-        </div>
-
-        <div class="control-row">
-          <label for="fogExpand">Fog Expand</label>
-          <span class="val" id="fogExpandVal">1.00</span>
-          <input
-            id="fogExpand"
-            type="range"
-            min="0.00"
-            max="10.00"
-            step="0.01"
-            value="1.00"
-            title="Radial expansion rate (uExpandSpeed)."
-          />
-        </div>
-
-        <div class="control-row">
-          <label for="shockRadius">Fog Shock Radius</label>
-          <span class="val" id="shockRadiusVal">0.42</span>
-          <input
-            id="shockRadius"
-            type="range"
-            min="0.00"
-            max="2.00"
-            step="0.01"
-            value="0.42"
-            title="Radius where fog shock impulse fades out."
-          />
-        </div>
-
-        <div class="control-row">
-          <label for="vignette">Vignette</label>
-          <span class="val" id="vignetteVal">0.12</span>
-          <input
-            id="vignette"
-            type="range"
-            min="0.00"
-            max="2.00"
-            step="0.01"
-            value="0.12"
-            title="Edge darkening over fog field."
-          />
+        <h3>Glass Presets</h3>
+        <p class="group-desc">Quick styles for the frosted glass diffusion layer.</p>
+        <div id="glassPresets" class="preset-buttons">
+          <button data-glass="frosted">Frosted Flat</button>
+          <button data-glass="deep">Deep Diffusion</button>
+          <button data-glass="curved">Curved Lens</button>
         </div>
       </div>
 

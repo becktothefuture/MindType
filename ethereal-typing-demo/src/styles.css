@@ -73,6 +73,26 @@ body {
   z-index: 3;
 }
 
+/* Subtle lens for curved diffusion (off by default) */
+#lens {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0; /* toggled by preset */
+  background:
+    radial-gradient(
+      120% 120% at 50% 45%,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.015) 55%,
+      rgba(0, 0, 0, 0.04) 85%,
+      transparent 100%
+    ),
+    radial-gradient(200% 200% at 50% 55%, rgba(255, 255, 255, 0.02), transparent 60%);
+  mix-blend-mode: screen;
+  filter: saturate(1.02);
+}
+
 #fps {
   position: fixed;
   left: 12px;

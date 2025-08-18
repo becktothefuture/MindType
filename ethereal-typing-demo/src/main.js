@@ -1,5 +1,4 @@
 import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-import { FogSystem } from './fog.js';
 import { BurstSystem } from './bursts.js';
 import { XYPad } from './xypad.js';
 import {
@@ -54,6 +53,7 @@ const grainURL = makeGrainDataURL(256);
 // Apply grain to overlay
 const grainDiv = document.getElementById('grain');
 grainDiv.style.backgroundImage = `url(${grainURL})`;
+const lensDiv = document.getElementById('lens');
 
 // Load particle texture
 const loader = new THREE.TextureLoader();
@@ -62,13 +62,9 @@ particleTex.wrapS = particleTex.wrapT = THREE.ClampToEdgeWrapping;
 particleTex.minFilter = THREE.LinearFilter;
 particleTex.magFilter = THREE.LinearFilter;
 
-// Noise texture for fog (reuse grain as pseudo-noise)
-const noiseTex = loader.load(grainURL);
-noiseTex.wrapS = noiseTex.wrapT = THREE.RepeatWrapping;
-noiseTex.minFilter = THREE.LinearFilter;
-noiseTex.magFilter = THREE.LinearFilter;
+// (fog removed) no noise texture needed
 
-let fogSystem, burstSystem;
+let burstSystem;
 let lastT = performance.now();
 let meter = 0;
 let intensity = 0;
@@ -77,16 +73,11 @@ let simTime = 0;
 // XY pads: integrated into control groups
 const densityContainer = document.getElementById('density-pad-container');
 const blurContainer = document.getElementById('blur-pad-container');
-const fogContainer = document.getElementById('fog-pad-container');
 const padDensity = new XYPad(densityContainer, 'pad-density', 'Density / Energy', {
   x: 0.83,
   y: 0.64,
 });
 const padBlur = new XYPad(blurContainer, 'pad-blur', 'Blur / Glow', { x: 0.77, y: 0.41 });
-const padFog = new XYPad(fogContainer, 'pad-fog', 'Fog Scale / Pulse', {
-  x: 0.94,
-  y: 1.0,
-});
 let xy = { x: padDensity.getX(), y: padDensity.getY() };
 padDensity.onChange((x, y) => {
   xy.x = x;
@@ -105,7 +96,6 @@ function resize() {
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   renderer.setSize(w, h, false);
-  if (fogSystem) fogSystem.setAspect(w / h);
 }
 window.addEventListener('resize', () => {
   // micro debounce by rAF
@@ -132,8 +122,6 @@ window.addEventListener('keydown', (e) => {
     autoImpact *
     lerp(0.5, 3.0, padBlur.getY());
   burstSystem.spawnBurst(localIntensity, xy, glowBoost);
-  // shock impulse to push fog outward briefly
-  if (fogSystem) fogSystem.impulse(0.6 * autoImpact);
 });
 
 // Glass blur mapping (8px → 12px)
@@ -141,10 +129,7 @@ const glass = document.getElementById('glass');
 const grain = document.getElementById('grain');
 
 function init() {
-  fogSystem = new FogSystem(scene, noiseTex);
   burstSystem = new BurstSystem(scene, particleTex, CONFIG);
-  // ensure radial fog uses correct aspect on first frame
-  fogSystem.setAspect((window.innerWidth || 1) / (window.innerHeight || 1));
   requestAnimationFrame(loop);
 }
 
@@ -167,9 +152,7 @@ function loop(t) {
     autoImpact = 1.0 + intensity * autoSens;
     autoPush = 1.0 + intensity * autoSens;
   }
-  // Fog push reacts to meter with an adjustable gain
-  const gain = window.__fogPushGain != null ? window.__fogPushGain : 1.2;
-  if (fogSystem) fogSystem.setPush(Math.min(1.5, intensity * gain * autoPush));
+  // (fog removed)
 
   // Update glass blur
   const blurMinBase = parseFloat(document.getElementById('blurMin').value) || 8;
@@ -185,16 +168,9 @@ function loop(t) {
     glass.style.setProperty('--blur-amount', blurPx);
   }
 
-  // Fog pad live mapping (Scale / Pulse) — strong influence
-  const fogScaleBase = parseFloat(document.getElementById('fogScale').value) || 1.0;
-  const fogPulseBase = parseFloat(document.getElementById('fogPulse').value) || 0.0;
-  const fogScaleFromPad = lerp(0.25, 3.0, padFog.getX());
-  const fogPulseFromPad = lerp(-1.0, 1.0, padFog.getY());
-  fogSystem.setScale(fogScaleBase * fogScaleFromPad);
-  fogSystem.setPulse(fogPulseBase + fogPulseFromPad);
+  // (fog removed)
 
-  // Update systems (use scaled sim time for coherent slow/fast motion)
-  fogSystem.update(dt, simTime);
+  // Update systems (fog removed)
   burstSystem.update(dt);
 
   renderer.render(scene, camera);
@@ -236,20 +212,7 @@ function loop(t) {
 init();
 
 // Hook up live controls
-const fogAlpha = document.getElementById('fogAlpha');
-const fogAlphaVal = document.getElementById('fogAlphaVal');
-const fogScale = document.getElementById('fogScale');
-const fogScaleVal = document.getElementById('fogScaleVal');
-const fogPulse = document.getElementById('fogPulse');
-const fogPulseVal = document.getElementById('fogPulseVal');
-const fogSpeed = document.getElementById('fogSpeed');
-const fogSpeedVal = document.getElementById('fogSpeedVal');
-const fogPush = document.getElementById('fogPush');
-const fogPushVal = document.getElementById('fogPushVal');
-const fogRot = document.getElementById('fogRot');
-const fogRotVal = document.getElementById('fogRotVal');
-const fogExpand = document.getElementById('fogExpand');
-const fogExpandVal = document.getElementById('fogExpandVal');
+// fog controls removed
 const bgDark = document.getElementById('bgDark');
 const bgDarkVal = document.getElementById('bgDarkVal');
 const blurMinEl = document.getElementById('blurMin');
@@ -290,51 +253,17 @@ const autoModeEl = document.getElementById('autoMode');
 const autoSensEl = document.getElementById('autoSens');
 const autoSensVal = document.getElementById('autoSensVal');
 const toggleUIBtn = document.getElementById('toggleUI');
-const shockRadiusEl = document.getElementById('shockRadius');
-const shockRadiusVal = document.getElementById('shockRadiusVal');
-const vignetteEl = document.getElementById('vignette');
-const vignetteVal = document.getElementById('vignetteVal');
+// fog-related controls removed
 const hz120El = document.getElementById('hz120');
 const timeScaleEl = document.getElementById('timeScale');
 const timeScaleVal = document.getElementById('timeScaleVal');
 const exportJsonBtn = document.getElementById('exportJson');
 const importJsonBtn = document.getElementById('importJson');
 const importJsonFile = document.getElementById('importJsonFile');
+const glassPresetBar = document.getElementById('glassPresets');
 
 function updateFogUI() {
-  if (!fogSystem) return;
-  const aRaw = parseFloat(fogAlpha.value);
-  const a = Math.max(0, aRaw);
-  fogAlphaVal.textContent = a.toFixed(2);
-  fogSystem.setAlpha(a);
-
-  const s = parseFloat(fogScale.value);
-  fogScaleVal.textContent = s.toFixed(2);
-  fogSystem.setScale(s);
-
-  const p = parseFloat(fogPulse.value);
-  fogPulseVal.textContent = p.toFixed(2);
-  fogSystem.setPulse(p);
-
-  const sp = parseFloat(fogSpeed.value);
-  fogSpeedVal.textContent = sp.toFixed(2);
-  fogSystem.setSpeedScale(sp);
-
-  const pushG = parseFloat(fogPush.value);
-  fogPushVal.textContent = pushG.toFixed(2);
-  // store push gain in a simple global for the loop
-  window.__fogPushGain = pushG;
-
-  // Rotation and expansion multipliers
-  const rot = parseFloat(fogRot.value);
-  fogRotVal.textContent = rot.toFixed(2);
-  const exp = parseFloat(fogExpand.value);
-  fogExpandVal.textContent = exp.toFixed(2);
-  for (const l of fogSystem.layers) {
-    l.mesh.material.uniforms.uRotSpeed.value = rot * fogSystem.baseSpeeds[0] * 0.1; // scaled rotation
-    l.mesh.material.uniforms.uExpandSpeed.value = exp * 0.03; // global expand scaler
-  }
-
+  // repurpose to update global scene + glass
   // Darkness / background
   const dark = parseFloat(bgDark.value);
   bgDarkVal.textContent = dark.toFixed(2);
@@ -405,14 +334,7 @@ function updateFogUI() {
     autoSensVal.textContent = (parseFloat(autoSensEl.value) || 0).toFixed(2);
   if (shockRadiusEl && shockRadiusVal)
     shockRadiusVal.textContent = (parseFloat(shockRadiusEl.value) || 0.42).toFixed(2);
-  if (vignetteEl && vignetteVal)
-    vignetteVal.textContent = (parseFloat(vignetteEl.value) || 0.12).toFixed(2);
-  if (fogSystem && shockRadiusEl) {
-    for (const l of fogSystem.layers)
-      l.mesh.material.uniforms.uShockRadius.value =
-        parseFloat(shockRadiusEl.value) || 0.42;
-  }
-  if (fogSystem && vignetteEl) fogSystem.setVignette(parseFloat(vignetteEl.value) || 0.0);
+  // fog-specific UI removed
 
   // Meter decay and burst alpha
   if (meterDecayEl && meterDecayVal) {
@@ -434,13 +356,6 @@ function updateFogUI() {
 
 // Hook up all controls to live update
 const allControlElements = [
-  fogAlpha,
-  fogScale,
-  fogPulse,
-  fogSpeed,
-  fogPush,
-  fogRot,
-  fogExpand,
   bgDark,
   blurMinEl,
   blurMaxEl,
@@ -458,8 +373,6 @@ const allControlElements = [
   meterDecayEl,
   burstAlphaEl,
   meterIncEl,
-  shockRadiusEl,
-  vignetteEl,
   timeScaleEl,
 ];
 for (const el of allControlElements) {
@@ -469,13 +382,6 @@ updateFogUI();
 
 // Persist controls to localStorage
 const CONTROL_KEYS = [
-  'fogAlpha',
-  'fogScale',
-  'fogPulse',
-  'fogSpeed',
-  'fogPush',
-  'fogRot',
-  'fogExpand',
   'bgDark',
   'blurMin',
   'blurMax',
@@ -495,8 +401,6 @@ const CONTROL_KEYS = [
   'meterDecay',
   'burstAlpha',
   'meterInc',
-  'shockRadius',
-  'vignette',
   'hz120',
   'timeScale',
 ];
@@ -558,7 +462,6 @@ function buildFullConfigObject() {
     pads: {
       density: { x: padDensity.getX(), y: padDensity.getY() },
       blur: { x: padBlur.getX(), y: padBlur.getY() },
-      fog: { x: padFog.getX(), y: padFog.getY() },
     },
     engine: {
       meter: { ...CONFIG.meter },
@@ -584,7 +487,6 @@ function applyFullConfigObject(obj) {
   const pads = obj.pads || {};
   const d = pads.density || {};
   const b = pads.blur || {};
-  const f = pads.fog || {};
   if (typeof d.x === 'number') padDensity.x = Math.min(Math.max(d.x, 0), 1);
   if (typeof d.y === 'number') padDensity.y = Math.min(Math.max(d.y, 0), 1);
   padDensity._render();
@@ -593,10 +495,6 @@ function applyFullConfigObject(obj) {
   if (typeof b.y === 'number') padBlur.y = Math.min(Math.max(b.y, 0), 1);
   padBlur._render();
   padBlur._emit();
-  if (typeof f.x === 'number') padFog.x = Math.min(Math.max(f.x, 0), 1);
-  if (typeof f.y === 'number') padFog.y = Math.min(Math.max(f.y, 0), 1);
-  padFog._render();
-  padFog._emit();
   // Engine merges (forward-compatible)
   if (obj.engine && typeof obj.engine === 'object') {
     if (obj.engine.meter) Object.assign(CONFIG.meter, obj.engine.meter);
@@ -642,13 +540,6 @@ updateFogUI();
 // Reset to defaults
 resetBtn.addEventListener('click', () => {
   const defaults = {
-    fogAlpha: '0.00',
-    fogScale: '1.20',
-    fogPulse: '0.00',
-    fogSpeed: '2.00',
-    fogPush: '0.00',
-    fogRot: '2.00',
-    fogExpand: '1.00',
     bgDark: '0.00',
     blurMin: '24',
     blurMax: '10',
@@ -666,8 +557,6 @@ resetBtn.addEventListener('click', () => {
     meterDecay: '0.05',
     burstAlpha: '0.15',
     meterInc: '0.08',
-    shockRadius: '0.42',
-    vignette: '0.12',
     autoMode: 'true',
     autoSens: '0.60',
     timeScale: '1.00',
@@ -935,16 +824,6 @@ function applyPreset(name) {
         JSON.stringify({ x: padBlur.x, y: padBlur.y }),
       );
     }
-    if (P.padSettings.fog) {
-      padFog.x = P.padSettings.fog[0];
-      padFog.y = P.padSettings.fog[1];
-      padFog._render();
-      padFog._emit();
-      localStorage.setItem(
-        'ethereal_xy_pad-fog',
-        JSON.stringify({ x: padFog.x, y: padFog.y }),
-      );
-    }
   }
 
   saveControls();
@@ -961,6 +840,43 @@ if (presetBar) {
     const b = e.target.closest('button');
     if (!b) return;
     applyPreset(b.dataset.preset);
+  });
+}
+
+// Glass presets handler
+if (glassPresetBar) {
+  glassPresetBar.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    const type = b.dataset.glass;
+    // Reset
+    document.getElementById('blurMin').value = '24';
+    document.getElementById('blurMax').value = '10';
+    document.getElementById('glassAlpha').value = '0.06';
+    document.getElementById('grainOpacity').value = '0.10';
+    document.getElementById('grainScale').value = '256';
+    if (type === 'frosted') {
+      document.getElementById('blurMin').value = '26';
+      document.getElementById('blurMax').value = '12';
+      document.getElementById('grainOpacity').value = '0.12';
+      lensDiv.style.opacity = '0';
+    } else if (type === 'deep') {
+      document.getElementById('blurMin').value = '38';
+      document.getElementById('blurMax').value = '20';
+      document.getElementById('glassAlpha').value = '0.08';
+      document.getElementById('grainOpacity').value = '0.20';
+      document.getElementById('grainScale').value = '384';
+      lensDiv.style.opacity = '0';
+    } else if (type === 'curved') {
+      document.getElementById('blurMin').value = '30';
+      document.getElementById('blurMax').value = '16';
+      document.getElementById('glassAlpha').value = '0.07';
+      document.getElementById('grainOpacity').value = '0.10';
+      document.getElementById('grainScale').value = '256';
+      lensDiv.style.opacity = '1';
+    }
+    saveControls();
+    updateFogUI();
   });
 }
 

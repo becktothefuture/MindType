@@ -91,11 +91,25 @@ export function makeSoftParticleDataURL(size = 128) {
   c.width = c.height = size;
   const ctx = c.getContext('2d');
   const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  g.addColorStop(0, 'rgba(255,255,255,1.0)');
-  g.addColorStop(0.5, 'rgba(255,255,255,0.5)');
-  g.addColorStop(1, 'rgba(255,255,255,0.0)');
+  g.addColorStop(0.0, 'rgba(255,255,255,0.95)');
+  g.addColorStop(0.22, 'rgba(255,255,255,0.40)');
+  g.addColorStop(0.55, 'rgba(255,255,255,0.12)');
+  g.addColorStop(0.85, 'rgba(255,255,255,0.02)');
+  g.addColorStop(1.0, 'rgba(255,255,255,0.0)');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, size, size);
+  // Dither ring to reduce banding
+  const img = ctx.getImageData(0, 0, size, size);
+  const data = img.data;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const idx = (y * size + x) * 4;
+      // add tiny blue-noise like grain to alpha
+      const n = ((x * 13 + y * 17) % 23) / 255; // deterministic small noise
+      data[idx + 3] = Math.min(255, data[idx + 3] + n * 8);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
   return c.toDataURL('image/png');
 }
 
