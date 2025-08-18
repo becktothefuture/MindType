@@ -289,6 +289,9 @@ const shockRadiusVal = document.getElementById('shockRadiusVal');
 const vignetteEl = document.getElementById('vignette');
 const vignetteVal = document.getElementById('vignetteVal');
 const hz120El = document.getElementById('hz120');
+const exportJsonBtn = document.getElementById('exportJson');
+const importJsonBtn = document.getElementById('importJson');
+const importJsonFile = document.getElementById('importJsonFile');
 
 function updateFogUI() {
   if (!fogSystem) return;
@@ -479,27 +482,138 @@ const CONTROL_KEYS = [
   'meterInc',
   'shockRadius',
   'vignette',
+  'hz120',
 ];
 
+const LS_CONTROLS_KEY = 'ethereal_controls'; // legacy flat values
+const LS_FULLCFG_KEY = 'ethereal_config_v1'; // robust, versioned config object
+
+function coerceToNumber(v, fallback = 0) {
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function readControlValue(id) {
+  const el = document.getElementById(id);
+  if (!el) return null;
+  if (el.type === 'checkbox') return !!el.checked;
+  return el.value;
+}
+
+function writeControlValue(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.type === 'checkbox') {
+    el.checked = value === true || value === 'true';
+  } else if (value != null) {
+    el.value = String(value);
+  }
+}
+
 function saveControls() {
-  const obj = {};
-  for (const k of CONTROL_KEYS) obj[k] = document.getElementById(k).value;
-  localStorage.setItem('ethereal_controls', JSON.stringify(obj));
+  // Back-compat: flat map of control values (strings/booleans as-is)
+  const flat = {};
+  for (const k of CONTROL_KEYS) flat[k] = readControlValue(k);
+  localStorage.setItem(LS_CONTROLS_KEY, JSON.stringify(flat));
+  // Full config as robust JSON
+  saveFullConfigToLocalStorage();
 }
 
 function loadControls() {
-  const raw = localStorage.getItem('ethereal_controls');
-  if (!raw) return;
+  // Prefer full config; fall back to legacy flat controls
+  if (loadFullConfigFromLocalStorage()) return;
+  const raw = localStorage.getItem(LS_CONTROLS_KEY);
+  if (!raw) return false;
   try {
     const obj = JSON.parse(raw);
-    for (const k of CONTROL_KEYS) {
-      if (obj[k] != null) document.getElementById(k).value = obj[k];
-    }
+    for (const k of CONTROL_KEYS) writeControlValue(k, obj[k]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function buildFullConfigObject() {
+  const controls = {};
+  for (const k of CONTROL_KEYS) controls[k] = readControlValue(k);
+  return {
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    pads: {
+      density: { x: padDensity.getX(), y: padDensity.getY() },
+      blur: { x: padBlur.getX(), y: padBlur.getY() },
+      fog: { x: padFog.getX(), y: padFog.getY() },
+    },
+    engine: {
+      meter: { ...CONFIG.meter },
+      renderer: { ...CONFIG.renderer },
+      particles: { ...CONFIG.particles },
+    },
+    ui: {
+      hz120: !!(hz120El && hz120El.checked),
+    },
+    controls,
+  };
+}
+
+function applyFullConfigObject(obj) {
+  if (!obj || typeof obj !== 'object') return false;
+  // Controls
+  if (obj.controls && typeof obj.controls === 'object') {
+    for (const k of CONTROL_KEYS)
+      if (obj.controls[k] != null) writeControlValue(k, obj.controls[k]);
+  }
+  // Pads
+  const pads = obj.pads || {};
+  const d = pads.density || {};
+  const b = pads.blur || {};
+  const f = pads.fog || {};
+  if (typeof d.x === 'number') padDensity.x = Math.min(Math.max(d.x, 0), 1);
+  if (typeof d.y === 'number') padDensity.y = Math.min(Math.max(d.y, 0), 1);
+  padDensity._render();
+  padDensity._emit();
+  if (typeof b.x === 'number') padBlur.x = Math.min(Math.max(b.x, 0), 1);
+  if (typeof b.y === 'number') padBlur.y = Math.min(Math.max(b.y, 0), 1);
+  padBlur._render();
+  padBlur._emit();
+  if (typeof f.x === 'number') padFog.x = Math.min(Math.max(f.x, 0), 1);
+  if (typeof f.y === 'number') padFog.y = Math.min(Math.max(f.y, 0), 1);
+  padFog._render();
+  padFog._emit();
+  // Engine merges (forward-compatible)
+  if (obj.engine && typeof obj.engine === 'object') {
+    if (obj.engine.meter) Object.assign(CONFIG.meter, obj.engine.meter);
+    if (obj.engine.renderer) Object.assign(CONFIG.renderer, obj.engine.renderer);
+    if (obj.engine.particles) Object.assign(CONFIG.particles, obj.engine.particles);
+  }
+  // UI
+  if (obj.ui && typeof obj.ui === 'object') {
+    if (hz120El && obj.ui.hz120 != null) hz120El.checked = !!obj.ui.hz120;
+  }
+  updateFogUI();
+  return true;
+}
+
+function saveFullConfigToLocalStorage() {
+  try {
+    localStorage.setItem(LS_FULLCFG_KEY, JSON.stringify(buildFullConfigObject()));
   } catch {}
 }
 
+function loadFullConfigFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem(LS_FULLCFG_KEY);
+    if (!raw) return false;
+    const obj = JSON.parse(raw);
+    return applyFullConfigObject(obj);
+  } catch {
+    return false;
+  }
+}
+
 for (const k of CONTROL_KEYS) {
-  document.getElementById(k).addEventListener('change', saveControls);
+  const el = document.getElementById(k);
+  if (el) el.addEventListener('change', saveControls);
 }
 loadControls();
 updateFogUI();
@@ -902,5 +1016,47 @@ if (hz120El) {
     }
     saveControls();
     updateFogUI();
+  });
+}
+
+// Export/Import JSON wiring
+function downloadBlob(filename, text) {
+  const blob = new Blob([text], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+if (exportJsonBtn) {
+  exportJsonBtn.addEventListener('click', () => {
+    const obj = buildFullConfigObject();
+    downloadBlob('ethereal-config.json', JSON.stringify(obj, null, 2));
+  });
+}
+
+if (importJsonBtn && importJsonFile) {
+  importJsonBtn.addEventListener('click', () => importJsonFile.click());
+  importJsonFile.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const obj = JSON.parse(String(reader.result || ''));
+        if (applyFullConfigObject(obj)) {
+          try {
+            localStorage.setItem(LS_FULLCFG_KEY, JSON.stringify(obj));
+          } catch {}
+          saveControls();
+        }
+      } catch {}
+      importJsonFile.value = '';
+    };
+    reader.readAsText(file);
   });
 }

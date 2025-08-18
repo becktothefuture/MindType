@@ -81,7 +81,7 @@ function computeNewlineSafeRange(
 
 function App() {
   const [text, setText] = useState(
-    "Hello there. Try typing a sentence and then pausing.",
+    "",
   );
   const [scenarioId, setScenarioId] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState<number>(0);
@@ -118,7 +118,7 @@ function App() {
   const [wasmInitialized, setWasmInitialized] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   // FT-316 additions
-  const [lmMode, setLmMode] = useState<'rules' | 'lm'>('rules');
+  const [lmMode, setLmMode] = useState<'rules' | 'lm'>('lm');
   const [perfStartMs, setPerfStartMs] = useState<number | null>(null);
   const [lastLatencyMs, setLastLatencyMs] = useState<number | null>(null);
   const [lmLoaded, setLmLoaded] = useState(false);
@@ -127,6 +127,19 @@ function App() {
 
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const runnerRef = useRef<ReturnType<typeof createQwenTokenStreamer> | null>(null);
+  const lmTimerRef = useRef<number | null>(null);
+  const caretRef = useRef<number>(0);
+  const adapterRef = useRef<any>(null);
+  const genCounterRef = useRef(0);
+  const lastCompleteRef = useRef<number>(0);
+
+  function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const v = e.target.value;
+    setText(v);
+    caretRef.current = e.target.selectionStart ?? v.length;
+    scheduleAutoLM(v);
+  }
 
   function syncOverlayStyles() {
     const ta = textareaRef.current;
@@ -160,8 +173,23 @@ function App() {
     ov.style.width = cs.width;
     ov.style.height = cs.height;
   }
+
+  function computeSimpleBand(textValue: string, caretIndex: number) {
+    // take last ~5 word-like chunks behind caret, bounded to [0, caret)
+    const left = textValue.slice(0, caretIndex);
+    const parts = left.split(/(\b)/g); // keep boundaries
+    let words = 0;
+    let i = parts.length - 1;
+    while (i >= 0 && words < 10) {
+      if (/\w+/.test(parts[i])) words++;
+      i--;
+    }
+    const start = Math.max(0, left.lastIndexOf(parts[Math.max(0, i + 1)] ?? ""));
+    return { start: isNaN(start) ? Math.max(0, caretIndex - 50) : start, end: caretIndex };
+  }
   async function loadLM() {
     try {
+      console.info('[LM] load start', { localOnly });
       const streamer = createQwenTokenStreamer({
         localOnly,
         localModelPath: "/models/",
@@ -169,11 +197,14 @@ function App() {
       });
       const adapter = createTransformersAdapter(streamer);
       pipeline.setLMAdapter(adapter as any);
+      adapterRef.current = adapter as any;
+      runnerRef.current = streamer;
       setLmLoaded(true);
       // Detect backend via adapter init
       const caps = (adapter as any).init?.({});
       if (caps?.backend) setBackend(String(caps.backend));
     } catch {
+      console.error('[LM] load failed');
       setLmLoaded(false);
     }
   }
@@ -183,8 +214,90 @@ function App() {
     pipeline.setLMAdapter({
       async *stream() {},
     } as any);
+    runnerRef.current = null;
+    adapterRef.current = null;
     setLmLoaded(false);
     setBackend("-");
+  }
+
+  // Ensure LM is loaded when Mode is LM (including initial mount)
+  useEffect(() => {
+    if (lmMode === 'lm' && !lmLoaded) {
+      void loadLM();
+    }
+  }, [lmMode, lmLoaded]);
+
+  function scheduleAutoLM(textValue: string) {
+    if (lmTimerRef.current) window.clearTimeout(lmTimerRef.current);
+    if (!(lmMode === 'lm' && lmLoaded && runnerRef.current && textareaRef.current)) {
+      console.debug('[LM] skip', {
+        lmMode,
+        lmLoaded,
+        hasRunner: !!runnerRef.current,
+        hasTextarea: !!textareaRef.current,
+      });
+      return;
+    }
+    // Cancel any in-flight generation
+    try { adapterRef.current?.abort?.(); } catch {}
+    const myGen = ++genCounterRef.current;
+    // Trailing debounce; give user time to finish a word
+    lmTimerRef.current = window.setTimeout(async () => {
+      const tStart = performance.now();
+      const caretIndex = caretRef.current;
+      if (!runnerRef.current) return;
+      const band = computeSimpleBand(textValue, caretIndex);
+      const span = textValue.slice(band.start, band.end);
+      if (span.length < 3) return;
+      // Require boundary at the end of span to avoid mid-word edits
+      if (/\w$/.test(span)) return;
+      // Avoid very long spans
+      if (span.length > 80) return;
+      // Cooldown to prevent rapid consecutive merges
+      if (performance.now() - lastCompleteRef.current < 400) return;
+      const ctxLeft = Math.max(0, band.start - 60);
+      const ctxRight = Math.min(textValue.length, band.end + 60);
+      const ctxBefore = textValue.slice(ctxLeft, band.start);
+      const ctxAfter = textValue.slice(band.end, ctxRight);
+      const instruction =
+        'Correct ONLY the Span. Do not add explanations or extra words. Return just the corrected Span.';
+      const prompt = `${instruction}\nContext before: «${ctxBefore}»\nSpan: «${span}»\nContext after: «${ctxAfter}»`;
+      console.info('[LM] prompt', { band, promptLength: span.length });
+      let acc = "";
+      const bandLen = Math.max(1, band.end - band.start);
+      const dynMax = Math.min(Math.ceil(bandLen * 1.1) + 6, 32);
+      for await (const c of runnerRef.current.generateStream({ prompt, maxNewTokens: dynMax })) {
+        acc += c;
+        if (acc.length % 32 === 0) {
+          console.debug('[LM] chunk', { length: acc.length });
+        }
+      }
+      if (!acc) return;
+      // Post-process: take first line and trim quotes; clamp to reasonable length
+      let fixed = acc.split(/\r?\n/)[0] ?? acc;
+      fixed = fixed.replace(/^["'`]+|["'`]+$/g, '').trim();
+      if (fixed.length > bandLen * 2) {
+        fixed = fixed.slice(0, Math.max(bandLen + 8, 24));
+      }
+      console.info('[LM] complete', { outLength: fixed.length, ms: Math.round(performance.now() - tStart) });
+      // Ignore stale generations
+      if (myGen !== genCounterRef.current) {
+        console.debug('[LM] drop stale generation');
+        return;
+      }
+      const next = textValue.slice(0, band.start) + fixed + textValue.slice(band.end);
+      const delta = fixed.length - (band.end - band.start);
+      setText(next);
+      lastCompleteRef.current = performance.now();
+      // restore caret after React update
+      requestAnimationFrame(() => {
+        const ta = textareaRef.current;
+        if (!ta) return;
+        const newCaret = Math.max(0, Math.min(next.length, caretIndex + delta));
+        ta.setSelectionRange(newCaret, newCaret);
+        caretRef.current = newCaret;
+      });
+    }, 500);
   }
 
   function syncOverlayScroll() {
@@ -228,18 +341,6 @@ function App() {
       setPauseTimer(timer);
     }
   }, [idleMs, wasmInitialized, useWasmDemo]);
-
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setPerfStartMs(Date.now());
-    setText(e.target.value);
-    if (pauseTimer) {
-      pauseTimer.record_activity();
-      setIsPaused(false);
-    }
-    const caret = e.target.selectionStart ?? e.target.value.length;
-    pipeline.ingest(e.target.value, caret);
-    syncOverlayScroll();
-  };
 
   // Scenario step-through: progressively reveal scenario.raw
   useEffect(() => {
@@ -458,6 +559,7 @@ function App() {
             className="editor-textarea"
             ref={textareaRef}
             value={text}
+            placeholder="Type here. Pause to see live corrections."
             onChange={handleTextChange}
             onCompositionStart={() => {
               setIsIMEComposing(true);
@@ -514,7 +616,7 @@ function App() {
                 const v = e.target.value || null;
                 setScenarioId(v);
                 setStepIndex(0);
-                if (!v) setText("Hello there. Try typing a sentence and then pausing.");
+                if (!v) setText("");
               }}
             >
               <option value="">None</option>
@@ -537,7 +639,13 @@ function App() {
             <select
               aria-label="Mode"
               value={lmMode}
-              onChange={(e) => setLmMode(e.target.value as 'rules' | 'lm')}
+              onChange={(e) => {
+                const v = e.target.value as 'rules' | 'lm';
+                setLmMode(v);
+                if (v === 'lm' && !lmLoaded) {
+                  loadLM();
+                }
+              }}
             >
               <option value="rules">Rules only</option>
               <option value="lm">LM</option>

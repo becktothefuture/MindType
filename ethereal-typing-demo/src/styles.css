@@ -236,12 +236,25 @@ body {
 
 .preset-buttons button:hover,
 .reset-btn:hover,
-.toggle-btn:hover {
+.toggle-btn:hover,
+.config-btn:hover {
   background: rgba(255, 255, 255, 0.12);
 }
 
 .preset-active {
   outline: 2px solid rgba(90, 200, 250, 0.8);
+}
+
+.config-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #dfe6ee;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 4px;
+  font-size: 11px;
 }
 
 /* UI hide */
