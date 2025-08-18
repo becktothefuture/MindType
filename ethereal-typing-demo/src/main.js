@@ -21,6 +21,9 @@ const CONFIG = {
     sizeScale: 1.0,
     minSaturation: 0.45,
     hueJitterDeg: 8,
+    motionScale: 0.5, // globally slow motion ~50%
+    lifeScale: 1.6, // longer lifetime to slow growth/decay
+    dragPerSec: 0.35, // simple physics damping
   },
   timeScale: 1.0,
 };
@@ -69,6 +72,12 @@ let lastT = performance.now();
 let meter = 0;
 let intensity = 0;
 let simTime = 0;
+// Dynamo (generator inertia) state
+let dynOmega = 0; // rotational speed proxy
+const DYN_MAX = 3.0;
+const DYN_DECAY = 1.2; // per second
+window.__dynamoEnabled = window.__dynamoEnabled || false;
+window.__dynamoGain = window.__dynamoGain || 1.2;
 
 // XY pads: integrated into control groups
 const densityContainer = document.getElementById('density-pad-container');
@@ -121,6 +130,9 @@ window.addEventListener('keydown', (e) => {
     (window.__impactGain != null ? window.__impactGain : 1.0) *
     autoImpact *
     lerp(0.5, 3.0, padBlur.getY());
+  // Dynamo: each keystroke adds impulse to rotational energy
+  if (window.__dynamoEnabled)
+    dynOmega = Math.min(DYN_MAX, dynOmega + 0.35 * (1 + intensity));
   burstSystem.spawnBurst(localIntensity, xy, glowBoost);
 });
 
@@ -153,6 +165,9 @@ function loop(t) {
     autoPush = 1.0 + intensity * autoSens;
   }
   // (fog removed)
+  // Dynamo decay and modulation
+  if (dynOmega > 0) dynOmega = Math.max(0, dynOmega - DYN_DECAY * dt);
+  const dynNorm = Math.min(1, dynOmega / DYN_MAX);
 
   // Update glass blur
   const blurMinBase = parseFloat(document.getElementById('blurMin').value) || 8;
@@ -160,8 +175,8 @@ function loop(t) {
   const blurLoBase = Math.min(blurMinBase, blurMaxBase);
   const blurHiBase = Math.max(blurMinBase, blurMaxBase);
   // Blur pad: X boosts blur range; Y boosts glow/brightness later
-  const blurMin = blurLoBase * lerp(1.3, 1.8, padBlur.getX());
-  const blurMax = blurHiBase * lerp(2.0, 3.0, padBlur.getX());
+  const blurMin = blurLoBase * lerp(1.15, 1.5, padBlur.getX());
+  const blurMax = blurHiBase * lerp(1.7, 2.3, padBlur.getX());
   const blurPx =
     lerp(blurMin, blurMax, Math.min(1, intensity * autoImpact)).toFixed(2) + 'px';
   if (glass.style.getPropertyValue('--blur-amount') !== blurPx) {
@@ -170,7 +185,10 @@ function loop(t) {
 
   // (fog removed)
 
-  // Update systems (fog removed)
+  // Update systems (fog removed). Optionally brighten slightly with dynamo
+  if (window.__dynamoEnabled && dynNorm > 0) {
+    CONFIG.particles.brightnessScale *= 1.0 + dynNorm * (window.__dynamoGain - 1.0) * 0.1;
+  }
   burstSystem.update(dt);
 
   renderer.render(scene, camera);
@@ -332,8 +350,6 @@ function updateFogUI() {
   // Auto mode readout
   if (autoSensEl && autoSensVal)
     autoSensVal.textContent = (parseFloat(autoSensEl.value) || 0).toFixed(2);
-  if (shockRadiusEl && shockRadiusVal)
-    shockRadiusVal.textContent = (parseFloat(shockRadiusEl.value) || 0.42).toFixed(2);
   // fog-specific UI removed
 
   // Meter decay and burst alpha
@@ -704,26 +720,58 @@ function applyPreset(name) {
       bgDark: '0.1',
       padSettings: { density: [0.9, 0.85], blur: [0.4, 0.9], fog: [0.6, 0.95] },
     },
-    tempest: {
-      // Explosive bursts, maximum energy unleashed
-      meterInc: '0.25',
-      meterDecay: '0.15',
-      burstAlpha: '0.45',
-      partBright: '1.0',
-      lightStrength: '6.5',
-      impact: '2.5',
-      partCount: '1.8',
-      partSize: '2.5',
-      fogAlpha: '0.20',
-      fogScale: '0.8',
-      fogSpeed: '3.0',
-      fogPush: '2.0',
-      blurMin: '50',
-      blurMax: '30',
-      glassAlpha: '0.12',
-      grainOpacity: '0.28',
-      bgDark: '0.35',
-      padSettings: { density: [0.98, 0.95], blur: [0.95, 0.98], fog: [0.9, 0.92] },
+    // Replacements: more atmospheric presets
+    mist: {
+      // Soft, slow build and decay; diffused
+      meterInc: '0.05',
+      meterDecay: '0.025',
+      burstAlpha: '0.18',
+      partBright: '0.35',
+      lightStrength: '1.7',
+      impact: '0.5',
+      partCount: '0.6',
+      partSize: '1.8',
+      blurMin: '30',
+      blurMax: '16',
+      glassAlpha: '0.08',
+      grainOpacity: '0.18',
+      bgDark: '0.08',
+      padSettings: { density: [0.45, 0.55], blur: [0.55, 0.45] },
+    },
+    aether: {
+      // Ethereal, slow-breathing light field
+      meterInc: '0.06',
+      meterDecay: '0.03',
+      burstAlpha: '0.22',
+      partBright: '0.45',
+      lightStrength: '2.2',
+      impact: '0.7',
+      partCount: '0.7',
+      partSize: '2.2',
+      blurMin: '34',
+      blurMax: '18',
+      glassAlpha: '0.09',
+      grainOpacity: '0.22',
+      bgDark: '0.12',
+      padSettings: { density: [0.55, 0.65], blur: [0.65, 0.55] },
+    },
+    dynamo: {
+      // Generator metaphor: typing adds inertia to light engine
+      meterInc: '0.07',
+      meterDecay: '0.035',
+      burstAlpha: '0.24',
+      partBright: '0.55',
+      lightStrength: '2.6',
+      impact: '0.9',
+      partCount: '0.8',
+      partSize: '2.0',
+      blurMin: '28',
+      blurMax: '20',
+      glassAlpha: '0.08',
+      grainOpacity: '0.20',
+      bgDark: '0.10',
+      padSettings: { density: [0.6, 0.6], blur: [0.7, 0.5] },
+      dynamo: { enabled: true, gain: 1.4 },
     },
     cosmic: {
       // Deep space feel - sparse but intense, slow movements
@@ -767,27 +815,6 @@ function applyPreset(name) {
       bgDark: '0.4',
       padSettings: { density: [0.6, 0.4], blur: [0.8, 0.2], fog: [0.85, 0.3] },
     },
-    void: {
-      // Return to darkness, wandering through fog again - but VISIBLE
-      meterInc: '0.03',
-      meterDecay: '0.015',
-      burstAlpha: '0.12',
-      partBright: '0.25',
-      lightStrength: '1.0',
-      impact: '0.3',
-      partCount: '0.3',
-      partSize: '1.5',
-      fogAlpha: '0.30',
-      fogScale: '2.8',
-      fogSpeed: '0.4',
-      fogPush: '-0.3',
-      blurMin: '65',
-      blurMax: '45',
-      glassAlpha: '0.18',
-      grainOpacity: '0.5',
-      bgDark: '0.7',
-      padSettings: { density: [0.15, 0.25], blur: [0.9, 0.1], fog: [0.95, 0.9] },
-    },
   }[name];
   if (!P) return;
 
@@ -824,6 +851,14 @@ function applyPreset(name) {
         JSON.stringify({ x: padBlur.x, y: padBlur.y }),
       );
     }
+  }
+
+  // Dynamo toggle
+  if (P.dynamo) {
+    window.__dynamoEnabled = !!P.dynamo.enabled;
+    if (typeof P.dynamo.gain === 'number') window.__dynamoGain = P.dynamo.gain;
+  } else {
+    window.__dynamoEnabled = false;
   }
 
   saveControls();

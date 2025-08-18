@@ -51,10 +51,11 @@
           <button data-preset="glow">Glow</button>
           <button data-preset="symphony">Symphony</button>
           <button data-preset="storm">Storm</button>
-          <button data-preset="tempest">Tempest</button>
           <button data-preset="cosmic">Cosmic</button>
           <button data-preset="deep">Deep</button>
-          <button data-preset="void">Void</button>
+          <button data-preset="mist">Mist</button>
+          <button data-preset="aether">Aether</button>
+          <button data-preset="dynamo">Dynamo</button>
         </div>
 
         <button id="resetControls" class="reset-btn">Reset to Defaults</button>
@@ -71,34 +72,6 @@
         <div class="xypad-container" id="density-pad-container"></div>
 
         <div class="control-row">
-          <label for="meterInc">Energy Gain</label>
-          <span class="val" id="meterIncVal">0.08</span>
-          <input
-            id="meterInc"
-            type="range"
-            min="0.00"
-            max="1.00"
-            step="0.01"
-            value="0.08"
-            title="Energy added to the meter per key press; higher = bigger immediate response."
-          />
-        </div>
-
-        <div class="control-row">
-          <label for="meterDecay">Energy Decay</label>
-          <span class="val" id="meterDecayVal">0.05</span>
-          <input
-            id="meterDecay"
-            type="range"
-            min="0.00"
-            max="2.00"
-            step="0.005"
-            value="0.05"
-            title="How quickly the typing energy meter decays per second; lower = longer lasting energy."
-          />
-        </div>
-
-        <div class="control-row">
           <label for="autoMode">Auto Mode</label>
           <span class="val"></span>
           <input
@@ -109,19 +82,50 @@
           />
         </div>
 
-        <div class="control-row">
-          <label for="autoSens">Auto Sensitivity</label>
-          <span class="val" id="autoSensVal">0.60</span>
-          <input
-            id="autoSens"
-            type="range"
-            min="0.00"
-            max="3.00"
-            step="0.01"
-            value="0.60"
-            title="How strongly typing rate boosts impact and fog push."
-          />
-        </div>
+        <details class="advanced">
+          <summary>Advanced</summary>
+          <div class="control-row">
+            <label for="meterInc">Energy Gain</label>
+            <span class="val" id="meterIncVal">0.08</span>
+            <input
+              id="meterInc"
+              type="range"
+              min="0.00"
+              max="1.00"
+              step="0.01"
+              value="0.08"
+              title="Energy added to the meter per key press; higher = bigger immediate response."
+            />
+          </div>
+
+          <div class="control-row">
+            <label for="meterDecay">Energy Decay</label>
+            <span class="val" id="meterDecayVal">0.05</span>
+            <input
+              id="meterDecay"
+              type="range"
+              min="0.00"
+              max="2.00"
+              step="0.005"
+              value="0.05"
+              title="How quickly the typing energy meter decays per second; lower = longer lasting energy."
+            />
+          </div>
+
+          <div class="control-row">
+            <label for="autoSens">Auto Sensitivity</label>
+            <span class="val" id="autoSensVal">0.60</span>
+            <input
+              id="autoSens"
+              type="range"
+              min="0.00"
+              max="3.00"
+              step="0.01"
+              value="0.60"
+              title="How strongly typing rate boosts impact and glow."
+            />
+          </div>
+        </details>
       </div>
 
       <!-- PARTICLE SYSTEM -->
@@ -129,34 +133,7 @@
         <h3>Particle System</h3>
         <p class="group-desc">Controls the light bursts that appear when you type.</p>
 
-        <div class="control-row">
-          <label for="burstAlpha">Burst Opacity</label>
-          <span class="val" id="burstAlphaVal">0.15</span>
-          <input
-            id="burstAlpha"
-            type="range"
-            min="0.00"
-            max="1.00"
-            step="0.01"
-            value="0.15"
-            title="Extra multiplier applied to newly spawned particles' alpha. Lower makes single bursts dimmer so multiple key presses accumulate glow."
-          />
-        </div>
-
-        <div class="control-row">
-          <label for="partBright">Particle Brightness</label>
-          <span class="val" id="partBrightVal">0.40</span>
-          <input
-            id="partBright"
-            type="range"
-            min="0.00"
-            max="2.00"
-            step="0.01"
-            value="0.40"
-            title="Base alpha per particle before impact/auto boosts."
-          />
-        </div>
-
+        <!-- Critical at-a-glance controls -->
         <div class="control-row">
           <label for="lightStrength">Light Strength</label>
           <span class="val" id="lightStrengthVal">2.00</span>
@@ -185,61 +162,92 @@
           />
         </div>
 
-        <div class="control-row">
-          <label for="partCount">Particle Count</label>
-          <span class="val" id="partCountVal">0.50</span>
-          <input
-            id="partCount"
-            type="range"
-            min="0.00"
-            max="3.00"
-            step="0.01"
-            value="0.50"
-            title="Multiplier for particles spawned per burst."
-          />
-        </div>
+        <details class="advanced">
+          <summary>Advanced</summary>
+          <div class="control-row">
+            <label for="burstAlpha">Burst Opacity</label>
+            <span class="val" id="burstAlphaVal">0.15</span>
+            <input
+              id="burstAlpha"
+              type="range"
+              min="0.00"
+              max="1.00"
+              step="0.01"
+              value="0.15"
+              title="Extra multiplier applied to newly spawned particles' alpha. Lower makes single bursts dimmer so multiple key presses accumulate glow."
+            />
+          </div>
 
-        <div class="control-row">
-          <label for="partSize">Particle Size</label>
-          <span class="val" id="partSizeVal">1.20</span>
-          <input
-            id="partSize"
-            type="range"
-            min="0.00"
-            max="5.00"
-            step="0.01"
-            value="1.20"
-            title="Base particle size (sprite pixels scaled by perspective)."
-          />
-        </div>
+          <div class="control-row">
+            <label for="partBright">Particle Brightness</label>
+            <span class="val" id="partBrightVal">0.40</span>
+            <input
+              id="partBright"
+              type="range"
+              min="0.00"
+              max="2.00"
+              step="0.01"
+              value="0.40"
+              title="Base alpha per particle before impact/auto boosts."
+            />
+          </div>
 
-        <div class="control-row">
-          <label for="minSat">Min Saturation</label>
-          <span class="val" id="minSatVal">0.75</span>
-          <input
-            id="minSat"
-            type="range"
-            min="0.50"
-            max="1.00"
-            step="0.01"
-            value="0.75"
-            title="Lower clamp on particle color saturation (HSL). Higher values prevent desaturation."
-          />
-        </div>
+          <div class="control-row">
+            <label for="partCount">Particle Count</label>
+            <span class="val" id="partCountVal">0.50</span>
+            <input
+              id="partCount"
+              type="range"
+              min="0.00"
+              max="3.00"
+              step="0.01"
+              value="0.50"
+              title="Multiplier for particles spawned per burst."
+            />
+          </div>
 
-        <div class="control-row">
-          <label for="hueJitter">Hue Jitter (°)</label>
-          <span class="val" id="hueJitterVal">8</span>
-          <input
-            id="hueJitter"
-            type="range"
-            min="0"
-            max="180"
-            step="1"
-            value="8"
-            title="Random hue offset per burst (degrees)."
-          />
-        </div>
+          <div class="control-row">
+            <label for="partSize">Particle Size</label>
+            <span class="val" id="partSizeVal">1.20</span>
+            <input
+              id="partSize"
+              type="range"
+              min="0.00"
+              max="5.00"
+              step="0.01"
+              value="1.20"
+              title="Base particle size (sprite pixels scaled by perspective)."
+            />
+          </div>
+
+          <div class="control-row">
+            <label for="minSat">Min Saturation</label>
+            <span class="val" id="minSatVal">0.75</span>
+            <input
+              id="minSat"
+              type="range"
+              min="0.50"
+              max="1.00"
+              step="0.01"
+              value="0.75"
+              title="Lower clamp on particle color saturation (HSL). Higher values prevent desaturation."
+            />
+          </div>
+
+          <div class="control-row">
+            <label for="hueJitter">Hue Jitter (°)</label>
+            <span class="val" id="hueJitterVal">8</span>
+            <input
+              id="hueJitter"
+              type="range"
+              min="0"
+              max="180"
+              step="1"
+              value="8"
+              title="Random hue offset per burst (degrees)."
+            />
+          </div>
+        </details>
       </div>
 
       <!-- GLASS PRESETS -->
@@ -263,34 +271,6 @@
         <div class="xypad-container" id="blur-pad-container"></div>
 
         <div class="control-row">
-          <label for="blurMin">Glass Blur Min</label>
-          <span class="val" id="blurMinVal">24</span>
-          <input
-            id="blurMin"
-            type="range"
-            min="0"
-            max="200"
-            step="1"
-            value="24"
-            title="Lower bound of frosted glass blur (px)."
-          />
-        </div>
-
-        <div class="control-row">
-          <label for="blurMax">Glass Blur Max</label>
-          <span class="val" id="blurMaxVal">10</span>
-          <input
-            id="blurMax"
-            type="range"
-            min="0"
-            max="200"
-            step="1"
-            value="10"
-            title="Upper bound of frosted glass blur (px)."
-          />
-        </div>
-
-        <div class="control-row">
           <label for="glassAlpha">Glass Tint</label>
           <span class="val" id="glassAlphaVal">0.06</span>
           <input
@@ -304,47 +284,78 @@
           />
         </div>
 
-        <div class="control-row">
-          <label for="grainOpacity">Grain Opacity</label>
-          <span class="val" id="grainOpacityVal">0.00</span>
-          <input
-            id="grainOpacity"
-            type="range"
-            min="0.00"
-            max="2.00"
-            step="0.01"
-            value="0.00"
-            title="Visibility of dark glass grain overlay."
-          />
-        </div>
+        <details class="advanced">
+          <summary>Advanced</summary>
+          <div class="control-row">
+            <label for="blurMin">Glass Blur Min</label>
+            <span class="val" id="blurMinVal">24</span>
+            <input
+              id="blurMin"
+              type="range"
+              min="0"
+              max="200"
+              step="1"
+              value="24"
+              title="Lower bound of frosted glass blur (px)."
+            />
+          </div>
 
-        <div class="control-row">
-          <label for="grainScale">Grain Scale</label>
-          <span class="val" id="grainScaleVal">256</span>
-          <input
-            id="grainScale"
-            type="range"
-            min="32"
-            max="1024"
-            step="8"
-            value="256"
-            title="Tile size of the grain texture (px)."
-          />
-        </div>
+          <div class="control-row">
+            <label for="blurMax">Glass Blur Max</label>
+            <span class="val" id="blurMaxVal">10</span>
+            <input
+              id="blurMax"
+              type="range"
+              min="0"
+              max="200"
+              step="1"
+              value="10"
+              title="Upper bound of frosted glass blur (px)."
+            />
+          </div>
 
-        <div class="control-row">
-          <label for="grainSpeed">Grain Speed</label>
-          <span class="val" id="grainSpeedVal">18</span>
-          <input
-            id="grainSpeed"
-            type="range"
-            min="0"
-            max="500"
-            step="1"
-            value="18"
-            title="Scroll speed of the tiled grain overlay."
-          />
-        </div>
+          <div class="control-row">
+            <label for="grainOpacity">Grain Opacity</label>
+            <span class="val" id="grainOpacityVal">0.00</span>
+            <input
+              id="grainOpacity"
+              type="range"
+              min="0.00"
+              max="2.00"
+              step="0.01"
+              value="0.00"
+              title="Visibility of dark glass grain overlay."
+            />
+          </div>
+
+          <div class="control-row">
+            <label for="grainScale">Grain Scale</label>
+            <span class="val" id="grainScaleVal">256</span>
+            <input
+              id="grainScale"
+              type="range"
+              min="32"
+              max="1024"
+              step="8"
+              value="256"
+              title="Tile size of the grain texture (px)."
+            />
+          </div>
+
+          <div class="control-row">
+            <label for="grainSpeed">Grain Speed</label>
+            <span class="val" id="grainSpeedVal">18</span>
+            <input
+              id="grainSpeed"
+              type="range"
+              min="0"
+              max="500"
+              step="1"
+              value="18"
+              title="Scroll speed of the tiled grain overlay."
+            />
+          </div>
+        </details>
       </div>
 
       <!-- SCENE -->
@@ -367,16 +378,6 @@
         </div>
 
         <div class="control-row">
-          <label for="hz120">High Refresh 120 Hz</label>
-          <span class="val"></span>
-          <input
-            id="hz120"
-            type="checkbox"
-            title="Targets ~120 fps on fast GPUs: lowers blur cost, reduces particle count, and tightens the pixelRatio governor."
-          />
-        </div>
-
-        <div class="control-row">
           <label for="timeScale">Time Scale</label>
           <span class="val" id="timeScaleVal">1.00</span>
           <input
@@ -389,6 +390,19 @@
             title="Global simulation speed multiplier. 0.5 = half speed, 2.0 = double speed."
           />
         </div>
+
+        <details class="advanced">
+          <summary>Advanced</summary>
+          <div class="control-row">
+            <label for="hz120">High Refresh 120 Hz</label>
+            <span class="val"></span>
+            <input
+              id="hz120"
+              type="checkbox"
+              title="Targets ~120 fps on fast GPUs: lowers blur cost, reduces particle count, and tightens the pixelRatio governor."
+            />
+          </div>
+        </details>
       </div>
 
       <!-- CONFIG JSON -->
