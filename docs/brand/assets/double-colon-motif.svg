@@ -1,0 +1,17 @@
+<!--
+╔══════════════════════════════════════════════════════╗
+║  ░  DOUBLE-COLON MOTIF (SVG)  ░░░░░░░░░░░░░░░░░░░░░  ║
+║                                                      ║
+║  WHAT ▸ Minimal motif representing the brand bridge   ║
+║  WHY  ▸ Reusable graphic accent                       ║
+║  HOW  ▸ Use sparingly as background or divider        ║
+╚══════════════════════════════════════════════════════╝
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120" role="img" aria-label="Double colon motif">
+  <title>Double Colon Motif</title>
+  <rect width="100%" height="100%" fill="none"/>
+  <circle cx="80" cy="60" r="10" fill="#3CC5CC" />
+  <circle cx="120" cy="60" r="10" fill="#3CC5CC" />
+</svg>
+
+

@@ -1,0 +1,41 @@
+<!-- Moodboard tiles: variations of the teal glow on a grid -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Moodboard tiles">
+  <defs>
+    <radialGradient id="g1" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#29D3DA" stop-opacity="0.95"/>
+      <stop offset="40%" stop-color="#18B8BF" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="1"/>
+    </radialGradient>
+    <radialGradient id="g2" cx="40%" cy="55%" r="70%">
+      <stop offset="0%" stop-color="#3CC5CC" stop-opacity="0.9"/>
+      <stop offset="35%" stop-color="#1AA5AD" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="1"/>
+    </radialGradient>
+    <radialGradient id="g3" cx="60%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#29D3DA" stop-opacity="0.8"/>
+      <stop offset="35%" stop-color="#0D8E95" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.08"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+
+  <g>
+    <rect x="0" y="0" width="400" height="400" fill="url(#g1)"/>
+    <rect x="400" y="0" width="400" height="400" fill="url(#g2)"/>
+    <rect x="800" y="0" width="400" height="400" fill="url(#g3)"/>
+
+    <rect x="0" y="400" width="400" height="400" fill="url(#g2)"/>
+    <rect x="400" y="400" width="400" height="400" fill="url(#g3)"/>
+    <rect x="800" y="400" width="400" height="400" fill="url(#g1)"/>
+
+    <rect width="1200" height="800" filter="url(#grain)"/>
+  </g>
+</svg>
+
+

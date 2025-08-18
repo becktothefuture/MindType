@@ -46,3 +46,21 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 - `README.md` links to the Manifesto under "Recommended reading".
 
 [0.0.1-alpha]: https://github.com/becktothefuture/mindtyper-qna/releases/tag/v0.0.1-alpha
+
+## [0.0.1-alpha+1] - 2025-08-09
+
+### Added
+
+- FT-212: Punctuation normalization in `engines/tidySweep.ts` (spaces around commas/periods, em dash spacing).
+- FT-214: Whitespace normalization (collapse multi-spaces/tabs; trim trailing whitespace before newline).
+- FT-216: Capitalization rules (sentence-start capitalization; standalone 'i' → 'I').
+- Web demo: validation band alignment and newline safety improvements; `SecurityContext` gating hooks.
+
+### Tests
+
+- Expanded unit tests across tidySweep rules, diffusion controller, and sweep scheduler; integration harness proves end-to-end flow.
+- Added branch-edge tests to lift global branch coverage ≥90%; utils guard at 100% branches.
+
+### CI / Quality Gates
+
+- All gates green: typecheck, lint, format, tests with coverage.

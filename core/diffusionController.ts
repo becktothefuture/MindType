@@ -16,6 +16,7 @@ import {
   getMaxValidationWords,
 } from '../config/defaultThresholds';
 import { tidySweep } from '../engines/tidySweep';
+import type { LMAdapter } from './lm/types';
 import { renderValidationBand, renderHighlight } from '../ui/highlighter';
 
 export interface DiffusionState {
@@ -24,10 +25,18 @@ export interface DiffusionState {
   frontier: number; // leftmost index not yet validated
 }
 
+// BandPolicy: future-proof hook for LM integration
+// - computeRenderRange: what to visualize (UI band)
+// - computeContextRange: what to provide to an LLM adapter (can span sentences/paragraphs)
+export interface BandPolicy {
+  computeRenderRange(state: DiffusionState): { start: number; end: number };
+  computeContextRange(state: DiffusionState): { start: number; end: number };
+}
+
 // LIB_TOUCH: Using Intl.Segmenter for Unicode-aware word boundary detection
 // Context7 docs: Intl.Segmenter provides granularity: 'word' for word-like segments
 // The isWordLike property indicates segments that are actual words vs punctuation/spaces
-export function createDiffusionController() {
+export function createDiffusionController(policy?: BandPolicy, _lmAdapter?: LMAdapter) {
   const seg = new Intl.Segmenter(undefined, { granularity: 'word' });
 
   let state: DiffusionState = { text: '', caret: 0, frontier: 0 };
@@ -39,13 +48,15 @@ export function createDiffusionController() {
     const now = Date.now();
     if (now - lastRenderMs >= MIN_RENDER_INTERVAL_MS) {
       lastRenderMs = now;
-      renderValidationBand(bandRange());
+      const renderRange = policy ? policy.computeRenderRange(state) : bandRange();
+      renderValidationBand(renderRange);
     }
   }
 
   function clampFrontier() {
     const minFrontier = Math.max(0, state.caret - MAX_SWEEP_WINDOW);
-    state.frontier = Math.max(state.frontier, minFrontier);
+    // Keep frontier within [minFrontier, caret]
+    state.frontier = Math.min(state.caret, Math.max(state.frontier, minFrontier));
   }
 
   function update(text: string, caret: number) {

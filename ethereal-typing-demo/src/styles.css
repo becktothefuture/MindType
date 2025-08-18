@@ -1,0 +1,277 @@
+:root {
+  --bg: #0b0f12;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: #cfd8dc;
+  font-family:
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Ubuntu,
+    Cantarell,
+    Noto Sans,
+    Helvetica,
+    Arial,
+    'Apple Color Emoji',
+    'Segoe UI Emoji';
+  overflow: hidden;
+}
+
+#titlebar {
+  position: fixed;
+  top: 8px;
+  left: 12px;
+  color: #bcd1e5;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+  background: linear-gradient(180deg, rgba(20, 24, 28, 0.65), rgba(12, 15, 18, 0.65));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 6px 10px;
+  z-index: 5;
+}
+#titlebar .hint {
+  opacity: 0.7;
+  font-size: 12px;
+  margin-left: 6px;
+}
+
+#webgl {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  z-index: 0;
+}
+
+#glass {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(80, 120, 160, 0.06);
+  backdrop-filter: blur(var(--blur-amount, 24px));
+  z-index: 2;
+}
+
+#grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-size: 256px 256px;
+  background-repeat: repeat;
+  opacity: 0.12;
+  z-index: 3;
+}
+
+#fps {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  font-size: 12px;
+  line-height: 1;
+  color: #9fb3c8;
+  background: rgba(15, 18, 22, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 6px 8px;
+  user-select: none;
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* XY pad container and readouts */
+#xypad-wrap {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  z-index: 4;
+}
+
+#xypad-stack {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  grid-template-columns: 160px 160px;
+  gap: 10px;
+  z-index: 4;
+}
+
+.pad-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.pad-label {
+  font-size: 12px;
+  color: #a8c0d8;
+}
+
+#controls {
+  position: fixed;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cdd6e0;
+  font-size: 12px;
+  z-index: 4;
+  max-height: 85vh;
+  overflow-y: auto;
+  cursor: move;
+  user-select: none;
+}
+
+.control-group {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.control-group h3 {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e8f0f8;
+}
+
+.group-desc {
+  margin: 0 0 12px 0;
+  font-size: 11px;
+  opacity: 0.7;
+  line-height: 1.3;
+}
+
+.control-row {
+  display: grid;
+  grid-template-columns: 1fr 56px;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.control-row:last-child {
+  margin-bottom: 0;
+}
+
+.control-row label {
+  opacity: 0.9;
+  font-size: 12px;
+}
+
+.control-row input[type='range'] {
+  grid-column: 1 / 3;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.control-row input[type='checkbox'] {
+  justify-self: end;
+}
+
+#controls.dragging {
+  transition: none;
+}
+
+#controls:not(.dragging) {
+  transition: transform 0.2s ease;
+}
+
+.control-row .val {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
+  font-size: 11px;
+}
+
+.xypad-container {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.preset-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.preset-buttons button,
+.reset-btn,
+.toggle-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #dfe6ee;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.preset-buttons button:hover,
+.reset-btn:hover,
+.toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.preset-active {
+  outline: 2px solid rgba(90, 200, 250, 0.8);
+}
+
+/* UI hide */
+.hidden-ui #controls,
+.hidden-ui #xypad-stack {
+  display: none;
+}
+
+/* Responsive: adjust controls on narrower screens */
+@media (max-width: 1200px) {
+  #xypad-stack {
+    right: 16px;
+    grid-template-columns: 160px;
+  }
+  #controls {
+    width: 300px;
+  }
+}
+
+#xypad {
+  width: 160px;
+  height: 160px;
+  border-radius: 10px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+#readouts {
+  font-size: 12px;
+  color: #a8c0d8;
+  text-align: right;
+}

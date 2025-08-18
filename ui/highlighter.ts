@@ -14,9 +14,17 @@
   • HOW  ▸ Consumes ranges from diffusion; updates DOM/accessibility
 */
 
+interface MinimalCustomEventCtor {
+  new (type: string, eventInitDict?: { detail?: unknown }): Event;
+}
+interface MinimalGlobal {
+  dispatchEvent?: (event: Event) => boolean;
+  CustomEvent?: MinimalCustomEventCtor;
+}
+
 export function renderHighlight(_range: { start: number; end: number }) {
-  const g: any = globalThis as any;
-  if (g && typeof g.dispatchEvent === 'function' && typeof g.CustomEvent === 'function') {
+  const g = globalThis as unknown as MinimalGlobal;
+  if (g.dispatchEvent && g.CustomEvent) {
     const event = new g.CustomEvent('mindtyper:highlight', {
       detail: { start: _range.start, end: _range.end },
     });
@@ -26,8 +34,8 @@ export function renderHighlight(_range: { start: number; end: number }) {
 
 // Subtle shimmer band showing currently validated text behind caret
 export function renderValidationBand(_range: { start: number; end: number }) {
-  const g: any = globalThis as any;
-  if (g && typeof g.dispatchEvent === 'function' && typeof g.CustomEvent === 'function') {
+  const g = globalThis as unknown as MinimalGlobal;
+  if (g.dispatchEvent && g.CustomEvent) {
     const event = new g.CustomEvent('mindtyper:validationBand', {
       detail: { start: _range.start, end: _range.end },
     });

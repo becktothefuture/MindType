@@ -37,7 +37,7 @@ export interface SweepRule {
 // ⟢ Future: Confidence threshold for applying corrections
 // const CONFIDENCE_THRESHOLD = 0.7;
 
-// Basic rule: Simple word substitutions
+// Basic rule: Simple word substitutions (space-delimited for safety)
 const wordSubstitutionRule: SweepRule = {
   name: 'word-substitution',
   priority: 1,
@@ -97,8 +97,258 @@ const wordSubstitutionRule: SweepRule = {
   },
 };
 
+// Whitespace normalization: collapse multiple spaces/tabs; trim trailing spaces before newline
+const whitespaceNormalizationRule: SweepRule = {
+  name: 'whitespace-normalization',
+  priority: 1,
+  apply(input: SweepInput): SweepResult {
+    const { text, caret, hint } = input;
+    const windowStart = Math.max(0, caret - MAX_SWEEP_WINDOW);
+    const windowEnd = caret;
+    const searchStart = hint ? Math.max(windowStart, hint.start) : windowStart;
+    const searchEnd = hint ? Math.min(windowEnd, hint.end) : windowEnd;
+    if (searchStart >= searchEnd) return { diff: null };
+
+    const searchText = text.slice(searchStart, searchEnd);
+    type Candidate = { start: number; end: number; text: string };
+    let best: Candidate | null = null;
+
+    const push = (absStart: number, absEnd: number, replacement: string) => {
+      if (absEnd > caret) return;
+      const confidence = 1;
+      if (confidence < MIN_CONFIDENCE) return;
+      if (!best || absStart > best.start)
+        best = { start: absStart, end: absEnd, text: replacement };
+    };
+
+    // 1) Collapse runs of spaces/tabs between non-newline non-space tokens → single space
+    {
+      const regex = /(\S)[ \t]{2,}(\S)/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        const localStart = m.index + 1; // start of the whitespace run
+        const localEnd = m.index + m[0].length - 1; // end just before the second token
+        const absStart = searchStart + localStart;
+        const absEnd = searchStart + localEnd;
+        push(absStart, absEnd, ' ');
+      }
+    }
+
+    // 2) Tabs between tokens (even single) → single space
+    {
+      const regex = /(\S)\t+(\S)/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        const localStart = m.index + 1;
+        const localEnd = m.index + m[0].length - 1;
+        const absStart = searchStart + localStart;
+        const absEnd = searchStart + localEnd;
+        push(absStart, absEnd, ' ');
+      }
+    }
+
+    // 3) Trailing spaces/tabs before newline → remove entirely
+    {
+      const regex = /[ \t]+\n/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        const absStart = searchStart + m.index;
+        const absEnd = absStart + m[0].length - 1; // exclude the newline itself
+        push(absStart, absEnd, '');
+      }
+    }
+
+    return { diff: best };
+  },
+};
+
+const MIN_CONFIDENCE = 0.8;
+
+function isWordBoundary(char: string | undefined): boolean {
+  return !char || /[^\p{L}\p{N}_]/u.test(char);
+}
+
+// Transposition detection rule: detects common letter swaps inside words
+const transpositionRule: SweepRule = {
+  name: 'transposition-detection',
+  priority: 0,
+  apply(input: SweepInput): SweepResult {
+    const { text, caret, hint } = input;
+
+    const windowStart = Math.max(0, caret - MAX_SWEEP_WINDOW);
+    const windowEnd = caret;
+    const searchStart = hint ? Math.max(windowStart, hint.start) : windowStart;
+    const searchEnd = hint ? Math.min(windowEnd, hint.end) : windowEnd;
+    if (searchStart >= searchEnd) return { diff: null };
+
+    const searchText = text.slice(searchStart, searchEnd);
+
+    // Common transposition patterns (word-internal) with replacements
+    const patterns: Array<{
+      regex: RegExp;
+      replacement: (m: RegExpExecArray) => string;
+    }> = [
+      { regex: /\bnto\b/g, replacement: () => 'not' },
+      { regex: /\btaht\b/g, replacement: () => 'that' },
+      { regex: /\bwaht\b/g, replacement: () => 'what' },
+      { regex: /\bthier\b/g, replacement: () => 'their' },
+    ];
+
+    let best: { start: number; end: number; text: string } | null = null;
+
+    for (const { regex, replacement } of patterns) {
+      let match: RegExpExecArray | null;
+      regex.lastIndex = 0;
+      while ((match = regex.exec(searchText)) !== null) {
+        const absStart = searchStart + match.index;
+        const absEnd = absStart + match[0].length;
+        if (absEnd <= caret) {
+          const rep = replacement(match);
+          // Confidence gating: require word boundaries around the token
+          const left = text[absStart - 1];
+          const right = text[absEnd];
+          const confidence = isWordBoundary(left) && isWordBoundary(right) ? 1 : 0.5;
+          if (confidence >= MIN_CONFIDENCE) {
+            if (!best || absStart > best.start) {
+              best = { start: absStart, end: absEnd, text: rep };
+            }
+          }
+        }
+      }
+    }
+
+    return { diff: best };
+  },
+};
+
+// Punctuation normalization rule: spacing around commas, periods, em dashes, quotes
+const punctuationNormalizationRule: SweepRule = {
+  name: 'punctuation-normalization',
+  priority: 0,
+  apply(input: SweepInput): SweepResult {
+    const { text, caret, hint } = input;
+    const windowStart = Math.max(0, caret - MAX_SWEEP_WINDOW);
+    const windowEnd = caret;
+    const searchStart = hint ? Math.max(windowStart, hint.start) : windowStart;
+    const searchEnd = hint ? Math.min(windowEnd, hint.end) : windowEnd;
+    if (searchStart >= searchEnd) return { diff: null };
+
+    // Look for last offending pattern inside the search window
+    const searchText = text.slice(searchStart, searchEnd);
+    type Candidate = { start: number; end: number; text: string };
+    let best: Candidate | null = null;
+
+    const push = (absStart: number, absEnd: number, replacement: string) => {
+      if (absEnd > caret) return;
+      // Deterministic normalization → high confidence
+      const confidence = 1;
+      if (confidence < MIN_CONFIDENCE) return;
+      if (!best || absStart > best.start)
+        best = { start: absStart, end: absEnd, text: replacement };
+    };
+
+    // 1) Space before comma/period → remove
+    // e.g., "word ,next" => "word, next"
+    {
+      const regex = /\s+([,\.])/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        const localStart = m.index;
+        const localEnd = m.index + m[0].length;
+        const absStart = searchStart + localStart;
+        const absEnd = searchStart + localEnd;
+        push(absStart, absEnd, m[1]);
+      }
+    }
+
+    // 2) Missing space after comma/period (unless end of line) → add one
+    {
+      const regex = /([,\.])(\S)/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        // skip if next is newline
+        if (m[2] === '\n') continue;
+        const localStart = m.index;
+        const localEnd = m.index + m[0].length;
+        const absStart = searchStart + localStart;
+        const absEnd = searchStart + localEnd;
+        push(absStart, absEnd, `${m[1]} ${m[2]}`);
+      }
+    }
+
+    // 3) Em dash spacing: ensure spaces around — ("word—next" → "word — next")
+    {
+      const regex = /\s?—\s?/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        // Skip if already exactly ' — '
+        if (m[0] === ' — ') continue;
+        const absStart = searchStart + m.index;
+        const absEnd = absStart + m[0].length;
+        push(absStart, absEnd, ' — ');
+      }
+    }
+
+    return { diff: best };
+  },
+};
+
+// Capitalization rules: sentence-start capitalization; standalone 'i' pronoun → 'I'
+const capitalizationRule: SweepRule = {
+  name: 'capitalization',
+  priority: 1,
+  apply(input: SweepInput): SweepResult {
+    const { text, caret, hint } = input;
+    const windowStart = Math.max(0, caret - MAX_SWEEP_WINDOW);
+    const windowEnd = caret;
+    const searchStart = hint ? Math.max(windowStart, hint.start) : windowStart;
+    const searchEnd = hint ? Math.min(windowEnd, hint.end) : windowEnd;
+    if (searchStart >= searchEnd) return { diff: null };
+
+    const searchText = text.slice(searchStart, searchEnd);
+    type Candidate = { start: number; end: number; text: string };
+    let best: Candidate | null = null;
+
+    const push = (absStart: number, absEnd: number, replacement: string) => {
+      if (absEnd > caret) return;
+      if (!best || absStart > best.start)
+        best = { start: absStart, end: absEnd, text: replacement };
+    };
+
+    // 1) Sentence-start capitalization (only after . ! ? followed by spaces; avoid start-of-text to reduce noise)
+    {
+      const regex = /([\.\!\?]\s+)([a-z])/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        const localStart = m.index + m[1].length;
+        const absStart = searchStart + localStart;
+        const absEnd = absStart + 1;
+        const upper = m[2].toUpperCase();
+        push(absStart, absEnd, upper);
+      }
+    }
+
+    // 2) Standalone pronoun 'i' (space/i/space or start/end boundaries)
+    {
+      const regex = /(?<=^|\s)i(?=\s|$)/g;
+      let m: RegExpExecArray | null;
+      while ((m = regex.exec(searchText))) {
+        const absStart = searchStart + m.index;
+        const absEnd = absStart + 1;
+        push(absStart, absEnd, 'I');
+      }
+    }
+
+    return { diff: best };
+  },
+};
+
 // Registry of all rules, ordered by priority
 const RULES: SweepRule[] = [
+  transpositionRule,
+  punctuationNormalizationRule,
+  capitalizationRule,
+  whitespaceNormalizationRule,
   wordSubstitutionRule,
   // ⟢ Future rules will be added here
 ];

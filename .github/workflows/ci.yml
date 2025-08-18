@@ -1,49 +1,15 @@
-name: ci
+#╔════════════════════════════════════════════════════════════════════════╗
+#║  ░  MINDTYPER CI WORKFLOW  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+#║                                                                    ║
+#║  Continuous Integration pipeline that runs on every push to main   ║
+#║  and pull requests. Handles TypeScript, Rust, and WASM builds     ║
+#║  with comprehensive testing, linting, and coverage reporting.      ║
+#║                                                                    ║
+#╚════════════════════════════════════════════════════════════════════╝
+# WHAT ▸ GitHub Actions CI workflow for MindTyper
+# WHY  ▸ Ensure code quality and prevent regressions
+# HOW  ▸ Runs lint → test → build pipeline with both TS and Rust checks
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-
-jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Prettier check
-        run: pnpm format:check
-
-      - name: Test with coverage
-        run: pnpm test
-
-      - name: Upload coverage artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: coverage
 name: MindTyper CI
 
 on:
@@ -57,12 +23,14 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "pnpm"
-      - run: npm install -g pnpm
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - run: pnpm install --frozen-lockfile
       - uses: actions-rs/toolchain@v1
         with:
@@ -82,20 +50,28 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "pnpm"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - run: npm install -g pnpm
       - run: pnpm install --frozen-lockfile
       - name: Run Rust tests
         run: cargo test --workspace
-      - name: Run unit tests
+      - name: Run unit tests with coverage
         run: pnpm test
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
       - name: Run e2e tests
         run: pnpm --prefix e2e test
 
@@ -104,16 +80,20 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "pnpm"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - run: npm install -g pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - name: Build WASM
         run: wasm-pack build crates/core-rs --target web --out-dir bindings/wasm/pkg
       - name: Typecheck project

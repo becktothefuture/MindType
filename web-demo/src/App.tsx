@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import init, {
   WasmPauseTimer,
   init_logger,
@@ -9,6 +9,7 @@ import init, {
 } from "@mindtype/core";
 import "./App.css";
 import DebugPanel from "./components/DebugPanel";
+import { SCENARIOS } from "./scenarios";
 // TS pipeline imports
 import { boot } from "../../index";
 import {
@@ -25,10 +26,63 @@ interface LogEntry {
   timestamp: string;
 }
 
+function escapeHtml(raw: string): string {
+  return raw
+    .replaceAll(/&/g, "&amp;")
+    .replaceAll(/</g, "&lt;")
+    .replaceAll(/>/g, "&gt;")
+    .replaceAll(/\u00A0/g, "&nbsp;");
+}
+
+function computeNewlineSafeRange(
+  text: string,
+  start: number,
+  end: number,
+  suppressUntilMs: number,
+): { start: number; end: number } | null {
+  if (Date.now() < suppressUntilMs) return null;
+  const len = text.length;
+  const s0 = Math.max(0, Math.min(start, len));
+  const e0 = Math.max(0, Math.min(end, len));
+  // Fallback when empty
+  if (e0 <= s0) {
+    let j = Math.max(0, s0 - 1);
+    while (j > 0 && text[j] === "\n") j -= 1;
+    if (text[j] === "\n") return null;
+    return { start: j, end: Math.min(j + 1, len) };
+  }
+  let s = s0;
+  let e = e0;
+  const slice = text.slice(s, e);
+  // If the slice contains a newline, clamp to last line segment
+  const nl = slice.lastIndexOf("\n");
+  if (nl !== -1) {
+    s = s + nl + 1; // start just after the last newline in the slice
+    if (s >= e) {
+      // fallback to 1 char before the newline
+      let j = Math.max(0, s - 1);
+      while (j > 0 && text[j] === "\n") j -= 1;
+      if (text[j] === "\n") return null;
+      return { start: j, end: Math.min(j + 1, len) };
+    }
+  }
+  // If clamped segment is newline-only/whitespace-only, fallback
+  const seg = text.slice(s, e);
+  if (seg === "" || /^\n+$/.test(seg)) {
+    let j = Math.max(0, s - 1);
+    while (j > 0 && text[j] === "\n") j -= 1;
+    if (text[j] === "\n") return null;
+    return { start: j, end: Math.min(j + 1, len) };
+  }
+  return { start: s, end: e };
+}
+
 function App() {
   const [text, setText] = useState(
     "Hello there. Try typing a sentence and then pausing.",
   );
+  const [scenarioId, setScenarioId] = useState<string | null>(null);
+  const [stepIndex, setStepIndex] = useState<number>(0);
   const [idleMs, setIdleMs] = useState(1000);
   const [useWasmDemo, setUseWasmDemo] = useState(false);
   const [tickMs, setTickMs] = useState<number>(getTypingTickMs());
@@ -40,13 +94,75 @@ function App() {
   const [lastHighlight, setLastHighlight] = useState<
     { start: number; end: number } | null
   >(null);
-  const [pipeline] = useState(() => boot());
+  const secureRef = useRef(false);
+  const imeRef = useRef(false);
+  const [isSecure, setIsSecure] = useState(false);
+  const [isIMEComposing, setIsIMEComposing] = useState(false);
+  const [freezeBand, setFreezeBand] = useState(false);
+  const [bandDelayMs, setBandDelayMs] = useState(0);
+  const suppressUntilRef = useRef<number>(0);
+  const [pipeline] = useState(() =>
+    boot({
+      security: {
+        isSecure: () => secureRef.current,
+        isIMEComposing: () => imeRef.current,
+      },
+    }),
+  );
   const [pauseTimer, setPauseTimer] = useState<WasmPauseTimer | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [showDebugPanel, setShowDebugPanel] = useState(false);
   const [wasmInitialized, setWasmInitialized] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  // FT-316 additions
+  const [lmMode, setLmMode] = useState<'rules' | 'lm'>('rules');
+  const [perfStartMs, setPerfStartMs] = useState<number | null>(null);
+  const [lastLatencyMs, setLastLatencyMs] = useState<number | null>(null);
+
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  function syncOverlayStyles() {
+    const ta = textareaRef.current;
+    const ov = overlayRef.current;
+    if (!ta || !ov) return;
+    const cs = window.getComputedStyle(ta);
+    const copyProps = [
+      "fontSize",
+      "fontFamily",
+      "fontWeight",
+      "fontStyle",
+      "lineHeight",
+      "letterSpacing",
+      "textAlign",
+      "paddingTop",
+      "paddingRight",
+      "paddingBottom",
+      "paddingLeft",
+      "borderTopWidth",
+      "borderRightWidth",
+      "borderBottomWidth",
+      "borderLeftWidth",
+      "borderTopLeftRadius",
+      "borderTopRightRadius",
+      "borderBottomLeftRadius",
+      "borderBottomRightRadius",
+    ] as const;
+    for (const p of copyProps) (ov.style as any)[p] = (cs as any)[p];
+    ov.style.borderStyle = cs.borderStyle;
+    ov.style.borderColor = "transparent";
+    ov.style.width = cs.width;
+    ov.style.height = cs.height;
+  }
+
+  function syncOverlayScroll() {
+    const ta = textareaRef.current;
+    const ov = overlayRef.current;
+    if (!ta || !ov) return;
+    ov.scrollTop = ta.scrollTop;
+    ov.scrollLeft = ta.scrollLeft;
+  }
 
   // 1. Initialize WASM module (optional demo mode)
   useEffect(() => {
@@ -66,6 +182,14 @@ function App() {
     return () => pipeline.stop();
   }, [pipeline]);
 
+  // Console access for quick manual testing
+  useEffect(() => {
+    (window as any).mt = pipeline;
+    return () => {
+      delete (window as any).mt;
+    };
+  }, [pipeline]);
+
   // 2. Create and recreate the pause timer when settings change (WASM demo only)
   useEffect(() => {
     if (useWasmDemo && wasmInitialized) {
@@ -74,17 +198,52 @@ function App() {
     }
   }, [idleMs, wasmInitialized, useWasmDemo]);
 
-  // 3. Handle text changes and user activity + stream to TS pipeline
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setPerfStartMs(Date.now());
     setText(e.target.value);
     if (pauseTimer) {
       pauseTimer.record_activity();
       setIsPaused(false);
     }
-    // send event to pipeline
     const caret = e.target.selectionStart ?? e.target.value.length;
     pipeline.ingest(e.target.value, caret);
+    syncOverlayScroll();
   };
+
+  // Scenario step-through: progressively reveal scenario.raw
+  useEffect(() => {
+    if (!scenarioId) return;
+    const s = SCENARIOS.find((x) => x.id === scenarioId);
+    if (!s) return;
+    const next = s.raw.slice(0, Math.min(stepIndex, s.raw.length));
+    setText(next);
+  }, [scenarioId, stepIndex]);
+
+  // Suppress band briefly after Enter to avoid flicker at line breaks
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const onKeyDown = (ev: KeyboardEvent) => {
+      if (ev.key === "Enter") suppressUntilRef.current = Date.now() + 250;
+    };
+    ta.addEventListener("keydown", onKeyDown);
+    return () => ta.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    syncOverlayStyles();
+    syncOverlayScroll();
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const onScroll = () => syncOverlayScroll();
+    ta.addEventListener("scroll", onScroll);
+    const ro = new ResizeObserver(() => syncOverlayStyles());
+    ro.observe(ta);
+    return () => {
+      ta.removeEventListener("scroll", onScroll);
+      ro.disconnect();
+    };
+  }, []);
 
   // 4. WASM demo correction flow, triggered by pause (disabled by default)
   useEffect(() => {
@@ -143,7 +302,27 @@ function App() {
         start: number;
         end: number;
       };
-      setBandRange({ start, end });
+      if (freezeBand) return; // pause updates for inspection
+      const apply = () => {
+        const adjusted = computeNewlineSafeRange(
+          text,
+          start,
+          end,
+          suppressUntilRef.current,
+        );
+        if (!adjusted) return;
+        setBandRange({ start: adjusted.start, end: adjusted.end });
+        const ov = overlayRef.current;
+        if (ov) {
+          const t = text;
+          const before = escapeHtml(t.slice(0, adjusted.start));
+          const band = escapeHtml(t.slice(adjusted.start, adjusted.end));
+          const after = escapeHtml(t.slice(adjusted.end));
+          ov.innerHTML = `${before}<span class="band">${band || "\u200b"}</span>${after}`;
+        }
+      };
+      if (bandDelayMs > 0) setTimeout(apply, bandDelayMs);
+      else apply();
     };
     const onHighlight = (e: Event) => {
       const { start, end } = (e as CustomEvent).detail as {
@@ -151,8 +330,11 @@ function App() {
         end: number;
       };
       setLastHighlight({ start, end });
-      // brief fade-out
       setTimeout(() => setLastHighlight(null), 800);
+      if (perfStartMs != null) {
+        setLastLatencyMs(Date.now() - perfStartMs);
+        setPerfStartMs(null);
+      }
     };
     window.addEventListener("mindtyper:validationBand", onBand as EventListener);
     window.addEventListener("mindtyper:highlight", onHighlight as EventListener);
@@ -163,7 +345,7 @@ function App() {
       );
       window.removeEventListener("mindtyper:highlight", onHighlight as EventListener);
     };
-  }, []);
+  }, [text, freezeBand, bandDelayMs]);
 
   // 5c. Live controls for cadence and band sizing
   useEffect(() => {
@@ -237,20 +419,32 @@ function App() {
 
       <h1>MindType Web Demo</h1>
 
-      <div className="card" style={{ position: "relative" }}>
+      <div className="card">
         <h2>Editor</h2>
-        <textarea
-          value={text}
-          onChange={handleTextChange}
-          rows={10}
-          cols={80}
-          // discourage writing-assistant extensions that inject content scripts
-          data-gramm="false"
-          data-lt-active="false"
-          spellCheck={false}
-          autoCorrect="off"
-          autoCapitalize="off"
-        />
+        <div className="editor-wrap">
+          <div className="editor-overlay" aria-hidden id="mt-overlay" ref={overlayRef} />
+          <textarea
+            className="editor-textarea"
+            ref={textareaRef}
+            value={text}
+            onChange={handleTextChange}
+            onCompositionStart={() => {
+              setIsIMEComposing(true);
+              imeRef.current = true;
+            }}
+            onCompositionEnd={() => {
+              setIsIMEComposing(false);
+              imeRef.current = false;
+            }}
+            rows={10}
+            cols={80}
+            data-gramm="false"
+            data-lt-active="false"
+            spellCheck={false}
+            autoCorrect="off"
+            autoCapitalize="off"
+          />
+        </div>
         {bandRange && (
           <div style={{ fontFamily: "monospace", marginTop: 8 }}>
             <small>
@@ -280,6 +474,45 @@ function App() {
       <div className="card" style={{ marginTop: 16 }}>
         <h2>Live controls</h2>
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span>Scenario</span>
+            <select
+              aria-label="Scenario"
+              value={scenarioId ?? ''}
+              onChange={(e) => {
+                const v = e.target.value || null;
+                setScenarioId(v);
+                setStepIndex(0);
+                if (!v) setText("Hello there. Try typing a sentence and then pausing.");
+              }}
+            >
+              <option value="">None</option>
+              {SCENARIOS.map((s) => (
+                <option key={s.id} value={s.id}>{s.title}</option>
+              ))}
+            </select>
+          </label>
+          {scenarioId && (
+            <>
+              <button onClick={() => setStepIndex((i) => Math.max(0, i - 1))}>Step back</button>
+              <button onClick={() => setStepIndex((i) => i + 1)}>Step</button>
+              <button onClick={() => {
+                const s = SCENARIOS.find((x) => x.id === scenarioId);
+                if (s) setText(s.corrected);
+              }}>Apply corrected</button>
+            </>
+          )}
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <select
+              aria-label="Mode"
+              value={lmMode}
+              onChange={(e) => setLmMode(e.target.value as 'rules' | 'lm')}
+            >
+              <option value="rules">Rules only</option>
+              <option value="lm">LM (stub)</option>
+            </select>
+            Mode
+          </label>
           <label>
             Tick (ms): {tickMs}
             <input
@@ -325,6 +558,72 @@ function App() {
             />
             Use WASM demo corrections (legacy)
           </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input
+              type="checkbox"
+              checked={isSecure}
+              onChange={(e) => {
+                setIsSecure(e.target.checked);
+                secureRef.current = e.target.checked;
+              }}
+            />
+            Secure field (disable corrections)
+          </label>
+          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            IME composing: {isIMEComposing ? "yes" : "no"}
+          </span>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input
+              type="checkbox"
+              checked={freezeBand}
+              onChange={(e) => setFreezeBand(e.target.checked)}
+            />
+            Freeze band (debug)
+          </label>
+          <label>
+            Band delay (ms): {bandDelayMs}
+            <input
+              type="range"
+              min={0}
+              max={1000}
+              step={50}
+              value={bandDelayMs}
+              onChange={(e) => setBandDelayMs(parseInt(e.target.value, 10))}
+            />
+          </label>
+          <button
+            onClick={() => {
+              const preset = {
+                tickMs,
+                minBand,
+                maxBand,
+                useWasmDemo,
+              };
+              navigator.clipboard?.writeText(JSON.stringify(preset)).catch(() => {});
+            }}
+          >
+            Copy preset
+          </button>
+          <button
+            onClick={() => {
+              const raw = prompt('Paste preset JSON');
+              if (!raw) return;
+              try {
+                const p = JSON.parse(raw);
+                if (typeof p.tickMs === 'number') setTickMs(p.tickMs);
+                if (typeof p.minBand === 'number') setMinBand(p.minBand);
+                if (typeof p.maxBand === 'number') setMaxBand(p.maxBand);
+                if (typeof p.useWasmDemo === 'boolean') setUseWasmDemo(p.useWasmDemo);
+              } catch {}
+            }}
+          >
+            Import preset
+          </button>
+        </div>
+        <div style={{ marginTop: 8 }}>
+          <small>
+            {lastLatencyMs != null ? `Last keystroke→highlight latency: ${lastLatencyMs} ms` : 'Interact to record latency'}
+          </small>
         </div>
       </div>
     </div>

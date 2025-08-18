@@ -49,6 +49,25 @@
 > - **PLAN_ONLY** may append tasks using the Task Schema; **EXECUTE** fulfils them.
 > - Keep tasks atomic; prefer many small boxes over one vague one.
 
+## Quality Gates & Definition of Done (RULE)
+
+For every task (especially P1), the following must be true before marking complete:
+
+- Tests: Unit tests for new logic; at least one integration or acceptance test if user-observable behaviour changes.
+- Gates: `pnpm typecheck && pnpm lint && pnpm run -s format:check && pnpm test` all pass locally and in CI; coverage guard remains green.
+- Coverage: Maintain overall ≥90% and preserve 100% branches for `utils/**`; new surfaces aim for ≥90% branches unless justified.
+- A11y/Perf (when applicable): Reduced‑motion branches tested; p95 latency and memory constraints not regressed.
+- Docs: Update this plan and PRD traceability; note any toggles/flags.
+
+Task checklist template (copy into PR description):
+
+- [ ] Unit tests added/updated
+- [ ] Integration/acceptance test mapped to `docs/qa/acceptance/*` (if applicable)
+- [ ] Typecheck, lint, format:check green
+- [ ] Coverage thresholds satisfied
+- [ ] Accessibility/performance checks (if applicable)
+- [ ] `docs/implementation.md` + PRD traceability updated
+
 ## Stage 1 — Foundation & Setup ✅
 
 ### Architecture Constraints (P1) ✅
@@ -97,7 +116,7 @@
        **DependsOn:** FT-112, FT-113, FT-114  
        **Source:** PRD → Quality Gates
 
-- [ ] (P1) [FT-118] Enforce coverage thresholds  
+- [x] (P1) [FT-118] Enforce coverage thresholds  
        **AC:** Vitest config enforces ≥90% lines/statements overall; `utils/**` at 100% branches; CI fails below thresholds  
        **Owner:** @alex  
        **DependsOn:** FT-113, FT-117  
@@ -105,13 +124,13 @@
 
 ### Security & Privacy Implementation (P1)
 
-- [ ] (P1) [FT-115] Implement secure field detection  
+- [x] (P1) [FT-115] Implement secure field detection  
        **AC:** - Detect password/secure input fields - Disable corrections automatically - Test coverage for all field types
       **Owner:** @alex  
        **DependsOn:** FT-113  
        **Source:** PRD REQ-SECURE-FIELDS
 
-- [ ] (P1) [FT-116] Add IME composition handling  
+- [x] (P1) [FT-116] Add IME composition handling  
        **AC:** - Detect active IME composition - Disable corrections during composition - Support major IME systems
       **Owner:** @alex  
        **DependsOn:** FT-115  
@@ -137,7 +156,7 @@
        **DependsOn:** FT-121  
        **Source:** PRD → Performance
 
-- [ ] (P1) [FT-123] Add basic logging and error paths  
+- [x] (P1) [FT-123] Add basic logging and error paths  
        **AC:** Minimal logger util with levels; logs timing and rule decisions behind a debug flag; unit tests verify no output when disabled  
        **Owner:** @alex  
        **DependsOn:** FT-121  
@@ -179,7 +198,7 @@
        **DependsOn:** FT-125  
        **Source:** index.ts TODO comment
 
-- [ ] (P1) [FT-202] Create integration test harness  
+- [x] (P1) [FT-202] Create integration test harness  
        **AC:** End-to-end test simulating user typing → corrections applied; verify caret safety, timing, and band progression; performance baseline  
        **Owner:** @alex  
        **DependsOn:** FT-201  
@@ -193,31 +212,31 @@
        **DependsOn:** FT-120  
        **Source:** PRD REQ-TIDY-SWEEP
 
-- [ ] (P1) [FT-211] Implement transposition detection  
+- [x] (P1) [FT-211] Implement transposition detection  
        **AC:** - Detect common character swaps ("nto"→"not", "precsson"→"precision") - Stay within 80-char window - Return null when uncertain - Handle contextual transpositions
       **Owner:** @alex  
        **DependsOn:** FT-210  
        **Source:** User example: "mindtypr is nto a tooll" → "MindTyper is not a tool"
 
-- [ ] (P1) [FT-212] Add punctuation normalization  
+- [x] (P1) [FT-212] Add punctuation normalization  
        **AC:** - Fix spacing around punctuation ("page — a sweep" formatting) - Handle quotes, apostrophes, emdashes - Language-aware rules - Sentence boundaries
       **Owner:** @alex  
        **DependsOn:** FT-211  
        **Source:** User example: punctuation spacing issues
 
-- [ ] (P1) [FT-213] Implement confidence gating and null-return conditions  
+- [x] (P1) [FT-213] Implement confidence gating and null-return conditions  
        **AC:** Define confidence thresholds per rule; return `null` below threshold; unit tests cover low-confidence cases; never apply uncertain fixes  
        **Owner:** @alex  
        **DependsOn:** FT-210  
        **Source:** PRD REQ-TIDY-SWEEP (return null when unsure)
 
-- [ ] (P1) [FT-214] Add whitespace normalization rules  
+- [x] (P1) [FT-214] Add whitespace normalization rules  
        **AC:** Collapse multiple spaces ("mov it lstens" → "move it listens"); normalize trailing spaces in window; never cross caret; unit tests for boundary cases  
        **Owner:** @alex  
        **DependsOn:** FT-210  
        **Source:** User example: missing spaces between words
 
-- [ ] (P1) [FT-216] Add capitalization rules  
+- [x] (P1) [FT-216] Add capitalization rules  
        **AC:** Sentence-start capitalization; "I" pronoun fixes; proper noun detection; context-aware confidence scoring  
        **Owner:** @alex  
        **DependsOn:** FT-212  
@@ -231,20 +250,20 @@
 
 ### Local LM Integration (P1) **← NEW SECTION**
 
-- [ ] (P1) [FT-230] Design LM adapter interface  
-       **AC:** Define `LMAdapter` interface for streaming corrections; support band-bounded context; fallback to rules when LM unavailable; caret-safe constraints  
+- [x] (P1) [FT-230] Design LM adapter interface  
+       **AC:** Define `LMAdapter` interface for streaming corrections; support band-bounded context; fallback to rules when LM unavailable; caret-safe constraints. Add backend detection and a mock adapter; optional wiring into controller without behaviour change.  
        **Owner:** @alex  
        **DependsOn:** FT-213  
        **Source:** User example: "raw → corrected" transformation quality
 
 - [ ] (P1) [FT-231] Implement local model bootstrap  
-       **AC:** Transformers.js integration with Qwen2.5-0.5B-Instruct (q4 quantized ~150MB); WebGPU acceleration; streaming token interface; grammar/style correction focus  
+       **AC:** Transformers.js integration with Qwen2.5-0.5B-Instruct (q4 quantized ~150MB); WebGPU acceleration; streaming token interface; grammar/style correction focus; lazy load + warm-up; UI load/unload; fallback to rules on failure; abort-on-input within ≤1 tick; perf/memory smoke tests.  
        **Owner:** @alex  
        **DependsOn:** FT-230  
        **Source:** Transformers.js research + on-device processing
 
 - [ ] (P1) [FT-232] Add LM streaming merge policy  
-       **AC:** Stream tokens into validation band only; merge with rule-based fixes; confidence weighting; rollback on user input; extensive caret safety tests  
+       **AC:** Stream tokens into validation band only; merge with rule-based fixes; deterministic precedence (rules > LM on structural conflicts; LM > rules on semantic-only with confidence); cancel on input; rollback on conflicts; extensive caret safety tests.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** REQ-STREAMED-DIFFUSION + LM quality
@@ -285,19 +304,19 @@
 
 ### Visual Feedback (P1)
 
-- [ ] (P1) [FT-310] Implement highlighter core  
+- [x] (P1) [FT-310] Implement highlighter core  
        **AC:** - Validation band (3–8 words) trailing behind caret with DOM manipulation - Subtle shimmer animation; fade/static when reduced‑motion - Applied correction highlights - Minimal, non-intrusive UI
       **Owner:** @alex  
        **DependsOn:** FT-201  
        **Source:** PRD REQ-A11Y-MOTION + REQ-VALIDATION-BAND
 
-- [ ] (P1) [FT-311] Add ARIA announcements  
+- [x] (P1) [FT-311] Add ARIA announcements  
        **AC:** - Screen reader notifications for corrections - Configurable verbosity - WCAG 2.2 AA compliant
       **Owner:** @alex  
        **DependsOn:** FT-310  
        **Source:** PRD → Accessibility
 
-- [ ] (P1) [FT-312] Run accessibility audit and reduced-motion tests  
+- [x] (P1) [FT-312] Run accessibility audit and reduced-motion tests  
        **AC:** Add axe checks for color/aria; unit test for `prefers-reduced-motion`; document SR announcement copy  
        **Owner:** @alex  
        **DependsOn:** FT-311  
@@ -322,13 +341,13 @@
          **DependsOn:** FT-315  
          **Source:** Flow tuning / visual playground
 
-- [ ] (P1) [FT-316] Add demo controls and settings  
+- [x] (P1) [FT-316] Add demo controls and settings  
        **AC:** Toggle for rules vs LM mode; band size adjustment; timing controls; performance display; reset functionality; export/import presets  
        **Owner:** @alex  
        **DependsOn:** FT-315  
        **Source:** Demo usability for testing different configurations
 
-- [ ] (P1) [FT-317] Create demo scenarios  
+- [x] (P1) [FT-317] Create demo scenarios  
        **AC:** Pre-loaded text samples showing "raw → corrected" transformations; step-through mode; before/after comparisons; performance metrics  
        **Owner:** @alex  
        **DependsOn:** FT-316  
@@ -349,157 +368,4 @@
        **Source:** BDD → Validation band scenarios
 
 - [ ] (P2) [FT-322] Add Playwright e2e for BDD scenarios  
-       **AC:** Tests for caret safety and streaming diffusion mapped to `docs/qa/acceptance/*.feature`; CI job runs on PR  
-       **Owner:** @alex  
-       **DependsOn:** FT-321  
-       **Source:** PRD → Scenarios (BDD)
-
-- [ ] (P2) [FT-323] Add screen-reader announcement tests (jsdom)  
-       **AC:** Verify aria-live updates and politeness; snapshot SR copy  
-       **Owner:** @alex  
-       **DependsOn:** FT-311  
-       **Source:** PRD → Accessibility
-
-## Stage 4 — Performance Optimization
-
-### Profiling & Monitoring (P2)
-
-- [ ] (P2) [FT-410] Setup performance monitoring  
-       **AC:** - Track p95 latency (≤15ms target) - Memory usage monitoring - Telemetry infrastructure
-      **Owner:** @alex  
-       **DependsOn:** FT-320  
-       **Source:** PRD → Performance
-
-- [ ] (P2) [FT-411] Implement Rust benchmarks  
-       **AC:** - Criterion benchmarks for core operations - Performance regression testing - Documentation
-      **Owner:** @alex  
-       **DependsOn:** FT-131  
-       **Source:** Core Rust Details
-
-- [ ] (P2) [FT-412] Add latency test harness  
-       **AC:** Harness records keystroke→correction latency; reports p95; failing test if > targets; docs capture results  
-       **Owner:** @alex  
-       **DependsOn:** FT-410  
-       **Source:** PRD → Success Metrics (Latency)
-
-### Memory Optimization (P2)
-
-- [ ] (P2) [FT-420] Optimize memory usage  
-       **AC:** - Stay under 150MB typical - Memory leak detection - Garbage collection tuning
-      **Owner:** @alex  
-       **DependsOn:** FT-410  
-       **Source:** PRD → Performance
-
-- [ ] (P2) [FT-421] Instrument undo-rate metric  
-       **AC:** Capture total edits vs. user undos; compute % and report; goal ≤0.5%; CI prints current baseline  
-       **Owner:** @alex  
-       **DependsOn:** FT-320, FT-410  
-       **Source:** PRD → Success Metrics (Undo rate)
-
-- [ ] (P2) [FT-422] Add memory tracking harness  
-       **AC:** Script captures Node/V8 heap during sweeps; alerts if typical >150MB or cap >200MB; docs include snapshot  
-       **Owner:** @alex  
-       **DependsOn:** FT-410  
-       **Source:** PRD → Success Metrics (Memory)
-
-## Stage 5 — Extended Features
-
-### Advanced LM Features (P2) **← NEW SECTION**
-
-- [ ] (P2) [FT-520] Context-aware semantic corrections  
-       **AC:** Use broader context for semantic coherence; handle agreement, tense consistency; confidence scoring for semantic vs syntactic fixes  
-       **Owner:** @alex  
-       **DependsOn:** FT-232  
-       **Source:** User example: advanced grammatical corrections
-
-- [ ] (P2) [FT-521] Adaptive learning from user patterns  
-       **AC:** Local learning from user corrections/undos; adapt correction confidence; personalized vocabulary; privacy-preserving local storage  
-       **Owner:** @alex  
-       **DependsOn:** FT-421  
-       **Source:** Personalization without cloud data
-
-### Production Features (P3)
-
-- [ ] (P3) [FT-901] Plugin system for custom rules
-- [ ] (P3) [FT-902] Language-specific rule sets
-- [ ] (P3) [FT-903] Cloud sync infrastructure (if requested)
-- [ ] (P3) [FT-904] macOS secure field enforcement (AX)
-  - **AC:** Detect secure fields via AX; disable edits; unit test in sample app
-  - **Source:** mac_app_details.md
-- [ ] (P3) [FT-905] Demo signup server (email capture)
-  - **AC:** Minimal Express server; opt-in telemetry; GDPR note
-  - **Source:** web_demo_details.md → Implementation Notes
-- [ ] (P3) [FT-906] Activation/NPS measurement plan
-  - **AC:** Define measurement approach; optional prompts in demo; docs updated
-  - **Source:** PRD → Success Metrics
-
-## Traceability Matrix
-
-### Core Requirements
-
-1. REQ-SECURE-FIELDS
-   - FT-115: Secure field detection
-   - FT-116: IME composition handling
-
-2. REQ-IME-CARETSAFE
-   - FT-120: Caret-safe diff implementation
-   - FT-210: Tidy sweep engine
-   - FT-211: Transposition detection
-
-3. REQ-TIDY-SWEEP
-   - FT-210, FT-211, FT-212: Sweep engine and rules
-   - FT-220: Backfill consistency
-
-4. REQ-A11Y-MOTION
-   - FT-310: Highlighter with motion preferences
-   - FT-311: ARIA support
-
-5. REQ-STREAMED-DIFFUSION ← NEW
-   - FT-125: DiffusionController implementation
-   - FT-201: Pipeline integration
-   - FT-310: Validation band rendering
-
-6. REQ-VALIDATION-BAND ← NEW
-   - FT-310: Band visualization (3-8 words)
-   - FT-315: Live demo integration
-
-7. REQ-LOCAL-LM-INTEGRATION ← NEW
-   - FT-230: LM adapter interface
-   - FT-231: Local model bootstrap
-   - FT-232: Streaming merge policy
-
-### Architecture Requirements
-
-- On-device Processing
-  - FT-105: Architecture constraints
-  - FT-130: Rust core setup (WASM-ready)
-  - FT-231: Local LM (no cloud)
-
-### Performance Requirements
-
-- Latency (p95 ≤ 15ms)
-  - FT-410: Performance monitoring
-  - FT-411: Rust benchmarks
-
-- Memory (≤ 150MB typical)
-  - FT-420: Memory optimization
-  - FT-422: Memory tracking harness
-  - FT-231: LM memory constraints
-
-### Success Metrics
-
-- Undo rate ≤ 0.5%
-  - FT-421: Undo-rate instrumentation
-
-- Activation ≥ 70% (week 1), NPS ≥ 50
-  - FT-906: Measurement plan (demo/backlog)
-
-### Completion Criteria
-
-Stage completion requires:
-
-1. All tasks marked complete
-2. Tests passing (100% coverage for core)
-3. Performance targets met
-4. Accessibility compliance verified
-5. Documentation updated
+       **AC:** Tests for caret safety and streaming diffusion mapped to `
