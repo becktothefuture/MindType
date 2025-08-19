@@ -22,11 +22,11 @@ interface MinimalGlobal {
   CustomEvent?: MinimalCustomEventCtor;
 }
 
-export function renderHighlight(_range: { start: number; end: number }) {
+export function renderHighlight(_range: { start: number; end: number; text?: string }) {
   const g = globalThis as unknown as MinimalGlobal;
   if (g.dispatchEvent && g.CustomEvent) {
     const event = new g.CustomEvent('mindtyper:highlight', {
-      detail: { start: _range.start, end: _range.end },
+      detail: { start: _range.start, end: _range.end, text: _range.text },
     });
     g.dispatchEvent(event);
   }

@@ -1,20 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import init, {
-  WasmPauseTimer,
-  init_logger,
-  get_logs,
-  WasmFragmentExtractor,
-  WasmStubStream,
-  WasmMerger,
-} from "@mindtype/core";
 import "./App.css";
 import DebugPanel from "./components/DebugPanel";
 import { SCENARIOS } from "./scenarios";
 // TS pipeline imports
 import { boot } from "../../index";
-import { createQwenTokenStreamer } from "../../core/lm/transformersRunner";
-import { createTransformersAdapter } from "../../core/lm/transformersClient";
-import { selectSpanAndPrompt, postProcessLMOutput } from "../../core/lm/policy";
+// LM integration is driven by core pipeline (future task). Demo remains rules-only.
 import {
   getTypingTickMs,
   setTypingTickMs,
@@ -87,7 +77,7 @@ function App() {
   const [scenarioId, setScenarioId] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState<number>(0);
   const [idleMs, setIdleMs] = useState(1000);
-  const [useWasmDemo, setUseWasmDemo] = useState(false);
+  // Legacy WASM demo removed
   const [tickMs, setTickMs] = useState<number>(getTypingTickMs());
   const [minBand, setMinBand] = useState<number>(getMinValidationWords());
   const [maxBand, setMaxBand] = useState<number>(getMaxValidationWords());
@@ -112,52 +102,29 @@ function App() {
       },
     }),
   );
-  const [pauseTimer, setPauseTimer] = useState<WasmPauseTimer | null>(null);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isThinking, setIsThinking] = useState(false);
+  // WASM demo removed; pause state unused in rules-only demo
   const [showDebugPanel, setShowDebugPanel] = useState(false);
-  const [wasmInitialized, setWasmInitialized] = useState(false);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [lmPrompt, setLmPrompt] = useState<string>("");
-  const [lmOutput, setLmOutput] = useState<string>("");
-  const [lmBand, setLmBand] = useState<{ start: number; end: number } | null>(null);
-  // FT-316 additions
-  const [lmMode, setLmMode] = useState<'rules' | 'lm'>('lm');
-  const [perfStartMs, setPerfStartMs] = useState<number | null>(null);
-  const [lastLatencyMs, setLastLatencyMs] = useState<number | null>(null);
-  const [lmLoaded, setLmLoaded] = useState(false);
-  const [localOnly, setLocalOnly] = useState(false);
-  const [backend, setBackend] = useState<string>("-");
-  const [metrics, setMetrics] = useState({ prompts: 0, completes: 0, aborts: 0, staleDrops: 0, autoDegraded: false });
-  const [chaseDistance] = useState<number>(24);
+  const [logs] = useState<LogEntry[]>([]);
+  // reserved for LM-in-core chase policy
   const [isTyping, setIsTyping] = useState(false);
 
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const runnerRef = useRef<ReturnType<typeof createQwenTokenStreamer> | null>(null);
-  const lmTimerRef = useRef<number | null>(null);
   const caretRef = useRef<number>(0);
-  const adapterRef = useRef<any>(null);
-  const genCounterRef = useRef(0);
-  const lastCompleteRef = useRef<number>(0);
-  const latestBandRef = useRef<{ start: number; end: number } | null>(null);
   const typingGlowTimerRef = useRef<number | null>(null);
-  const inFlightRef = useRef<boolean>(false);
-  const lastScheduleAtRef = useRef<number>(0);
-  const lmLoadingRef = useRef<boolean>(false);
 
   function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const v = e.target.value;
     setText(v);
     caretRef.current = e.target.selectionStart ?? v.length;
     const caret = e.target.selectionStart ?? v.length;
-    const prevChar = caret > 0 ? v[caret - 1] : '';
-    const isBoundary = /[\s\.!?;,\)\]]/.test(prevChar);
+    // boundary hint reserved for future LM-in-core
     // glow on key input
     setIsTyping(true);
     if (typingGlowTimerRef.current) window.clearTimeout(typingGlowTimerRef.current);
     typingGlowTimerRef.current = window.setTimeout(() => setIsTyping(false), 1200);
-    scheduleAutoLM(v, isBoundary ? 150 : 700);
+    // Feed the core pipeline (rules + diffusion visuals)
+    pipeline.ingest(v, caret);
   }
 
   function syncOverlayStyles() {
@@ -193,142 +160,12 @@ function App() {
     ov.style.height = cs.height;
   }
 
-  async function loadLM() {
-    try {
-      console.info('[LM] load start', { localOnly });
-      const streamer = createQwenTokenStreamer({
-        localOnly,
-        localModelPath: "/models/",
-        wasmPaths: "/wasm/",
-      });
-      const adapter = createTransformersAdapter(streamer);
-      pipeline.setLMAdapter(adapter as any);
-      adapterRef.current = adapter as any;
-      runnerRef.current = streamer;
-      setLmLoaded(true);
-      // Detect backend via adapter init
-      const caps = (adapter as any).init?.({});
-      if (caps?.backend) setBackend(String(caps.backend));
-      try {
-        let dummy = '';
-        for await (const c of streamer.generateStream({ prompt: 'Hello.', maxNewTokens: 8 })) {
-          dummy += c;
-          if (dummy.length > 8) break;
-        }
-      } catch {}
-    } catch {
-      console.error('[LM] load failed');
-      setLmLoaded(false);
-    }
-  }
-
-  function unloadLM() {
-    // swap back to a noop adapter to disable LM
-    pipeline.setLMAdapter({
-      async *stream() {},
-    } as any);
-    runnerRef.current = null;
-    adapterRef.current = null;
-    setLmLoaded(false);
-    setBackend("-");
-  }
+  // LM demo flow removed (handled by core in future tasks)
 
   // Ensure LM is loaded when Mode is LM (including initial mount)
-  useEffect(() => {
-    if (lmMode === 'lm' && !lmLoaded && !lmLoadingRef.current) {
-      lmLoadingRef.current = true;
-      void loadLM().finally(() => { lmLoadingRef.current = false; });
-    }
-  }, [lmMode, lmLoaded]);
+  // no-op; LM not controlled by the demo any more
 
-  function scheduleAutoLM(textValue: string, debounceMs = 500) {
-    const now = performance.now();
-    // Throttle schedule attempts
-    if (now - lastScheduleAtRef.current < 120) return;
-    lastScheduleAtRef.current = now;
-    // Avoid piling on while a generation is about to finish
-    if (inFlightRef.current && now - lastCompleteRef.current < 250) return;
-    if (lmTimerRef.current) window.clearTimeout(lmTimerRef.current);
-    if (!(lmMode === 'lm' && lmLoaded && runnerRef.current && textareaRef.current)) {
-      console.debug('[LM] skip', {
-        lmMode,
-        lmLoaded,
-        hasRunner: !!runnerRef.current,
-        hasTextarea: !!textareaRef.current,
-      });
-      return;
-    }
-    // Cancel any in-flight generation
-    try { adapterRef.current?.abort?.(); } catch {}
-    setMetrics((m) => ({ ...m, aborts: m.aborts + 1 }));
-    const myGen = ++genCounterRef.current;
-    // Trailing debounce; give user time to finish a word
-    lmTimerRef.current = window.setTimeout(async () => {
-      const tStart = performance.now();
-      const caretIndex = caretRef.current;
-      if (!runnerRef.current) return;
-      let chaseCaret = caretIndex;
-      if (latestBandRef.current) {
-        const end = latestBandRef.current.end;
-        chaseCaret = Math.max(0, Math.min(caretIndex, end + chaseDistance));
-      }
-      const sel = selectSpanAndPrompt(textValue, chaseCaret);
-      const band = sel.band;
-      const prompt = sel.prompt;
-      const span = sel.span;
-      const maxNewTokens = sel.maxNewTokens;
-      if (!band || !prompt || !span) return;
-      // Cooldown to prevent rapid consecutive merges
-      if (performance.now() - lastCompleteRef.current < 400) return;
-      console.info('[LM] prompt', { band, promptLength: span.length });
-      setMetrics((m) => ({ ...m, prompts: m.prompts + 1 }));
-      setLmBand(band);
-      setLmPrompt(prompt);
-      setLmOutput("");
-      let acc = "";
-      const bandLen = Math.max(1, band.end - band.start);
-      inFlightRef.current = true;
-      for await (const c of runnerRef.current.generateStream({ prompt, maxNewTokens })) {
-        acc += c;
-        setLmOutput(acc);
-        if (acc.length % 32 === 0) {
-          console.debug('[LM] chunk', { length: acc.length });
-        }
-      }
-      if (!acc) return;
-      const fixed = postProcessLMOutput(acc, bandLen);
-      const took = Math.round(performance.now() - tStart);
-      // Ignore stale generations (do not log as complete)
-      if (myGen !== genCounterRef.current) {
-        console.debug('[LM] drop stale generation');
-        setMetrics((m) => ({ ...m, staleDrops: m.staleDrops + 1 }));
-        inFlightRef.current = false;
-        return;
-      }
-      console.info('[LM] complete', { outLength: fixed.length, ms: took });
-      setMetrics((m) => ({ ...m, completes: m.completes + 1 }));
-      const next = textValue.slice(0, band.start) + fixed + textValue.slice(band.end);
-      const delta = fixed.length - (band.end - band.start);
-      setText(next);
-      lastCompleteRef.current = performance.now();
-      setPerfStartMs(null);
-      setLastLatencyMs(took);
-      // Auto-degrade if slow repeatedly
-      if (took > 5000) {
-        setMetrics((m) => ({ ...m, autoDegraded: true }));
-        // Optionally extend debounce/cooldown or temporarily switch to rules-only
-      }
-      // restore caret after React update
-      requestAnimationFrame(() => {
-        const ta = textareaRef.current;
-        if (!ta) return;
-        const newCaret = Math.max(0, Math.min(next.length, caretIndex + delta));
-        ta.setSelectionRange(newCaret, newCaret);
-        caretRef.current = newCaret;
-        inFlightRef.current = false;
-      });
-    }, debounceMs);
-  }
+  // LM scheduling removed from demo
 
   function syncOverlayScroll() {
     const ta = textareaRef.current;
@@ -338,19 +175,7 @@ function App() {
     ov.scrollLeft = ta.scrollLeft;
   }
 
-  // 1. Initialize WASM module (optional demo mode)
-  useEffect(() => {
-    if (!useWasmDemo) return;
-    async function loadWasm() {
-      await init();
-      init_logger();
-      console.log("WASM module initialized.");
-      setWasmInitialized(true);
-    }
-    loadWasm();
-  }, [useWasmDemo]);
-
-  // 1b. Start TS pipeline
+  // Start TS pipeline
   useEffect(() => {
     pipeline.start();
     return () => pipeline.stop();
@@ -364,13 +189,7 @@ function App() {
     };
   }, [pipeline]);
 
-  // 2. Create and recreate the pause timer when settings change (WASM demo only)
-  useEffect(() => {
-    if (useWasmDemo && wasmInitialized) {
-      const timer = new WasmPauseTimer(BigInt(idleMs));
-      setPauseTimer(timer);
-    }
-  }, [idleMs, wasmInitialized, useWasmDemo]);
+  // WASM demo removed
 
   // Scenario step-through: progressively reveal scenario.raw
   useEffect(() => {
@@ -414,55 +233,7 @@ function App() {
     };
   }, []);
 
-  // 4. WASM demo correction flow, triggered by pause (disabled by default)
-  useEffect(() => {
-    async function runCorrection() {
-      if (useWasmDemo && isPaused && wasmInitialized) {
-        console.log("Correction logic triggered.");
-        setIsThinking(true);
-        const extractor = new WasmFragmentExtractor();
-        const fragment = extractor.extract_fragment(text);
-
-        if (fragment) {
-          console.log(`Fragment found: "${fragment}"`);
-          const replacementText = "This is a corrected sentence. ";
-          let stream = new WasmStubStream(replacementText);
-
-          // For simplicity, we replace the last fragment.
-          // A real implementation would be more complex.
-          const fragmentIndex = text.lastIndexOf(fragment);
-          if (fragmentIndex !== -1) {
-            const prefix = text.substring(0, fragmentIndex);
-            let merger = new WasmMerger(prefix);
-
-            let token = await stream.next_token();
-            while (token) {
-              merger.apply_token(token);
-              token = await stream.next_token();
-            }
-            setText(merger.get_result());
-          }
-        } else {
-          console.log("No fragment found to correct.");
-        }
-        // Reset pause state to prevent re-triggering
-        setIsPaused(false);
-        setIsThinking(false);
-      }
-    }
-    runCorrection();
-  }, [isPaused, wasmInitialized, text, useWasmDemo]);
-
-  // 5. Poll for pause state (WASM demo only)
-  useEffect(() => {
-    if (!useWasmDemo || !pauseTimer) return;
-    const interval = setInterval(() => {
-      if (pauseTimer.is_paused()) {
-        setIsPaused(true);
-      }
-    }, 200);
-    return () => clearInterval(interval);
-  }, [pauseTimer, useWasmDemo]);
+  // WASM demo correction flow removed
 
   // 5b. Wire UI event listeners for visualization from TS pipeline
   useEffect(() => {
@@ -488,7 +259,6 @@ function App() {
           const band = escapeHtml(t.slice(adjusted.start, adjusted.end));
           const after = escapeHtml(t.slice(adjusted.end));
           ov.innerHTML = `${before}<span class="band">${band || "\u200b"}</span>${after}`;
-          latestBandRef.current = { start: adjusted.start, end: adjusted.end };
         }
       };
       if (bandDelayMs > 0) setTimeout(apply, bandDelayMs);
@@ -501,10 +271,7 @@ function App() {
       };
       setLastHighlight({ start, end });
       setTimeout(() => setLastHighlight(null), 800);
-      if (perfStartMs != null) {
-        setLastLatencyMs(Date.now() - perfStartMs);
-        setPerfStartMs(null);
-      }
+      // latency metrics removed in rules-only demo
     };
     window.addEventListener("mindtyper:validationBand", onBand as EventListener);
     window.addEventListener("mindtyper:highlight", onHighlight as EventListener);
@@ -567,16 +334,7 @@ function App() {
     };
   }, []);
 
-  // 7. Log fetching for debug panel
-  useEffect(() => {
-    if (showDebugPanel && wasmInitialized) {
-      const interval = setInterval(() => {
-        const newLogs = get_logs() as LogEntry[];
-        setLogs(newLogs);
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [showDebugPanel, wasmInitialized]);
+  // Debug logs (WASM logger removed) — keep UI panel without logs source
 
   return (
     <div className="App">
@@ -636,14 +394,13 @@ function App() {
         )}
         <p>
           <i>
-            Type to see the validation band trail behind your cursor. Pause for {idleMs}ms to watch diffusion catch up.
+            Type to see the validation band trail behind your cursor. The engine catches up after a short pause.
           </i>
         </p>
-        {isThinking && <p className="thinking-indicator">Thinking...</p>}
       </div>
 
       {showDebugPanel && (
-        <DebugPanel idleMs={idleMs} onIdleMsChange={setIdleMs} logs={logs} lmDebug={{ prompt: lmPrompt, output: lmOutput, band: lmBand }} metrics={{ ...metrics, backend, lastLatencyMs }} />
+        <DebugPanel idleMs={idleMs} onIdleMsChange={setIdleMs} logs={logs} />
       )}
 
       <div className="card" style={{ marginTop: 16 }}>
@@ -677,41 +434,7 @@ function App() {
               }}>Apply corrected</button>
             </>
           )}
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <select
-              aria-label="Mode"
-              value={lmMode}
-              onChange={(e) => {
-                const v = e.target.value as 'rules' | 'lm';
-                setLmMode(v);
-                if (v === 'lm' && !lmLoaded) {
-                  loadLM();
-                }
-              }}
-            >
-              <option value="rules">Rules only</option>
-              <option value="lm">LM</option>
-            </select>
-            Mode
-          </label>
-          {lmMode === 'lm' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <input
-                  type="checkbox"
-                  checked={localOnly}
-                  onChange={(e) => setLocalOnly(e.target.checked)}
-                />
-                Local models only
-              </label>
-              {!lmLoaded ? (
-                <button onClick={loadLM}>Load LM</button>
-              ) : (
-                <button onClick={unloadLM}>Unload LM</button>
-              )}
-              <span>Backend: {backend}</span>
-            </div>
-          )}
+          {/* LM controls removed until LM-in-core lands */}
           <label>
             Tick (ms): {tickMs}
             <input
@@ -749,14 +472,7 @@ function App() {
               }
             />
           </label>
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <input
-              type="checkbox"
-              checked={useWasmDemo}
-              onChange={(e) => setUseWasmDemo(e.target.checked)}
-            />
-            Use WASM demo corrections (legacy)
-          </label>
+          {/* WASM demo toggle removed */}
           <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <input
               type="checkbox"
@@ -792,12 +508,7 @@ function App() {
           </label>
           <button
             onClick={() => {
-              const preset = {
-                tickMs,
-                minBand,
-                maxBand,
-                useWasmDemo,
-              };
+              const preset = { tickMs, minBand, maxBand };
               navigator.clipboard?.writeText(JSON.stringify(preset)).catch(() => {});
             }}
           >
@@ -812,18 +523,14 @@ function App() {
                 if (typeof p.tickMs === 'number') setTickMs(p.tickMs);
                 if (typeof p.minBand === 'number') setMinBand(p.minBand);
                 if (typeof p.maxBand === 'number') setMaxBand(p.maxBand);
-                if (typeof p.useWasmDemo === 'boolean') setUseWasmDemo(p.useWasmDemo);
+                // WASM preset ignored
               } catch {}
             }}
           >
             Import preset
           </button>
         </div>
-        <div style={{ marginTop: 8 }}>
-          <small>
-            {lastLatencyMs != null ? `Last keystroke→highlight latency: ${lastLatencyMs} ms` : 'Interact to record latency'}
-          </small>
-        </div>
+        {/* Latency metrics removed */}
       </div>
     </div>
   );

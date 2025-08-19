@@ -8,20 +8,14 @@ describe("App", () => {
     expect(headline).toBeInTheDocument();
   });
 
-  it("shows and toggles mode select (rules vs LM)", () => {
-    render(<App />);
-    const select = screen.getByLabelText("Mode") as HTMLSelectElement;
-    expect(select.value).toBe("rules");
-    fireEvent.change(select, { target: { value: "lm" } });
-    expect(select.value).toBe("lm");
-  });
+  // LM controls removed; core handles LM integration
 
   it("copies and imports presets without throwing", async () => {
     render(<App />);
     const copyBtn = screen.getByText(/Copy preset/i);
     fireEvent.click(copyBtn);
     // Mock prompt return for import
-    const stub = { tickMs: 100, minBand: 2, maxBand: 6, useWasmDemo: false };
+    const stub = { tickMs: 100, minBand: 2, maxBand: 6 };
     const spy = vi.spyOn(window, "prompt").mockReturnValue(JSON.stringify(stub));
     const importBtn = screen.getByText(/Import preset/i);
     fireEvent.click(importBtn);
