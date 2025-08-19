@@ -129,7 +129,7 @@ function App() {
   const [localOnly, setLocalOnly] = useState(false);
   const [backend, setBackend] = useState<string>("-");
   const [metrics, setMetrics] = useState({ prompts: 0, completes: 0, aborts: 0, staleDrops: 0, autoDegraded: false });
-  const [chaseDistance, setChaseDistance] = useState<number>(24);
+  const [chaseDistance] = useState<number>(24);
   const [isTyping, setIsTyping] = useState(false);
 
   const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -144,6 +144,7 @@ function App() {
   const typingGlowTimerRef = useRef<number | null>(null);
   const inFlightRef = useRef<boolean>(false);
   const lastScheduleAtRef = useRef<number>(0);
+  const lmLoadingRef = useRef<boolean>(false);
 
   function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const v = e.target.value;
@@ -192,19 +193,6 @@ function App() {
     ov.style.height = cs.height;
   }
 
-  function computeSimpleBand(textValue: string, caretIndex: number) {
-    // take last ~5 word-like chunks behind caret, bounded to [0, caret)
-    const left = textValue.slice(0, caretIndex);
-    const parts = left.split(/(\b)/g); // keep boundaries
-    let words = 0;
-    let i = parts.length - 1;
-    while (i >= 0 && words < 10) {
-      if (/\w+/.test(parts[i])) words++;
-      i--;
-    }
-    const start = Math.max(0, left.lastIndexOf(parts[Math.max(0, i + 1)] ?? ""));
-    return { start: isNaN(start) ? Math.max(0, caretIndex - 50) : start, end: caretIndex };
-  }
   async function loadLM() {
     try {
       console.info('[LM] load start', { localOnly });
@@ -247,8 +235,9 @@ function App() {
 
   // Ensure LM is loaded when Mode is LM (including initial mount)
   useEffect(() => {
-    if (lmMode === 'lm' && !lmLoaded) {
-      void loadLM();
+    if (lmMode === 'lm' && !lmLoaded && !lmLoadingRef.current) {
+      lmLoadingRef.current = true;
+      void loadLM().finally(() => { lmLoadingRef.current = false; });
     }
   }, [lmMode, lmLoaded]);
 
@@ -283,7 +272,7 @@ function App() {
         const end = latestBandRef.current.end;
         chaseCaret = Math.max(0, Math.min(caretIndex, end + chaseDistance));
       }
-      const sel = selectSpanAndPrompt(textValue, chaseCaret, { ...defaultLMBehaviorConfig, enforceWordBoundaryAtEnd: true });
+      const sel = selectSpanAndPrompt(textValue, chaseCaret);
       const band = sel.band;
       const prompt = sel.prompt;
       const span = sel.span;

@@ -24,6 +24,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
   onIdleMsChange,
   logs,
   lmDebug,
+  metrics,
 }) => {
   const [activeTab, setActiveTab] = useState<Tab>("Logs");
 
