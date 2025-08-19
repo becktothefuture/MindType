@@ -95,3 +95,166 @@
 3. `docs/guide/reference/band-policy.md` (render vs context)
 4. `docs/guide/reference/injector.md` (how hosts apply diffs)
 5. `docs/guide/reference/rust-merge.md` (low‑level merge safety)
+
+---
+
+## Zoom in: Why “diffusion” instead of “big apply”
+
+- **Diffusion**: validate/apply one word at a time in a trailing band.
+  - **Why**: micro‑edits feel instant, are safer, and match undo semantics.
+  - **Feels like**: video streaming – you get a usable picture early, it
+    sharpens as data arrives.
+- **Big apply**: compute whole‑sentence rewrite and slam it in.
+  - **Risk**: caret jumps, multi‑undo spam, visible snap, conflict on resume.
+- **Outcome**: small patches keep flow, reduce conflict, and are much easier
+  to abort/rollback when the user keeps typing.
+
+## Validation band: design choices that matter
+
+- **Human‑visible bound**: shows where we are “sure” right now.
+- **Word‑bounded**: never ends mid‑word; optimizes both UX and model prompts.
+- **Size**: 3–8 words defaults hit a sweet spot (signal vs latency). Tunable.
+- **Line‑aware**: render range avoids crossing fresh newlines for stability.
+  See `docs/guide/reference/band-policy.md`.
+
+## Caret safety: the core invariant
+
+- **Rule**: never touch at/after the caret. This is enforced centrally.
+- **TS implementation**:
+
+```17:33:utils/diff.ts
+export function replaceRange(
+  original: string,
+  start: number,
+  end: number,
+  text: string,
+  caret: number,
+): string {
+  if (start < 0 || end < start || end > original.length) {
+    throw new Error('Invalid range');
+  }
+  // ⟢ Guard: never allow edits that reach or cross the caret
+  if (end > caret) {
+    throw new Error('Range crosses caret');
+  }
+```
+
+- **Unicode safety**: also guards surrogate pairs so we never split emoji or
+  compound graphemes.
+- **Rust parity**: `apply_span` will mirror these checks and be the canonical
+  engine for hosts. See `docs/guide/reference/rust-merge.md`.
+
+## LM policy: tight prompts, small outputs, strict merges
+
+- **Span selection**: pick a short span near the caret, end on a boundary.
+
+```41:56:core/lm/policy.ts
+export function selectSpanAndPrompt(
+  text: string,
+  caret: number,
+  cfg: LMBehaviorConfig = defaultLMBehaviorConfig,
+): SpanAndPrompt {
+  const band = computeSimpleBand(text, caret);
+  if (!band) return { band: null, prompt: null, span: null, maxNewTokens: 0 };
+  const span = text.slice(band.start, band.end);
+  if (span.length < cfg.minSpanChars)
+    return { band: null, prompt: null, span: null, maxNewTokens: 0 };
+```
+
+- **Prompt template** (no stories, only the fix):
+
+```60:67:core/lm/policy.ts
+  const instruction =
+    'Correct ONLY the Span. Do not add explanations or extra words. Return just the corrected Span.';
+  const prompt = `${instruction}\nContext before: «${ctxBefore}»\nSpan: «${span}»\nContext after: «${ctxAfter}»`;
+  const maxNewTokens = Math.min(
+    Math.ceil(span.length * cfg.maxTokensFactor) + 6,
+    cfg.maxTokensCap,
+  );
+```
+
+- **Streaming**: tokens are accumulated and then merged only within the band.
+- **Abort/stale‑drop**: any new keystroke cancels the in‑flight generation.
+- **Precedence**: structural fixes (rules) beat semantic rewrites (LM) when
+  they collide, because structure changes alter tokenization.
+
+## Events and visuals: what the host listens for
+
+- **Validation band**: consistent signal for UI and a11y.
+
+```35:44:ui/highlighter.ts
+export function renderValidationBand(_range: { start: number; end: number }) {
+  const g = globalThis as unknown as MinimalGlobal;
+  if (g.dispatchEvent && g.CustomEvent) {
+    const event = new g.CustomEvent('mindtyper:validationBand', {
+      detail: { start: _range.start, end: _range.end },
+    });
+    g.dispatchEvent(event);
+  }
+}
+```
+
+- **Highlight**: transient flash when a diff is applied – useful for learning
+  and perf measurement.
+
+## Timing: a feel‑good timeline (typical)
+
+- 0 ms: keydown → `TypingMonitor.emit`
+- ~0–4 ms: `SweepScheduler` ticks, `DiffusionController.tickOnce`
+- ~4–10 ms: band recomputed; rules propose a tiny diff (or advance frontier)
+- ~10–16 ms: `renderValidationBand` dispatches; UI paints at next frame
+- 500 ms idle: `catchUp()` finalizes the band up to the caret
+- LM on idle: span prompt built, stream/merge happens strictly within band
+
+## macOS injection (how text actually changes)
+
+- **AX APIs**: insert text diff where supported.
+- **Clipboard fallback**: copy replacement span + `Cmd‑V` if needed.
+- **Undo**: group LM/rule edits so one `Cmd‑Z` reverts the sweep.
+- See `docs/mac_app_details.md` and `docs/guide/reference/injector.md`.
+
+## Security & IME (when to do nothing)
+
+- **Secure fields**: password/credit‑card fields: engine is off.
+- **IME composition**: while composing (Japanese, Chinese, etc.), engine waits.
+- **Blur/Focus**: we abort streams on blur; resume on focus.
+
+## Performance budgets (PRD‑level)
+
+- **Latency**: p95 ≤ 15 ms on M‑series; ≤ 30 ms on Intel.
+- **Memory**: typical ≤ 150 MB; LM worker unloads if approaching limit.
+- **Jank**: LM runs in a Worker; UI thread stays smooth.
+
+## Tuning playbook (what to tweak first)
+
+- **Typing tick (ms)**: 60–90 ms feels lively; 120 ms for reduced‑motion.
+- **Band size**: start 3–8 words; enlarge only if LM is highly precise.
+- **Cooldown**: 300–500 ms after a merge to avoid spam.
+
+## How we know it works (tests you can trust)
+
+- **Unit**: caret safety, surrogate pairs, policy guards, device detection.
+- **Integration**: diffusion ticks, band trailing, catch‑up on pause.
+- **BDD**: acceptance scenarios for streamed diffusion and local LM.
+- **E2E**: web demo Playwright (soon) and macOS sample app.
+
+## Common pitfalls (we fixed or prevented)
+
+- Mid‑word edits: banned by policy; wait for a boundary.
+- Large rewrites: token cap and span cap; stream only inside band.
+- Caret jumps: injector preserves caret; diffs never reach it.
+- Over‑correction: confidence gating and rules‑first precedence.
+
+## Roadmap (what’s next)
+
+- FT‑234/235: LM‑in‑controller + Injector abstraction (host‑agnostic).
+- FT‑238: LM Worker with memory guard and graceful degradation.
+- FT‑134: Rust caret‑safe merge + FFI.
+- FT‑400+ mac shell: menu bar toggle, AX injector, undo grouping.
+
+## Glossary (first‑pass)
+
+- **Validation band**: trailing region where we are “confident now”.
+- **Frontier**: leftmost index not yet validated – it chases the caret.
+- **Span**: the exact sub‑range we propose to replace (inside the band).
+- **Caret‑safe**: no change at/after the caret, Unicode boundaries respected.
