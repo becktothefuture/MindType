@@ -62,6 +62,8 @@ export class BurstSystem {
     this.size1 = new Float32Array(this.max);
     this.color = new Float32Array(this.max * 3);
     this.alphaBase = new Float32Array(this.max);
+    this.seed = new Float32Array(this.max);
+    this.impulse = new Float32Array(this.max);
 
     this.active = 0; // number of active particles
     this.head = 0; // ring buffer head (oldest)
@@ -74,16 +76,22 @@ export class BurstSystem {
     geom.setAttribute('aSize1', new THREE.BufferAttribute(this.size1, 1));
     geom.setAttribute('color', new THREE.BufferAttribute(this.color, 3));
     geom.setAttribute('aAlphaBase', new THREE.BufferAttribute(this.alphaBase, 1));
+    geom.setAttribute('aSeed', new THREE.BufferAttribute(this.seed, 1));
+    geom.setAttribute('aImpulse', new THREE.BufferAttribute(this.impulse, 1));
 
     const mat = new THREE.ShaderMaterial({
-      uniforms: { uMap: { value: particleTexture } },
+      uniforms: { uMap: { value: particleTexture }, uTime: { value: 0 } },
       vertexShader: `
         precision mediump float;
-        attribute float aAge; attribute float aLife; attribute float aSize0; attribute float aSize1; attribute float aAlphaBase;
-        varying float vAlpha; varying vec3 vColor;
+        attribute float aAge; attribute float aLife; attribute float aSize0; attribute float aSize1; attribute float aAlphaBase; attribute float aSeed; attribute float aImpulse;
+        uniform float uTime;
+        varying float vAlpha; varying vec3 vColor; varying float vSeed;
         void main(){
           float t = clamp(aAge / aLife, 0.0, 1.0);
-          float size = mix(aSize0, aSize1, t);
+          // eased expansion with simple physics-like impulse release
+          float ease = smoothstep(0.0, 1.0, t);
+          float phys = aImpulse * exp(-3.0 * t);
+          float size = mix(aSize0, aSize1, ease) + phys;
           // Ease-out curve: slower fade, longer linger time
           float fadeStart = 0.4; // fade begins at 40% of lifetime
           float easedAlpha = t < fadeStart ? 1.0 : 1.0 - pow((t - fadeStart) / (1.0 - fadeStart), 1.8);
@@ -94,14 +102,27 @@ export class BurstSystem {
           float luminance = dot(col, vec3(0.299, 0.587, 0.114));
           vec3 saturated = mix(vec3(luminance), col, 1.0 + (t * 0.5)); // increase saturation over time
           vColor = clamp(saturated, 0.0, 1.0);
+          // Mild organic size wobble per particle seed
+          float wob = 1.0 + 0.12 * sin(uTime * 1.7 + aSeed * 6.283 + t * 2.0);
           vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = size * (300.0 / -mvPosition.z);
+          gl_PointSize = size * wob * (300.0 / -mvPosition.z);
           gl_Position = projectionMatrix * mvPosition;
+          vSeed = aSeed;
         }
       `,
       fragmentShader: `
-        precision mediump float; uniform sampler2D uMap; varying float vAlpha; varying vec3 vColor;
-        void main(){ vec2 uvp = gl_PointCoord; float tex = texture2D(uMap, uvp).a; vec2 uv = uvp - 0.5; float d = length(uv); float soft = smoothstep(0.5, 0.0, d); float a = vAlpha * soft * tex; gl_FragColor = vec4(vColor, a); }
+        precision mediump float; uniform sampler2D uMap; uniform float uTime; varying float vAlpha; varying vec3 vColor; varying float vSeed;
+        // tiny hash for dithering
+        float hash12(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
+        void main(){
+          vec2 uvp = gl_PointCoord; float tex = texture2D(uMap, uvp).a; vec2 uv = uvp - 0.5; float d = length(uv);
+          float soft = smoothstep(0.5, 0.0, d);
+          float baseA = vAlpha * soft * tex;
+          // subtle temporal dither to reduce banding
+          float n = hash12(gl_FragCoord.xy + vSeed * 256.0 + uTime * 60.0);
+          float a = baseA * (0.98 + 0.02 * n);
+          gl_FragColor = vec4(vColor, a);
+        }
       `,
       transparent: true,
       depthWrite: false,
@@ -120,6 +141,8 @@ export class BurstSystem {
     this.boostSize0 = new Float32Array(this.max);
     this.boostSize1 = new Float32Array(this.max);
     this.boostAlphaBase = new Float32Array(this.max);
+    this.boostSeed = new Float32Array(this.max);
+    this.boostImpulse = new Float32Array(this.max);
     const g2 = new THREE.BufferGeometry();
     g2.setAttribute('position', new THREE.BufferAttribute(this.boostPositions, 3));
     g2.setAttribute('aAge', new THREE.BufferAttribute(this.boostAge, 1));
@@ -127,15 +150,20 @@ export class BurstSystem {
     g2.setAttribute('aSize0', new THREE.BufferAttribute(this.boostSize0, 1));
     g2.setAttribute('aSize1', new THREE.BufferAttribute(this.boostSize1, 1));
     g2.setAttribute('aAlphaBase', new THREE.BufferAttribute(this.boostAlphaBase, 1));
+    g2.setAttribute('aSeed', new THREE.BufferAttribute(this.boostSeed, 1));
+    g2.setAttribute('aImpulse', new THREE.BufferAttribute(this.boostImpulse, 1));
     const m2 = new THREE.ShaderMaterial({
-      uniforms: { uMap: { value: particleTexture } },
+      uniforms: { uMap: { value: particleTexture }, uTime: { value: 0 } },
       vertexShader: `
         precision mediump float;
-        attribute float aAge; attribute float aLife; attribute float aSize0; attribute float aSize1; attribute float aAlphaBase;
-        varying float vAlpha; varying vec3 vBoostColor;
+        attribute float aAge; attribute float aLife; attribute float aSize0; attribute float aSize1; attribute float aAlphaBase; attribute float aSeed; attribute float aImpulse;
+        uniform float uTime;
+        varying float vAlpha; varying vec3 vBoostColor; varying float vSeed;
         void main(){
           float t = clamp(aAge / aLife, 0.0, 1.0);
-          float size = mix(aSize0, aSize1, t);
+          float ease = smoothstep(0.0, 1.0, t);
+          float phys = aImpulse * exp(-3.0 * t);
+          float size = mix(aSize0, aSize1, ease) + phys;
           // Same ease-out curve for boost particles
           float fadeStart = 0.4;
           float easedAlpha = t < fadeStart ? 1.0 : 1.0 - pow((t - fadeStart) / (1.0 - fadeStart), 1.8);
@@ -145,14 +173,17 @@ export class BurstSystem {
           vec3 baseColor = vec3(0.2, 0.8, 0.9); // saturated cyan-teal
           float satBoost = 1.0 + (t * 0.3);
           vBoostColor = baseColor * satBoost;
+          float wob = 1.0 + 0.10 * sin(uTime * 1.3 + aSeed * 6.283 + t * 1.6);
           vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = size * (300.0 / -mvPosition.z);
+          gl_PointSize = size * wob * (300.0 / -mvPosition.z);
           gl_Position = projectionMatrix * mvPosition;
+          vSeed = aSeed;
         }
       `,
       fragmentShader: `
-        precision mediump float; uniform sampler2D uMap; varying float vAlpha; varying vec3 vBoostColor;
-        void main(){ vec2 uvp = gl_PointCoord; float tex = texture2D(uMap, uvp).a; vec2 uv = uvp - 0.5; float d = length(uv); float soft = smoothstep(0.5, 0.0, d); float a = vAlpha * soft * tex * 0.6; gl_FragColor = vec4(vBoostColor, a); }
+        precision mediump float; uniform sampler2D uMap; uniform float uTime; varying float vAlpha; varying vec3 vBoostColor; varying float vSeed;
+        float hash12(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
+        void main(){ vec2 uvp = gl_PointCoord; float tex = texture2D(uMap, uvp).a; vec2 uv = uvp - 0.5; float d = length(uv); float soft = smoothstep(0.5, 0.0, d); float baseA = vAlpha * soft * tex * 0.6; float n = hash12(gl_FragCoord.xy + vSeed * 256.0 + uTime * 60.0); float a = baseA * (0.98 + 0.02 * n); gl_FragColor = vec4(vBoostColor, a); }
       `,
       transparent: true,
       depthWrite: false,
@@ -181,6 +212,10 @@ export class BurstSystem {
       this.boostSize0[i] = 0;
       this.boostSize1[i] = 0;
       this.boostAlphaBase[i] = 0;
+      this.seed[i] = Math.random();
+      this.boostSeed[i] = Math.random();
+      this.impulse[i] = 0;
+      this.boostImpulse[i] = 0;
       this.boostPositions[i3] =
         this.boostPositions[i3 + 1] =
         this.boostPositions[i3 + 2] =
@@ -214,6 +249,7 @@ export class BurstSystem {
         this.config.particles.countScale,
     );
     const speed = lerp(0.6, 2.8, intensity) * lerp(0.5, 3.0, xy.y);
+    // Restore organic emission: random unit direction modulated by bias
     const size0 = lerp(10, 20, intensity) * this.config.particles.sizeScale;
     const size1 = lerp(0, 8, intensity * 0.6) * this.config.particles.sizeScale;
 
@@ -225,19 +261,35 @@ export class BurstSystem {
     for (let k = 0; k < mainIdx.length; k++) {
       const i = mainIdx[k];
       const i3 = i * 3;
-      this.positions[i3] = 0;
-      this.positions[i3 + 1] = 0;
+      // small spawn jitter to break symmetry
+      // User-controlled origin offset
+      const ox = this.config.particles.originX || 0.0;
+      const oy = this.config.particles.originY || 0.0;
+      this.positions[i3] = ox + randRange(-0.05, 0.05);
+      this.positions[i3 + 1] = oy + randRange(-0.05, 0.05);
       this.positions[i3 + 2] = 0;
       this.age[i] = 0;
-      const life = randRange(2.7, 4.8) * lerp(0.9, 1.1, xy.x); // 3x longer lifespan
+      const life =
+        randRange(2.7, 4.8) *
+        lerp(0.9, 1.1, xy.x) *
+        (this.config.particles.lifeScale || 1.0);
       this.life[i] = life;
       this.size0[i] = size0;
       this.size1[i] = size1;
 
-      randUnitVec2(this._dir);
       const spread = lerp(0.6, 1.0, xy.y);
-      const vx = this._dir[0] * speed * spread;
-      const vy = this._dir[1] * speed * spread;
+      const motionScale = this.config.particles.motionScale || 1.0;
+      // Organic direction: random unit vector, small jitter
+      randUnitVec2(this._dir);
+      let dx = this._dir[0] + randRange(-0.02, 0.02);
+      let dy = this._dir[1] + randRange(-0.02, 0.02);
+      const invLen = 1.0 / Math.max(1e-6, Math.hypot(dx, dy));
+      dx *= invLen;
+      dy *= invLen;
+      let vx = dx * speed * spread * motionScale;
+      let vy = dy * speed * spread * motionScale;
+      const minDown = -0.2 * speed * spread * motionScale;
+      if (vy < minDown) vy = minDown;
       this.velocities[i3] = vx;
       this.velocities[i3 + 1] = vy;
       this.velocities[i3 + 2] = 0;
@@ -262,6 +314,8 @@ export class BurstSystem {
         this.config.particles.brightnessScale *
         glowBoost *
         (0.6 + 0.4 * energy);
+      this.seed[i] = Math.random();
+      this.impulse[i] = lerp(0.6, 1.6, intensity) * (0.6 + 0.6 * xy.y);
     }
 
     // Bloom booster particles (subset)
@@ -272,11 +326,14 @@ export class BurstSystem {
     for (let k = 0; k < boostIdx.length; k++) {
       const i = boostIdx[k];
       const i3 = i * 3;
-      this.boostPositions[i3] = 0;
-      this.boostPositions[i3 + 1] = 0;
+      this.boostPositions[i3] = randRange(-0.04, 0.04);
+      this.boostPositions[i3 + 1] = randRange(-0.04, 0.04);
       this.boostPositions[i3 + 2] = 0;
       this.boostAge[i] = 0;
-      const life = randRange(2.7, 4.8) * lerp(0.9, 1.1, xy.x); // 3x longer lifespan for boost too
+      const life =
+        randRange(2.7, 4.8) *
+        lerp(0.9, 1.1, xy.x) *
+        (this.config.particles.lifeScale || 1.0);
       this.boostLife[i] = life;
       this.boostSize0[i] = size0 * 1.8;
       this.boostSize1[i] = size1 * 1.8;
@@ -286,13 +343,23 @@ export class BurstSystem {
           : 1.0;
       this.boostAlphaBase[i] =
         0.22 * burstAlphaMul2 * this.config.particles.brightnessScale * glowBoost;
-      // Share velocity field for booster as slower drift
+      this.boostSeed[i] = Math.random();
+      // Booster uses same organic scheme but slower
+      const motionScale2 = this.config.particles.motionScale || 1.0;
       randUnitVec2(this._dir);
-      const vx = this._dir[0] * speed * 0.6;
-      const vy = this._dir[1] * speed * 0.6;
+      let dx2 = this._dir[0] + randRange(-0.02, 0.02);
+      let dy2 = this._dir[1] + randRange(-0.02, 0.02);
+      const invLen2 = 1.0 / Math.max(1e-6, Math.hypot(dx2, dy2));
+      dx2 *= invLen2;
+      dy2 *= invLen2;
+      let vx = dx2 * speed * 0.6 * motionScale2;
+      let vy = dy2 * speed * 0.6 * motionScale2;
+      const minDown2 = -0.2 * speed * 0.6 * motionScale2;
+      if (vy < minDown2) vy = minDown2;
       // Store in same velocity buffer for convenience (share motion)
       this.velocities[i3] = vx;
       this.velocities[i3 + 1] = vy;
+      this.boostImpulse[i] = lerp(0.4, 1.2, intensity) * (0.4 + 0.6 * xy.y);
     }
 
     // Mark attributes as needing update once after spawning
@@ -312,6 +379,10 @@ export class BurstSystem {
     gb.attributes.aSize0.needsUpdate = true;
     gb.attributes.aSize1.needsUpdate = true;
     gb.attributes.aAlphaBase.needsUpdate = true;
+    g.attributes.aSeed.needsUpdate = true;
+    gb.attributes.aSeed.needsUpdate = true;
+    g.attributes.aImpulse.needsUpdate = true;
+    gb.attributes.aImpulse.needsUpdate = true;
 
     // Update draw ranges to include all possibly active vertices
     this.points.geometry.setDrawRange(0, this.active);
@@ -321,7 +392,8 @@ export class BurstSystem {
   update(dt) {
     this.time += dt;
     const curlAmp = this.config.particles.curlAmp; // units/sec
-    const curlHz = 1.3;
+    const curlHz = 1.3 * (this.config.particles.motionScale || 1.0);
+    const drag = Math.max(0, this.config.particles.dragPerSec || 0);
 
     // Update main particles
     for (let i = 0; i < this.active; i++) {
@@ -341,16 +413,20 @@ export class BurstSystem {
         this.size1[i] = 0;
         continue;
       }
-      // Curl perturbation
+      // Curl perturbation with per-particle strength
       curl2(
         this._curl,
         this.positions[i3],
         this.positions[i3 + 1],
         this.time * curlHz,
-        curlAmp * dt,
+        curlAmp * dt * (0.5 + 0.8 * this.seed[i]),
       );
       this.velocities[i3] += this._curl[0];
       this.velocities[i3 + 1] += this._curl[1];
+      // Apply simple drag to slow motion
+      const damp = Math.exp(-drag * dt);
+      this.velocities[i3] *= damp;
+      this.velocities[i3 + 1] *= damp;
       // Integrate
       this.positions[i3] += this.velocities[i3] * dt;
       this.positions[i3 + 1] += this.velocities[i3 + 1] * dt;
@@ -374,6 +450,7 @@ export class BurstSystem {
         continue;
       }
       const i3 = i * 3;
+      // share velocities but also apply drag already applied above
       this.boostPositions[i3] += this.velocities[i3] * dt;
       this.boostPositions[i3 + 1] += this.velocities[i3 + 1] * dt;
     }
@@ -389,5 +466,8 @@ export class BurstSystem {
     // alpha base may have changed for recycled particles
     g.attributes.aAlphaBase.needsUpdate = true;
     gb.attributes.aAlphaBase.needsUpdate = true;
+    // Update shader time uniforms once per frame
+    this.points.material.uniforms.uTime.value = this.time;
+    this.boostPoints.material.uniforms.uTime.value = this.time;
   }
 }

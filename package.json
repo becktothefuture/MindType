@@ -13,7 +13,8 @@
     "ci": "pnpm typecheck && pnpm lint && pnpm run -s format:check && pnpm test",
     "posttest": "node scripts/coverage-guard.cjs",
     "dev": "vitest watch",
-    "prepare": "husky"
+    "prepare": "husky",
+    "setup:local": "node scripts/setup-local-assets.cjs"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,md,css,scss,json,mdx}": "prettier --write"

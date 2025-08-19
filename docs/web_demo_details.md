@@ -1,3 +1,91 @@
+<!--══════════════════════════════════════════════════
+  ╔══════════════════════════════════════════════════════╗
+  ║  ░  E T H E R E A L   T Y P I N G   D E M O  ░░░░░░░  ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ╚══════════════════════════════════════════════════════╝
+    • WHAT ▸ Deep dive into how the demo renders, performs, and persists
+    • WHY  ▸ Share the controls model + perf strategies for future work
+    • HOW  ▸ Three.js scene + custom shaders + versioned JSON config
+-->
+
+## Overview
+
+The demo renders luminous particle bursts under a frosted glass layer. It is designed for high visual quality at a stable frame rate, auto‑adapting to device capability.
+
+## Architecture
+
+- Scene: one Three.js `Points` system for main particles + one for low‑alpha boost.
+- Shaders: custom vertex/fragment with per‑particle impulse, wobble, and temporal dither.
+- Overlay: CSS frosted glass blur with dynamic grain.
+- Loop: single animation loop with time scaling and pixelRatio governor.
+- Persistence: full, versioned JSON config (`ethereal_config_v1`) in localStorage + cookie, plus legacy flat values for back‑compat.
+
+## Controls that influence animation
+
+- XY Pads
+  - Density/Energy: X increases emission density; Y increases energy (speed/size/life weights).
+  - Blur/Glow: X expands glass blur range; Y boosts glow/brightness mapping.
+  - Drift/Up Bias: X drifts clouds sideways; Y increases upward bias.
+- Sliders
+  - Light Strength: macro for brightness, count, size.
+  - Impact: per‑keypress brightness boost.
+  - Particle Count/Size, Min Saturation, Hue Jitter: granular tuning.
+  - Time Scale: scales sim delta without skewing FPS.
+  - Meter Gain/Decay, Burst Opacity: response curves for input energy.
+- Presets
+  - Mist, Aether, Dynamo; plus glass presets: Frosted, Deep Diffusion, Curved Lens.
+
+## Bias & Directionality
+
+- Upward bias: adds gentle vertical lift; range controlled by Drift/Up Bias pad (Y).
+- User drift: sideways drift from the same pad (X).
+- Keyboard‑side drift: left‑hand keys nudge rightwards, right‑hand keys nudge leftwards to simulate cross‑board energy flow. Combined with pad drift and normalized per‑particle.
+
+## Anti‑banding & Tonemap
+
+- Final full‑screen blit with filmic tonemap (ACES‑approx) + adaptive dithering.
+- Modes: ordered (Bayer) or white‑noise; automatically selected by capability/FPS.
+- Nearly invisible by default; Film option adds subtle chroma grain. Strength is in 1/255 units.
+
+## Performance strategies
+
+- PixelRatio governor raises/lowers `renderer.setPixelRatio` depending on rolling FPS (and a 120 Hz mode).
+- Single allocation of buffers; no per‑frame GC pressure.
+- Motion cost bounded by drag and curl fields; no heavy post‑FX chains.
+- HDR path uses Half/Float targets when available; falls back to 8‑bit RT while retaining tonemap + dithering.
+- Dither adapts: lowers strength and temporal components on slow devices.
+
+## Persistence & Import/Export
+
+- Builds a full config object: UI control values, pad positions, and engine tunables.
+- Saves to localStorage + cookie (for redundancy).
+- Import/Export via sidepanel JSON buttons.
+
+## Adding your own preset
+
+1. Create a preset handler that updates the UI sliders to the desired values.
+2. Optionally tune `CONFIG.particles` fields (motionScale, lifeScale, dragPerSec, upwardBias).
+3. Call `saveControls()` to persist.
+
+## Safety nets
+
+- All changes debounce into a robust config; legacy flat keys remain supported.
+- Strong clamps and defaults for sliders avoid invalid values.
+- Feature gates fall back gracefully when extensions are missing.
+
+## FAQ
+
+- Why not MSAA on 32F? Bandwidth/compat constraints; we avoid MSAA at 32F for perf stability.
+- Why ordered dither? Texture‑free and deterministic; ideal for low‑end while still effective.
+
 # Web Demo Walkthrough
 
 This document paints a picture of the interactive demo found at `/demo`. It explains how the web version of MindType behaves and how it showcases the core technology.

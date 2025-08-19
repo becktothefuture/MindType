@@ -1,19 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import init, {
-  WasmPauseTimer,
-  init_logger,
-  get_logs,
-  WasmFragmentExtractor,
-  WasmStubStream,
-  WasmMerger,
-} from "@mindtype/core";
 import "./App.css";
 import DebugPanel from "./components/DebugPanel";
 import { SCENARIOS } from "./scenarios";
 // TS pipeline imports
 import { boot } from "../../index";
-import { createQwenTokenStreamer } from "../../core/lm/transformersRunner";
-import { createTransformersAdapter } from "../../core/lm/transformersClient";
+// LM integration is driven by core pipeline (future task). Demo remains rules-only.
 import {
   getTypingTickMs,
   setTypingTickMs,
@@ -81,12 +72,12 @@ function computeNewlineSafeRange(
 
 function App() {
   const [text, setText] = useState(
-    "Hello there. Try typing a sentence and then pausing.",
+    "",
   );
   const [scenarioId, setScenarioId] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState<number>(0);
   const [idleMs, setIdleMs] = useState(1000);
-  const [useWasmDemo, setUseWasmDemo] = useState(false);
+  // Legacy WASM demo removed
   const [tickMs, setTickMs] = useState<number>(getTypingTickMs());
   const [minBand, setMinBand] = useState<number>(getMinValidationWords());
   const [maxBand, setMaxBand] = useState<number>(getMaxValidationWords());
@@ -111,22 +102,30 @@ function App() {
       },
     }),
   );
-  const [pauseTimer, setPauseTimer] = useState<WasmPauseTimer | null>(null);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isThinking, setIsThinking] = useState(false);
+  // WASM demo removed; pause state unused in rules-only demo
   const [showDebugPanel, setShowDebugPanel] = useState(false);
-  const [wasmInitialized, setWasmInitialized] = useState(false);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  // FT-316 additions
-  const [lmMode, setLmMode] = useState<'rules' | 'lm'>('rules');
-  const [perfStartMs, setPerfStartMs] = useState<number | null>(null);
-  const [lastLatencyMs, setLastLatencyMs] = useState<number | null>(null);
-  const [lmLoaded, setLmLoaded] = useState(false);
-  const [localOnly, setLocalOnly] = useState(false);
-  const [backend, setBackend] = useState<string>("-");
+  const [logs] = useState<LogEntry[]>([]);
+  // reserved for LM-in-core chase policy
+  const [isTyping, setIsTyping] = useState(false);
 
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const caretRef = useRef<number>(0);
+  const typingGlowTimerRef = useRef<number | null>(null);
+
+  function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const v = e.target.value;
+    setText(v);
+    caretRef.current = e.target.selectionStart ?? v.length;
+    const caret = e.target.selectionStart ?? v.length;
+    // boundary hint reserved for future LM-in-core
+    // glow on key input
+    setIsTyping(true);
+    if (typingGlowTimerRef.current) window.clearTimeout(typingGlowTimerRef.current);
+    typingGlowTimerRef.current = window.setTimeout(() => setIsTyping(false), 1200);
+    // Feed the core pipeline (rules + diffusion visuals)
+    pipeline.ingest(v, caret);
+  }
 
   function syncOverlayStyles() {
     const ta = textareaRef.current;
@@ -160,32 +159,13 @@ function App() {
     ov.style.width = cs.width;
     ov.style.height = cs.height;
   }
-  async function loadLM() {
-    try {
-      const streamer = createQwenTokenStreamer({
-        localOnly,
-        localModelPath: "/models/",
-        wasmPaths: "/wasm/",
-      });
-      const adapter = createTransformersAdapter(streamer);
-      pipeline.setLMAdapter(adapter as any);
-      setLmLoaded(true);
-      // Detect backend via adapter init
-      const caps = (adapter as any).init?.({});
-      if (caps?.backend) setBackend(String(caps.backend));
-    } catch {
-      setLmLoaded(false);
-    }
-  }
 
-  function unloadLM() {
-    // swap back to a noop adapter to disable LM
-    pipeline.setLMAdapter({
-      async *stream() {},
-    } as any);
-    setLmLoaded(false);
-    setBackend("-");
-  }
+  // LM demo flow removed (handled by core in future tasks)
+
+  // Ensure LM is loaded when Mode is LM (including initial mount)
+  // no-op; LM not controlled by the demo any more
+
+  // LM scheduling removed from demo
 
   function syncOverlayScroll() {
     const ta = textareaRef.current;
@@ -195,19 +175,7 @@ function App() {
     ov.scrollLeft = ta.scrollLeft;
   }
 
-  // 1. Initialize WASM module (optional demo mode)
-  useEffect(() => {
-    if (!useWasmDemo) return;
-    async function loadWasm() {
-      await init();
-      init_logger();
-      console.log("WASM module initialized.");
-      setWasmInitialized(true);
-    }
-    loadWasm();
-  }, [useWasmDemo]);
-
-  // 1b. Start TS pipeline
+  // Start TS pipeline
   useEffect(() => {
     pipeline.start();
     return () => pipeline.stop();
@@ -221,25 +189,7 @@ function App() {
     };
   }, [pipeline]);
 
-  // 2. Create and recreate the pause timer when settings change (WASM demo only)
-  useEffect(() => {
-    if (useWasmDemo && wasmInitialized) {
-      const timer = new WasmPauseTimer(BigInt(idleMs));
-      setPauseTimer(timer);
-    }
-  }, [idleMs, wasmInitialized, useWasmDemo]);
-
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setPerfStartMs(Date.now());
-    setText(e.target.value);
-    if (pauseTimer) {
-      pauseTimer.record_activity();
-      setIsPaused(false);
-    }
-    const caret = e.target.selectionStart ?? e.target.value.length;
-    pipeline.ingest(e.target.value, caret);
-    syncOverlayScroll();
-  };
+  // WASM demo removed
 
   // Scenario step-through: progressively reveal scenario.raw
   useEffect(() => {
@@ -276,55 +226,14 @@ function App() {
     };
   }, []);
 
-  // 4. WASM demo correction flow, triggered by pause (disabled by default)
+  // Cleanup typing glow timer on unmount
   useEffect(() => {
-    async function runCorrection() {
-      if (useWasmDemo && isPaused && wasmInitialized) {
-        console.log("Correction logic triggered.");
-        setIsThinking(true);
-        const extractor = new WasmFragmentExtractor();
-        const fragment = extractor.extract_fragment(text);
+    return () => {
+      if (typingGlowTimerRef.current) window.clearTimeout(typingGlowTimerRef.current);
+    };
+  }, []);
 
-        if (fragment) {
-          console.log(`Fragment found: "${fragment}"`);
-          const replacementText = "This is a corrected sentence. ";
-          let stream = new WasmStubStream(replacementText);
-
-          // For simplicity, we replace the last fragment.
-          // A real implementation would be more complex.
-          const fragmentIndex = text.lastIndexOf(fragment);
-          if (fragmentIndex !== -1) {
-            const prefix = text.substring(0, fragmentIndex);
-            let merger = new WasmMerger(prefix);
-
-            let token = await stream.next_token();
-            while (token) {
-              merger.apply_token(token);
-              token = await stream.next_token();
-            }
-            setText(merger.get_result());
-          }
-        } else {
-          console.log("No fragment found to correct.");
-        }
-        // Reset pause state to prevent re-triggering
-        setIsPaused(false);
-        setIsThinking(false);
-      }
-    }
-    runCorrection();
-  }, [isPaused, wasmInitialized, text, useWasmDemo]);
-
-  // 5. Poll for pause state (WASM demo only)
-  useEffect(() => {
-    if (!useWasmDemo || !pauseTimer) return;
-    const interval = setInterval(() => {
-      if (pauseTimer.is_paused()) {
-        setIsPaused(true);
-      }
-    }, 200);
-    return () => clearInterval(interval);
-  }, [pauseTimer, useWasmDemo]);
+  // WASM demo correction flow removed
 
   // 5b. Wire UI event listeners for visualization from TS pipeline
   useEffect(() => {
@@ -362,10 +271,7 @@ function App() {
       };
       setLastHighlight({ start, end });
       setTimeout(() => setLastHighlight(null), 800);
-      if (perfStartMs != null) {
-        setLastLatencyMs(Date.now() - perfStartMs);
-        setPerfStartMs(null);
-      }
+      // latency metrics removed in rules-only demo
     };
     window.addEventListener("mindtyper:validationBand", onBand as EventListener);
     window.addEventListener("mindtyper:highlight", onHighlight as EventListener);
@@ -428,16 +334,7 @@ function App() {
     };
   }, []);
 
-  // 7. Log fetching for debug panel
-  useEffect(() => {
-    if (showDebugPanel && wasmInitialized) {
-      const interval = setInterval(() => {
-        const newLogs = get_logs() as LogEntry[];
-        setLogs(newLogs);
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [showDebugPanel, wasmInitialized]);
+  // Debug logs (WASM logger removed) — keep UI panel without logs source
 
   return (
     <div className="App">
@@ -452,20 +349,25 @@ function App() {
 
       <div className="card">
         <h2>Editor</h2>
-        <div className="editor-wrap">
+        <div className={`editor-wrap ${isTyping ? 'typing' : ''}`}>
           <div className="editor-overlay" aria-hidden id="mt-overlay" ref={overlayRef} />
           <textarea
             className="editor-textarea"
             ref={textareaRef}
             value={text}
+            placeholder="Type here. Pause to see live corrections."
             onChange={handleTextChange}
+            onBlur={() => setIsTyping(false)}
             onCompositionStart={() => {
               setIsIMEComposing(true);
               imeRef.current = true;
+              setIsTyping(true);
             }}
             onCompositionEnd={() => {
               setIsIMEComposing(false);
               imeRef.current = false;
+              if (typingGlowTimerRef.current) window.clearTimeout(typingGlowTimerRef.current);
+              typingGlowTimerRef.current = window.setTimeout(() => setIsTyping(false), 1200);
             }}
             rows={10}
             cols={80}
@@ -492,10 +394,9 @@ function App() {
         )}
         <p>
           <i>
-            Type to see the validation band trail behind your cursor. Pause for {idleMs}ms to watch diffusion catch up.
+            Type to see the validation band trail behind your cursor. The engine catches up after a short pause.
           </i>
         </p>
-        {isThinking && <p className="thinking-indicator">Thinking...</p>}
       </div>
 
       {showDebugPanel && (
@@ -514,7 +415,7 @@ function App() {
                 const v = e.target.value || null;
                 setScenarioId(v);
                 setStepIndex(0);
-                if (!v) setText("Hello there. Try typing a sentence and then pausing.");
+                if (!v) setText("");
               }}
             >
               <option value="">None</option>
@@ -533,35 +434,7 @@ function App() {
               }}>Apply corrected</button>
             </>
           )}
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <select
-              aria-label="Mode"
-              value={lmMode}
-              onChange={(e) => setLmMode(e.target.value as 'rules' | 'lm')}
-            >
-              <option value="rules">Rules only</option>
-              <option value="lm">LM</option>
-            </select>
-            Mode
-          </label>
-          {lmMode === 'lm' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <input
-                  type="checkbox"
-                  checked={localOnly}
-                  onChange={(e) => setLocalOnly(e.target.checked)}
-                />
-                Local models only
-              </label>
-              {!lmLoaded ? (
-                <button onClick={loadLM}>Load LM</button>
-              ) : (
-                <button onClick={unloadLM}>Unload LM</button>
-              )}
-              <span>Backend: {backend}</span>
-            </div>
-          )}
+          {/* LM controls removed until LM-in-core lands */}
           <label>
             Tick (ms): {tickMs}
             <input
@@ -599,14 +472,7 @@ function App() {
               }
             />
           </label>
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <input
-              type="checkbox"
-              checked={useWasmDemo}
-              onChange={(e) => setUseWasmDemo(e.target.checked)}
-            />
-            Use WASM demo corrections (legacy)
-          </label>
+          {/* WASM demo toggle removed */}
           <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <input
               type="checkbox"
@@ -642,12 +508,7 @@ function App() {
           </label>
           <button
             onClick={() => {
-              const preset = {
-                tickMs,
-                minBand,
-                maxBand,
-                useWasmDemo,
-              };
+              const preset = { tickMs, minBand, maxBand };
               navigator.clipboard?.writeText(JSON.stringify(preset)).catch(() => {});
             }}
           >
@@ -662,18 +523,14 @@ function App() {
                 if (typeof p.tickMs === 'number') setTickMs(p.tickMs);
                 if (typeof p.minBand === 'number') setMinBand(p.minBand);
                 if (typeof p.maxBand === 'number') setMaxBand(p.maxBand);
-                if (typeof p.useWasmDemo === 'boolean') setUseWasmDemo(p.useWasmDemo);
+                // WASM preset ignored
               } catch {}
             }}
           >
             Import preset
           </button>
         </div>
-        <div style={{ marginTop: 8 }}>
-          <small>
-            {lastLatencyMs != null ? `Last keystroke→highlight latency: ${lastLatencyMs} ms` : 'Interact to record latency'}
-          </small>
-        </div>
+        {/* Latency metrics removed */}
       </div>
     </div>
   );

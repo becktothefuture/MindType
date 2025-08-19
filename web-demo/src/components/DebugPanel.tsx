@@ -3,7 +3,7 @@ import "./DebugPanel.css";
 import SettingsTab from "./SettingsTab";
 import LogsTab from "./LogsTab";
 
-type Tab = "Metrics" | "Settings" | "Inspector" | "Logs";
+type Tab = "Settings" | "Inspector" | "Logs";
 
 interface LogEntry {
   level: string;
@@ -21,13 +21,13 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
   idleMs,
   onIdleMsChange,
   logs,
+  lmDebug,
+  metrics,
 }) => {
   const [activeTab, setActiveTab] = useState<Tab>("Logs");
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case "Metrics":
-        return <div>Metrics content will go here.</div>;
       case "Settings":
         return <SettingsTab idleMs={idleMs} onIdleMsChange={onIdleMsChange} />;
       case "Inspector":
@@ -42,12 +42,6 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
   return (
     <div className="debug-panel">
       <div className="tabs">
-        <button
-          onClick={() => setActiveTab("Metrics")}
-          className={activeTab === "Metrics" ? "active" : ""}
-        >
-          Metrics
-        </button>
         <button
           onClick={() => setActiveTab("Settings")}
           className={activeTab === "Settings" ? "active" : ""}

@@ -65,10 +65,15 @@ export function createQwenTokenStreamer(options?: QwenRunnerOptions): TokenStrea
       if (options?.localModelPath) {
         (env as Record<string, unknown>).localModelPath = options.localModelPath;
       }
+      // Ensure exactly one of local/remote is enabled
       if (options?.localOnly) {
+        (env as Record<string, unknown>).allowLocalModels = true;
         (env as Record<string, unknown>).allowRemoteModels = false as unknown as never;
+      } else {
+        (env as Record<string, unknown>).allowLocalModels = false as unknown as never;
+        (env as Record<string, unknown>).allowRemoteModels = true as unknown as never;
       }
-      if (options?.wasmPaths) {
+      if (options?.localOnly && options?.wasmPaths) {
         const e = env as unknown as {
           backends?: { onnx?: { wasm?: { wasmPaths?: string } } };
         } & Record<string, unknown>;
@@ -86,6 +91,13 @@ export function createQwenTokenStreamer(options?: QwenRunnerOptions): TokenStrea
         dtype: 'q4',
         device,
       } as Record<string, unknown>);
+
+      console.info('[LM] ready', {
+        modelId,
+        backend,
+        device,
+        localOnly: options?.localOnly,
+      });
 
       return { gen, TextStreamer } as LoadedGenerator;
     })();

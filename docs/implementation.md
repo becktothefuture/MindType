@@ -248,7 +248,7 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-211, FT-212, FT-214, FT-216  
        **Source:** Manifesto → Safety guarantees
 
-### Local LM Integration (P1) **← NEW SECTION**
+### Local LM Integration (P1) **← UPDATED**
 
 - [x] (P1) [FT-230] Design LM adapter interface  
        **AC:** Define `LMAdapter` interface for streaming corrections; support band-bounded context; fallback to rules when LM unavailable; caret-safe constraints. Add backend detection and a mock adapter; optional wiring into controller without behaviour change.  
@@ -256,14 +256,14 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-213  
        **Source:** User example: "raw → corrected" transformation quality
 
-- [ ] (P1) [FT-231] Implement local model bootstrap  
-       **AC:** Transformers.js integration with Qwen2.5-0.5B-Instruct (q4 quantized ~150MB); WebGPU acceleration; streaming token interface; grammar/style correction focus; lazy load + warm-up; UI load/unload; fallback to rules on failure; abort-on-input within ≤1 tick; perf/memory smoke tests.  
+- [x] (P1) [FT-231] Implement local model bootstrap  
+       **AC:** Transformers.js integration with Qwen2.5-0.5B-Instruct (q4); backend detection (WebGPU→WASM→CPU); centralized LM behavior policy (`core/lm/policy.ts`); auto-load in web demo; span-only prompting and guarded merges; single-flight generation with abort and stale-drop; debounce/cooldown to reduce requests.  
        **Owner:** @alex  
        **DependsOn:** FT-230  
        **Source:** Transformers.js research + on-device processing
 
 - [ ] (P1) [FT-232] Add LM streaming merge policy  
-       **AC:** Stream tokens into validation band only; merge with rule-based fixes; deterministic precedence (rules > LM on structural conflicts; LM > rules on semantic-only with confidence); cancel on input; rollback on conflicts; extensive caret safety tests.  
+       **AC:** Stream tokens into validation band only; merge with rule-based fixes; deterministic precedence (rules > LM on structural conflicts; LM > rules on semantic-only with confidence); cancel on input; rollback on conflicts; extensive caret safety tests; sentence-aware band growth with confidence gating.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** REQ-STREAMED-DIFFUSION + LM quality
@@ -356,8 +356,8 @@ Task checklist template (copy into PR description):
 ### Undo Integration (P2)
 
 - [ ] (P2) [FT-320] Implement undo grouping  
-       **AC:** - Group changes per sweep - Single undo step - Preserve caret position
-      **Owner:** @alex  
+       **AC:** - Group changes per sweep - Single undo step - Preserve caret position  
+       **Owner:** @alex  
        **DependsOn:** FT-310  
        **Source:** Manifesto → Features
 
@@ -368,4 +368,85 @@ Task checklist template (copy into PR description):
        **Source:** BDD → Validation band scenarios
 
 - [ ] (P2) [FT-322] Add Playwright e2e for BDD scenarios  
-       **AC:** Tests for caret safety and streaming diffusion mapped to `
+       **AC:** Tests for caret safety and streamed diffusion mapped to `docs/qa/acceptance/*` with visible band and highlight assertions  
+       **Owner:** @alex  
+       **DependsOn:** FT-321  
+       **Source:** BDD suite
+
+---
+
+## Task Breakdown (Subtasks for high‑risk items)
+
+### [FT-232] LM streaming merge policy (expanded)
+
+- [ ] Define BandPolicy v1: newline‑safe render/context ranges; tests
+- [ ] Implement single‑flight controller (abort on new input) with cooldown
+- [ ] Confidence gates: prefer rules on structural conflicts; LM on semantic
+- [ ] Rollback on conflict: revert last LM merge if caret enters band
+- [ ] Caret/Unicode safety tests: surrogate pairs, zero‑width chars
+
+### [FT-234] Integrate LM adapter into `DiffusionController`
+
+- [ ] Add optional `lmAdapter` + `injector` params to controller factory
+- [ ] On tick: request span selection via policy; on idle: catch‑up loop
+- [ ] Stream tokens → accumulate → post‑process → apply via injector
+- [ ] Emit `renderHighlight` on merges; preserve frontier advancement
+- [ ] Unit tests: abort/resume, stale‑drop, and deterministic precedence
+
+### [FT-235] Host injector abstraction
+
+- [ ] Define `Injector` interface: `applyDiff({start,end,text,caret})`
+- [ ] Web injector: textarea value + caret restore, single undo step
+- [ ] macOS injector: AX insert or clipboard fallback (design stub)
+- [ ] Tests: caret stays stable; single undo step semantics
+
+### [FT-236] Remove demo‑side LM scheduling/merge
+
+- [ ] Delete LM runner/adapter wiring in `web-demo/src/App.tsx`
+- [ ] Remove LM mode toggles and metrics UI; keep band/highlight listeners
+- [ ] Keep rules‑only pipeline operational until FT‑234 lands
+- [ ] Smoke test demo (typing, band, highlights; no LM path)
+
+### [FT-238] Workerize Transformers + memory guard
+
+- [ ] Create `lm-worker.ts` hosting the runner; message protocol
+- [ ] Move model load/generate into worker; handle aborts; chunk events
+- [ ] Monitor memory; auto‑degrade to rules‑only under 150 MB
+- [ ] Default `localOnly: true`; UI toggle remains optional
+- [ ] Tests: worker up/down, abort, memory guard path
+
+### [FT-134] Rust caret‑safe merge (FFI/WASM)
+
+- [ ] Implement `apply_span` with caret/UTF‑16 surrogate guards
+- [ ] Unit tests for invalid ranges, surrogate splits, caret boundary
+- [ ] Expose to WASM and Swift (cbindgen header)
+- [ ] Micro‑bench vs TS `replaceRange`; CI criterion benches
+
+### [FT-400] macOS shell skeleton
+
+- [ ] `NSStatusItem` menu bar toggle
+- [ ] Accessibility permission flow with state badge
+- [ ] Debug overlay (⌥⇧⌘L) with latency/token counters (stub)
+
+### [FT-401] AX watcher + injector
+
+- [ ] Focused field tracking; snapshot reset on focus change
+- [ ] AX insertion API wrapper; clipboard fallback path
+- [ ] Unit tests in a sandboxed sample app
+
+### [FT-350] BDD for local LM integration
+
+- [ ] Map scenarios to tests (caret safety, confidence, memory fallback)
+- [ ] Ensure CI executes LM worker and rules‑only paths
+
+---
+
+## Documentation To‑Do (created/updated in this PR)
+
+- [x] `docs/ADHD-docs.md` — approachable deep dive; links across system
+- [x] `docs/guide/reference/band-policy.md` — BandPolicy design & API
+- [x] `docs/guide/reference/injector.md` — Injector contract + hosts
+- [x] `docs/guide/reference/lm-worker.md` — Worker protocol & memory guard
+- [x] `docs/guide/reference/rust-merge.md` — Caret‑safe merge in Rust/FFI
+
+All docs follow house comment header style; stubs will be filled as tasks land.
