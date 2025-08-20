@@ -17,6 +17,12 @@
 - We select a small span near the caret, include a limited context window, and send a precise instruction: “Correct ONLY the Span; return just the corrected Span.”
 - We merge only that span back, preserving caret safety.
 
+### New direction: core-driven LM, demo kept thin
+
+- The LM scheduling, single-flight, and merge policy live in core (`DiffusionController` + `core/lm/*`).
+- The web demo no longer owns LM orchestration; it only renders the validation band and debug info.
+- This ensures consistent behaviour across hosts (web, macOS) and simplifies QA.
+
 ## Selection Rules (Span and Context)
 
 - Span must be at least 3 chars and end on a word boundary.
@@ -24,6 +30,10 @@
 - Context window: ~60 chars before and after the span.
 - Debounce and cooldown so we generate after a pause and not too frequently.
 - Single-flight: abort any in-flight generation before starting a new one; drop stale results.
+
+On slow devices (WASM/CPU):
+
+- Auto-degrade token caps and increase debounce/cooldown to avoid thrash.
 
 ## Prompt Template
 
@@ -33,6 +43,11 @@ Context before: «{ctxBefore}»
 Span: «{span}»
 Context after: «{ctxAfter}»
 ```
+
+Implementation notes:
+
+- We pass a single-string prompt to the runner to avoid chat-template surprises.
+- Post-processing removes any lingering labels or guillemets.
 
 ## Token Budget
 
@@ -44,18 +59,21 @@ Context after: «{ctxAfter}»
 - Take the first line; strip quotes; trim whitespace.
 - Clamp length to ~2 × original span length (min 24).
 - Replace only the band span with the fixed text.
+  - If caret has entered the band since request start, cancel and rollback.
 
 ## Runtime Guards
 
 - Skip if span < 3 chars, or ends mid‑word, or too long.
 - Cooldown (≈400ms) after a merge to avoid rapid back-to-back requests.
 - Abort prior request when user continues typing; drop stale results.
+  - Enforce at-most-one pending request; drop older unless idle.
 
 ## Future Enhancements
 
 - Sentence‑aware band policy: grow to sentence/previous sentences when confidence is low; still only merge intended span.
 - Error‑type templates (typo/grammar/casing/punct) to guide shorter, more precise fixes.
 - Confidence gating and rollback on user edits during streaming.
+  - Consider worker mode for heavy models; keep offline capability.
 
 ## Typing Scenarios (30) and Expected Behavior
 

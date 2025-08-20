@@ -42,6 +42,14 @@
 - FT-230/231/232 LM track (later)
   - Contract: Mock `LMAdapter` streaming; merge policy respects caret
   - Perf/Memory: Harness thresholds logged in CI (non-blocking initially)
+  - FT-231A True streaming + singleton: unit tests for live chunking and single init
+  - FT-231B Abort/single-flight/cooldown: rapid typing tests, stale-drop counters
+  - FT-231C Prompt/output hardening: no-chatty assertions, span-sized merges
+  - FT-231D Device detect + auto-degrade: mock WebGPU/WASM paths, policy adjustments
+  - FT-231E Local-only asset guard: simulate 404/missing WASM, assert graceful fallback
+  - FT-231F Warm-up + caps: first-run latency delta measured; token clamp respected
+  - FT-232A Caret-entry guard + rollback: caret jump simulations; no overwrite
+  - FT-232B Anti-thrash scheduler: no overlapping merges under bursty input
 
 ### LM Testing Notes
 

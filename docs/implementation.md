@@ -250,6 +250,19 @@ Task checklist template (copy into PR description):
 
 ### Local LM Integration (P1) **← UPDATED**
 
+#### Critical LM Task Execution Order (do top-to-bottom)
+
+1. (P1) [FT-231A] True streaming + singleton runner
+2. (P1) [FT-231C] Prompt shape + post-process hardening
+3. (P1) [FT-231B] Abort, single-flight, and cooldown in core
+4. (P1) [FT-231D] Backend capability detection + auto‑degrade
+5. (P1) [FT-231F] Warm‑up and token cap safeguards
+6. (P1) [FT-231E] Local‑only asset guard
+7. (P1) [FT-232] LM streaming merge policy (core)
+8. (P1) [FT-232A] Caret-entry merge guard + rollback
+9. (P1) [FT-232B] Anti‑thrash scheduler tuning
+10. (P2) [FT-231G] Logging gates and resource cleanup
+
 - [x] (P1) [FT-230] Design LM adapter interface  
        **AC:** Define `LMAdapter` interface for streaming corrections; support band-bounded context; fallback to rules when LM unavailable; caret-safe constraints. Add backend detection and a mock adapter; optional wiring into controller without behaviour change.  
        **Owner:** @alex  
@@ -262,11 +275,64 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-230  
        **Source:** Transformers.js research + on-device processing
 
+- [ ] (P1) [FT-231A] True streaming + singleton runner  
+       **AC:** Runner yields tokens as they arrive via `TextStreamer` (no full-buffer flush). Provide a singleton instance reused across React remounts; only one "[LM] ready" per session. Unit tests cover back-to-back generations and ordering; integration test asserts visible incremental updates.  
+       **Owner:** @alex  
+       **DependsOn:** FT-231  
+       **Source:** Reliability/Perf
+
+- [ ] (P1) [FT-231B] Abort, single-flight, and cooldown in core  
+       **AC:** Implement single-flight and abort at the adapter/runner boundary (not in the demo). New requests cancel the previous; add a short cooldown after a merge. Unit tests simulate rapid typing and assert only latest output merges; stale drops are counted.  
+       **Owner:** @alex  
+       **DependsOn:** FT-231  
+       **Source:** Streaming correctness
+
+- [ ] (P1) [FT-231C] Prompt shape + post-process hardening  
+       **AC:** Switch runner input to a single strict prompt string (no chat roles). Expand output sanitization to strip guillemets/labels and clamp length robustly. Tests verify no "chatty" outputs and span-sized merges.  
+       **Owner:** @alex  
+       **DependsOn:** FT-231  
+       **Source:** LM quality
+
+- [ ] (P1) [FT-231D] Backend capability detection + auto‑degrade  
+       **AC:** Detect WebGPU accurately; detect WASM SIMD/threads; choose device accordingly. On non‑WebGPU, reduce token caps and increase debounce/cooldown. Unit tests mock capabilities and assert device selection + policy adjustments.  
+       **Owner:** @alex  
+       **DependsOn:** FT-231  
+       **Source:** Cross‑browser stability (Safari/Edge)
+
+- [ ] (P1) [FT-231E] Local‑only asset guard  
+       **AC:** When `localOnly=true`, verify model and WASM asset paths before load; surface friendly error and fall back to rules‑only if missing. Add `pnpm setup:local` preflight note in logs. Tests mock 404 and assert graceful degradation.  
+       **Owner:** @alex  
+       **DependsOn:** FT-231  
+       **Source:** Offline readiness
+
+- [ ] (P1) [FT-231F] Warm‑up and token cap safeguards  
+       **AC:** One‑time warm‑up generation after load; enforce token cap `min(policy, runnerDefault)` and clamp range [8, 48] with device tiering. Tests assert first‑run latency improvement and token limits.  
+       **Owner:** @alex  
+       **DependsOn:** FT-231  
+       **Source:** Latency/throughput stability
+
+- [ ] (P2) [FT-231G] Logging gates and resource cleanup  
+       **AC:** Gate debug logs behind a flag; ensure runner is reused and disposed when available. Tests verify no console spam by default.  
+       **Owner:** @alex  
+       **DependsOn:** FT-231  
+       **Source:** Observability hygiene
+
 - [ ] (P1) [FT-232] Add LM streaming merge policy  
        **AC:** Stream tokens into validation band only; merge with rule-based fixes; deterministic precedence (rules > LM on structural conflicts; LM > rules on semantic-only with confidence); cancel on input; rollback on conflicts; extensive caret safety tests; sentence-aware band growth with confidence gating.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** REQ-STREAMED-DIFFUSION + LM quality
+  - [ ] (P1) [FT-232A] Caret-entry merge guard + rollback  
+         **AC:** If caret moves into `[band.start, band.end]` mid-run, cancel and rollback partial merges. Tests simulate caret jumps and verify no caret jumps or overwrites.  
+         **Owner:** @alex  
+         **DependsOn:** FT-232  
+         **Source:** Caret safety
+
+  - [ ] (P1) [FT-232B] Anti‑thrash scheduler tuning  
+         **AC:** Raise minimum reschedule threshold and extend cooldown on WASM/CPU; enforce at‑most‑one pending request; drop older unless idle. Tests cover rapid keystrokes and ensure no overlapping merges.  
+         **Owner:** @alex  
+         **DependsOn:** FT-232  
+         **Source:** Performance stability
 
 - [ ] (P2) [FT-233] Implement LM fallback and settings  
        **AC:** Graceful degradation to rules-only mode; user toggle for LM vs rules; performance monitoring; A/B testing framework  
