@@ -19,29 +19,12 @@ alwaysApply: true
     • HOW  ▸ Abbreviated bullets; see docs/system_principles.md
 -->
 
-# Principles Snapshot
+## Behavioural Principles (micro-summary)
 
-Human Flow & Dignity
-- Human-first agency: auto-apply within band; no accept gesture; no expansion.
-- Flow & rhythm: micro-corrections; defer heavy work during bursts.
-- Low cognitive load: no suggestion lists; subtle underline/highlight; debug opt-in.
-- Accessibility: respect reduced motion; SR announces; keyboard-first.
+- Human: preserve authorship and momentum; keep the surface calm; accessible by default.
+- Safety & trust: caret‑safe; private by default; explain choices simply; fail soft.
+- Logic: smallest context; plain outputs; one thing at a time; validate a small band.
+- Performance: match the device; ship only what we can test.
 
-Safety, Trust & Integrity
-- Caret-safe, non-undoing: never edit at/after caret; band-only; no undo entries.
-- Local-first privacy: prefer local; remote off unless opted in; degrade gracefully; no text persistence.
-- Explainability: show reasons, tiers, and truncations; toggleable explainers.
-- Fail-soft: LM errors → rules-only; single-flight + abort; drop stale.
-
-Adaptive Intelligence & Execution
-- Context-minimal: smallest window; allow control JSON; outputs sanitized & clamped.
-- Single-flight orchestration: one active gen per band; abort on input.
-- Device-tier progressive: detect capabilities → tune cadence/tokens.
-- Testable/observable: gates must pass; logs for merges/aborts/tiers.
-
-Collaboration & Delivery
-- Plan order & Questions: execute tasks in plan order; capture clarifications in `docs/questions.md`.
-- Green gates: typecheck/lint/format/test must pass before merge.
-
-See `docs/system_principles.md` for behaviours and examples.
+See `docs/system_principles.md` for links to deeper docs.
 
