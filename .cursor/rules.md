@@ -27,7 +27,7 @@
 
 3. Use the Questions Log
 
-- Always check `docs/questionnaire/questions.md` before starting a task.
+- Always check `docs/questions.md` before starting a task.
 - If clarification is needed, add a new question (QXXX) with context and link to FT-\*; proceed on the safest default and adjust when answered.
 - Reference Q entries in PR descriptions and reflect decisions in AC.
 
@@ -101,7 +101,7 @@
 16. Docs & Questions discipline
 
 - Update `docs/implementation.md`, `docs/guide/reference/lm-behavior.md`, and `docs/qa/README.md` for any behaviour change.
-- Log uncertainties in `docs/questionnaire/questions.md`; proceed on safe defaults; revisit once answered.
+- Log uncertainties in `docs/questions.md`; proceed on safe defaults; revisit once answered.
 
 17. Observability & safety
 
@@ -117,4 +117,4 @@
 - Plan and task order: `docs/implementation.md`
 - QA matrix and CI gates: `docs/qa/README.md`
 - LM policy/behaviour: `docs/guide/reference/lm-behavior.md`
-- Questions log: `docs/questionnaire/questions.md`
+- Questions log: `docs/questions.md`
