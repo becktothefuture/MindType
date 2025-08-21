@@ -109,3 +109,31 @@ Answer:
 Notes:
 
 - We’ll add toggles as we add templates, keeping the default concise.
+
+### Q006: Remote model opt-in default and data handling (RESOLVED)
+
+- Related: FT-231, core/lm/transformersRunner.ts
+- Context: Principles propose "remote off unless opted in". Current runner defaults to allow remote unless `localOnly=true`.
+- Question: Should the default be `localOnly=true` at the host level unless the user explicitly enables remote models for the session? If not, how do we surface opt-in clearly and reversibly?
+
+Answer:
+
+> Default to localOnly=true; remote requires explicit per‑session opt‑in and resets on restart. No user text persisted; no outbound analytics.
+
+Notes:
+
+- If default remains remote-allowed, we must add a prominent opt-in toggle and a per-session indicator in the demo.
+
+### Q007: Control-plane JSON in prompts (RESOLVED)
+
+- Related: FT-232, core/lm/policy.ts
+- Context: We allow control-plane JSON in prompts for determinism while sanitizing outputs to plain text.
+- Question: Do we standardize this as a core pattern? What is the acceptable size budget for control metadata within the prompt window?
+
+Answer:
+
+> Approved. Budget ≤10% of prompt window. Outputs sanitized to plain text (strip labels/guillemets; clamp length).
+
+Notes:
+
+- Document the JSON schema and enforce output sanitization (labels/guillemets stripped; length clamped).

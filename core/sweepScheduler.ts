@@ -52,6 +52,7 @@ export function createSweepScheduler(
       return;
     }
     lastEvent = ev;
+    log.debug('onEvent', { caret: ev.caret, textLen: ev.text.length });
     diffusion.update(ev.text, ev.caret);
     if (timer) clearTimeout(timer);
     // schedule pause catch-up
@@ -61,6 +62,7 @@ export function createSweepScheduler(
       typingInterval = setInterval(() => {
         try {
           diffusion.tickOnce();
+          log.trace('tickOnce');
         } catch {
           // fail-safe: stop streaming to avoid runaway loops
           clearIntervals();
@@ -82,6 +84,7 @@ export function createSweepScheduler(
       ) {
         await diffusion.catchUp();
         steps += 1;
+        log.debug('catchUp step', { steps, frontier: diffusion.getState().frontier });
       }
     } catch {
       // swallow to keep UI responsive

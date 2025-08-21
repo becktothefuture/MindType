@@ -29,7 +29,7 @@ export interface QwenRunnerOptions {
  * on first use to avoid bloating initial bundles.
  */
 type GeneratorFn = ((
-  messages: unknown[],
+  input: unknown,
   opts: Record<string, unknown>,
 ) => Promise<unknown>) & {
   tokenizer: unknown;
@@ -40,99 +40,189 @@ type LoadedGenerator = {
   TextStreamer: new (tokenizer: unknown, opts: Record<string, unknown>) => unknown;
 };
 
-export function createQwenTokenStreamer(options?: QwenRunnerOptions): TokenStreamer {
-  let generatorPromise: Promise<LoadedGenerator> | null = null;
+// ──────────────────────────────────────────────────────────────
+// Singleton loader (locks to first options seen for the session)
+// ──────────────────────────────────────────────────────────────
+let singletonGenerator: Promise<LoadedGenerator> | null = null;
+let singletonInitOptions: QwenRunnerOptions | undefined;
+
+async function loadGeneratorSingleton(
+  options?: QwenRunnerOptions,
+): Promise<LoadedGenerator> {
+  if (singletonGenerator) return singletonGenerator;
+  singletonInitOptions = options;
   const modelId = options?.modelId ?? 'onnx-community/Qwen2.5-0.5B-Instruct';
-  const maxNewTokensDefault = options?.maxNewTokens ?? 64;
+  singletonGenerator = (async (): Promise<LoadedGenerator> => {
+    // Dynamic import keeps core decoupled from heavy deps
+    const { pipeline, TextStreamer, env } = (await import(
+      '@huggingface/transformers'
+    )) as unknown as {
+      pipeline: (
+        task: string,
+        model: string,
+        options: Record<string, unknown>,
+      ) => Promise<GeneratorFn>;
+      TextStreamer: new (tokenizer: unknown, opts: Record<string, unknown>) => unknown;
+      env: Record<string, unknown>;
+    };
 
-  async function loadGenerator() {
-    if (generatorPromise) return generatorPromise;
-    generatorPromise = (async (): Promise<LoadedGenerator> => {
-      // Dynamic import keeps core decoupled from heavy deps
-      const { pipeline, TextStreamer, env } = (await import(
-        '@huggingface/transformers'
-      )) as unknown as {
-        pipeline: (
-          task: string,
-          model: string,
-          options: Record<string, unknown>,
-        ) => Promise<GeneratorFn>;
-        TextStreamer: new (tokenizer: unknown, opts: Record<string, unknown>) => unknown;
-        env: Record<string, unknown>;
-      };
+    const opts = singletonInitOptions;
+    // Environment configuration for self‑hosting and fallbacks
+    if (opts?.localModelPath) {
+      (env as Record<string, unknown>).localModelPath = opts.localModelPath;
+    }
+    // Ensure exactly one of local/remote is enabled
+    if (opts?.localOnly) {
+      (env as Record<string, unknown>).allowLocalModels = true;
+      (env as Record<string, unknown>).allowRemoteModels = false as unknown as never;
+    } else {
+      (env as Record<string, unknown>).allowLocalModels = false as unknown as never;
+      (env as Record<string, unknown>).allowRemoteModels = true as unknown as never;
+    }
+    if (opts?.localOnly && opts?.wasmPaths) {
+      const e = env as unknown as {
+        backends?: { onnx?: { wasm?: { wasmPaths?: string } } };
+      } & Record<string, unknown>;
+      e.backends = e.backends ?? {};
+      e.backends.onnx = e.backends.onnx ?? { wasm: {} };
+      e.backends.onnx.wasm = e.backends.onnx.wasm ?? {};
+      e.backends.onnx.wasm.wasmPaths = opts.wasmPaths;
+    }
 
-      // Environment configuration for self‑hosting and fallbacks
-      if (options?.localModelPath) {
-        (env as Record<string, unknown>).localModelPath = options.localModelPath;
-      }
-      // Ensure exactly one of local/remote is enabled
-      if (options?.localOnly) {
-        (env as Record<string, unknown>).allowLocalModels = true;
-        (env as Record<string, unknown>).allowRemoteModels = false as unknown as never;
-      } else {
-        (env as Record<string, unknown>).allowLocalModels = false as unknown as never;
-        (env as Record<string, unknown>).allowRemoteModels = true as unknown as never;
-      }
-      if (options?.localOnly && options?.wasmPaths) {
-        const e = env as unknown as {
-          backends?: { onnx?: { wasm?: { wasmPaths?: string } } };
-        } & Record<string, unknown>;
-        e.backends = e.backends ?? {};
-        e.backends.onnx = e.backends.onnx ?? { wasm: {} };
-        e.backends.onnx.wasm = e.backends.onnx.wasm ?? {};
-        e.backends.onnx.wasm.wasmPaths = options.wasmPaths;
-      }
+    const backend = detectBackend();
+    const device = backend === 'webgpu' ? 'webgpu' : backend === 'wasm' ? 'wasm' : 'cpu';
 
-      const backend = detectBackend();
-      const device =
-        backend === 'webgpu' ? 'webgpu' : backend === 'wasm' ? 'wasm' : 'cpu';
+    const gen = await pipeline('text-generation', modelId, {
+      dtype: 'q4',
+      device,
+    } as Record<string, unknown>);
 
-      const gen = await pipeline('text-generation', modelId, {
-        dtype: 'q4',
-        device,
-      } as Record<string, unknown>);
+    console.info('[LM] ready', {
+      modelId,
+      backend,
+      device,
+      localOnly: opts?.localOnly,
+    });
 
-      console.info('[LM] ready', {
-        modelId,
-        backend,
-        device,
-        localOnly: options?.localOnly,
-      });
+    return { gen, TextStreamer } as LoadedGenerator;
+  })();
+  return singletonGenerator;
+}
 
-      return { gen, TextStreamer } as LoadedGenerator;
-    })();
-    return generatorPromise;
-  }
+export function createQwenTokenStreamer(options?: QwenRunnerOptions): TokenStreamer {
+  // Default to local-only unless explicitly disabled per session
+  const localOnlyDefault = options?.localOnly ?? true;
+  // Device-tier default token caps
+  const backend = detectBackend();
+  const tierDefaultMaxTokens =
+    options?.maxNewTokens ?? (backend === 'webgpu' ? 48 : backend === 'wasm' ? 24 : 16);
+  const maxNewTokensDefault = tierDefaultMaxTokens;
 
   return {
     async *generateStream(input: { prompt: string; maxNewTokens?: number }) {
-      const { gen, TextStreamer } = await loadGenerator();
-      let buffer = '';
+      const { gen, TextStreamer } = await loadGeneratorSingleton({
+        ...options,
+        localOnly: localOnlyDefault,
+      });
+
+      // Simple async queue to yield chunks as they arrive (word-by-word)
+      const chunks: string[] = [];
+      let resolver: (() => void) | null = null;
+      let closed = false;
+      let accum = '';
+
+      const boundaryRegex = /[\s.,!?;:—"'”’)\]\}]/;
+      function isBoundaryChar(ch: string): boolean {
+        return boundaryRegex.test(ch);
+      }
+
+      function pushChunk(s: string) {
+        if (!s) return;
+        chunks.push(s);
+        try {
+          const g = globalThis as unknown as { __mtLastLMChunks?: string[] };
+          g.__mtLastLMChunks = (g.__mtLastLMChunks ?? []).concat(s).slice(-10);
+        } catch {}
+        if (resolver) {
+          const r = resolver;
+          resolver = null;
+          r();
+        }
+      }
+
+      function flushWords(final: boolean) {
+        // Emit segments ending at a boundary char (e.g., space or punctuation)
+        for (let i = 0; i < accum.length; i++) {
+          if (isBoundaryChar(accum[i])) {
+            const emit = accum.slice(0, i + 1);
+            pushChunk(emit);
+            accum = accum.slice(i + 1);
+            i = -1; // restart scan on the shortened buffer
+          }
+        }
+        if (final && accum) {
+          pushChunk(accum);
+          accum = '';
+        }
+      }
+
+      function close() {
+        closed = true;
+        if (resolver) {
+          const r = resolver;
+          resolver = null;
+          r();
+        }
+      }
+
+      async function waitForChunk(): Promise<void> {
+        if (chunks.length || closed) return;
+        return new Promise<void>((r) => {
+          resolver = r;
+        });
+      }
+
+      let lastEmitAt = 0;
+      const COALESCE_MS = 25;
 
       const streamer = new TextStreamer(gen.tokenizer, {
         skip_prompt: true,
         skip_special_tokens: true,
         callback_function: (text: string) => {
-          buffer += text;
+          accum += text;
+          const now = Date.now();
+          if (now - lastEmitAt >= COALESCE_MS) {
+            flushWords(false);
+            lastEmitAt = now;
+          }
         },
       });
 
-      const messages = [
-        { role: 'system', content: 'You correct grammar and clarity of text.' },
-        { role: 'user', content: input.prompt },
-      ];
+      try {
+        await gen(input.prompt as unknown as string, {
+          max_new_tokens: input.maxNewTokens ?? maxNewTokensDefault,
+          do_sample: false,
+          streamer,
+        });
+      } finally {
+        // Flush any remainder and close the stream
+        flushWords(true);
+        close();
+      }
 
-      await gen(messages as unknown[], {
-        max_new_tokens: input.maxNewTokens ?? maxNewTokensDefault,
-        do_sample: false,
-        streamer,
-      });
-
-      // Flush as streaming chunks (~8 chars) to simulate token cadence
-      const CHUNK = 8;
-      for (let i = 0; i < buffer.length; i += CHUNK) {
-        yield buffer.slice(i, i + CHUNK);
+      while (!closed || chunks.length) {
+        if (chunks.length) {
+          yield chunks.shift() as string;
+        } else {
+          await waitForChunk();
+        }
       }
     },
   } satisfies TokenStreamer;
+}
+
+// Test-only helper to reset the singleton between specs
+export function __resetQwenSingletonForTests() {
+  singletonGenerator = null;
+  singletonInitOptions = undefined;
 }

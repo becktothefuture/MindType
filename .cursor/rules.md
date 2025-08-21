@@ -22,6 +22,8 @@
 
 - Before marking any task complete: `pnpm typecheck && pnpm lint && pnpm run -s format:check && pnpm test` must pass; coverage guard stays green.
 - Update docs (plan, QA matrix, behaviour specs) as part of completion.
+- Update docs (plan, QA matrix, behaviour specs) as part of completion.
+- If a PR changes behaviour but does not update `docs/system_principles.md` and relevant guides/tests, CI should fail.
 
 3. Use the Questions Log
 
@@ -47,7 +49,7 @@
 7. Tests & docs as deliverables
 
 - Add unit/integration tests for new logic and update `docs/qa/README.md` test mapping.
-- Keep `docs/lm_behavior.md` and `docs/implementation.md` in sync with behaviour changes.
+- Keep `docs/guide/reference/lm-behavior.md` and `docs/implementation.md` in sync with behaviour changes.
 
 8. Communication discipline
 
@@ -98,7 +100,7 @@
 
 16. Docs & Questions discipline
 
-- Update `docs/implementation.md`, `docs/lm_behavior.md`, and `docs/qa/README.md` for any behaviour change.
+- Update `docs/implementation.md`, `docs/guide/reference/lm-behavior.md`, and `docs/qa/README.md` for any behaviour change.
 - Log uncertainties in `docs/questions.md`; proceed on safe defaults; revisit once answered.
 
 17. Observability & safety
@@ -114,5 +116,5 @@
 
 - Plan and task order: `docs/implementation.md`
 - QA matrix and CI gates: `docs/qa/README.md`
-- LM policy/behaviour: `docs/lm_behavior.md`
+- LM policy/behaviour: `docs/guide/reference/lm-behavior.md`
 - Questions log: `docs/questions.md`

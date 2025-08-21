@@ -5,5 +5,29 @@
   // • WHAT ▸ Custom dictionary entries for cSpell
   // • WHY  ▸ Silence false positives for product keywords
   // • HOW  ▸ Editor-only; no runtime impact
-  "cSpell.words": ["mindtyper", "mindtype", "gramm"]
+  "cSpell.words": [
+    "mindtyper",
+    "mindtype",
+    "gramm",
+    "behaviour",
+    "skimmable",
+    "guillemets",
+    "QXXX",
+    "desaturation",
+    "CARETSAFE",
+    "precsson",
+    "mindtypr",
+    "tooll",
+    "emdashes",
+    "lstens",
+    "cooldown",
+    "Qwen",
+    "WCAG",
+    "autoplay",
+    "testids",
+    "Workerize",
+    "cbindgen",
+    "sandboxed",
+    "webgpu"
+  ]
 }

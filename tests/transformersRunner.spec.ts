@@ -7,7 +7,10 @@
   ╚══════════════════════════════════════════════════════════════╝
 */
 import { describe, it, expect, vi } from 'vitest';
-import { createQwenTokenStreamer } from '../core/lm/transformersRunner';
+import {
+  createQwenTokenStreamer,
+  __resetQwenSingletonForTests,
+} from '../core/lm/transformersRunner';
 
 describe('Qwen token streamer', () => {
   it('yields streamed chunks for a simple prompt', async () => {
@@ -61,7 +64,58 @@ describe('Qwen token streamer', () => {
     expect(captured.length).toBeGreaterThan(0);
   });
 
+  it('yields word-by-word chunks when spaces/punctuation are present', async () => {
+    __resetQwenSingletonForTests();
+    vi.mock('../core/lm/transformersClient', () => ({ detectBackend: () => 'cpu' }));
+
+    vi.doMock('@huggingface/transformers', () => ({
+      pipeline: async () =>
+        Object.assign(
+          async (_messages: unknown[], opts: Record<string, unknown>) => {
+            const streamer = opts.streamer as { callback_function?: (t: string) => void };
+            streamer.callback_function?.('alpha beta gamma.');
+          },
+          { tokenizer: {} },
+        ),
+      TextStreamer: function (_t: unknown, o: Record<string, unknown>) {
+        const opts = o as { callback_function?: (t: string) => void };
+        return { callback_function: opts.callback_function } as unknown as object;
+      },
+      env: {},
+    }));
+
+    const runner = createQwenTokenStreamer({ localOnly: true });
+    const chunks: string[] = [];
+    for await (const c of runner.generateStream({ prompt: 'x' })) chunks.push(c);
+    expect(chunks).toEqual(['alpha ', 'beta ', 'gamma.']);
+  });
+
+  it('flushes trailing non-boundary remainder on completion', async () => {
+    __resetQwenSingletonForTests();
+    vi.mock('../core/lm/transformersClient', () => ({ detectBackend: () => 'cpu' }));
+    vi.doMock('@huggingface/transformers', () => ({
+      pipeline: async () =>
+        Object.assign(
+          async (_messages: unknown[], opts: Record<string, unknown>) => {
+            const streamer = opts.streamer as { callback_function?: (t: string) => void };
+            streamer.callback_function?.('NoBoundary');
+          },
+          { tokenizer: {} },
+        ),
+      TextStreamer: function (_t: unknown, o: Record<string, unknown>) {
+        const opts = o as { callback_function?: (t: string) => void };
+        return { callback_function: opts.callback_function } as unknown as object;
+      },
+      env: {},
+    }));
+    const runner = createQwenTokenStreamer({ localOnly: true });
+    const chunks: string[] = [];
+    for await (const c of runner.generateStream({ prompt: 'x' })) chunks.push(c);
+    expect(chunks).toEqual(['NoBoundary']);
+  });
+
   it('configures env for local hosting, maps device by backend, and reuses generator', async () => {
+    __resetQwenSingletonForTests();
     // Force CPU backend deterministically
     vi.mock('../core/lm/transformersClient', () => ({ detectBackend: () => 'cpu' }));
     // Simulate a CPU-only environment
@@ -120,9 +174,8 @@ describe('Qwen token streamer', () => {
     // device option present
     const lo = lastOptions as { device?: string } | null;
     expect(typeof lo?.device).toBe('string');
-    // chunking produced multiple slices (8-char chunks)
+    // word-by-word streaming may produce a single chunk when no boundaries exist
     expect(first.join('')).toBe('abcdefghijk');
-    expect(first.length).toBeGreaterThan(1);
 
     // restore
     (globalThis as unknown as { WebAssembly?: unknown }).WebAssembly = originalWasm;

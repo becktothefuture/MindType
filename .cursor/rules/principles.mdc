@@ -1,0 +1,47 @@
+---
+alwaysApply: true
+---
+<!--══════════════════════════════════════════════════════════
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  ░  P R I N C I P L E S   ( S U M M A R Y )  ░░░░░░░░░░░░░░  ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌                      ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ╚══════════════════════════════════════════════════════════════╝
+    • WHAT ▸ Minimal always-on principles for Cursor context
+    • WHY  ▸ Conserve tokens while guiding behaviour
+    • HOW  ▸ Abbreviated bullets; see docs/system_principles.md
+-->
+
+# Principles Snapshot
+
+Human Flow & Dignity
+- Human-first agency: auto-apply within band; no accept gesture; no expansion.
+- Flow & rhythm: micro-corrections; defer heavy work during bursts.
+- Low cognitive load: no suggestion lists; subtle underline/highlight; debug opt-in.
+- Accessibility: respect reduced motion; SR announces; keyboard-first.
+
+Safety, Trust & Integrity
+- Caret-safe, non-undoing: never edit at/after caret; band-only; no undo entries.
+- Local-first privacy: prefer local; remote off unless opted in; degrade gracefully; no text persistence.
+- Explainability: show reasons, tiers, and truncations; toggleable explainers.
+- Fail-soft: LM errors → rules-only; single-flight + abort; drop stale.
+
+Adaptive Intelligence & Execution
+- Context-minimal: smallest window; allow control JSON; outputs sanitized & clamped.
+- Single-flight orchestration: one active gen per band; abort on input.
+- Device-tier progressive: detect capabilities → tune cadence/tokens.
+- Testable/observable: gates must pass; logs for merges/aborts/tiers.
+
+Collaboration & Delivery
+- Plan order & Questions: execute tasks in plan order; capture clarifications in `docs/questions.md`.
+- Green gates: typecheck/lint/format/test must pass before merge.
+
+See `docs/system_principles.md` for behaviours and examples.
+

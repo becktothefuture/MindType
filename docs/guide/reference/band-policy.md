@@ -36,4 +36,4 @@
 - Zero‑width characters and surrogate pairs near boundaries
 - Fast typing (frontier chases caret without crossing)
 
-See also: `docs/lm_behavior.md` and `core/lm/policy.ts`.
+See also: `docs/guide/reference/lm-behavior.md` and `core/lm/policy.ts`.

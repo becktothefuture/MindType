@@ -11,7 +11,7 @@ Links to critical files by name for Cursor memory and quick reference.
 - [Project Structure](docs/project_structure.md)
 - [Glossary](context/glossary.md)
 - [Project Overview](context/project_overview.md)
-- [System Principles](context/system_principles.md)
+- [System Principles](docs/system_principles.md)
 
 ## Key Directories
 - [Core Logic](core/)

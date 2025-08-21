@@ -23,14 +23,18 @@ export function detectBackend(): LMCapabilities['backend'] {
     }
   } catch {}
   try {
-    // In browsers without WebGPU but with WASM SIMD, a WASM backend may be used by libs
-    return 'wasm';
+    // In browsers without WebGPU but with WebAssembly (SIMD/threads optional), use WASM
+    if (typeof WebAssembly !== 'undefined') return 'wasm';
   } catch {}
   return 'cpu';
 }
 
 export function createTransformersAdapter(runner: TokenStreamer): LMAdapter {
   let aborted = false;
+  let inflight: Promise<void> | null = null;
+  let resolveInflight: (() => void) | null = null;
+  let lastMergeAt = 0;
+  const COOLDOWN_MS = 160;
   let caps: LMCapabilities | null = null;
 
   return {
@@ -43,13 +47,35 @@ export function createTransformersAdapter(runner: TokenStreamer): LMAdapter {
       aborted = true;
     },
     async *stream(params: LMStreamParams): AsyncIterable<string> {
+      // enforce cooldown
+      const now = Date.now();
+      const since = now - lastMergeAt;
+      if (since < COOLDOWN_MS) {
+        await new Promise((r) => setTimeout(r, COOLDOWN_MS - since));
+      }
+      // single‑flight: cancel previous
+      aborted = true;
+      await inflight?.catch(() => {});
       aborted = false;
+
       const { text, band } = params;
       const prompt = text.slice(band.start, band.end);
       const stream = runner.generateStream({ prompt });
-      for await (const chunk of stream) {
-        if (aborted) return;
-        yield chunk;
+
+      // create a completion promise resolved when this stream finishes
+      inflight = new Promise<void>((resolve) => {
+        resolveInflight = resolve;
+      });
+
+      try {
+        for await (const chunk of stream) {
+          if (aborted) return;
+          yield chunk;
+        }
+        lastMergeAt = Date.now();
+      } finally {
+        resolveInflight?.();
+        resolveInflight = null;
       }
     },
   };

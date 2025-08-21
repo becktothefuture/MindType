@@ -29,16 +29,18 @@
 - Span length capped (default 80 chars).
 - Context window: ~60 chars before and after the span.
 - Debounce and cooldown so we generate after a pause and not too frequently.
+  - SHORT_PAUSE_MS = 300 ms (catch‑up trigger)
 - Single-flight: abort any in-flight generation before starting a new one; drop stale results.
 
 On slow devices (WASM/CPU):
 
 - Auto-degrade token caps and increase debounce/cooldown to avoid thrash.
 
-## Prompt Template
+## Prompt Template (with control‑plane metadata)
 
 ```
 Correct ONLY the Span. Do not add explanations or extra words. Return just the corrected Span.
+CONTROL (JSON): «{controlJson}»
 Context before: «{ctxBefore}»
 Span: «{span}»
 Context after: «{ctxAfter}»
@@ -47,11 +49,13 @@ Context after: «{ctxAfter}»
 Implementation notes:
 
 - We pass a single-string prompt to the runner to avoid chat-template surprises.
+- Control-plane JSON is included for determinism but must stay ≤10% of the prompt window.
 - Post-processing removes any lingering labels or guillemets.
 
-## Token Budget
+## Token Budget & Device Tiers
 
-- max_new_tokens ~ 1.1 × span length + 6, capped at 32 by default.
+- max_new_tokens ~ 1.1 × span length + 6, capped by tier defaults when unspecified:
+  - webgpu: 48, wasm: 24, cpu: 16
 - Enforces short outputs aligned to the original span size.
 
 ## Output Post‑Processing
@@ -59,7 +63,7 @@ Implementation notes:
 - Take the first line; strip quotes; trim whitespace.
 - Clamp length to ~2 × original span length (min 24).
 - Replace only the band span with the fixed text.
-  - If caret has entered the band since request start, cancel and rollback.
+  - If caret has entered the band since request start, cancel and drop stale; no rollback to undo stack.
 
 ## Runtime Guards
 
@@ -86,10 +90,10 @@ Implementation notes:
 7. Moving caret with arrow keys: same as click; no mid-word runs.
 8. Selecting a range: LM disabled while selection exists; no changes until collapsed.
 9. Typing fast bursts: abort stale, single-flight ensures latest run only.
-10. Frequent tiny pauses (<400ms): cooldown prevents spam; band shows but no LM merge.
+10. Frequent tiny pauses (<300ms): cooldown prevents spam; band shows but no LM merge.
 11. Typing at document start: band within bounds; prompt uses available left context.
 12. Typing at line start after newline: newline-safety clamp avoids band jumping across lines.
-13. Undo/redo: band updates; LM waits for pause; merges only span.
+13. Undo/redo: band updates; LM waits for pause; merges only span; system corrections do not enter undo stack.
 14. Deleting characters: band updates; LM only after boundary and pause.
 15. Replacing a word (backspace + type): treated as new span; LM after pause.
 16. Holding key (repeat): no LM until release+pause.
@@ -101,7 +105,7 @@ Implementation notes:
 22. Low-power device: debounce/cooldown keep frequency low; small max tokens.
 23. High-latency first run (warm-up): later runs faster; UI shows band regardless.
 24. Rule-only mode: LM off; rules apply; can toggle LM on and load.
-25. Local-only assets missing: use remote; if blocked, LM off gracefully.
+25. Local-only assets missing: LM remains off; show guidance to run setup; remote allowed only on explicit opt‑in.
 26. Slow network: small prompts/outputs minimize bandwidth; still span-only merges.
 27. Very long word: span cap blocks LM; rules may still apply.
 28. Mixed case/punctuation errors: prompt + post-process keep output short and span-sized.
