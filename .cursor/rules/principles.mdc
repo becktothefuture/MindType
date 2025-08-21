@@ -25,6 +25,13 @@ alwaysApply: true
 - Safety & trust: caret‑safe; private by default; explain choices simply; fail soft.
 - Logic: smallest context; plain outputs; one thing at a time; validate a small band.
 - Performance: match the device; ship only what we can test.
+<<<<<<< HEAD
+ - Performance: match the device; ship only what we can test.
+
+Always check clarifications:
+- Consult `docs/questionnaire/questions.md` for live decisions before acting.
+=======
+>>>>>>> origin/main
 
 See `docs/system_principles.md` for links to deeper docs.
 

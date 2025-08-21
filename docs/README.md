@@ -46,6 +46,21 @@
 - `questionnaire/`
   - Product questionnaire sections and live `questions.md` (clarifications). Treat as the primary Q&A surface; deprecated `questions-incomplete.md` has been removed.
 
+### Cross‑links
+
+- Principles ↔ ADRs ↔ Architecture ↔ Guides ↔ QA form a closed loop:
+  - Principles set behavior
+  - ADRs lock consequential decisions
+  - Architecture shows where behavior lives
+  - Guides define exact contracts
+  - QA verifies behavior continuously
+
+## Glossary
+
+- Caret: The text insertion cursor in an editor.
+- Validation band (band): Small neighborhood behind the caret used for safe corrections.
+- Sweep: Lightweight pass that tidies recent input without heavy model calls.
+
 ## Conventions
 
 - One canonical home per topic; avoid duplicates. If two docs drift or overlap, merge or link — don’t fork.

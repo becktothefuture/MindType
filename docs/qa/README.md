@@ -63,3 +63,9 @@
 1. Typecheck → 2) Lint → 3) Format:check → 4) Unit+Integration tests (coverage) → 5) Coverage guard → 6) E2E/A11y smoke (non-blocking; report only)
 
 Keep this file short and link to detailed specs in `docs/implementation.md` and `docs/PRD.md`.
+
+### Cross‑links
+
+- Principles → QA: Each acceptance test cites the governing principle in `docs/system_principles.md`.
+- ADRs → QA: ADRs define non‑negotiables that acceptance scenarios must validate (e.g., caret safety).
+- Guides → QA: Reference docs (band policy, injector, LM behavior) define the behaviors under test.

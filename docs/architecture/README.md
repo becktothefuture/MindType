@@ -2,6 +2,13 @@
 
 This document expands on the engineering spec and explains how the parts of the tool fit together. It is designed to provide a mental picture of the final system before implementation begins.
 
+Cross‑links:
+
+- Principles: `../system_principles.md`
+- ADRs: `../adr/README.md`
+- Guides (reference contracts): `../guide/reference/`
+- QA acceptance: `../qa/acceptance/`
+
 ## High-Level Pipeline
 
 1. **Keystroke Handling** – Every printable key resets the pause timer and advances a typing tick (~60–90 ms cadence) for streamed diffusion.
