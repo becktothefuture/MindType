@@ -4,6 +4,7 @@
 # WHAT ▸ Ensure consistent proper-name spelling
 # WHY  ▸ Cohesion during later passes
 # HOW  ▸ BackfillConsistency proposes stable-zone edits
+# IDs  ▸ SCEN-BACKFILL-001 | PRIN: PRIN-LOGIC-08 | FUTURE REQ: Backfill consistency
 
 Feature: Backfill name consistency (REF: engines/backfillConsistency)
   Scenario: Consistent person name within paragraph

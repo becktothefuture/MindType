@@ -4,6 +4,7 @@
 # WHAT ▸ Prevent edits at/after the CARET
 # WHY  ▸ Trust and predictability (REQ-IME-CARETSAFE)
 # HOW  ▸ Engine rejects diffs crossing caret
+# IDs  ▸ SCEN-CARETS-001 | PRIN: PRIN-SAFETY-04 | ADR: ADR-0002 | REQ: REQ-IME-CARETSAFE
 
 Feature: Caret-safe diffs (REQ-IME-CARETSAFE)
   Scenario: No edits when caret mid-word

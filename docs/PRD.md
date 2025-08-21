@@ -80,5 +80,19 @@ on‑device, system‑wide, with zero input sent to cloud. Target uplift:
 
 ### Traceability
 
-- See REQ → tests/modules mapping in the PRD “Traceability” appendix
-  after test scaffolding lands.
+IDs:
+
+- Requirements: REQ-\*
+- Principles: PRIN-\*
+- ADRs: ADR-\*
+- Scenarios: SCEN-\*
+
+Appendix — Traceability Map (starter)
+
+| REQ-ID                   | Principles                   | ADRs     | QA Scenarios                        | Modules/Guides                                    |
+| ------------------------ | ---------------------------- | -------- | ----------------------------------- | ------------------------------------------------- |
+| REQ-IME-CARETSAFE        | PRIN-SAFETY-04               | ADR-0002 | SCEN-CARETS-001                     | utils/diff.ts; band-policy.md                     |
+| REQ-STREAMED-DIFFUSION   | PRIN-HUMAN-01, PRIN-LOGIC-10 | —        | SCEN-DIFFUSION-001                  | core/diffusionController.ts; lm-behavior.md       |
+| REQ-VALIDATION-BAND      | PRIN-HUMAN-01, PRIN-LOGIC-10 | —        | SCEN-DIFFUSION-001, SCEN-HILITE-001 | band-policy.md; ui/highlighter.ts                 |
+| REQ-A11Y-MOTION          | PRIN-HUMAN-03                | —        | SCEN-HILITE-001                     | a11y/wcag-checklist.md; ui/motion.ts              |
+| REQ-LOCAL-LM-INTEGRATION | PRIN-SAFETY-05, PRIN-PERF-11 | ADR-0003 | SCEN-LMLOCAL-001                    | lm-behavior.md; core/lm/\*; transformersRunner.ts |

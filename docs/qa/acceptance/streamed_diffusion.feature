@@ -4,6 +4,7 @@
 # WHAT ▸ Word-by-word streamed corrections behind caret
 # WHY  ▸ Make the trailing process visible and predictable
 # HOW  ▸ Validation band (3–8 words), caret-safe edits, pause catch-up
+# IDs  ▸ SCEN-DIFFUSION-001 | PRIN: PRIN-LOGIC-10, PRIN-HUMAN-01 | REQ: REQ-STREAMED-DIFFUSION, REQ-VALIDATION-BAND
 
 Feature: Streamed diffusion (REQ-STREAMED-DIFFUSION, REQ-VALIDATION-BAND)
   Scenario: Frontier advances during typing
