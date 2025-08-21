@@ -4,6 +4,7 @@
 # WHAT ▸ On-device language model corrections with graceful fallback
 # WHY  ▸ Semantic/grammatical quality beyond rules while staying local
 # HOW  ▸ Stream LM tokens into validation band; fallback to rules; <150MB memory
+# IDs  ▸ SCEN-LMLOCAL-001 | PRIN: PRIN-SAFETY-05, PRIN-PERF-11 | REQ: REQ-LOCAL-LM-INTEGRATION, REQ-CONTEXTUAL-CORRECTIONS
 
 Feature: Local LM Integration (REQ-LOCAL-LM-INTEGRATION, REQ-CONTEXTUAL-CORRECTIONS)
   Scenario: LM enhances contextual corrections

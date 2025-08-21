@@ -4,6 +4,7 @@
 # WHAT ▸ Briefly highlight two words behind caret
 # WHY  ▸ Awareness without distraction (REQ-A11Y-MOTION)
 # HOW  ▸ UI respects prefers-reduced-motion
+# IDs  ▸ SCEN-HILITE-001 | PRIN: PRIN-HUMAN-02, PRIN-HUMAN-03 | REQ: REQ-A11Y-MOTION
 
 Feature: Two-word highlight (REQ-A11Y-MOTION)
   Scenario: Highlight after short pause

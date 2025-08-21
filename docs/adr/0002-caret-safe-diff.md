@@ -20,9 +20,9 @@ Context
 Users must never see unexpected forward edits; IME/secure fields require
 strict boundaries.
 
-Decision
+Decision (Traceability)
 All diffs MUST satisfy `end <= caret`. Engines MUST reject proposals that
-cross the caret. (PRD: REQ-IME-CARETSAFE)
+cross the caret. (PRD: REQ-IME-CARETSAFE, Principles: PRIN-SAFETY-04)
 
 Consequences
 
@@ -33,7 +33,10 @@ Alternatives
 
 - Allow ahead edits with preview/confirm — rejected for flow/latency.
 
-Links
+Links (Traceability)
 
+- PRD: `docs/PRD.md#functional-requirements`
+- Principles: `docs/system_principles.md#4-caret-safe-never-risky`
+- Architecture: `docs/architecture/C3-components.md`
 - Code: `utils/diff.ts`, `engines/tidySweep.ts`
 - Tests: `tests/diff.spec.ts`, `tests/tidySweep.spec.ts`
