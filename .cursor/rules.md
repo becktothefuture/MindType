@@ -24,15 +24,12 @@
 - Update docs (plan, QA matrix, behaviour specs) as part of completion.
 - Update docs (plan, QA matrix, behaviour specs) as part of completion.
 - If a PR changes behaviour but does not update `docs/system_principles.md` and relevant guides/tests, CI should fail.
-- If a PR changes behaviour but does not update `docs/system_principles.md` and relevant guides/tests, CI should fail.
-- Traceability: Behavioural PRs must cite REQ‑IDs (PRD), PRIN‑IDs (Principles), ADR‑IDs (ADRs), SCEN‑IDs (QA) in the PR description.
 
 3. Use the Questions Log
 
-- Always check `docs/questionnaire/questions.md` before starting a task.
+- Always check `docs/questions.md` before starting a task.
 - If clarification is needed, add a new question (QXXX) with context and link to FT-\*; proceed on the safest default and adjust when answered.
 - Reference Q entries in PR descriptions and reflect decisions in AC.
-- If answers change behaviour, update Principles/ADRs/Guides/QA accordingly in the same PR.
 
 4. Core‑first LM behaviour
 
@@ -104,7 +101,7 @@
 16. Docs & Questions discipline
 
 - Update `docs/implementation.md`, `docs/guide/reference/lm-behavior.md`, and `docs/qa/README.md` for any behaviour change.
-- Log uncertainties in `docs/questionnaire/questions.md`; proceed on safe defaults; revisit once answered.
+- Log uncertainties in `docs/questions.md`; proceed on safe defaults; revisit once answered.
 
 17. Observability & safety
 
@@ -120,4 +117,4 @@
 - Plan and task order: `docs/implementation.md`
 - QA matrix and CI gates: `docs/qa/README.md`
 - LM policy/behaviour: `docs/guide/reference/lm-behavior.md`
-- Questions log: `docs/questionnaire/questions.md`
+- Questions log: `docs/questions.md`
