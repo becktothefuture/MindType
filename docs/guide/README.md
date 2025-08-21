@@ -25,3 +25,10 @@ Rules:
 - If it defines an API/contract/canonical behavior, it belongs in `reference/`.
 - If it teaches via a project, it belongs in `tutorials/`.
 - If it answers “why”, it belongs in `explanations/`.
+
+Cross‑links:
+
+- Principles: `../system_principles.md`
+- Architecture: `../architecture/README.md`
+- ADRs: `../adr/README.md`
+- QA acceptance: `../qa/acceptance/`

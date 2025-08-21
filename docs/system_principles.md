@@ -37,7 +37,7 @@ principle links to deeper docs that hold the technical details.
   - While the person types, hold back; when they pause, tidy what was
     written without moving the caret.
   - If they resume typing, drop any pending idea silently.
-- See also: [PRD](../PRD.md), [Caret-safe diff (ADR)](../adr/0002-caret-safe-diff.md), [Band policy](guide/reference/band-policy.md), [Acceptance: caret safety](qa/acceptance/caret_safety.feature)
+- See also: [PRD](../PRD.md), [Caret-safe diff (ADR)](../adr/0002-caret-safe-diff.md), [Band policy](guide/reference/band-policy.md), [Acceptance: caret safety](qa/acceptance/caret_safety.feature), [Glossary](../README.md#glossary)
 
 2. Keep the surface calm
 
@@ -67,7 +67,7 @@ principle links to deeper docs that hold the technical details.
 - Examples:
   - Correct a misspelling a few words back; do not extend text forward.
   - If a change would cross the caret, skip it.
-- See also: [Caret-safe diff (ADR)](../adr/0002-caret-safe-diff.md), [Band policy](guide/reference/band-policy.md), [Acceptance: caret safety](qa/acceptance/caret_safety.feature)
+- See also: [Caret-safe diff (ADR)](../adr/0002-caret-safe-diff.md), [Band policy](guide/reference/band-policy.md), [Acceptance: caret safety](qa/acceptance/caret_safety.feature), [Glossary](../README.md#glossary)
 
 5. Private by default
 
@@ -77,7 +77,7 @@ principle links to deeper docs that hold the technical details.
   - If local assets are missing, operate in safe rules‑only mode and
     nudge setup, not cloud fallback.
   - Clear the opt‑in when the session ends.
-- See also: [PRD](../PRD.md), [LM behavior](guide/reference/lm-behavior.md), [Config flags](guide/reference/config-flags.md), [Acceptance: local LM](qa/acceptance/local_lm_integration.feature)
+- See also: [PRD](../PRD.md), [LM behavior](guide/reference/lm-behavior.md), [Config flags](guide/reference/config-flags.md), [Acceptance: local LM](qa/acceptance/local_lm_integration.feature), [Glossary](../README.md#glossary)
 
 6. Explain choices simply
 

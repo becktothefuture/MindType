@@ -9,8 +9,8 @@ Links to critical files by name for Cursor memory and quick reference.
 - [Implementation Tasks](docs/implementation.md)
 - [PRD](docs/PRD.md)
 - [Project Structure](docs/project_structure.md)
-- [Glossary](context/glossary.md)
-- [Project Overview](context/project_overview.md)
+- [Glossary](docs/README.md#glossary)
+- [Project Overview](docs/README.md)
 - [System Principles](docs/system_principles.md)
 
 ## Key Directories
