@@ -49,7 +49,7 @@
 7. Tests & docs as deliverables
 
 - Add unit/integration tests for new logic and update `docs/qa/README.md` test mapping.
-- Keep `docs/lm_behavior.md` and `docs/implementation.md` in sync with behaviour changes.
+- Keep `docs/guide/reference/lm-behavior.md` and `docs/implementation.md` in sync with behaviour changes.
 
 8. Communication discipline
 
@@ -100,7 +100,7 @@
 
 16. Docs & Questions discipline
 
-- Update `docs/implementation.md`, `docs/lm_behavior.md`, and `docs/qa/README.md` for any behaviour change.
+- Update `docs/implementation.md`, `docs/guide/reference/lm-behavior.md`, and `docs/qa/README.md` for any behaviour change.
 - Log uncertainties in `docs/questions.md`; proceed on safe defaults; revisit once answered.
 
 17. Observability & safety
@@ -116,5 +116,5 @@
 
 - Plan and task order: `docs/implementation.md`
 - QA matrix and CI gates: `docs/qa/README.md`
-- LM policy/behaviour: `docs/lm_behavior.md`
+- LM policy/behaviour: `docs/guide/reference/lm-behavior.md`
 - Questions log: `docs/questions.md`

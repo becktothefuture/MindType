@@ -167,5 +167,5 @@ explainable.
 - Core logic enforces safety and orchestration (`core/**`).
 - The web demo renders controls, state, and explainers; it never owns
   LM scheduling or merge policy.
-- All behaviour changes update this file, `docs/lm_behavior.md`, and the
+- All behaviour changes update this file, `docs/guide/reference/lm-behavior.md`, and the
   QA matrix.

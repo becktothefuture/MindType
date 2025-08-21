@@ -26,4 +26,4 @@
 
 - Single‑flight generation; abort stale requests; respect cooldowns.
 
-See: `core/lm/transformersRunner.ts`, `docs/lm_behavior.md`.
+See: `core/lm/transformersRunner.ts`, `docs/guide/reference/lm-behavior.md`.
