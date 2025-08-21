@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import "./App.css";
-import DebugPanel from "./components/DebugPanel";
+import DebugPanel, { type LMDebugInfo } from "./components/DebugPanel";
 import { SCENARIOS } from "./scenarios";
+import { replaceRange } from "../../utils/diff";
 // TS pipeline imports
 import { boot } from "../../index";
+import { setLoggerConfig } from "../../core/logger";
 // LM integration is driven by core pipeline (future task). Demo remains rules-only.
 import {
   getTypingTickMs,
@@ -107,6 +109,7 @@ function App() {
   const [logs] = useState<LogEntry[]>([]);
   // reserved for LM-in-core chase policy
   const [isTyping, setIsTyping] = useState(false);
+  const [lmDebug, setLmDebug] = useState<LMDebugInfo | undefined>(undefined);
 
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -178,14 +181,44 @@ function App() {
   // Start TS pipeline
   useEffect(() => {
     pipeline.start();
+    try {
+      const stored = localStorage.getItem('mt.debug');
+      if (stored === 'true') {
+        // Enable verbose core logs
+        setLoggerConfig({ enabled: true, level: 'debug' });
+        console.info('[demo] debug logging enabled');
+      }
+    } catch {}
     return () => pipeline.stop();
   }, [pipeline]);
 
   // Console access for quick manual testing
   useEffect(() => {
     (window as any).mt = pipeline;
+    (window as any).mtDebug = {
+      setLMDebug: (info: LMDebugInfo) => setLmDebug(info),
+    };
+    const id = window.setInterval(() => {
+      try {
+        const sel = (globalThis as any).__mtLastLMSelection;
+        if (!sel) return;
+        setLmDebug({
+          enabled: true,
+          status: 'idle',
+          band: sel.band ?? null,
+          span: sel.span ?? null,
+          ctxBefore: sel.ctxBefore ?? '',
+          ctxAfter: sel.ctxAfter ?? '',
+          prompt: sel.prompt ?? null,
+          controlJson: sel.controlJson ?? '{}',
+          lastChunks: (globalThis as any).__mtLastLMChunks || [],
+        });
+      } catch {}
+    }, 250);
     return () => {
       delete (window as any).mt;
+      delete (window as any).mtDebug;
+      window.clearInterval(id);
     };
   }, [pipeline]);
 
@@ -265,13 +298,27 @@ function App() {
       else apply();
     };
     const onHighlight = (e: Event) => {
-      const { start, end } = (e as CustomEvent).detail as {
+      const { start, end, text: diffText } = (e as CustomEvent).detail as {
         start: number;
         end: number;
+        text?: string;
       };
       setLastHighlight({ start, end });
       setTimeout(() => setLastHighlight(null), 800);
-      // latency metrics removed in rules-only demo
+      // Apply correction if provided (rules-only path)
+      if (typeof diffText === 'string') {
+        try {
+          const caret = caretRef.current;
+          const updated = replaceRange(text, start, end, diffText, caret);
+          setText(updated);
+          requestAnimationFrame(() => {
+            const ta = textareaRef.current;
+            if (ta) ta.setSelectionRange(caret, caret);
+          });
+        } catch (err) {
+          console.warn('[web-demo] failed to apply diff', { start, end, diffText, err });
+        }
+      }
     };
     window.addEventListener("mindtyper:validationBand", onBand as EventListener);
     window.addEventListener("mindtyper:highlight", onHighlight as EventListener);
@@ -400,7 +447,7 @@ function App() {
       </div>
 
       {showDebugPanel && (
-        <DebugPanel idleMs={idleMs} onIdleMsChange={setIdleMs} logs={logs} />
+        <DebugPanel idleMs={idleMs} onIdleMsChange={setIdleMs} logs={logs} lmDebug={lmDebug} />
       )}
 
       <div className="card" style={{ marginTop: 16 }}>

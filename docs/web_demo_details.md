@@ -100,7 +100,7 @@ The demo serves three goals:
 
 Current state:
 
-- The demo uses a simple `<textarea>` and will be wired to the TypeScript streaming pipeline (TypingMonitor → SweepScheduler → DiffusionController) for real‑time validation band and corrections.
+- The demo uses a simple `<textarea>` and is wired to the TypeScript streaming pipeline (TypingMonitor → SweepScheduler → DiffusionController) for real‑time validation band and corrections.
 - `Editable.tsx`, `useTypingTick.ts` (replacing pause‑only logic), and `useMindType.ts` are planned improvements; the names here describe intent.
 
 ## Components (what each piece does)
@@ -132,7 +132,15 @@ The web demo is intentionally lightweight; it mirrors the eventual macOS experie
 - Import the TypeScript streaming pipeline for immediate realism; optionally augment with the WASM package `@mindtype/core` (compiled from `crates/core-rs`) when Rust components land.
 - Build the `usePauseTimer` hook to wrap the Rust `PauseTimer` and expose an `idle` event to React components.
 - Implement `Editable.tsx` so it never resets the DOM tree — rely on refs and `contentEditable` to maintain cursor position.
-- When integrating `LMClient.ts`, start with Transformers.js streaming in a Web Worker and a `TextStreamer`; keep corrections band‑bounded and caret‑safe.
+- When integrating `LMClient.ts`, use Transformers.js streaming with a `TextStreamer`; keep corrections band‑bounded and caret‑safe. A strict single‑string prompt is used (see `core/lm/policy.ts`).
+
+## v1 vs v2
+
+- v1: Baseline demo (existing page). URL entry: `.../v1/`.
+- v2: Noisy typing tester with autoplay and controls to tune tick and noise. URL entry: `.../v2/`.
+
+Vite is configured for multi‑page builds with both entries.
+
 - Add a small Express server to store email sign-ups; keep telemetry logging optional via a checkbox.
 
 ### Glossary

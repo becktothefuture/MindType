@@ -22,6 +22,8 @@
 
 - Before marking any task complete: `pnpm typecheck && pnpm lint && pnpm run -s format:check && pnpm test` must pass; coverage guard stays green.
 - Update docs (plan, QA matrix, behaviour specs) as part of completion.
+- Update docs (plan, QA matrix, behaviour specs) as part of completion.
+- If a PR changes behaviour but does not update `docs/system_principles.md` and relevant guides/tests, CI should fail.
 
 3. Use the Questions Log
 

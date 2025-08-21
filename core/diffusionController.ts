@@ -16,8 +16,10 @@ import {
   getMaxValidationWords,
 } from '../config/defaultThresholds';
 import { tidySweep } from '../engines/tidySweep';
+import { replaceRange } from '../utils/diff';
 import type { LMAdapter } from './lm/types';
 import { renderValidationBand, renderHighlight } from '../ui/highlighter';
+import { createLogger } from './logger';
 
 export interface DiffusionState {
   text: string;
@@ -37,7 +39,14 @@ export interface BandPolicy {
 // Context7 docs: Intl.Segmenter provides granularity: 'word' for word-like segments
 // The isWordLike property indicates segments that are actual words vs punctuation/spaces
 export function createDiffusionController(policy?: BandPolicy, _lmAdapter?: LMAdapter) {
-  const seg = new Intl.Segmenter(undefined, { granularity: 'word' });
+  // Safari/older browsers: Intl.Segmenter may be missing or partial. Provide a fallback.
+  let seg: Intl.Segmenter | null = null;
+  try {
+    seg = new Intl.Segmenter(undefined, { granularity: 'word' });
+  } catch {
+    seg = null;
+  }
+  const log = createLogger('diffusion');
 
   let state: DiffusionState = { text: '', caret: 0, frontier: 0 };
   // Throttle rendering to avoid UI storms (esp. Safari). ~60fps ceiling.
@@ -50,6 +59,19 @@ export function createDiffusionController(policy?: BandPolicy, _lmAdapter?: LMAd
       lastRenderMs = now;
       const renderRange = policy ? policy.computeRenderRange(state) : bandRange();
       renderValidationBand(renderRange);
+      // Emit selection snapshot for LM inspector/debug
+      try {
+        const { start, end } = renderRange;
+        const ctxBefore = state.text.slice(Math.max(0, start - 60), start);
+        const span = state.text.slice(start, end);
+        const ctxAfter = state.text.slice(end, Math.min(state.text.length, end + 60));
+        (globalThis as unknown as Record<string, unknown>).__mtLastLMSelection = {
+          band: renderRange,
+          span,
+          ctxBefore,
+          ctxAfter,
+        };
+      } catch {}
     }
   }
 
@@ -63,22 +85,38 @@ export function createDiffusionController(policy?: BandPolicy, _lmAdapter?: LMAd
     state.text = text;
     state.caret = caret;
     clampFrontier();
+    log.debug('update', { caret, frontier: state.frontier, textLen: text.length });
     maybeRender();
+  }
+
+  function iterateWordSegments(slice: string): Array<{ index: number; segment: string }> {
+    const out: Array<{ index: number; segment: string }> = [];
+    if (seg) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const s of (seg as any).segment(slice)) {
+        if ((s as { isWordLike?: boolean }).isWordLike)
+          out.push({ index: s.index, segment: s.segment });
+      }
+      return out;
+    }
+    // Fallback: unicode word run matches
+    const re = /[\p{L}\p{N}_]+/gu;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(slice))) {
+      out.push({ index: m.index, segment: m[0] });
+    }
+    return out;
   }
 
   function bandRange(): { start: number; end: number } {
     // Compute a range covering min..max words behind caret, starting at frontier
     const slice = state.text.slice(state.frontier, state.caret);
-    const words: Array<{ start: number; end: number }> = [];
-    for (const s of seg.segment(slice)) {
-      // Cast necessary due to incomplete TypeScript DOM types for Intl.Segmenter
-      // isWordLike property exists but not in TS lib DOM types yet
-      if ((s as { isWordLike?: boolean }).isWordLike) {
-        const start = state.frontier + s.index;
-        const end = start + s.segment.length;
-        words.push({ start, end });
-      }
-    }
+    const words: Array<{ start: number; end: number }> = iterateWordSegments(slice).map(
+      (s) => ({
+        start: state.frontier + s.index,
+        end: state.frontier + s.index + s.segment.length,
+      }),
+    );
     if (words.length === 0) return { start: state.frontier, end: state.caret };
     const minWords = getMinValidationWords();
     const maxWords = getMaxValidationWords();
@@ -90,13 +128,11 @@ export function createDiffusionController(policy?: BandPolicy, _lmAdapter?: LMAd
   function nextWordRange(): { start: number; end: number } | null {
     if (state.frontier >= state.caret) return null;
     const slice = state.text.slice(state.frontier, state.caret);
-    for (const s of seg.segment(slice)) {
-      // Cast necessary due to incomplete TypeScript DOM types for Intl.Segmenter
-      if ((s as { isWordLike?: boolean }).isWordLike) {
-        const start = state.frontier + s.index;
-        const end = start + s.segment.length;
-        if (end <= state.caret) return { start, end };
-      }
+    const segments = iterateWordSegments(slice);
+    for (const s of segments) {
+      const start = state.frontier + s.index;
+      const end = start + s.segment.length;
+      if (end <= state.caret) return { start, end };
     }
     return null;
   }
@@ -106,8 +142,28 @@ export function createDiffusionController(policy?: BandPolicy, _lmAdapter?: LMAd
     if (!r) return;
     const res = tidySweep({ text: state.text, caret: state.caret, hint: r });
     if (res.diff) {
-      renderHighlight({ start: res.diff.start, end: res.diff.end });
-      state.frontier = Math.max(state.frontier, res.diff.end);
+      // Do not log user text per privacy policy
+      log.debug('diff', {
+        start: res.diff.start,
+        end: res.diff.end,
+      });
+      // Apply the diff to local state for consistency with host
+      try {
+        const updated = replaceRange(
+          state.text,
+          res.diff.start,
+          res.diff.end,
+          res.diff.text,
+          state.caret,
+        );
+        state.text = updated;
+      } catch {
+        // If safety check fails, skip applying but still advance to avoid stalls
+        log.warn('replaceRange failed (safety)', { caret: state.caret });
+      }
+      renderHighlight({ start: res.diff.start, end: res.diff.end, text: res.diff.text });
+      const newEnd = res.diff.start + res.diff.text.length;
+      state.frontier = Math.max(state.frontier, newEnd);
     } else {
       // Even without a replacement, consider the word validated this tick
       state.frontier = Math.max(state.frontier, r.end);

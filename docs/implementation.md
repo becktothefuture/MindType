@@ -151,7 +151,7 @@ Task checklist template (copy into PR description):
        **Source:** Manifesto → Performance
 
 - [x] (P1) [FT-122] Implement pause detection  
-       **AC:** - Detect SHORT_PAUSE_MS (500ms) and LONG_PAUSE_MS (2000ms) - Cancellable timer implementation - Unit tests for timing accuracy
+       **AC:** - Detect SHORT_PAUSE_MS (300ms) and LONG_PAUSE_MS (2000ms) - Cancellable timer implementation - Unit tests for timing accuracy
       **Owner:** @alex  
        **DependsOn:** FT-121  
        **Source:** PRD → Performance
@@ -287,11 +287,16 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-231  
        **Source:** Streaming correctness
 
-- [ ] (P1) [FT-231C] Prompt shape + post-process hardening  
+- [x] (P1) [FT-231C] Prompt shape + post-process hardening  
        **AC:** Switch runner input to a single strict prompt string (no chat roles). Expand output sanitization to strip guillemets/labels and clamp length robustly. Tests verify no "chatty" outputs and span-sized merges.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** LM quality
+  - [x] (P1) [FT-231C1] Adopt strict single-string prompt in policy  
+         **AC:** `core/lm/policy.ts` builds a strict single-string prompt with instructions and context. Post-process remains clamped/stripped.  
+         **Owner:** @alex  
+         **DependsOn:** FT-231  
+         **Source:** Precision requirement
 
 - [ ] (P1) [FT-231D] Backend capability detection + auto‑degrade  
        **AC:** Detect WebGPU accurately; detect WASM SIMD/threads; choose device accordingly. On non‑WebGPU, reduce token caps and increase debounce/cooldown. Unit tests mock capabilities and assert device selection + policy adjustments.  
@@ -418,6 +423,18 @@ Task checklist template (copy into PR description):
        **Owner:** @alex  
        **DependsOn:** FT-316  
        **Source:** User example transformations for validation
+
+- [ ] (P1) [FT-318] Split demo into v1 (baseline) and v2 (noisy tester)  
+       **AC:** `web-demo/v1` retains current baseline; `web-demo/v2` adds noisy typing tester with autoplay and controls (tick, noise). Multi-page Vite config; docs updated.  
+       **Owner:** @alex  
+       **DependsOn:** FT-315  
+       **Source:** Request for a tester page
+  - [ ] (P1) [FT-318A] v2 applies corrections into textarea (cross‑browser)  
+         **AC:** On `mindtyper:highlight` with `{start,end,text}`, apply via `replaceRange` to the v2 textarea; preserve caret; visible replacement in Safari/WebKit and Chromium; add Playwright e2e covering “Hello teh → Hello the”.  
+         **Owner:** @alex  
+         **DependsOn:** FT-318, FT-210  
+         **Status:** In progress — currently band/highlight fire, but v2 does not show the actual replacement of the text after correcting it.  
+         **Notes:** Investigate event timing/caret-safety guard and Safari segmentation fallback interactions.
 
 ### Undo Integration (P2)
 

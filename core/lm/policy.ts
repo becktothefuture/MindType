@@ -36,6 +36,7 @@ export interface SpanAndPrompt {
   prompt: string | null;
   span: string | null;
   maxNewTokens: number;
+  controlJson: string;
 }
 
 export function selectSpanAndPrompt(
@@ -44,27 +45,50 @@ export function selectSpanAndPrompt(
   cfg: LMBehaviorConfig = defaultLMBehaviorConfig,
 ): SpanAndPrompt {
   const band = computeSimpleBand(text, caret);
-  if (!band) return { band: null, prompt: null, span: null, maxNewTokens: 0 };
+  if (!band)
+    return { band: null, prompt: null, span: null, maxNewTokens: 0, controlJson: '{}' };
   const span = text.slice(band.start, band.end);
   if (span.length < cfg.minSpanChars)
-    return { band: null, prompt: null, span: null, maxNewTokens: 0 };
+    return { band: null, prompt: null, span: null, maxNewTokens: 0, controlJson: '{}' };
   if (span.length > cfg.maxSpanChars)
-    return { band: null, prompt: null, span: null, maxNewTokens: 0 };
+    return { band: null, prompt: null, span: null, maxNewTokens: 0, controlJson: '{}' };
   if (cfg.enforceWordBoundaryAtEnd && /\w$/.test(span)) {
-    return { band: null, prompt: null, span: null, maxNewTokens: 0 };
+    return { band: null, prompt: null, span: null, maxNewTokens: 0, controlJson: '{}' };
   }
   const ctxLeft = Math.max(0, band.start - cfg.contextLeftChars);
   const ctxRight = Math.min(text.length, band.end + cfg.contextRightChars);
   const ctxBefore = text.slice(ctxLeft, band.start);
   const ctxAfter = text.slice(band.end, ctxRight);
-  const instruction =
-    'Correct ONLY the Span. Do not add explanations or extra words. Return just the corrected Span.';
-  const prompt = `${instruction}\nContext before: «${ctxBefore}»\nSpan: «${span}»\nContext after: «${ctxAfter}»`;
+  const instruction = [
+    'Correct ONLY the Span. Return the corrected Span text exactly.',
+    '- No explanations or extra words',
+    '- No quotes or labels',
+    '- Keep meaning and style; fix grammar, clarity, and punctuation',
+    '- Keep length close to the Span (do not expand beyond it)',
+  ].join('\n');
+  const control = {
+    mode: 'grammar_only',
+    tone: { formality: 0.0, warmth: 0.0, directness: 0.0 },
+    caps: { maxRewriteChars: cfg.maxSpanChars },
+    safety: { noExternalKnowledge: true },
+    v: 1,
+  };
+  const controlJson = JSON.stringify(control, null, 2);
+  const prompt = `${instruction}\n\nCONTROL (JSON): «${controlJson}»\nContext before: «${ctxBefore}»\nSpan: «${span}»\nContext after: «${ctxAfter}»`;
   const maxNewTokens = Math.min(
     Math.ceil(span.length * cfg.maxTokensFactor) + 6,
     cfg.maxTokensCap,
   );
-  return { band, prompt, span, maxNewTokens };
+  // Expose components for UI debug
+  (globalThis as unknown as Record<string, unknown>).__mtLastLMSelection = {
+    band,
+    prompt,
+    span,
+    ctxBefore,
+    ctxAfter,
+    controlJson,
+  };
+  return { band, prompt, span, maxNewTokens, controlJson };
 }
 
 export function postProcessLMOutput(

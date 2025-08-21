@@ -103,6 +103,27 @@ describe('SweepScheduler', () => {
     scheduler.stop();
   });
 
+  it('drops events and clears timers in secure/IME contexts', async () => {
+    const monitor = createTypingMonitor();
+    const security = {
+      isSecure: () => true,
+      isIMEComposing: () => false,
+    };
+    const scheduler = createSweepScheduler(monitor, security);
+    scheduler.start();
+
+    monitor.emit({ text: 'Secure text', caret: 5, atMs: Date.now() });
+    // advance beyond pause and ticks; no calls should occur
+    vi.advanceTimersByTime(SHORT_PAUSE_MS + getTypingTickMs() + 10);
+    await Promise.resolve();
+    expect(tickOnce).not.toHaveBeenCalled();
+    expect(catchUp).not.toHaveBeenCalled();
+    expect(tidySweep).not.toHaveBeenCalled();
+    expect(backfillConsistency).not.toHaveBeenCalled();
+
+    scheduler.stop();
+  });
+
   it('stops timers on stop()', () => {
     const monitor = createTypingMonitor();
     const scheduler = createSweepScheduler(monitor);
