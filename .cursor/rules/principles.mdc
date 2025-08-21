@@ -40,7 +40,7 @@ Adaptive Intelligence & Execution
 - Testable/observable: gates must pass; logs for merges/aborts/tiers.
 
 Collaboration & Delivery
-- Plan order & Questions: execute tasks in plan order; capture clarifications in `docs/questions.md`.
+- Plan order & Questions: execute tasks in plan order; capture clarifications in `docs/questionnaire/questions.md`.
 - Green gates: typecheck/lint/format/test must pass before merge.
 
 See `docs/system_principles.md` for behaviours and examples.

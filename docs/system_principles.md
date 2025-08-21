@@ -104,7 +104,7 @@ explainable.
 
 - Behaviour: Make decisions legible. Log what was proposed, why it was
   accepted/rejected, and the current device tier. Capture uncertainties
-  in `docs/questions.md` and proceed on safe defaults.
+  in `docs/questionnaire/questions.md` and proceed on safe defaults.
 - Examples:
   - In DebugPanel, show: model tier, tokens requested, band size, and
     reason codes (e.g., "caret-entered", "stale-result"); avoid showing raw user text.
