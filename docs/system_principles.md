@@ -31,6 +31,8 @@ principle links to deeper docs that hold the technical details.
 
 1. Preserve authorship and momentum
 
+ID: PRIN-HUMAN-01
+
 - Guidance: Keep the person in flow. Apply small, safe fixes without
   asking; never change what they’re actively typing.
 - Examples:
@@ -41,6 +43,8 @@ principle links to deeper docs that hold the technical details.
 
 2. Keep the surface calm
 
+ID: PRIN-HUMAN-02
+
 - Guidance: No suggestion lists. Use subtle underline/highlight to show
   what changed; keep UI quiet.
 - Examples:
@@ -49,6 +53,8 @@ principle links to deeper docs that hold the technical details.
 - See also: [PRD](../PRD.md), [Voice & tone](../brand/specs/voice-tone.md), [Config flags](guide/reference/config-flags.md), [Web demo details](guide/how-to/web-demo-details.md)
 
 3. Accessible by default
+
+ID: PRIN-HUMAN-03
 
 - Guidance: Respect reduced motion and assistive tech; never rely on
   color or animation alone.
@@ -62,6 +68,8 @@ principle links to deeper docs that hold the technical details.
 
 4. Caret-safe, never risky
 
+ID: PRIN-SAFETY-04
+
 - Guidance: Only touch a small neighborhood behind the caret; never
   write at/after the caret.
 - Examples:
@@ -70,6 +78,8 @@ principle links to deeper docs that hold the technical details.
 - See also: [Caret-safe diff (ADR)](../adr/0002-caret-safe-diff.md), [Band policy](guide/reference/band-policy.md), [Acceptance: caret safety](qa/acceptance/caret_safety.feature), [Glossary](../README.md#glossary)
 
 5. Private by default
+
+ID: PRIN-SAFETY-05
 
 - Guidance: Prefer local. Remote is opt‑in per session. Do not persist
   user text.
@@ -81,6 +91,8 @@ principle links to deeper docs that hold the technical details.
 
 6. Explain choices simply
 
+ID: PRIN-SAFETY-06
+
 - Guidance: When asked, say what changed and why, without exposing user
   content.
 - Examples:
@@ -89,6 +101,8 @@ principle links to deeper docs that hold the technical details.
 - See also: [Web demo details](guide/how-to/web-demo-details.md), [Implementation](../implementation.md)
 
 7. Fail soft, never block
+
+ID: PRIN-SAFETY-07
 
 - Guidance: On any error, step down to a safe mode and keep the person
   typing.
@@ -101,6 +115,8 @@ principle links to deeper docs that hold the technical details.
 
 8. Smallest context; plain outputs
 
+ID: PRIN-LOGIC-08
+
 - Guidance: Use only what’s needed; return clear text, no boilerplate.
 - Examples:
   - Consider nearby text rather than the whole document.
@@ -108,6 +124,8 @@ principle links to deeper docs that hold the technical details.
 - See also: [LM behavior](guide/reference/lm-behavior.md), [Injector](guide/reference/injector.md)
 
 9. One thing at a time
+
+ID: PRIN-LOGIC-09
 
 - Guidance: Don’t juggle. If new input arrives, stop what you were
   doing.
@@ -117,6 +135,8 @@ principle links to deeper docs that hold the technical details.
 - See also: [Architecture: containers](architecture/C2-containers.md), [Implementation](../implementation.md)
 
 10. Check a small neighborhood (validation band)
+
+ID: PRIN-LOGIC-10
 
 - Guidance: Validate and correct a short span around the cursor—not the
   world.
@@ -129,6 +149,8 @@ principle links to deeper docs that hold the technical details.
 
 11. Meet the device where it is
 
+ID: PRIN-PERF-11
+
 - Guidance: Use effort that suits the hardware; prioritize responsiveness.
 - Examples:
   - On fast devices, respond more quickly; on slower ones, take lighter
@@ -137,6 +159,8 @@ principle links to deeper docs that hold the technical details.
 - See also: [Config flags](guide/reference/config-flags.md), [Web demo details](guide/how-to/web-demo-details.md)
 
 12. Ship only what we can test
+
+ID: PRIN-PERF-12
 
 - Guidance: Behaviour must be observable and verifiable.
 - Examples:

@@ -24,12 +24,15 @@
 - Update docs (plan, QA matrix, behaviour specs) as part of completion.
 - Update docs (plan, QA matrix, behaviour specs) as part of completion.
 - If a PR changes behaviour but does not update `docs/system_principles.md` and relevant guides/tests, CI should fail.
+- If a PR changes behaviour but does not update `docs/system_principles.md` and relevant guides/tests, CI should fail.
+- Traceability: Behavioural PRs must cite REQ‑IDs (PRD), PRIN‑IDs (Principles), ADR‑IDs (ADRs), SCEN‑IDs (QA) in the PR description.
 
 3. Use the Questions Log
 
 - Always check `docs/questionnaire/questions.md` before starting a task.
 - If clarification is needed, add a new question (QXXX) with context and link to FT-\*; proceed on the safest default and adjust when answered.
 - Reference Q entries in PR descriptions and reflect decisions in AC.
+- If answers change behaviour, update Principles/ADRs/Guides/QA accordingly in the same PR.
 
 4. Core‑first LM behaviour
 

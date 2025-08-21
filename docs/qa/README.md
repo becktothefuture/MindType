@@ -66,6 +66,12 @@ Keep this file short and link to detailed specs in `docs/implementation.md` and 
 
 ### Cross‑links
 
-- Principles → QA: Each acceptance test cites the governing principle in `docs/system_principles.md`.
+- Principles → QA: Each acceptance test cites the governing principle in `docs/system_principles.md` (PRIN‑IDs).
 - ADRs → QA: ADRs define non‑negotiables that acceptance scenarios must validate (e.g., caret safety).
 - Guides → QA: Reference docs (band policy, injector, LM behavior) define the behaviors under test.
+
+### Traceability Fields (per scenario)
+
+- REQ‑IDs (from PRD), PRIN‑IDs (from Principles), ADR‑IDs (from ADRs)
+- Modules involved (e.g., `core/diffusionController.ts`)
+- Link to unit/integration tests when applicable
