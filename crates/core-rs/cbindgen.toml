@@ -1,0 +1,19 @@
+#╔════════════════════════════════════════════════════╗
+#║  █  C B I N D G E N   C O N F I G  █░░░░░░░░░░░░  ║
+#╚════════════════════════════════════════════════════╝
+# WHAT ▸ Generate C headers for Swift/C# bindings
+# WHY  ▸ Stable FFI surface per v0.2 architecture
+# HOW  ▸ Run: cbindgen --config cbindgen.toml --crate core-rs --output core_rs.h
+
+language = "C"
+include_guard = "CORE_RS_H"
+namespace = "mindtype"
+
+[parse]
+expand = true
+
+[export]
+include = ["mind_type_core_version", "mind_type_core_free_string", "MTString"]
+
+[fn]
+rename_args = "None"

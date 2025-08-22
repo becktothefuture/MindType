@@ -33,5 +33,13 @@ pub extern "C" fn mind_type_core_version() -> MTString {
     MTString { ptr, len }
 }
 
+#[no_mangle]
+pub extern "C" fn mind_type_core_free_string(s: MTString) {
+    if s.ptr.is_null() || s.len == 0 { return; }
+    unsafe {
+        let _ = Vec::from_raw_parts(s.ptr, s.len, s.len);
+    }
+}
+
 
 
