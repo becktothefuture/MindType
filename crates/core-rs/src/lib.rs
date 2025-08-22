@@ -9,6 +9,10 @@ pub mod fragment;
 pub mod llm;
 pub mod merge;
 pub mod logger;
+pub mod engine;
+pub mod confidence;
+pub mod tapestry;
+pub mod ffi;
 
 #[wasm_bindgen]
 pub fn init_logger() {
