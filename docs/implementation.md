@@ -493,9 +493,9 @@ Task checklist template (copy into PR description):
 
 ### [FT-236] Remove demo‑side LM scheduling/merge
 
-- [ ] Delete LM runner/adapter wiring in `web-demo/src/App.tsx`
-- [ ] Remove LM mode toggles and metrics UI; keep band/highlight listeners
-- [ ] Keep rules‑only pipeline operational until FT‑234 lands
+- [x] Delete LM runner/adapter wiring in `web-demo/src/App.tsx`
+- [x] Remove LM mode toggles and metrics UI; keep band/highlight listeners
+- [x] Keep rules‑only pipeline operational until FT‑234 lands
 - [ ] Smoke test demo (typing, band, highlights; no LM path)
 
 ### [FT-238] Workerize Transformers + memory guard
