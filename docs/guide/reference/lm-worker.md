@@ -27,3 +27,43 @@
 - Single‑flight generation; abort stale requests; respect cooldowns.
 
 See: `core/lm/transformersRunner.ts`, `docs/guide/reference/lm-behavior.md`.
+
+<!--══════════════════════════════════════════════════════════
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  ░  L M  W O R K E R  &  B I N D I N G S   ( V 0 . 2 )   ░░  ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌                      ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ╚══════════════════════════════════════════════════════════════╝
+    • WHAT ▸ Plan for wasm-bindgen exports and TS worker protocol
+    • WHY  ▸ Centralize LM scheduling/merge in core; keep UI responsive
+    • HOW  ▸ Rust runner + policies, TS worker bridge, adapters
+-->
+
+### Bindings
+
+- wasm-bindgen exports:
+  - `WasmPauseTimer`, `WasmFragmentExtractor`, `WasmMerger` (existing)
+  - v0.2 adds: engine entry points and confidence utilities (thin)
+- FFI C API (ffi.rs) for native hosts; WASM path mirrors the same primitives.
+
+### Worker protocol (TS)
+
+- Messages:
+  - `loadModel { localOnly, paths, device }`
+  - `generate { textSpan, policy }` → streams `token` events
+  - `abort { requestId }`
+- Guarantees:
+  - Single-flight per worker; latest cancels prior
+  - Memory guard under 150 MB; degrade to rules-only
+
+### Integration
+
+- Core orchestrates merges; UI listens for band/highlight; injector applies diffs.
+- Demo: remove LM scheduling from React; rely on core + worker.
