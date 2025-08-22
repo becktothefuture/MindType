@@ -18,7 +18,7 @@
 
 ![build](https://img.shields.io/badge/build-pending-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
-![version](https://img.shields.io/badge/version-0.0.1-alpha-purple)
+![version](https://img.shields.io/badge/version-0.2.0--alpha-purple)
 
 ### TL;DR
 

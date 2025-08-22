@@ -16,17 +16,20 @@
     • HOW  ▸ Updated by agent in PLAN_ONLY/EXECUTE modes
 -->
 
-# Implementation Plan (live)
+# Implementation Plan (live, v0.2)
 
-> Plan (auto) — 2025-08-09 (Updated for Local LM Integration)
+> Plan (auto) — 2025-08-09 (v0.2 switch: Rust‑centric core + clean repo)
+>
+> Scope: v0.2 per `docs/v0.2/*` PRD/architecture. v0.1 archived at tag `v0.1.0` and branch `archive/v0.1`.
 >
 > Core milestones in sequence:
 >
-> 1. Foundation (Dev Environment + Core Utils) ✅
-> 2. Core Engine Implementation (Rules + LM Integration)
-> 3. UI/UX Integration (Streaming Visuals + Demo)
-> 4. Performance Optimization
-> 5. Extended Features
+> 1. Versioning + repo hygiene ✅
+> 2. Rust core modules (scheduler, tapestry, confidence, LM) ◻︎
+> 3. FFI surface + wasm bindings ◻︎
+> 4. TS host integration (injector, band render) ◻︎
+> 5. CI updates + workerization ◻︎
+> 6. QA/BDD alignment ◻︎
 
 > Current status (beginner-friendly)
 >
@@ -36,7 +39,12 @@
 >   - ✅ Caret safety enforced at all levels; comprehensive tests (23 passing)
 >   - ✅ Basic rule engine with 5 common typo corrections
 >   - ✅ Integration tests proving end-to-end functionality
-> - What's not done yet:
+> - What's not done yet (v0.2 deltas):
+>   - Shift of core algorithmic surface into Rust with clean FFI
+>   - Remove demo‑side LM scheduling; centralize in core
+>   - Add tapestry datastructure, confidence gating, and undo buckets
+>   - Workerized Transformers with memory guard
+>   - Update acceptance scenarios to cover rollback and caret‑entry guard
 >   - **Pipeline Integration:** `index.ts` wiring TODO; web demo uses WASM not TS pipeline
 >   - **Contextual Rules:** Only simple word substitutions; need transpositions, punctuation, capitalization
 >   - **Local LM:** No on-device model integration yet for semantic/grammatical corrections
