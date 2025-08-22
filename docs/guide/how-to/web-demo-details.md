@@ -86,7 +86,7 @@ The demo renders luminous particle bursts under a frosted glass layer. It is des
 - Why not MSAA on 32F? Bandwidth/compat constraints; we avoid MSAA at 32F for perf stability.
 - Why ordered dither? Texture‑free and deterministic; ideal for low‑end while still effective.
 
-# Web Demo Walkthrough
+# Web Demo Walkthrough (v0.2)
 
 This document paints a picture of the interactive demo found at `/demo`. It explains how the web version of MindType behaves and how it showcases the core technology.
 
@@ -100,7 +100,7 @@ The demo serves three goals:
 
 Current state:
 
-- The demo uses a simple `<textarea>` and is wired to the TypeScript streaming pipeline (TypingMonitor → SweepScheduler → DiffusionController) for real‑time validation band and corrections.
+- The demo uses a simple `<textarea>` and is wired to the TypeScript streaming pipeline (TypingMonitor → SweepScheduler → DiffusionController) for real‑time validation band and corrections. LM scheduling was removed from the demo; v0.2 rewires LM through the Rust orchestrator via WASM.
 - `Editable.tsx`, `useTypingTick.ts` (replacing pause‑only logic), and `useMindType.ts` are planned improvements; the names here describe intent.
 
 ## Components (what each piece does)
@@ -134,14 +134,13 @@ The web demo is intentionally lightweight; it mirrors the eventual macOS experie
 - Implement `Editable.tsx` so it never resets the DOM tree — rely on refs and `contentEditable` to maintain cursor position.
 - When integrating `LMClient.ts`, use Transformers.js streaming with a `TextStreamer`; keep corrections band‑bounded and caret‑safe. A strict single‑string prompt is used (see `core/lm/policy.ts`).
 
-## v1 vs v2
+### How the layers talk (ASCII map, v0.2)
 
-- v1: Baseline demo (existing page). URL entry: `.../v1/`.
-- v2: Noisy typing tester with autoplay and controls to tune tick and noise. URL entry: `.../v2/`.
+│ Engine/LM Worker │ Apply word (caret‑safe) → Flash → Logs
 
-Vite is configured for multi‑page builds with both entries.
+## Notes
 
-- Add a small Express server to store email sign-ups; keep telemetry logging optional via a checkbox.
+- v0.2 consolidates the demo to a single page; previous `/v1` and `/v2` entries were removed.
 
 ### Glossary
 

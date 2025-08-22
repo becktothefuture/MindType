@@ -75,13 +75,7 @@ What those bold phrases mean (in simple terms):
   Core ML to stream tokens (words) for the corrected sentence without
   calling a cloud API.
 
-- **Are we using an LLM?** Today, in the web demo, we use a stub token
-  stream that pretends to be an LLM to exercise the pipeline. In the
-  future, you can plug in:
-  - A cloud LLM (e.g., OpenAI) with streaming responses, or
-  - A local Core ML model for offline use.
-    The model proposes “better” text; our rule‑based engines (Tidy/Backfill)
-    keep edits small, safe, and caret‑aware.
+- **Are we using an LLM?** In v0.2, LM scheduling/merge is centralized in the Rust core (exposed via WASM). The demo remains rules‑only until the orchestrator path is wired; then a workerized LM path will stream band‑bounded tokens into caret‑safe diffs.
 
 ## Clever Things We’re Doing
 
@@ -103,7 +97,7 @@ _Language: Rust_
 
 1. **PauseTimer** – Watches your keystrokes; typing ticks stream corrections while you type; pause triggers catch-up.
 2. **FragmentExtractor** – Looks back to the last sentence ending (`. ? !` etc.) and grabs just that bit.
-3. **LLM Client** – Streams word-sized corrections to the AI (cloud or local) and gets fixes back one word at a time.
+3. **Engine/LM** – Orchestrates span selection, confidence gating, and (later) workerized LM streaming to produce caret‑safe diffs.
 4. **MergeEngine** – Figures out the tiny diff between old and new text so we can patch word-by-word without crossing the cursor.
 5. **Public API / FFI** – A handful of C-style functions the outside world (WASM or Swift) can call.
 
@@ -189,28 +183,4 @@ _Hot-reloaded JSON5 file_ → event bus → all layers pick up changes instantly
 
 - Unit (TS): `pnpm test` (Vitest). Fast, checks individual functions.
 - Unit (Rust): `cargo test` in `crates/core-rs`. Fast, checks core ops.
-- E2E (Web): `pnpm --prefix e2e test` (Playwright). Slower, full flow.
-
-Think “pyramid of speed”: most tests are fast unit tests; a few are
-browser‑level to ensure everything fits together.
-
-## 7. How a Character Becomes Correct
-
-```
-Key press   → PauseTimer.touch()
-PauseTimer idle → FragmentExtractor(text, caret)
-               → LLM Client (stream tokens)
-               → MergeEngine(diff)
-               → Injector (DOM or AX)
-```
-
-If a new key arrives mid-stream, everything cancels and restarts.
-
-## 8. Safety Nets
-
-• Nothing uploaded without encryption and confidence gate.  
-• Secure fields skipped.  
-• One undo step or Esc reverts the whole fix.  
-• Clipboard restored if we ever fall back to copy-paste.
-
-That’s the whole system in a nutshell – just enough to dive into any file and know what you’re looking at. Happy hacking!
+- E2E (Web): `

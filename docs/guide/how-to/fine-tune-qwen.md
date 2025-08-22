@@ -49,10 +49,7 @@ In plain words: today we already run a small Qwen model in the browser.
 We give it a short instruction and a prompt. It streams words back while
 you type.
 
-- We call a Transformers.js text‑generation pipeline with
-  `onnx-community/Qwen2.5-0.5B-Instruct` and stream tokens. The system
-  prompt enforces grammar/clarity; the user message is a band‑bounded
-  prompt built by `core/lm/policy.ts`.
+- In v0.2 the LM path is orchestrated by Rust (WASM) and workerized; prompts remain strict single‑string from `core/lm/policy.ts`.
 
 - Determinism: `do_sample: false`, small `max_new_tokens` (~32 by default)
   and boundary‑aware chunking.
@@ -252,7 +249,7 @@ python -m optimum.onnxruntime.quantize --model ./onnx-out --per_channel --reduce
 
 4. Point MindTyper to the model by setting `modelId` or hosting locally:
 
-- Remote: set `modelId` on `createQwenTokenStreamer({ modelId })`.
+- Remote: configure the worker to load your `modelId` (Transformers.js).
 - Local hosting: serve the model dir and pass `localOnly: true` and
   `localModelPath` to the runner options.
 
@@ -266,7 +263,7 @@ We evaluate end‑to‑end with the same prompts used in production.
 - Golden set: add `shared-tests/fixtures/qwen_span_eval.jsonl` with ~200
   balanced examples (stratified by error type and length).
 - Test harness (JS, Vitest): for each item, build the prompt using
-  `selectSpanAndPrompt`, stream tokens through `createQwenTokenStreamer`,
+  `selectSpanAndPrompt`, stream tokens via the workerized runner,
   post‑process with `postProcessLMOutput`, compare to `span_out`.
 - Metrics (simple meanings):
   - Exact match rate: how often the output equals the expected Span.

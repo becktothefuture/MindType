@@ -432,8 +432,8 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-316  
        **Source:** User example transformations for validation
 
-- [ ] (P1) [FT-318] Split demo into v1 (baseline) and v2 (noisy tester)  
-       **AC:** `web-demo/v1` retains current baseline; `web-demo/v2` adds noisy typing tester with autoplay and controls (tick, noise). Multi-page Vite config; docs updated.  
+- [ ] (P1) [FT-318] Consolidate demo to single page (remove v1/v2)  
+       **AC:** Single `web-demo/` entry; controls preserved; LM wiring handled by Rust orchestrator via WASM; docs updated.  
        **Owner:** @alex  
        **DependsOn:** FT-315  
        **Source:** Request for a tester page

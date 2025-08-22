@@ -15,7 +15,7 @@ _Language: Rust_
 ## Web Demo (`web-demo`)
 
 - **Editable.tsx** – maintain cursor, use `beforeinput` + `InputEvent` with `Selection.modify` (no deprecated `execCommand`).
-- **LLMClient.ts** – call `@mindtype/core` WASM bindings; fall back to mock stream in tests.
+- **Core bindings** – call Rust orchestrator via WASM; TS-side LM scheduling removed; rules-only path remains until orchestrator merges land.
 - **DebugPanel.tsx** – UI opened with ⌥⇧⌘L; binds to hot-reloaded config.
 
 ## macOS App (`mac`)
