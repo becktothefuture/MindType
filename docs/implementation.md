@@ -196,6 +196,18 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-130  
        **Source:** Core Rust Details
 
+- [ ] (P1) [FT-132] Define C FFI surface and memory management  
+       **AC:** `ffi.rs` exports C-compatible APIs with `#[repr(C)]` types; explicit alloc/free helpers for returned strings/buffers; error codes mapped to enums; cbindgen config checked in; unit tests validate round-trips.  
+       **Owner:** @alex  
+       **DependsOn:** FT-130  
+       **Source:** v0.2 architecture → Memory Safety & FFI
+
+- [ ] (P1) [FT-133] WebAssembly bindings and TypeScript package  
+       **AC:** wasm32 target builds via wasm-bindgen; JS glue generates TS declarations; publishable npm package scaffolded (private); `bindings/wasm/pkg` integrated; demo consumes WASM path behind flag.  
+       **Owner:** @alex  
+       **DependsOn:** FT-132  
+       **Source:** v0.2 architecture → Web (Browser / TypeScript)
+
 ## Stage 2 — Core Engines & Integration
 
 ### Pipeline Integration (P1) **← PRIORITY**
@@ -255,6 +267,32 @@ Task checklist template (copy into PR description):
        **Owner:** @alex  
        **DependsOn:** FT-211, FT-212, FT-214, FT-216  
        **Source:** Manifesto → Safety guarantees
+
+### Tapestry, Confidence, and Undo Safety Net (P1)
+
+- [ ] (P1) [FT-240] Implement tapestry data structure  
+       **AC:** Represent validated/unvalidated spans and animated region; spans store `{original, corrected, confidence, appliedAt}`; APIs to merge, split, and query near-field; unit tests cover edge cases and Unicode boundaries.  
+       **Owner:** @alex  
+       **DependsOn:** FT-125  
+       **Source:** v0.2 architecture → Scheduler & Tapestry
+
+- [ ] (P1) [FT-241] Confidence thresholds module  
+       **AC:** Compute threshold by distance-from-caret and edit type; expose adjustable sensitivity; integrate undo-feedback to adapt thresholds; unit tests verify gating behavior.  
+       **Owner:** @alex  
+       **DependsOn:** FT-240  
+       **Source:** v0.2 architecture → Confidence Gating
+
+- [ ] (P1) [FT-242] Time-bucketed undo safety net  
+       **AC:** Group applied edits into 100–200 ms buckets; public API to revert last bucket without touching user input; integration tests ensure host undo remains independent.  
+       **Owner:** @alex  
+       **DependsOn:** FT-240  
+       **Source:** v0.2 PRD → Undo independence
+
+- [ ] (P1) [FT-243] Scheduler integration for micro vs pause sweeps  
+       **AC:** Monitor typing rate; trigger micro-refinements during typing and deeper pause sweeps (~500 ms); deterministic state transitions; tests simulate cadence changes.  
+       **Owner:** @alex  
+       **DependsOn:** FT-125, FT-240  
+       **Source:** v0.2 architecture → Scheduler
 
 ### Local LM Integration (P1) **← UPDATED**
 
@@ -335,6 +373,12 @@ Task checklist template (copy into PR description):
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** REQ-STREAMED-DIFFUSION + LM quality
+
+- [ ] (P1) [FT-231H] Near-field embedding cache  
+       **AC:** Cache embeddings/context features for the validation band to reduce recomputation; invalidate on edits crossing cache; tests assert cache hits/misses and correctness.  
+       **Owner:** @alex  
+       **DependsOn:** FT-231  
+       **Source:** v0.2 architecture → Language Model Integration
   - [ ] (P1) [FT-232A] Caret-entry merge guard + rollback  
          **AC:** If caret moves into `[band.start, band.end]` mid-run, cancel and rollback partial merges. Tests simulate caret jumps and verify no caret jumps or overwrites.  
          **Owner:** @alex  
@@ -425,6 +469,17 @@ Task checklist template (copy into PR description):
        **Owner:** @alex  
        **DependsOn:** FT-315  
        **Source:** Demo usability for testing different configurations
+  - [ ] (P1) [FT-316C] Add confidence sensitivity dial  
+         **AC:** UI control mapped to confidence module; persists to `localStorage`; affects gating thresholds in real time; reduced‑motion compliant.  
+         **Owner:** @alex  
+         **DependsOn:** FT-241, FT-315  
+         **Source:** v0.2 PRD → Settings
+
+  - [ ] (P2) [FT-316D] Add formality slider (neutral ↔ friendly ↔ formal)  
+         **AC:** UI control feeds LM prompt policy; safe clamping to neutral when LM unavailable; persisted; tests verify prompt shaping changes only tone, not semantics.  
+         **Owner:** @alex  
+         **DependsOn:** FT-231C, FT-315  
+         **Source:** v0.2 PRD → Feature overview
 
 - [x] (P1) [FT-317] Create demo scenarios  
        **AC:** Pre-loaded text samples showing "raw → corrected" transformations; step-through mode; before/after comparisons; performance metrics  
@@ -537,6 +592,17 @@ Task checklist template (copy into PR description):
 
 ---
 
+## Requirements ↔ Tasks Traceability (v0.2)
+
+- REQ-IME-CARETSAFE → FT-120, FT-223, FT-134, FT-318A
+- REQ-SECURE-FIELDS → FT-115, FT-116, FT-420 (iOS secure fields bypass)
+- REQ-TIDY-SWEEP → FT-210, FT-211, FT-212, FT-213, FT-214, FT-215
+- REQ-STREAMED-DIFFUSION → FT-125, FT-201, FT-232, FT-232A, FT-232B, FT-243
+- REQ-VALIDATION-BAND → FT-310, FT-315, FT-318
+- REQ-A11Y-MOTION → FT-312 (and reduced‑motion branches in FT-310)
+- REQ-LOCAL-LM-INTEGRATION → FT-230, FT-231, FT-231A, FT-231B, FT-231C, FT-231D, FT-231E, FT-231F, FT-231G, FT-231H, FT-238, FT-233
+- REQ-CONTEXTUAL-CORRECTIONS → FT-211, FT-212, FT-216, FT-232
+
 ## Documentation To‑Do (created/updated in this PR)
 
 - [x] `docs/ADHD-docs.md` — approachable deep dive; links across system
@@ -546,3 +612,49 @@ Task checklist template (copy into PR description):
 - [x] `docs/guide/reference/rust-merge.md` — Caret‑safe merge in Rust/FFI
 
 All docs follow house comment header style; stubs will be filled as tasks land.
+
+## Stage 4 — Packaging & Distribution
+
+- [ ] (P1) [FT-500] wasm-pack/npm packaging for web  
+       **AC:** Build `wasm32-unknown-unknown` with wasm-bindgen and package via wasm-pack; private npm package with types; demo consumes versioned package.  
+       **Owner:** @alex  
+       **DependsOn:** FT-133  
+       **Source:** v0.2 architecture → Build & Packaging
+
+- [ ] (P1) [FT-501] cbindgen headers and SwiftPM integration  
+       **AC:** Generate C headers; Swift Package manifest to consume Rust library on macOS/iOS; sample app links successfully.  
+       **Owner:** @alex  
+       **DependsOn:** FT-132  
+       **Source:** v0.2 architecture → Platform Interface Layers (macOS/iOS)
+
+- [ ] (P2) [FT-502] Prebuilt binaries matrix  
+       **AC:** Provide release artifacts for macOS (arm64/x86_64), Windows (x86_64), and universal headers; CI job to build and attach to releases.  
+       **Owner:** @alex  
+       **DependsOn:** FT-500, FT-501  
+       **Source:** v0.2 architecture → Build & Packaging
+
+- [ ] (P2) [FT-503] Semantic versioning and changelog  
+       **AC:** Adopt semver for core and bindings; automate CHANGELOG updates; document compatibility policy.  
+       **Owner:** @alex  
+       **DependsOn:** FT-117  
+       **Source:** Versioning policy
+
+- [ ] (P2) [FT-504] Performance benches and fuzzing  
+       **AC:** criterion.rs benches for hot paths; cargo-fuzz targets for FFI and text processing; CI executes benches on representative hardware; docs link to results.  
+       **Owner:** @alex  
+       **DependsOn:** FT-130  
+       **Source:** v0.2 architecture → Testing & QA
+
+## Stage 5 — Platform Bindings
+
+- [ ] (P2) [FT-420] iOS binding and safety gates  
+       **AC:** Build Rust core as `.framework` for iOS; Swift wrapper exposes minimal API; ensure secure fields (`isSecureTextEntry`) bypass; sample integration compiles.  
+       **Owner:** @alex  
+       **DependsOn:** FT-501  
+       **Source:** v0.2 architecture → iOS (UIKit/SwiftUI)
+
+- [ ] (P2) [FT-430] Windows TSF binding (design + stub)  
+       **AC:** Define C API wrapper for P/Invoke; prototype TSF hook receiving `{text, caret}` and applying diffs; document UIA/high‑contrast considerations.  
+       **Owner:** @alex  
+       **DependsOn:** FT-132  
+       **Source:** v0.2 architecture → Windows (TSF/.NET)
