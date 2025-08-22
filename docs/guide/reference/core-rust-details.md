@@ -42,6 +42,21 @@ impl PauseTimer {
 
 All exported functions are designed to be portable.
 
+### FFI header generation (cbindgen)
+
+Run:
+
+```bash
+cbindgen --config crates/core-rs/cbindgen.toml --crate core-rs --output crates/core-rs/core_rs.h
+```
+
+Memory management for strings:
+
+```c
+// Call this after consuming any MTString returned from Rust
+void mind_type_core_free_string(struct MTString s);
+```
+
 ### WASM bindings in this repo (already available)
 
 From `src/lib.rs`:
