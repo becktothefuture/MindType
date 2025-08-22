@@ -112,7 +112,7 @@ Notes:
 
 ### Q006: Remote model opt-in default and data handling (RESOLVED)
 
-- Related: FT-231, core/lm/transformersRunner.ts
+- Related: FT-231, crates/core-rs/src/\*, docs/guide/reference/lm-worker.md
 - Context: Principles propose "remote off unless opted in". Current runner defaults to allow remote unless `localOnly=true`.
 - Question: Should the default be `localOnly=true` at the host level unless the user explicitly enables remote models for the session? If not, how do we surface opt-in clearly and reversibly?
 

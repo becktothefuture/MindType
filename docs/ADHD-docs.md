@@ -43,7 +43,7 @@
 ## Rules vs LM (who fixes what)
 
 - **Rules**: cheap, instant, deterministic. Good for typos, punctuation, capitalisation. File: `engines/tidySweep.ts`.
-- **LM**: semantic upgrades (agreement, clarity) with strict policy: span‑only prompts, short outputs, abort on input. Files: `core/lm/policy.ts`, `core/lm/transformersRunner.ts`.
+- **LM**: semantic upgrades (agreement, clarity) with strict policy: span‑only prompts, short outputs, abort on input. Files: `core/lm/policy.ts`, v0.2 orchestrator in `crates/core-rs/src/*`.
 - **Priority**: On conflicts, rules win for structure; LM wins for semantics when safe. Details in `docs/guide/reference/lm-behavior.md`.
 
 ## Safety Nets (non‑negotiables)
@@ -76,7 +76,7 @@
 - Architecture: `docs/architecture/README.md`, `docs/architecture/C1-context.md`, `C2-containers.md`, `C3-components.md`
 - Core engines: `engines/tidySweep.ts`, `engines/backfillConsistency.ts`
 - Diffusion & Band: `core/diffusionController.ts`, `docs/guide/reference/band-policy.md`
-- LM behavior: `docs/guide/reference/lm-behavior.md`, `core/lm/policy.ts`, `core/lm/transformersRunner.ts`, `docs/guide/reference/lm-worker.md`
+- LM behavior: `docs/guide/reference/lm-behavior.md`, `core/lm/policy.ts`, `docs/guide/reference/lm-worker.md`, `crates/core-rs/src/*`
 - Merge safety: `utils/diff.ts`, `docs/guide/reference/rust-merge.md`, ADR‑0002
 - A11y & UI: `ui/highlighter.ts`, `ui/liveRegion.ts`, `ui/motion.ts`, `docs/a11y/wcag-checklist.md`
 - macOS app: `docs/guide/how-to/mac-app-details.md`
