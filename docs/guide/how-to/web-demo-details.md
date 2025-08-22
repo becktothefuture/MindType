@@ -13,7 +13,7 @@
   ╚══════════════════════════════════════════════════════╝
     • WHAT ▸ Deep dive into how the demo renders, performs, and persists
     • WHY  ▸ Share the controls model + perf strategies for future work
-    • HOW  ▸ Three.js scene + custom shaders + versioned JSON config
+    • HOW  ▸ Simple textarea + overlay; versioned settings persisted
 -->
 
 ## Overview
@@ -22,11 +22,10 @@ The demo renders luminous particle bursts under a frosted glass layer. It is des
 
 ## Architecture
 
-- Scene: one Three.js `Points` system for main particles + one for low‑alpha boost.
-- Shaders: custom vertex/fragment with per‑particle impulse, wobble, and temporal dither.
-- Overlay: CSS frosted glass blur with dynamic grain.
-- Loop: single animation loop with time scaling and pixelRatio governor.
-- Persistence: full, versioned JSON config (`ethereal_config_v1`) in localStorage + cookie, plus legacy flat values for back‑compat.
+- Surface: `<textarea>` for editing plus an overlay `div` for band/highlights.
+- Overlay: CSS highlight of the validation band and applied diffs; reduced-motion supported.
+- Loop: typing tick cadence (configurable) and pause catch-up.
+- Persistence: versioned settings in localStorage (tick, band size) with sane defaults.
 
 ## Controls that influence animation
 

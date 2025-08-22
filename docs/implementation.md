@@ -437,12 +437,17 @@ Task checklist template (copy into PR description):
        **Owner:** @alex  
        **DependsOn:** FT-315  
        **Source:** Request for a tester page
-  - [ ] (P1) [FT-318A] v2 applies corrections into textarea (cross‑browser)  
-         **AC:** On `mindtyper:highlight` with `{start,end,text}`, apply via `replaceRange` to the v2 textarea; preserve caret; visible replacement in Safari/WebKit and Chromium; add Playwright e2e covering “Hello teh → Hello the”.  
+  - [ ] (P1) [FT-318A] Demo applies corrections into textarea (cross‑browser)  
+         **AC:** On `mindtyper:highlight` with `{start,end,text}`, apply via `replaceRange` to the textarea; preserve caret; visible replacement in Safari/WebKit and Chromium; add Playwright e2e covering “Hello teh → Hello the”.  
          **Owner:** @alex  
          **DependsOn:** FT-318, FT-210  
-         **Status:** In progress — currently band/highlight fire, but v2 does not show the actual replacement of the text after correcting it.  
+         **Status:** In progress — currently band/highlight fire, but demo does not show the actual replacement of the text after correcting it.  
          **Notes:** Investigate event timing/caret-safety guard and Safari segmentation fallback interactions.
+
+- [ ] (P1) [FT-319] Rewire demo to Rust orchestrator via WASM  
+       **AC:** Instantiate wasm bindings; forward `{text, caret}` to core; receive band/highlight events; keep rules-only path until LM worker is wired; document setup in web-demo README.  
+       **Owner:** @alex  
+       **DependsOn:** FT-231, FT-234
 
 ### Undo Integration (P2)
 
