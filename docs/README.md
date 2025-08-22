@@ -20,6 +20,7 @@
 
 - Root (this folder)
   - Top‑level product/plan docs and indices: `PRD.md`, `implementation.md`, `system_principles.md`, `project_structure.md`, `backlog.md`. Start here for the current plan and principles.
+  - Versioning policy: see `docs/versioning.md`. Active PRD/architecture for v0.2 live under `docs/v0.2/`.
 
 - `architecture/`
   - System design and C4 views. Use `README.md` for the overview; `C1-context.md`, `C2-containers.md`, `C3-components.md` for deeper levels. ADRs live separately under `adr/`.
