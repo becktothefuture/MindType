@@ -1,6 +1,6 @@
-# MindTyper Deep-Dive Questionnaire — Organized by Category
+# Mind::Type Deep-Dive Questionnaire — Organized by Category
 
-This directory contains the complete MindTyper Deep-Dive Questionnaire, split into organized sub-files by category. Each file contains a focused set of questions and answers that address specific aspects of the product.
+This directory contains the complete Mind::Type Deep-Dive Questionnaire, split into organized sub-files by category. Each file contains a focused set of questions and answers that address specific aspects of the product.
 
 **Note:** Questions use section-relative numbering (e.g., 1.1, 2.3, 10.5) to make the structure maintainable and avoid renumbering across files when questions are added or removed.
 
@@ -87,4 +87,4 @@ This directory contains the complete MindTyper Deep-Dive Questionnaire, split in
 - 📋 **Design System & UI/UX Guidelines** (0/10) - Visual design, interactions
 - 📋 **Launch Strategy & Success Metrics** (0/8) - Launch plan, success criteria
 
-This comprehensive questionnaire now provides a complete foundation for MindTyper's Product Requirements Document (PRD) and technical implementation. The 119 answered questions define all core product behavior, while the 77 structured questions in the new sections provide a clear framework for technical documentation, business planning, and implementation strategy.
+This comprehensive questionnaire now provides a complete foundation for Mind::Type's Product Requirements Document (PRD) and technical implementation. The 119 answered questions define all core product behavior, while the 77 structured questions in the new sections provide a clear framework for technical documentation, business planning, and implementation strategy.

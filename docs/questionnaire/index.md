@@ -1,8 +1,8 @@
-# MindTyper Deep-Dive Questionnaire — Complete Index
+# Mind::Type Deep-Dive Questionnaire — Complete Index
 
 _Last updated: 2025-08-08_
 
-This is the comprehensive index for all MindTyper Deep-Dive Questionnaire questions. Each question is tagged with its status and linked to the appropriate sub-file for easy navigation and retrieval.
+This is the comprehensive index for all Mind::Type Deep-Dive Questionnaire questions. Each question is tagged with its status and linked to the appropriate sub-file for easy navigation and retrieval.
 
 **Overall Progress: 196/196 questions answered (100%)**
 
@@ -62,18 +62,18 @@ This is the comprehensive index for all MindTyper Deep-Dive Questionnaire questi
 **Status: 10/10 answered (100%)**
 **File: [01_product_vision_success_metrics.md](01_product_vision_success_metrics.md)**
 
-| #   | Question                                                  | Status          | Keywords                              |
-| --- | --------------------------------------------------------- | --------------- | ------------------------------------- |
-| 1   | What single metric will prove MindTyper speeds people up? | ✅ **Answered** | metrics, WPM, success-criteria        |
-| 2   | Describe a headline success story one year after launch.  | ✅ **Answered** | vision, user-story, success           |
-| 3   | Primary user persona (name + job + pain).                 | ✅ **Answered** | personas, target-users, pain-points   |
-| 4   | Secondary persona(s).                                     | ✅ **Answered** | personas, accessibility, multilingual |
-| 5   | Must-Have vs Delight-To-Have feature list.                | ✅ **Answered** | features, MVP, scope                  |
-| 6   | Acceptable learning curve (minutes before magic).         | ✅ **Answered** | onboarding, UX, time-to-value         |
-| 7   | Offline vs Cloud dependency tolerance.                    | ✅ **Answered** | architecture, privacy, offline        |
-| 8   | Monetisation approach.                                    | ✅ **Answered** | business-model, pricing, revenue      |
-| 9   | What existing product impresses you and why?              | ✅ **Answered** | inspiration, benchmarks, design       |
-| 10  | A vanity KPI we must never optimize for?                  | ✅ **Answered** | metrics, anti-patterns, philosophy    |
+| #   | Question                                                   | Status          | Keywords                              |
+| --- | ---------------------------------------------------------- | --------------- | ------------------------------------- |
+| 1   | What single metric will prove Mind::Type speeds people up? | ✅ **Answered** | metrics, WPM, success-criteria        |
+| 2   | Describe a headline success story one year after launch.   | ✅ **Answered** | vision, user-story, success           |
+| 3   | Primary user persona (name + job + pain).                  | ✅ **Answered** | personas, target-users, pain-points   |
+| 4   | Secondary persona(s).                                      | ✅ **Answered** | personas, accessibility, multilingual |
+| 5   | Must-Have vs Delight-To-Have feature list.                 | ✅ **Answered** | features, MVP, scope                  |
+| 6   | Acceptable learning curve (minutes before magic).          | ✅ **Answered** | onboarding, UX, time-to-value         |
+| 7   | Offline vs Cloud dependency tolerance.                     | ✅ **Answered** | architecture, privacy, offline        |
+| 8   | Monetisation approach.                                     | ✅ **Answered** | business-model, pricing, revenue      |
+| 9   | What existing product impresses you and why?               | ✅ **Answered** | inspiration, benchmarks, design       |
+| 10  | A vanity KPI we must never optimize for?                   | ✅ **Answered** | metrics, anti-patterns, philosophy    |
 
 ### Section 2: User Research & Ergonomics
 
@@ -98,18 +98,18 @@ This is the comprehensive index for all MindTyper Deep-Dive Questionnaire questi
 **Status: 10/10 answered (100%)**
 **File: [03_context_awareness_personalization.md](03_context_awareness_personalization.md)**
 
-| #   | Question                                                                              | Status          | Keywords                                |
-| --- | ------------------------------------------------------------------------------------- | --------------- | --------------------------------------- |
-| 21  | What personal data should MindTyper remember to improve over time?                    | ✅ **Answered** | personalization, data, learning         |
-| 22  | Should users be able to tag corrections as "wrong"?                                   | ✅ **Answered** | feedback, learning, user-control        |
-| 23  | Should users be able to teach MindTyper custom words?                                 | ✅ **Answered** | dictionaries, customization, learning   |
-| 24  | Should MindTyper adjust to each app's tone, formatting, or context?                   | ✅ **Answered** | context-awareness, tone, adaptation     |
-| 25  | Should tone adaptation be passive or user-led?                                        | ✅ **Answered** | tone, user-control, automation          |
-| 26  | Should MindTyper offer writing "moods" or presets (e.g. punchy, poetic, polite)?      | ✅ **Answered** | tone, presets, user-control             |
-| 27  | Should MindTyper suggest vocabulary refinements (e.g. "bigger" → "larger")?           | ✅ **Answered** | vocabulary, AI-behavior, refinement     |
-| 28  | Should MindTyper handle grammar correction (e.g. verb tense, subject–verb agreement)? | ✅ **Answered** | grammar, correction, automation         |
-| 29  | Should MindTyper infer sentence boundaries and resegment input as needed?             | ✅ **Answered** | grammar, structure, boundaries          |
-| 30  | Should MindTyper detect and remove filler words ("just", "like", "very")?             | ✅ **Answered** | style, filler-words, voice-preservation |
+| #   | Question                                                                               | Status          | Keywords                                |
+| --- | -------------------------------------------------------------------------------------- | --------------- | --------------------------------------- |
+| 21  | What personal data should Mind::Type remember to improve over time?                    | ✅ **Answered** | personalization, data, learning         |
+| 22  | Should users be able to tag corrections as "wrong"?                                    | ✅ **Answered** | feedback, learning, user-control        |
+| 23  | Should users be able to teach Mind::Type custom words?                                 | ✅ **Answered** | dictionaries, customization, learning   |
+| 24  | Should Mind::Type adjust to each app's tone, formatting, or context?                   | ✅ **Answered** | context-awareness, tone, adaptation     |
+| 25  | Should tone adaptation be passive or user-led?                                         | ✅ **Answered** | tone, user-control, automation          |
+| 26  | Should Mind::Type offer writing "moods" or presets (e.g. punchy, poetic, polite)?      | ✅ **Answered** | tone, presets, user-control             |
+| 27  | Should Mind::Type suggest vocabulary refinements (e.g. "bigger" → "larger")?           | ✅ **Answered** | vocabulary, AI-behavior, refinement     |
+| 28  | Should Mind::Type handle grammar correction (e.g. verb tense, subject–verb agreement)? | ✅ **Answered** | grammar, correction, automation         |
+| 29  | Should Mind::Type infer sentence boundaries and resegment input as needed?             | ✅ **Answered** | grammar, structure, boundaries          |
+| 30  | Should Mind::Type detect and remove filler words ("just", "like", "very")?             | ✅ **Answered** | style, filler-words, voice-preservation |
 
 ### Section 4: Typing Engine — Core Functionality
 
@@ -300,12 +300,12 @@ This is the comprehensive index for all MindTyper Deep-Dive Questionnaire questi
 **Status: 0/4 answered (0%)**
 **File: [16_reflection_questions.md](16_reflection_questions.md)** _(to be created)_
 
-| #   | Question                                                     | Status            | Keywords                               |
-| --- | ------------------------------------------------------------ | ----------------- | -------------------------------------- |
-| 109 | UI tone / voice that emotionally resonates with you?         | ❌ **Unanswered** | reflection, tone, emotion              |
-| 110 | Tech product that recently inspired awe & why?               | ❌ **Unanswered** | reflection, inspiration, products      |
-| 111 | One irrational pet-peeve you never want to see in MindTyper? | ❌ **Unanswered** | reflection, anti-patterns, preferences |
-| 112 | Describe a moment of user-delight that would make you proud. | ❌ **Unanswered** | reflection, delight, vision            |
+| #   | Question                                                      | Status            | Keywords                               |
+| --- | ------------------------------------------------------------- | ----------------- | -------------------------------------- |
+| 109 | UI tone / voice that emotionally resonates with you?          | ❌ **Unanswered** | reflection, tone, emotion              |
+| 110 | Tech product that recently inspired awe & why?                | ❌ **Unanswered** | reflection, inspiration, products      |
+| 111 | One irrational pet-peeve you never want to see in Mind::Type? | ❌ **Unanswered** | reflection, anti-patterns, preferences |
+| 112 | Describe a moment of user-delight that would make you proud.  | ❌ **Unanswered** | reflection, delight, vision            |
 
 ---
 

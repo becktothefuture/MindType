@@ -1,10 +1,10 @@
 # Design System & UI/UX Guidelines
 
-_MindTyper Deep-Dive Questionnaire — Section 12 of 13_
+_Mind::Type Deep-Dive Questionnaire — Section 12 of 13_
 
 **Progress: 10/10 questions (100%)**
 
-This section defines MindTyper's visual design language, interaction patterns, and user experience guidelines.
+This section defines Mind::Type's visual design language, interaction patterns, and user experience guidelines.
 
 ---
 
