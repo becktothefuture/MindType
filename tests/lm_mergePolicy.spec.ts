@@ -14,7 +14,7 @@ import { streamMerge } from '../core/lm/mergePolicy';
 
 function makeAdapter(chunks: string[]) {
   return {
-    init: () => ({ backend: 'cpu', maxContextTokens: 512 }),
+    init: () => ({ backend: 'cpu' as const, maxContextTokens: 512 }),
     abort: () => {},
     async *stream(): AsyncIterable<string> {
       for (const c of chunks) {
@@ -97,6 +97,39 @@ describe('LM merge policy', () => {
     }
     expect(diffs.length).toBeGreaterThan(0);
     expect(diffs[diffs.length - 1].text).toContain('baz');
+  });
+
+  it('cancels inside loop before any accumulation', async () => {
+    const text = 'abcdef';
+    const caret = text.length;
+    const band = { start: 0, end: 3 };
+    const adapter = makeAdapter(['x']);
+    let first = true;
+    const events: string[] = [];
+    for await (const ev of streamMerge({
+      adapter,
+      text,
+      caret,
+      band,
+      shouldCancel: () => first,
+    })) {
+      events.push(ev.type);
+      first = false;
+    }
+    expect(events.includes('cancelled')).toBe(true);
+  });
+
+  it('skips final flush when accumulated equals original span', async () => {
+    const text = 'abc xyz';
+    const caret = 3; // caret at end of span
+    const band = { start: 0, end: 3 };
+    const adapter = makeAdapter(['abc']);
+    const events: string[] = [];
+    for await (const ev of streamMerge({ adapter, text, caret, band })) {
+      events.push(ev.type);
+    }
+    // No diff emitted because not boundary and equals originalSpan; only 'done'
+    expect(events).toEqual(['done']);
   });
 
   it('coalesces multiple small chunks and emits multiple diffs on boundaries', async () => {

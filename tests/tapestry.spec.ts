@@ -55,5 +55,8 @@ describe('Tapestry', () => {
     t.coalesce();
     const all2 = t.all();
     expect(all2.some((s) => s.start === 6 && s.end === 12)).toBe(true);
+    // Query near boundary to exercise branch paths
+    const q = t.queryNear(11, 0);
+    expect(Array.isArray(q)).toBe(true);
   });
 });

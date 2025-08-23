@@ -59,7 +59,7 @@ export async function* streamMerge(
       yield { type: 'cancelled' };
       return;
     }
-    const stream = adapter.stream({ text, band });
+    const stream = adapter.stream({ text, caret, band });
     for await (const chunk of stream) {
       if (shouldCancel?.()) {
         // Roll back to original span if anything was applied

@@ -139,7 +139,7 @@ MindType/
 ### ui/
 
 - `ui/highlighter.ts`: Renders active region (3–8 words behind caret) and applied fix highlights; honors reduced-motion.
-- `ui/groupUndo.ts`: Intended to batch engine diffs so each sweep collapses into a single undo step (current stub returns input).
+- `ui/groupUndo.ts`: Optional batching for host‑applied diffs. NOTE: Tapestry/LM evolutions are explicitly exempt — normal editor undo semantics apply.
 
 ### utils/
 
@@ -325,7 +325,7 @@ Keep these contracts visible in code (types, tests) and docs; if you change one,
 
 - Host editor → `core/typingMonitor` (keystrokes, caret, timestamps)
 - `core/sweepScheduler` → triggers `engines/tidySweep` (short pause) and `engines/backfillConsistency` (idle)
-- Engines propose diffs → `ui/groupUndo` batches → host applies → `ui/highlighter` shows feedback
+- Engines propose diffs → host applies (grouping optional; tapestry/LM evolutions are exempt) → `ui/highlighter` shows feedback
 - Rust crate primitives (WASM) may augment extraction/merging/logging when integrated into the demo or apps
 
 ## How Rust and TypeScript work together
