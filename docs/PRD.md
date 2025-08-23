@@ -96,3 +96,27 @@ Appendix — Traceability Map (starter)
 | REQ-VALIDATION-BAND      | PRIN-HUMAN-01, PRIN-LOGIC-10 | —        | SCEN-DIFFUSION-001, SCEN-HILITE-001 | band-policy.md; ui/highlighter.ts                                    |
 | REQ-A11Y-MOTION          | PRIN-HUMAN-03                | —        | SCEN-HILITE-001                     | a11y/wcag-checklist.md; ui/motion.ts                                 |
 | REQ-LOCAL-LM-INTEGRATION | PRIN-SAFETY-05, PRIN-PERF-11 | ADR-0005 | SCEN-LMLOCAL-001                    | lm-behavior.md; docs/guide/reference/lm-worker.md; crates/core-rs/\* |
+
+### Stakeholders
+
+- Product: @alex
+- Engineering: Core (TS/Rust) — @alex; Demo/Web — @alex
+- QA: Owner per `docs/qa/README.md`
+
+### Tech Stack Summary
+
+- Core: TypeScript (orchestration) + Rust (WASM‑ready primitives)
+- Web: Vite + React demo; Playwright E2E
+- LM: Transformers.js targeting WebGPU → WASM → CPU fallback
+- Tooling: pnpm, Vitest, ESLint v9 flat config, Prettier
+
+### Data Model & Persistence
+
+- See `docs/architecture/data_model.md` for entities, constraints, and persistence approach. No user text is persisted by default; settings only.
+
+### Release Criteria (MVP)
+
+- Functionality: Caret‑safe tidy sweeps within window; pause catch‑up; active region visuals; secure fields/IME handling
+- Usability: Reduced‑motion compliance; minimal unobtrusive UI
+- Reliability: p95 latency targets met on M‑series in demo; unit/integration tests green; coverage guard passes
+- Supportability: Local‑only default; clear setup script `pnpm setup:local`; logs gated; docs updated (PRD, implementation, QA mapping)

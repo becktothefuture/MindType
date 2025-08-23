@@ -60,18 +60,95 @@
 
 ## Brand claim (primary)
 
-- Live human‑machine typing utility—on‑device, caret‑safe, noise → signal
+- The on‑device, real‑time HMI that turns typing noise into signal.
 
 ## Product descriptions (three lengths)
 
 ### Short
 
-- Turn typing noise into signal. MindTyper refines a small active region behind your cursor—on‑device, in real time, without interruptions.
+- Noise → Signal, while you type. An on‑device, real‑time HMI that
+  refines your words as you move forward—no pop‑ups, no slowdown.
 
 ### Medium
 
-- MindTyper is a live human‑machine interaction utility for text. As you type, a short active region behind the caret receives streaming, on‑device improvements—grammar, clarity, and tone—without pop‑ups or broken flow. It’s caret‑safe, reversible, and tuned to your device for smooth, subtle guidance.
+- MindTyper is a live human‑machine interaction utility for text. As you
+  type, a small active region just behind your cursor receives
+  streaming, on‑device improvements—grammar, clarity, tone—without
+  interrupts or mode switches. It’s reversible, private by default, and
+  tuned to your hardware for a calm, coherent writing loop.
 
 ### Long
 
-- MindTyper turns typing noise into signal by pairing your intent with a constrained, on‑device model that edits only where it’s safe: a short, visible active region behind the caret. The Rust‑first core orchestrates streaming merges with confidence gating, reversible rollbacks, and newline‑safe ranges, so text never jumps and your rhythm never breaks. Hosts (web, macOS, Windows) render understated cues from events like `mindtyper:activeRegion` and `highlight`, while device‑tier policies adapt cadence and token budgets for consistent feel on WebGPU, WASM, or CPU. The result is a calm, precise writing loop: you type forward; MindTyper quietly raises the signal behind you.
+- MindTyper eliminates human‑machine friction so you can think at full
+  bandwidth. It pairs your forward intent with a constrained, on‑device
+  model that edits only where it’s safe: a short, visible active region
+  behind the caret. A Rust‑first core orchestrates streaming merges with
+  confidence gating, reversible rollbacks, and newline‑safe ranges, so
+  layout never jumps and rhythm never breaks. Hosts (web, macOS,
+  Windows) render understated cues from events like `mindtyper:activeRegion`
+  and `highlight`, while device‑tier policies adapt cadence and token
+  budgets across WebGPU, WASM, or CPU. The result is a live, closed‑loop
+  HMI for writing: you move forward; MindTyper quietly lifts the signal
+  behind you.
+
+## Positioning (Noise → Signal, HMI)
+
+- Human‑machine interaction utility that turns typing into a closed‑loop
+  system: human intent in, on‑device signal out.
+
+## Audiences and why they care
+
+- Writers & knowledge workers: stay in flow; get clarity without context
+  switching.
+- Engineers & technical users: on‑device by default, deterministic
+  merges, privacy, and portable APIs.
+- Executives & operators: more signal per minute—cleaner docs, fewer
+  revisions, calmer teams.
+- Students & learners: immediate guidance that preserves your voice; less
+  second‑guessing.
+- Neurodiverse users: fewer micro‑interruptions; reduced working‑memory
+  tax; smoother momentum.
+- Security‑sensitive orgs: no text leaves the machine unless explicitly
+  opted‑in.
+
+## The three whys (asked backwards)
+
+1. Why MindTyper? To remove typing friction so progress feels
+   continuous.
+2. Why remove friction? To protect attention and working memory—the
+   scarce resource.
+3. Why protect attention? Because better attention yields better
+   thinking, which compounds into clearer communication and better
+   outcomes.
+
+## Skeptic’s FAQ (convince the cynic)
+
+- Isn’t this just autocorrect? No—suggestions stream into a bounded
+  active region; semantics first, no modal jumps.
+- Will it slow me down? No—device‑tier policies keep cadence smooth;
+  edits wait behind you, never ahead of you.
+- What about privacy? On‑device by default; remote models require
+  explicit, per‑session opt‑in.
+- Will it change my voice? You set intensity and domains; the system
+  favors clarity over style unless asked.
+- Why not Grammarly? Different goal: MindTyper is live HMI for thinking
+  while typing, not a post‑hoc checker.
+
+## Reasons to believe (proof points)
+
+- On‑device LM path with Transformers.js; Rust orchestrator; no outbound
+  text by default.
+- Active‑region constraint: safe, newline‑aware ranges prevent layout
+  shifts and surprises.
+- Confidence gating + rollback: merges are reversible the instant you
+  need control.
+- Portable interfaces: C/WASM ABI for native hosts; events for web;
+  consistent feel across devices.
+
+## Micro‑taglines
+
+- Noise → Signal
+- Type forward
+- Live writing loop
+- Flow, not friction
+- Real‑time text clarity
