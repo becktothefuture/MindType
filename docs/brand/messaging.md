@@ -16,6 +16,30 @@
     • HOW  ▸ Progressive explanations; claims in three lengths
 -->
 
+## Plain‑English overview (for everyone)
+
+- **What it is**: A quiet writing helper that tidies the line you just wrote while you keep typing.
+- **What it does**: Fixes small things—spelling, grammar, clarity—in the few words behind your cursor. No pop‑ups. No mode switches.
+- **Why you’ll care**: You stay in flow. Your thoughts land clearer, with less effort, and your text stays private on your device.
+
+## Brand claim (general audience)
+
+- Keep typing. We quietly polish what’s behind you.
+
+## Product descriptions (jargon‑free)
+
+### Short
+
+- A calm writing helper that cleans up the last few words you typed—right as you type—without getting in the way.
+
+### Medium
+
+- MindTyper helps you write clearer without slowing down. As you type, it gently fixes the few words behind your cursor—spelling, punctuation, and readability. No pop‑ups, no copy‑paste to other tools, and your text stays on your device.
+
+### Long
+
+- MindTyper removes the little frictions that break your flow. While you move forward, it quietly improves the line just behind your cursor so your thoughts land cleanly: fewer typos, tidier sentences, and calmer edits. There’s nothing to manage—no bouncing between apps, no interruptions. It works right where you write, keeps your text on your device, and adapts to your computer so it always feels smooth.
+
 ## Ten ways to explain MindTyper (beginner → expert)
 
 1. Beginner (what it does)
@@ -58,20 +82,19 @@
 
 - By constraining edits to near‑field context, it increases text SNR—turning input noise into signal in real time.
 
-## Brand claim (primary)
+## Brand claim (technical variant)
 
-- The on‑device, real‑time HMI that turns typing noise into signal.
+- The on‑device, real‑time human–computer writing aid that turns messy typing into clear text.
 
-## Product descriptions (three lengths)
+## Product descriptions (technical)
 
 ### Short
 
-- Noise → Signal, while you type. An on‑device, real‑time HMI that
-  refines your words as you move forward—no pop‑ups, no slowdown.
+- Real‑time, on‑device refinement of the text just behind your caret—no pop‑ups, no slowdown.
 
 ### Medium
 
-- MindTyper is a live human‑machine interaction utility for text. As you
+- MindTyper is a live human–computer interaction utility for text. As you
   type, a small active region just behind your cursor receives
   streaming, on‑device improvements—grammar, clarity, tone—without
   interrupts or mode switches. It’s reversible, private by default, and
@@ -79,7 +102,7 @@
 
 ### Long
 
-- MindTyper eliminates human‑machine friction so you can think at full
+- MindTyper eliminates human–computer friction so you can think at full
   bandwidth. It pairs your forward intent with a constrained, on‑device
   model that edits only where it’s safe: a short, visible active region
   behind the caret. A Rust‑first core orchestrates streaming merges with
@@ -88,8 +111,17 @@
   Windows) render understated cues from events like `mindtyper:activeRegion`
   and `highlight`, while device‑tier policies adapt cadence and token
   budgets across WebGPU, WASM, or CPU. The result is a live, closed‑loop
-  HMI for writing: you move forward; MindTyper quietly lifts the signal
-  behind you.
+  writing aid: you move forward; MindTyper quietly lifts the text behind
+  you.
+
+## Glossary (plain words)
+
+- Human–computer interaction: how you and your computer work together while you type.
+- Noise to signal: turning messy, half‑formed words into clear, readable sentences.
+
+## Words to avoid in public copy
+
+- HMI/HCI, SNR, tokens, WebGPU/WASM/ABI (use “on‑device” and “adapts to your computer”).
 
 ## Positioning (Noise → Signal, HMI)
 
