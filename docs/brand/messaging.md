@@ -16,29 +16,43 @@
     • HOW  ▸ Progressive explanations; claims in three lengths
 -->
 
-## Plain‑English overview (for everyone)
+## Purpose (a new way to type)
 
-- **What it is**: A quiet writing helper that tidies the line you just wrote while you keep typing.
-- **What it does**: Fixes small things—spelling, grammar, clarity—in the few words behind your cursor. No pop‑ups. No mode switches.
-- **Why you’ll care**: You stay in flow. Your thoughts land clearer, with less effort, and your text stays private on your device.
+- Type forward; the line behind you gets better. That’s the shift.
+- Fewer micro‑stops, more finished thoughts. Your voice, just clearer.
+- Help lives where you write—quiet, instant, and private on your device.
 
-## Brand claim (general audience)
+## Brand claim (primary)
 
-- Keep typing. We quietly polish what’s behind you.
+- Type forward. The line behind you gets better.
 
-## Product descriptions (jargon‑free)
+## Pitch (three lengths)
 
 ### Short
 
-- A calm writing helper that cleans up the last few words you typed—right as you type—without getting in the way.
+- A calm writing companion that improves the last few words you typed— as you type—without getting in the way.
 
 ### Medium
 
-- MindTyper helps you write clearer without slowing down. As you type, it gently fixes the few words behind your cursor—spelling, punctuation, and readability. No pop‑ups, no copy‑paste to other tools, and your text stays on your device.
+- MindTyper makes typing feel like thinking. While you move forward, it quietly improves the line just behind your cursor so your thoughts land cleanly—fewer typos, tidier sentences, calmer edits. No pop‑ups, no tab‑hopping, and your text stays on your device.
 
 ### Long
 
-- MindTyper removes the little frictions that break your flow. While you move forward, it quietly improves the line just behind your cursor so your thoughts land cleanly: fewer typos, tidier sentences, and calmer edits. There’s nothing to manage—no bouncing between apps, no interruptions. It works right where you write, keeps your text on your device, and adapts to your computer so it always feels smooth.
+- MindTyper removes human–computer friction so your attention stays on the idea. It keeps a short strip of text behind your cursor “active,” gently cleaning and clarifying it while you type. Older text is safe; nothing jumps; control is always yours. It works right where you write, keeps your text on your device, and adapts to your computer so it always feels smooth.
+
+## Main selling points
+
+- Stay in flow: fewer stops, more momentum.
+- Clearer text, same voice.
+- No pop‑ups, no switching apps.
+- Private by default (on‑device).
+- Works wherever you type.
+
+## How it works (plain)
+
+- We keep a tiny area behind your cursor active; only it can change.
+- Small, on‑device models and rules make light, reversible edits.
+- No interruptions—just type forward.
 
 ## Ten ways to explain MindTyper (beginner → expert)
 
