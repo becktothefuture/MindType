@@ -36,9 +36,9 @@ interface Injector {
 
 See also: `core/diffusionController.ts` and `utils/diff.ts`.
 
-<!-- Alignment: Injector should listen to `mindtyper:activeRegion` and `mindtyper:highlight`; no references to `validationBand` remain. -->
+<!-- Alignment: Injector should listen to `mindtype:activeRegion` and `mindtype:highlight`; no references to `validationBand` remain. -->
 
 ## Events listened
 
-- `mindtyper:activeRegion`
-- `mindtyper:highlight`
+- `mindtype:activeRegion`
+- `mindtype:highlight`

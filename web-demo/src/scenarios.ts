@@ -9,8 +9,8 @@ export const SCENARIOS: DemoScenario[] = [
   {
     id: 'typos-basic',
     title: 'Basic typos & spacing',
-    raw: 'MindTyper is nto a tooll . It   fixs teh txt as you type.',
-    corrected: 'MindTyper is not a tool. It fixes the text as you type.',
+    raw: 'Mind::Type is nto a tooll . It   fixs teh txt as you type.',
+    corrected: 'Mind::Type is not a tool. It fixes the text as you type.',
   },
   {
     id: 'punctuation-cap',

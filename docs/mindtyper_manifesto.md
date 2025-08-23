@@ -18,13 +18,13 @@
 
 ### The Quiet Superpower for Writing
 
-MindTyper turns messy, mid‑stream typing into clean, confident prose — in real time, on your device, and on your side. No flashing toolbars. No patronizing pop‑ups. Just your words, tidied and clarified as you go.
+Mind::Type is a smart typing layer that quietly fixes mistakes and smooths your words as you write — for anyone who types, especially neurodivergent thinkers, who want a faster, more natural way to express themselves. It turns noisy keystrokes into clean, well‑formed sentences that still sound like you, without getting in the way.
 
 ### What it feels like
 
 - Invisible until it helps. You type. A subtle active region trails your cursor, quietly diffusing noisy input into clean text word‑by‑word behind the caret. When you pause, the region catches up — never touching where you’re actively writing.
 - Calm, not cute. Minimal highlights. No dopamine tricks. Respect for your focus and your preferences, including reduced motion.
-- Yours, not ours. Your text never leaves your device. Secure fields are off‑limits. Offline works fine.
+- Yours, not ours. Your text never leaves your device. Secure fields are off‑limits. Offline works fine. When remote is used, it’s encrypted and explicitly opted‑in.
 
 ### Who it’s for
 
@@ -38,7 +38,7 @@ MindTyper turns messy, mid‑stream typing into clean, confident prose — in re
 - Backfills consistency across stable zones — punctuation, capitalization, names.
 - Groups fixes into a single undo step so you stay in control.
 - Honors system accessibility settings; keeps visuals subtle.
-- Won’t nag, won’t second‑guess, won’t touch secure fields, and won’t send your words to the cloud.
+- Won’t nag, won’t second‑guess, won’t touch secure fields, and won’t send your words to the cloud without explicit opt‑in.
 
 ### Why believe it
 
@@ -53,7 +53,7 @@ MindTyper turns messy, mid‑stream typing into clean, confident prose — in re
 - Caret‑safe diffs: Edits happen only in the stable zone behind your cursor.
 - Tidy Sweep: A forward pass that fixes small errors within a short window.
 - Backfill Consistency: A reverse pass that polishes with context when you pause.
-- Local Intelligence: Small on‑device language models handle semantic and grammatical corrections, falling back gracefully to rule‑based fixes. No cloud, no data collection, no latency. First target: Qwen2.5‑0.5B‑Instruct via Transformers.js with q4 quantization and WebGPU acceleration (privacy‑preserving, fast, text‑centric).
+- Local Intelligence: Small on‑device language models handle semantic and grammatical corrections, falling back gracefully to rule‑based fixes. No cloud by default, no data retention, no latency spikes. Optional remote runs via encrypted channels with explicit opt‑in. First target: Qwen2.5‑0.5B‑Instruct via Transformers.js with q4 quantization and WebGPU acceleration (privacy‑preserving, fast, text‑centric).
 - Gentle visuals: A subtle shimmer shows the active region (typically 3–8 words behind the caret), and a brief, understated flash marks applied fixes. Honors reduced‑motion.
 - Undo grouping: One command to revert a whole sweep, not death‑by‑undo.
 - System‑wide mindset: Designed to feel native across apps and editors.

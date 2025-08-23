@@ -320,11 +320,11 @@ function App() {
         }
       }
     };
-    window.addEventListener("mindtyper:activeRegion", onActiveRegion as EventListener);
-    window.addEventListener("mindtyper:highlight", onHighlight as EventListener);
+    window.addEventListener("mindtype:activeRegion", onActiveRegion as EventListener);
+    window.addEventListener("mindtype:highlight", onHighlight as EventListener);
     return () => {
-      window.removeEventListener("mindtyper:activeRegion", onActiveRegion as EventListener);
-      window.removeEventListener("mindtyper:highlight", onHighlight as EventListener);
+      window.removeEventListener("mindtype:activeRegion", onActiveRegion as EventListener);
+      window.removeEventListener("mindtype:highlight", onHighlight as EventListener);
     };
   }, [text, freezeBand, bandDelayMs]);
 
@@ -389,7 +389,7 @@ function App() {
         {showDebugPanel ? "Hide" : "Show"} Debug Panel (⌥⇧⌘L)
       </button>
 
-      <h1>MindType Web Demo</h1>
+      <h1>Mind::Type Web Demo</h1>
 
       <div className="card">
         <h2>Editor</h2>

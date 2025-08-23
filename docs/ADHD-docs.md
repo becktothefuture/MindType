@@ -16,7 +16,7 @@
     • HOW  ▸ Layered bullets, tiny sections, many cross-links
 -->
 
-### What is MindTyper (in one breath)
+### What is Mind::Type (in one breath)
 
 - **Core idea**: While you type, we clean up text behind your cursor, safely. No cloud. No clunky UI.
 - **How**: A shared brain (Rust) + thin shells (web/macOS). We stream small, caret‑safe fixes inside an “active region”.
@@ -186,7 +186,7 @@ export function selectSpanAndPrompt(
 export function emitActiveRegion(_range: { start: number; end: number }) {
   const g = globalThis as unknown as MinimalGlobal;
   if (g.dispatchEvent && g.CustomEvent) {
-    const event = new g.CustomEvent('mindtyper:activeRegion', {
+    const event = new g.CustomEvent('mindtype:activeRegion', {
       detail: { start: _range.start, end: _range.end },
     });
     g.dispatchEvent(event);

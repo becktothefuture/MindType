@@ -1,5 +1,5 @@
 /*
-  MindTyper — Questionnaire Cleanup
+  Mind::Type — Questionnaire Cleanup
 
   Goal: Fix duplicated "Your answer" markers and remove outdated markers.
   Actions on docs/questionnaire/*.md (excluding archive, index, README, questions-incomplete, answer_quality_review):

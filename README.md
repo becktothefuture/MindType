@@ -44,11 +44,12 @@
 ### Recommended reading
 
 - Product narrative: see `docs/mindtyper_manifesto.md` for the vision and feel.
+- Brand pitch: see `docs/brand/messaging.md` (Mind::Type v0.2 Vision Pitch).
 - Changelog: see `CHANGELOG.md` for release history.
 
 ## Overview
 
-MindTyper turns noisy keystreams into clean text via small, reversible diffs. Forward passes keep typing tidy; reverse passes backfill consistency using accumulating context. All edits respect the CARET and are designed to be grouped into coherent undo steps.
+Mind::Type turns noisy keystreams into clean text via small, reversible diffs. Forward passes keep typing tidy; reverse passes backfill consistency using accumulating context. All edits respect the CARET and are designed to be grouped into coherent undo steps.
 
 ### Beginner primer: key terms
 
@@ -97,7 +98,7 @@ MindTyper turns noisy keystreams into clean text via small, reversible diffs. Fo
 ## Project Structure
 
 ```text
-MindTyper/
+MindType/
   config/                    # Shared thresholds & parameters
   core/                      # TS core: input monitor + sweep scheduler
   crates/core-rs/            # Rust core crate (WASM-friendly)

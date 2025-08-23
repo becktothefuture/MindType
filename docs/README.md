@@ -31,7 +31,7 @@
 - `guide/`
   - Developer‑facing guidance using Diátaxis:
     - `how-to/` — step‑by‑step tasks (web demo server, mac app details, etc.)
-    - `tutorials/` — learn by doing (try MindTyper in 5 min)
+    - `tutorials/` — learn by doing (try Mind::Type in 5 min)
     - `reference/` — APIs and contracts (band policy, injector, LM behavior, worker, rust merge, config flags)
     - `explanations/` — deeper rationale (e.g., why caret‑safe diffs)
 
@@ -43,6 +43,7 @@
 
 - `brand/`
   - Brand assets, specs, and guides (visual identity, tone, motion). Not product behavior.
+  - See `brand/messaging.md` for the v0.2 Vision Pitch (Mind::Type) and long‑form messaging.
 
 - `questionnaire/`
   - Product questionnaire sections and live `questions.md` (clarifications). Treat as the primary Q&A surface; deprecated `questions-incomplete.md` has been removed.
@@ -55,6 +56,10 @@
   - Architecture shows where behavior lives
   - Guides define exact contracts
   - QA verifies behavior continuously
+
+### Naming note
+
+- Public‑facing name in messaging: “Mind::Type”. Internal code and tests previously used “MindTyper”; docs now use Mind::Type consistently.
 
 ## Glossary
 

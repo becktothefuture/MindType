@@ -236,7 +236,7 @@ Task checklist template (copy into PR description):
        **AC:** - Detect common character swaps ("nto"→"not", "precsson"→"precision") - Stay within 80-char window - Return null when uncertain - Handle contextual transpositions
       **Owner:** @alex  
        **DependsOn:** FT-210  
-       **Source:** User example: "mindtypr is nto a tooll" → "MindTyper is not a tool"
+       **Source:** User example: "mindtypr is nto a tooll" → "Mind::Type is not a tool"
 
 - [x] (P1) [FT-212] Add punctuation normalization  
        **AC:** - Fix spacing around punctuation ("page — a sweep" formatting) - Handle quotes, apostrophes, emdashes - Language-aware rules - Sentence boundaries
@@ -260,7 +260,7 @@ Task checklist template (copy into PR description):
        **AC:** Sentence-start capitalization; "I" pronoun fixes; proper noun detection; context-aware confidence scoring  
        **Owner:** @alex  
        **DependsOn:** FT-212  
-       **Source:** User example: "mindtypr" → "MindTyper", sentence starts
+       **Source:** User example: "mindtypr" → "Mind::Type", sentence starts
 
 - [ ] (P2) [FT-215] Establish rule priority and conflict resolution  
        **AC:** Document rule ordering; deterministic application; tests for conflicting suggestions  
@@ -397,6 +397,20 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-232  
        **Source:** Reliability requirements
 
+#### Privacy and Remote Channel (P1)
+
+- [ ] (P1) [FT-234A] No data retention audit and enforcement  
+       **AC:** Verify and document that no user text is persisted anywhere (memory, logs, storage); add tests/linters to prevent accidental persistence; document guarantees in PRD and README.  
+       **Owner:** @alex  
+       **DependsOn:** FT-231  
+       **Source:** Pitch → “doesn’t save your data”
+
+- [ ] (P1) [FT-234B] Encrypted remote channel opt‑in  
+       **AC:** Gate any remote model usage behind explicit per‑session opt‑in; use TLS + content encryption when applicable; surface session indicator; tests verify default local‑only and opt‑in reset on restart.  
+       **Owner:** @alex  
+       **DependsOn:** FT-231D, FT-231E  
+       **Source:** PRD Constraints (encrypted remote path)
+
 ### Backfill Implementation (P2)
 
 - [ ] (P2) [FT-220] Create backfill consistency engine  
@@ -493,7 +507,7 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-315  
        **Source:** Request for a tester page
   - [ ] (P1) [FT-318A] Demo applies corrections into textarea (cross‑browser)  
-         **AC:** On `mindtyper:highlight` with `{start,end,text}`, apply via `replaceRange` to the textarea; preserve caret; visible replacement in Safari/WebKit and Chromium; add Playwright e2e covering “Hello teh → Hello the”.  
+         **AC:** On `mindtype:highlight` with `{start,end,text}`, apply via `replaceRange` to the textarea; preserve caret; visible replacement in Safari/WebKit and Chromium; add Playwright e2e covering “Hello teh → Hello the”.  
          **Owner:** @alex  
          **DependsOn:** FT-318, FT-210  
          **Status:** In progress — currently active-region/highlight fire, but demo does not show the actual replacement of the text after correcting it.  
@@ -504,6 +518,12 @@ Task checklist template (copy into PR description):
          **Owner:** @alex  
          **DependsOn:** FT-310  
          **Source:** PRD → A11y & UX
+
+- [ ] (P1) [FT-318C] Demo privacy + capability disclaimers  
+       **AC:** Add clear copy in the demo indicating local‑only by default, opt‑in for remote; show backend (WebGPU/WASM/CPU) and encrypted status; reduced‑motion compliant; tests assert copy presence.  
+       **Owner:** @alex  
+       **DependsOn:** FT-231D, FT-231E  
+       **Source:** Pitch → privacy and performance assurances
 
 - [ ] (P1) [FT-319] Rewire demo to Rust orchestrator via WASM  
        **AC:** Instantiate wasm bindings; forward `{text, caret}` to core; receive activeRegion/highlight events; keep rules-only path until LM worker is wired; document setup in web-demo README.  
@@ -678,6 +698,12 @@ All docs follow house comment header style; stubs will be filled as tasks land.
        **Owner:** @alex  
        **DependsOn:** FT-117  
        **Source:** Versioning policy
+
+- [ ] (P3) [FT-510] Android bindings (design stub)  
+       **AC:** Outline JNI/NDK strategy to consume Rust core; define minimal API and IME interaction notes; document privacy constraints and secure‑field handling; no implementation required in v0.2.  
+       **Owner:** @alex  
+       **DependsOn:** FT-501  
+       **Source:** Pitch → “computer, tablet, and phone”
 
 - [ ] (P2) [FT-504] Performance benches and fuzzing  
        **AC:** criterion.rs benches for hot paths; cargo-fuzz targets for FFI and text processing; CI executes benches on representative hardware; docs link to results.  

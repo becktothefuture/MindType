@@ -108,6 +108,20 @@ Answer:
 
 Notes:
 
+### Q008: Branding alignment — Mind::Type vs MindTyper
+
+- Related: docs/brand/messaging.md, README.md, PRD Summary, implementation tasks
+- Context: Public pitch uses “Mind::Type”; internal code and many docs use “MindTyper”. We need a single naming policy for public copy, docs, package names, and code identifiers.
+- Question: Do we officially adopt “Mind::Type” as the public brand while retaining `MindTyper` as the internal/project code name for v0.2 (docs and code), with a later unification task? Or should we migrate code/docs now for consistency?
+
+Answer:
+
+> TBD
+
+Notes:
+
+- If we keep both for v0.2, add a persistent naming note in docs/README and brand guidelines; schedule a rename task post‑v0.2.
+
 - We’ll add toggles as we add templates, keeping the default concise.
 
 ### Q006: Remote model opt-in default and data handling (RESOLVED)

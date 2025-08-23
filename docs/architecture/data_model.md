@@ -18,7 +18,7 @@
 
 ### Scope
 
-This document captures the runtime data model used by MindTyper's core pipeline. Today, data is in-memory only; future hosts may persist settings and logs locally. No user text leaves the device.
+This document captures the runtime data model used by Mind::Type's core pipeline. Today, data is in-memory only; future hosts may persist settings and logs locally. No user text leaves the device.
 
 ### Entities
 

@@ -11,16 +11,14 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ PRD for MindTyper (MVP scope)
+    • WHAT ▸ PRD for Mind::Type (MVP scope)
     • WHY  ▸ Align teams on MUST/WON'T and success
     • HOW  ▸ Backed by questionnaire, linked to C4/ADR/BDD
 -->
 
 ### Summary
 
-MindTyper converts noisy keyboard input into clean text in real time,
-on‑device, system‑wide, with zero input sent to cloud. Target uplift:
-3× effective WPM at ≥95% semantic accuracy.
+Mind::Type is a quiet, system‑wide typing utility that converts noisy input into clean, well‑formed text in real time. It stays invisible until it helps, respects performance, and preserves your voice. Processing is on‑device by default; remote is optional, encrypted, and explicitly opted‑in. Target uplift: 3× effective WPM at ≥95% semantic accuracy.
 
 ### Problem & Audience
 
@@ -29,9 +27,8 @@ on‑device, system‑wide, with zero input sent to cloud. Target uplift:
 
 ### Goals (MUST) / Non‑Goals (WON'T)
 
-- MUST: on‑device inference; p95 keystroke→correction ≤ 15 ms; caret‑safe
-  edits; granular undo via host stack; reduced‑motion compliance.
-- WON'T: cloud text processing; heavy suggestions UI; collaborative prefs.
+- MUST: on‑device inference by default; p95 keystroke→correction ≤ 15 ms; caret‑safe edits; granular undo via host stack; reduced‑motion compliance; encrypted remote channel support behind explicit opt‑in; tone adjustment optional, off by default.
+- WON'T: silent cloud text processing; heavy suggestions UI; collaborative prefs; background data retention.
 
 ### Success Metrics
 
@@ -62,7 +59,7 @@ on‑device, system‑wide, with zero input sent to cloud. Target uplift:
 
 ### Constraints
 
-- Privacy: 100% on‑device; no input content leaves device.
+- Privacy: On‑device by default; no input content leaves device unless explicitly opted‑in per session. No data retention. Any remote path uses encrypted transport.
 - Accessibility: WCAG 2.2 AA; screen reader announcements for changes.
 - IME: Wait until composition ends; secure fields disabled.
 

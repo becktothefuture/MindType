@@ -25,7 +25,7 @@ interface MinimalGlobal {
 export function renderHighlight(_range: { start: number; end: number; text?: string }) {
   const g = globalThis as unknown as MinimalGlobal;
   if (g.dispatchEvent && g.CustomEvent) {
-    const event = new g.CustomEvent('mindtyper:highlight', {
+    const event = new g.CustomEvent('mindtype:highlight', {
       detail: { start: _range.start, end: _range.end, text: _range.text },
     });
     g.dispatchEvent(event);
@@ -36,7 +36,7 @@ export function renderHighlight(_range: { start: number; end: number; text?: str
 export function emitActiveRegion(_range: { start: number; end: number }) {
   const g = globalThis as unknown as MinimalGlobal;
   if (g.dispatchEvent && g.CustomEvent) {
-    const event = new g.CustomEvent('mindtyper:activeRegion', {
+    const event = new g.CustomEvent('mindtype:activeRegion', {
       detail: { start: _range.start, end: _range.end },
     });
     g.dispatchEvent(event);

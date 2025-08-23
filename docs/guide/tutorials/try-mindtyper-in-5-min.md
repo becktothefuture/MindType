@@ -11,7 +11,7 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ Try MindTyper via web demo
+    • WHAT ▸ Try Mind::Type via web demo
     • WHY  ▸ Experience the first “aha” in minutes
     • HOW  ▸ Use `web-demo/` with local engine stubs
 -->

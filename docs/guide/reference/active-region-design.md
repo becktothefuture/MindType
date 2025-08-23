@@ -32,8 +32,8 @@
 
 ## Event model
 
-- `mindtyper:activeRegion {start,end}` updates overlay span.
-- `mindtyper:highlight {start,end,text}` applies caret‑safe diff and brief flash.
+- `mindtype:activeRegion {start,end}` updates overlay span.
+- `mindtype:highlight {start,end,text}` applies caret‑safe diff and brief flash.
 - In reduced‑motion, skip shimmer and shorten flash by ~30%.
 
 ## macOS mapping

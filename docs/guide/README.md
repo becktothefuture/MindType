@@ -15,7 +15,7 @@
 ## Structure
 
 - `how-to/` — Task‑oriented guides (e.g., web demo server, mac app details, fine‑tune Qwen).
-- `tutorials/` — Learn‑by‑doing walkthroughs (e.g., try MindTyper in 5 minutes).
+- `tutorials/` — Learn‑by‑doing walkthroughs (e.g., try Mind::Type in 5 minutes).
 - `reference/` — Stable contracts and APIs (band policy, injector, LM behavior, worker, rust merge, config flags).
 - `explanations/` — Rationale and deep dives (e.g., why caret‑safe diffs).
 
@@ -33,4 +33,4 @@ Cross‑links:
 - ADRs: `../adr/README.md`
 - QA acceptance: `../qa/acceptance/`
 
-<!-- Alignment: All guides reflect the active region model; hosts render visuals from `mindtyper:activeRegion` events. -->
+<!-- Alignment: All guides reflect the active region model; hosts render visuals from `mindtype:activeRegion` events. -->
