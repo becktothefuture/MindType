@@ -12,7 +12,7 @@ import { createMockLMAdapter } from '../core/lm/mockAdapter';
 describe('LM Adapter optional wiring', () => {
   it('does not change behaviour when adapter is not provided', async () => {
     vi.mock('../ui/highlighter', () => ({
-      renderValidationBand: vi.fn(),
+      emitActiveRegion: vi.fn(),
       renderHighlight: vi.fn(),
     }));
     const d = createDiffusionController();

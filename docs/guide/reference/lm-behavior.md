@@ -2,7 +2,7 @@
   ╔══════════════════════════════════════════════════════════════╗
   ║  ░  L M   B E H A V I O R   A N D   P O L I C Y  ░░░░░░░░░░  ║
   ║                                                              ║
-  ║   Caret‑safe, band‑bounded LM diffusion: selection,          ║
+  ║   Caret‑safe, active‑region‑bounded LM diffusion: selection, ║
   ║   prompting, and merging rules (single source of truth).     ║
   ║                                                              ║
   ╚══════════════════════════════════════════════════════════════╝
@@ -13,14 +13,14 @@
 
 ## Overview
 
-- We stream incremental corrections behind the caret (validation band).
+- We stream incremental corrections behind the caret (active region).
 - We select a small span near the caret, include a limited context window, and send a precise instruction: “Correct ONLY the Span; return just the corrected Span.”
 - We merge only that span back, preserving caret safety.
 
 ### New direction: core-driven LM, demo kept thin
 
 - The LM scheduling, single-flight, and merge policy live in core (`DiffusionController` + `core/lm/*`).
-- The web demo no longer owns LM orchestration; it only renders the validation band and debug info.
+- The web demo no longer owns LM orchestration; it only renders the active region and debug info.
 - This ensures consistent behaviour across hosts (web, macOS) and simplifies QA.
 
 ## Selection Rules (Span and Context)
@@ -62,8 +62,8 @@ Implementation notes:
 
 - Take the first line; strip quotes; trim whitespace.
 - Clamp length to ~2 × original span length (min 24).
-- Replace only the band span with the fixed text.
-  - If caret has entered the band since request start, cancel and drop stale; no rollback to undo stack.
+- Replace only the active‑region span with the fixed text.
+  - If caret has entered the active region since request start, cancel and drop stale; no rollback to undo stack.
 
 ## Runtime Guards
 
@@ -74,7 +74,7 @@ Implementation notes:
 
 ## Future Enhancements
 
-- Sentence‑aware band policy: grow to sentence/previous sentences when confidence is low; still only merge intended span.
+- Sentence‑aware active‑region policy: grow to sentence/previous sentences when confidence is low; still only merge intended span.
 - Error‑type templates (typo/grammar/casing/punct) to guide shorter, more precise fixes.
 - Confidence gating and rollback on user edits during streaming.
   - Consider worker mode for heavy models; keep offline capability.
@@ -82,18 +82,18 @@ Implementation notes:
 ## Typing Scenarios (30) and Expected Behavior
 
 1. Empty field, start typing: small spans corrected behind caret on pauses; no edits at/after caret.
-2. Mid-word pause: no LM run (word-boundary enforced); band renders only.
+2. Mid-word pause: no LM run (word-boundary enforced); active region renders only.
 3. Pause at whitespace: LM runs; short span replaced.
 4. Pasting a short sentence: schedule after paste; correct span near caret.
 5. Pasting a long paragraph: debounce, then correct small span near caret; future: sentence-aware.
-6. Moving caret mid-text via click: band recomputed at new caret; LM triggers only after pause.
+6. Moving caret mid-text via click: active region recomputed at new caret; LM triggers only after pause.
 7. Moving caret with arrow keys: same as click; no mid-word runs.
 8. Selecting a range: LM disabled while selection exists; no changes until collapsed.
 9. Typing fast bursts: abort stale, single-flight ensures latest run only.
-10. Frequent tiny pauses (<300ms): cooldown prevents spam; band shows but no LM merge.
+10. Frequent tiny pauses (<300ms): cooldown prevents spam; active region shows but no LM merge.
 11. Typing at document start: band within bounds; prompt uses available left context.
 12. Typing at line start after newline: newline-safety clamp avoids band jumping across lines.
-13. Undo/redo: band updates; LM waits for pause; merges only span; system corrections do not enter undo stack.
+13. Undo/redo: active region updates; LM waits for pause; merges only span; system corrections do not enter undo stack.
 14. Deleting characters: band updates; LM only after boundary and pause.
 15. Replacing a word (backspace + type): treated as new span; LM after pause.
 16. Holding key (repeat): no LM until release+pause.
@@ -103,13 +103,13 @@ Implementation notes:
 20. Window blur/focus loss: abort; no background runs.
 21. Switching tabs/apps and returning: LM resumes on next pause.
 22. Low-power device: debounce/cooldown keep frequency low; small max tokens.
-23. High-latency first run (warm-up): later runs faster; UI shows band regardless.
+23. High-latency first run (warm-up): later runs faster; UI shows the active region regardless.
 24. Rule-only mode: LM off; rules apply; can toggle LM on and load.
 25. Local-only assets missing: LM remains off; show guidance to run setup; remote allowed only on explicit opt‑in.
 26. Slow network: small prompts/outputs minimize bandwidth; still span-only merges.
 27. Very long word: span cap blocks LM; rules may still apply.
 28. Mixed case/punctuation errors: prompt + post-process keep output short and span-sized.
-29. Multiline input: newline clamp ensures band stays in current line when needed.
+29. Multiline input: newline clamp ensures the active region stays in current line when needed.
 30. Multi-sentence typing: current span uses small context; future: sentence-aware growth with confidence gating.
 
 ## Single Source of Truth

@@ -46,7 +46,7 @@
   font-style: italic;
 }
 
-/* Editor overlay for validation band inside the field */
+/* Editor overlay for active region inside the field */
 .editor-wrap {
   position: relative;
   display: inline-block;
@@ -74,7 +74,7 @@
   box-sizing: border-box;
   color: transparent; /* only show backgrounds */
 }
-.editor-overlay .band {
+.editor-overlay .active-region {
   background-image: linear-gradient(90deg, rgba(0, 200, 120, 0.18), rgba(0, 200, 120, 0.32), rgba(0, 200, 120, 0.18));
   background-size: 200% 100%;
   animation: mt-shimmer 1800ms linear infinite;

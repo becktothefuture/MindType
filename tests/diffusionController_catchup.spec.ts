@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('../ui/highlighter', () => ({
-  renderValidationBand: vi.fn(),
+  emitActiveRegion: vi.fn(),
   renderHighlight: vi.fn(),
 }));
 

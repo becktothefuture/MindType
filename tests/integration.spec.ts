@@ -17,7 +17,7 @@ import { tidySweep } from '../engines/tidySweep';
 
 // Mock the UI calls for clean testing
 vi.mock('../ui/highlighter', () => ({
-  renderValidationBand: vi.fn(),
+  emitActiveRegion: vi.fn(),
   renderHighlight: vi.fn(),
 }));
 

@@ -14,10 +14,10 @@ Feature: Two-word highlight (REQ-A11Y-MOTION)
     Then the last two words are highlighted briefly
     And motion respects reduced-motion preference
 
-  Scenario: Streaming validation band while typing
+  Scenario: Streaming active region while typing
     Given the user types "Mindtyper is a |"
     When streaming diffusion runs behind the caret
-    Then a subtle validation band is visible from two words behind up to the caret
+    Then a subtle active region is visible from two words behind up to the caret
     And corrections apply word-by-word within that band
     And motion respects reduced-motion preference
 

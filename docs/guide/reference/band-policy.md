@@ -1,12 +1,12 @@
 <!--══════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════╗
-  ║  ░  B A N D   P O L I C Y   ( R E F E R E N C E )  ░░  ║
+  ║  ░  A C T I V E   R E G I O N   P O L I C Y  ░░░░░░░  ║
   ║                                                      ║
   ║   Render vs Context ranges, newline clamps, and      ║
   ║   validation frontier semantics.                     ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ How we compute band ranges consistently
+    • WHAT ▸ How we compute active‑region ranges consistently
     • WHY  ▸ One source of truth for visuals and LM spans
     • HOW  ▸ Deterministic word segmentation + clamps
 -->
@@ -14,7 +14,7 @@
 ## Responsibilities
 
 - Provide two ranges per update:
-  - Render range: what to show as the validation band (UI‑safe).
+  - Render range: what to show as the active region (UI‑safe).
   - Context range: what to give to the LM (line/sentence aware).
 - Ensure neither range crosses the caret or breaks Unicode boundaries.
 
@@ -27,7 +27,7 @@
 
 ## Interfaces
 
-- TS: `BandPolicy` with `computeRenderRange(state)` and `computeContextRange(state)`; see `core/diffusionController.ts`.
+- TS: `ActiveRegionPolicy` with `computeRenderRange(state)` and `computeContextRange(state)`; see `core/diffusionController.ts`.
 - Rust: expose equivalent helpers in `crates/core-rs` as needed.
 
 ## Tests

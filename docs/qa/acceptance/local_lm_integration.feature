@@ -3,7 +3,7 @@
 #╚════════════════════════════════════════════════════╝
 # WHAT ▸ On-device language model corrections with graceful fallback
 # WHY  ▸ Semantic/grammatical quality beyond rules while staying local
-# HOW  ▸ Stream LM tokens into validation band; fallback to rules; <150MB memory
+# HOW  ▸ Stream LM tokens into active region; fallback to rules; <150MB memory
 # IDs  ▸ SCEN-LMLOCAL-001 | PRIN: PRIN-SAFETY-05, PRIN-PERF-11 | REQ: REQ-LOCAL-LM-INTEGRATION, REQ-CONTEXTUAL-CORRECTIONS
 
 Feature: Local LM Integration (REQ-LOCAL-LM-INTEGRATION, REQ-CONTEXTUAL-CORRECTIONS)
@@ -26,7 +26,7 @@ Feature: Local LM Integration (REQ-LOCAL-LM-INTEGRATION, REQ-CONTEXTUAL-CORRECTI
     When corrections would cross the caret position
     Then those corrections are rejected
     And only caret-safe corrections are applied
-    And validation band never extends beyond caret
+    And active region never extends beyond caret
 
   Scenario: LM confidence gating
     Given local LM processes ambiguous text

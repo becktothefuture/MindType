@@ -22,8 +22,8 @@ The demo renders luminous particle bursts under a frosted glass layer. It is des
 
 ## Architecture
 
-- Surface: `<textarea>` for editing plus an overlay `div` for band/highlights.
-- Overlay: CSS highlight of the validation band and applied diffs; reduced-motion supported.
+- Surface: `<textarea>` for editing plus an overlay `div` for active-region/highlights.
+- Overlay: CSS highlight of the active region and applied diffs; reduced-motion supported.
 - Loop: typing tick cadence (configurable) and pause catch-up.
 - Persistence: versioned settings in localStorage (tick, band size) with sane defaults.
 
@@ -99,23 +99,23 @@ The demo serves three goals:
 
 Current state:
 
-- The demo uses a simple `<textarea>` and is wired to the TypeScript streaming pipeline (TypingMonitor → SweepScheduler → DiffusionController) for real‑time validation band and corrections. LM scheduling was removed from the demo; v0.2 rewires LM through the Rust orchestrator via WASM.
+- The demo uses a simple `<textarea>` and is wired to the TypeScript streaming pipeline (TypingMonitor → SweepScheduler → DiffusionController) for real‑time active region and corrections. LM scheduling was removed from the demo; v0.2 rewires LM through the Rust orchestrator via WASM.
 - `Editable.tsx`, `useTypingTick.ts` (replacing pause‑only logic), and `useMindType.ts` are planned improvements; the names here describe intent.
 
 ## Components (what each piece does)
 
 - **Editable.tsx**: A `contentEditable` surface (like a rich textarea). Listens for keystrokes and keeps the caret stable across React renders.
 - **useTypingTick.ts**: Drives a ~60–90 ms cadence during typing for streamed diffusion; pairs with pause detection for catch‑up.
-- **useMindType.ts**: Orchestrates the flow: on typing tick → band‑bounded tidy sweep; on idle → catch‑up. Cancels mid‑stream if the user resumes typing.
+- **useMindType.ts**: Orchestrates the flow: on typing tick → active‑region‑bounded tidy sweep; on idle → catch‑up. Cancels mid‑stream if the user resumes typing.
 - **LMClient.ts**: In future, wraps a local model via Transformers.js (Qwen2.5‑0.5B‑Instruct, q4, WebGPU) with streaming tokens. Today we use rule‑based tidy sweep.
 - **UI Polish**: Subtle highlight for the changed fragment; latency badge; keyboard toggle for the Debug Panel.
 
 ## User Flow (step-by-step)
 
 1. The user starts typing into the editable area.
-2. While typing, a typing tick (~60–90 ms) advances a trailing validation band (typically 3–8 words long) behind the caret.
-3. Words stream back and apply as tiny, caret‑safe patches within that band. The UI uses a subtle shimmer; reduced-motion falls back to a gentle fade.
-4. After ~500 ms of idle time, the diffusion catches up until the band reaches the caret.
+2. While typing, a typing tick (~60–90 ms) advances a trailing active region (typically 3–8 words long) behind the caret.
+3. Words stream back and apply as tiny, caret‑safe patches within that region. The UI uses a subtle shimmer; reduced-motion falls back to a gentle fade.
+4. After ~500 ms of idle time, the diffusion catches up until the active region reaches the caret.
 5. If the user resumes typing mid-stream, diffusion continues behind the moving caret; any word at the caret is skipped until a boundary appears.
 
 ## Reasoning

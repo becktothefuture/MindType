@@ -19,7 +19,7 @@
 ### What is MindTyper (in one breath)
 
 - **Core idea**: While you type, we clean up text behind your cursor, safely. No cloud. No clunky UI.
-- **How**: A shared brain (Rust) + thin shells (web/macOS). We stream small, caret‑safe fixes inside a “validation band”.
+- **How**: A shared brain (Rust) + thin shells (web/macOS). We stream small, caret‑safe fixes inside an “active region”.
 - **Why**: Keep your flow. Low friction, low latency, local privacy.
 - More detail: see `docs/PRD.md` and `docs/architecture/README.md`.
 
@@ -109,7 +109,7 @@
 - **Outcome**: small patches keep flow, reduce conflict, and are much easier
   to abort/rollback when the user keeps typing.
 
-## Validation band: design choices that matter
+## Active region: design choices that matter
 
 - **Human‑visible bound**: shows where we are “sure” right now.
 - **Word‑bounded**: never ends mid‑word; optimizes both UX and model prompts.
@@ -180,13 +180,13 @@ export function selectSpanAndPrompt(
 
 ## Events and visuals: what the host listens for
 
-- **Validation band**: consistent signal for UI and a11y.
+- **Active region**: consistent signal for UI and a11y.
 
 ```35:44:ui/highlighter.ts
-export function renderValidationBand(_range: { start: number; end: number }) {
+export function emitActiveRegion(_range: { start: number; end: number }) {
   const g = globalThis as unknown as MinimalGlobal;
   if (g.dispatchEvent && g.CustomEvent) {
-    const event = new g.CustomEvent('mindtyper:validationBand', {
+    const event = new g.CustomEvent('mindtyper:activeRegion', {
       detail: { start: _range.start, end: _range.end },
     });
     g.dispatchEvent(event);
@@ -202,7 +202,7 @@ export function renderValidationBand(_range: { start: number; end: number }) {
 - 0 ms: keydown → `TypingMonitor.emit`
 - ~0–4 ms: `SweepScheduler` ticks, `DiffusionController.tickOnce`
 - ~4–10 ms: band recomputed; rules propose a tiny diff (or advance frontier)
-- ~10–16 ms: `renderValidationBand` dispatches; UI paints at next frame
+- ~10–16 ms: `emitActiveRegion` dispatches; UI paints at next frame
 - 500 ms idle: `catchUp()` finalizes the band up to the caret
 - LM on idle: span prompt built, stream/merge happens strictly within band
 
@@ -254,7 +254,7 @@ export function renderValidationBand(_range: { start: number; end: number }) {
 
 ## Glossary (first‑pass)
 
-- **Validation band**: trailing region where we are “confident now”.
+- **Active region**: trailing region where we are “confident now”.
 - **Frontier**: leftmost index not yet validated – it chases the caret.
 - **Span**: the exact sub‑range we propose to replace (inside the band).
 - **Caret‑safe**: no change at/after the caret, Unicode boundaries respected.

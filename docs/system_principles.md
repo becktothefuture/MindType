@@ -37,7 +37,7 @@ principle links to deeper docs that hold the technical details.
   - While the person types, hold back; when they pause, tidy what was
     written without moving the caret.
   - If they resume typing, drop any pending idea silently.
-- See also: [PRD](../PRD.md), [Caret-safe diff (ADR)](../adr/0002-caret-safe-diff.md), [Band policy](guide/reference/band-policy.md), [Acceptance: caret safety](qa/acceptance/caret_safety.feature)
+- See also: [PRD](../PRD.md), [Caret-safe diff (ADR)](../adr/0002-caret-safe-diff.md), [Active region policy](guide/reference/band-policy.md), [Acceptance: caret safety](qa/acceptance/caret_safety.feature)
 
 2. Keep the surface calm
 
@@ -116,14 +116,14 @@ principle links to deeper docs that hold the technical details.
   - Ignore late results from an older state.
 - See also: [Architecture: containers](architecture/C2-containers.md), [Implementation](../implementation.md)
 
-10. Check a small neighborhood (validation band)
+10. Check a small neighborhood (active region)
 
 - Guidance: Validate and correct a short span around the cursor—not the
   world.
 - Examples:
   - Fix “teh quick” to “the quick,” but don’t rewrite the sentence.
   - Leave longer rephrasing to deliberate user actions.
-- See also: [Band policy](guide/reference/band-policy.md), [Caret-safe diff (ADR)](../adr/0002-caret-safe-diff.md)
+- See also: [Active region policy](guide/reference/band-policy.md), [Caret-safe diff (ADR)](../adr/0002-caret-safe-diff.md)
 
 ### Performance & Reliability
 
@@ -151,12 +151,12 @@ principle links to deeper docs that hold the technical details.
 1. Human-first agency
 
 - Behaviour: The human remains the author. Corrections auto-apply within
-  the safety band to preserve flow; no accept gesture needed. No hidden
-  expansion beyond the band or caret.
+  the active region to preserve flow; no accept gesture needed. No hidden
+  expansion beyond the region or caret.
 - Examples:
   - Auto-apply grammar/punctuation micro-fixes silently; never add tokens
     at/after the caret and never expand outside the band.
-  - If the caret enters the band mid-process, cancel pending merges and
+  - If the caret enters the active region mid-process, cancel pending merges and
     drop stale results immediately.
 
 2. Frictionless flow & rhythm
@@ -203,9 +203,9 @@ principle links to deeper docs that hold the technical details.
 5. Caret-safe, non-undoing edits
 
 - Behaviour: Never edit at/after caret; operate strictly within the
-  validation band. System corrections do not enter the host undo stack.
+  active region. System corrections do not enter the host undo stack.
 - Examples:
-  - The merge engine clamps LM output to `BandPolicy.range`, trimming
+  - The merge engine clamps LM output to `ActiveRegionPolicy.range`, trimming
     tokens that cross caret or leave the band.
   - No grouped undo entries are created for auto-applied corrections.
 
@@ -228,7 +228,7 @@ principle links to deeper docs that hold the technical details.
   accepted/rejected, and the current device tier. Capture uncertainties
   in `docs/questionnaire/questions.md` and proceed on safe defaults.
 - Examples:
-  - In DebugPanel, show: model tier, tokens requested, band size, and
+  - In DebugPanel, show: model tier, tokens requested, active region size, and
     reason codes (e.g., "caret-entered", "stale-result"); avoid showing raw user text.
   - Provide a toggleable inline explainer: "Suggestion truncated to band
     width to preserve caret safety."
@@ -263,7 +263,7 @@ principle links to deeper docs that hold the technical details.
 - Examples:
   - When typing resumes, immediately `abort()` the active fetch and
     mark the response as stale.
-  - On band shift, discard pending results tagged with old band id.
+  - On active region shift, discard pending results tagged with old region id.
 
 11. Progressive enhancement by device tier
 
@@ -279,7 +279,7 @@ principle links to deeper docs that hold the technical details.
 - Behaviour: Every rule is backed by unit/integration tests and debug
   signals. Ship only when gates are green.
 - Examples:
-  - Add tests for band clamping, caret safety, single-flight, and tier
+  - Add tests for active region clamping, caret safety, single-flight, and tier
     fallback in `tests/**`.
   - Expose structured logs (level-gated) for merges, aborts, and tier
     detection to support e2e verification.

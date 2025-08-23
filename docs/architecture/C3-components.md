@@ -22,7 +22,7 @@
   - REQ-TIDY-SWEEP, REQ-IME-CARETSAFE
 - BackfillConsistency (`engines/backfillConsistency.ts`): stable‑zone passes.
 - Diff (`utils/diff.ts`): replaceRange with caret safety. REQ-IME-CARETSAFE
-- DiffusionController (`core/diffusionController.ts`): advances a frontier, requests word‑bounded diffs, updates validation band, catches up on pause.
-- Highlighter (`ui/highlighter.ts`): validation band (3–8 words behind caret) with subtle shimmer and reduced‑motion fallback; draws‑in corrections smoothly.
+- DiffusionController (`core/diffusionController.ts`): advances a frontier, requests word‑bounded diffs, updates the active region, catches up on pause.
+- Highlighter (`ui/highlighter.ts`): active region (3–8 words behind caret) with subtle shimmer and reduced‑motion fallback; draws‑in corrections smoothly.
   - REQ-A11Y-MOTION
 - GroupUndo (`ui/groupUndo.ts`): group atomic edits per sweep.

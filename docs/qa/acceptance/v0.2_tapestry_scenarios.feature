@@ -9,7 +9,7 @@ Feature: v0.2 Tapestry band and rollback
 
   Scenario: Caret entry cancels and rolls back partial merges
     Given I am typing "Hello teh worl" with the caret at the end
-    And a validation band of 3-8 words trails the caret
+    And an active region of 3-8 words trails the caret
     When the LM begins streaming a correction for the band
     And I move the caret into the band before streaming completes
     Then all partial LM merges are rolled back

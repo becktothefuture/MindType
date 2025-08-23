@@ -27,7 +27,7 @@
 > 1. Versioning + repo hygiene ✅
 > 2. Rust core modules (scheduler, tapestry, confidence, LM) ◻︎
 > 3. FFI surface + wasm bindings ◻︎
-> 4. TS host integration (injector, band render) ◻︎
+> 4. TS host integration (injector, active region render) ◻︎
 > 5. CI updates + workerization ◻︎
 > 6. QA/BDD alignment ◻︎
 
@@ -35,7 +35,7 @@
 >
 > - We have the streaming foundation complete:
 >   - ✅ TypeScript streaming pipeline: TypingMonitor → SweepScheduler → DiffusionController → TidySweep
->   - ✅ Word-by-word diffusion with Unicode segmentation and validation band (3-8 words)
+>   - ✅ Word-by-word diffusion with Unicode segmentation and an active region (3-8 words)
 >   - ✅ Caret safety enforced at all levels; comprehensive tests (23 passing)
 >   - ✅ Basic rule engine with 5 common typo corrections
 >   - ✅ Integration tests proving end-to-end functionality
@@ -48,7 +48,7 @@
 >   - **Pipeline Integration:** `index.ts` wiring TODO; web demo uses WASM not TS pipeline
 >   - **Contextual Rules:** Only simple word substitutions; need transpositions, punctuation, capitalization
 >   - **Local LM:** No on-device model integration yet for semantic/grammatical corrections
->   - **Visual Feedback:** `renderValidationBand()` is stub; no actual DOM shimmer/highlight
+>   - **Visual Feedback:** `emitActiveRegion()`/highlight are basic; design polish pending
 >   - **Demo Integration:** Web demo needs connection to TS pipeline for live testing
 
 > **How Cursor uses this file**
@@ -177,7 +177,7 @@ Task checklist template (copy into PR description):
        **Source:** PRD → Constraints / Performance
 
 - [x] (P1) [FT-125] Implement DiffusionController  
-       **AC:** `core/diffusionController.ts` with Unicode word segmentation; advances frontier word-by-word; integrates with validation band renderer; catch-up on pause  
+       **AC:** `core/diffusionController.ts` with Unicode word segmentation; advances frontier word-by-word; integrates with active region renderer; catch-up on pause  
        **Owner:** @alex  
        **DependsOn:** FT-124  
        **Source:** REQ-STREAMED-DIFFUSION, REQ-VALIDATION-BAND
@@ -219,7 +219,7 @@ Task checklist template (copy into PR description):
        **Source:** index.ts TODO comment
 
 - [x] (P1) [FT-202] Create integration test harness  
-       **AC:** End-to-end test simulating user typing → corrections applied; verify caret safety, timing, and band progression; performance baseline  
+       **AC:** End-to-end test simulating user typing → corrections applied; verify caret safety, timing, and active‑region progression; performance baseline  
        **Owner:** @alex  
        **DependsOn:** FT-201  
        **Source:** Integration requirements
@@ -369,18 +369,18 @@ Task checklist template (copy into PR description):
        **Source:** Observability hygiene
 
 - [ ] (P1) [FT-232] Add LM streaming merge policy  
-       **AC:** Stream tokens into validation band only; merge with rule-based fixes; deterministic precedence (rules > LM on structural conflicts; LM > rules on semantic-only with confidence); cancel on input; rollback on conflicts; extensive caret safety tests; sentence-aware band growth with confidence gating.  
+       **AC:** Stream tokens into the active region only; merge with rule-based fixes; deterministic precedence (rules > LM on structural conflicts; LM > rules on semantic-only with confidence); cancel on input; rollback on conflicts; extensive caret safety tests; sentence-aware region growth with confidence gating.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** REQ-STREAMED-DIFFUSION + LM quality
 
 - [ ] (P1) [FT-231H] Near-field embedding cache  
-       **AC:** Cache embeddings/context features for the validation band to reduce recomputation; invalidate on edits crossing cache; tests assert cache hits/misses and correctness.  
+       **AC:** Cache embeddings/context features for the active region to reduce recomputation; invalidate on edits crossing cache; tests assert cache hits/misses and correctness.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** v0.2 architecture → Language Model Integration
   - [ ] (P1) [FT-232A] Caret-entry merge guard + rollback  
-         **AC:** If caret moves into `[band.start, band.end]` mid-run, cancel and rollback partial merges. Tests simulate caret jumps and verify no caret jumps or overwrites.  
+         **AC:** If caret moves into `[region.start, region.end]` mid-run, cancel and rollback partial merges. Tests simulate caret jumps and verify no caret jumps or overwrites.  
          **Owner:** @alex  
          **DependsOn:** FT-232  
          **Source:** Caret safety
@@ -428,10 +428,10 @@ Task checklist template (copy into PR description):
 ### Visual Feedback (P1)
 
 - [x] (P1) [FT-310] Implement highlighter core  
-       **AC:** - Validation band (3–8 words) trailing behind caret with DOM manipulation - Subtle shimmer animation; fade/static when reduced‑motion - Applied correction highlights - Minimal, non-intrusive UI
+       **AC:** - Active region (3–8 words) trailing behind caret with DOM manipulation - Subtle shimmer animation; fade/static when reduced‑motion - Applied correction highlights - Minimal, non-intrusive UI
       **Owner:** @alex  
        **DependsOn:** FT-201  
-       **Source:** PRD REQ-A11Y-MOTION + REQ-VALIDATION-BAND
+       **Source:** PRD REQ-A11Y-MOTION + REQ-ACTIVE-REGION
 
 - [x] (P1) [FT-311] Add ARIA announcements  
        **AC:** - Screen reader notifications for corrections - Configurable verbosity - WCAG 2.2 AA compliant
@@ -448,7 +448,7 @@ Task checklist template (copy into PR description):
 ### Live Demo Integration (P1) **← PRIORITY**
 
 - [x] (P1) [FT-315] Wire TypeScript pipeline to web demo  
-       **AC:** Replace WASM usage with TS streaming pipeline; connect textarea events to TypingMonitor; render validation band and corrections in real-time; add parameter controls (tick, band size)  
+       **AC:** Replace WASM usage with TS streaming pipeline; connect textarea events to TypingMonitor; render active region and corrections in real-time; add parameter controls (tick, region size)  
        **Owner:** @alex  
        **DependsOn:** FT-310, FT-201  
        **Source:** Web demo needs live testing capability
@@ -458,14 +458,14 @@ Task checklist template (copy into PR description):
          **DependsOn:** FT-315  
          **Source:** Flow tuning / visual playground
 
-  - [x] (P1) [FT-315B] Add validation band size controls (sliders)  
-         **AC:** Two sliders mapped to `MIN_VALIDATION_WORDS` (1–5) and `MAX_VALIDATION_WORDS` (3–12); enforce `min ≤ max`; live update; persisted to `localStorage`  
+  - [x] (P1) [FT-315B] Add active region size controls (sliders)  
+         **AC:** Two sliders mapped to `MIN_ACTIVE_REGION_WORDS` (1–5) and `MAX_ACTIVE_REGION_WORDS` (3–12); enforce `min ≤ max`; live update; persisted to `localStorage`  
          **Owner:** @alex  
          **DependsOn:** FT-315  
          **Source:** Flow tuning / visual playground
 
 - [x] (P1) [FT-316] Add demo controls and settings  
-       **AC:** Toggle for rules vs LM mode; band size adjustment; timing controls; performance display; reset functionality; export/import presets  
+       **AC:** Toggle for rules vs LM mode; active region size adjustment; timing controls; performance display; reset functionality; export/import presets  
        **Owner:** @alex  
        **DependsOn:** FT-315  
        **Source:** Demo usability for testing different configurations
@@ -496,11 +496,17 @@ Task checklist template (copy into PR description):
          **AC:** On `mindtyper:highlight` with `{start,end,text}`, apply via `replaceRange` to the textarea; preserve caret; visible replacement in Safari/WebKit and Chromium; add Playwright e2e covering “Hello teh → Hello the”.  
          **Owner:** @alex  
          **DependsOn:** FT-318, FT-210  
-         **Status:** In progress — currently band/highlight fire, but demo does not show the actual replacement of the text after correcting it.  
+         **Status:** In progress — currently active-region/highlight fire, but demo does not show the actual replacement of the text after correcting it.  
          **Notes:** Investigate event timing/caret-safety guard and Safari segmentation fallback interactions.
 
+  - [ ] (P1) [FT-318B] Web UI design polish for active region  
+         **AC:** Finalize shimmer timing/gradient, reduced‑motion styles, and highlight durations; add a11y‑friendly colors and contrast; document tokens in `web-demo/src/App.css`.  
+         **Owner:** @alex  
+         **DependsOn:** FT-310  
+         **Source:** PRD → A11y & UX
+
 - [ ] (P1) [FT-319] Rewire demo to Rust orchestrator via WASM  
-       **AC:** Instantiate wasm bindings; forward `{text, caret}` to core; receive band/highlight events; keep rules-only path until LM worker is wired; document setup in web-demo README.  
+       **AC:** Instantiate wasm bindings; forward `{text, caret}` to core; receive activeRegion/highlight events; keep rules-only path until LM worker is wired; document setup in web-demo README.  
        **Owner:** @alex  
        **DependsOn:** FT-231, FT-234
 
@@ -516,13 +522,18 @@ Task checklist template (copy into PR description):
        **AC:** Deterministic timers for tests; data-testids for highlight; unit tests assert caret unchanged  
        **Owner:** @alex  
        **DependsOn:** FT-320  
-       **Source:** BDD → Validation band scenarios
+       **Source:** BDD → Active region scenarios
 
 - [ ] (P2) [FT-322] Add Playwright e2e for BDD scenarios  
-       **AC:** Tests for caret safety and streamed diffusion mapped to `docs/qa/acceptance/*` with visible band and highlight assertions  
+       **AC:** Tests for caret safety and streamed diffusion mapped to `docs/qa/acceptance/*` with visible active region and highlight assertions  
        **Owner:** @alex  
        **DependsOn:** FT-321  
        **Source:** BDD suite
+  - [ ] (P2) [FT-323] Update acceptance specs to active region semantics  
+         **AC:** Review and update all `docs/qa/acceptance/*.feature` files to replace band with active region; add caret-entry rollback scenario; ensure PRD/traceability links are updated.  
+         **Owner:** @alex  
+         **DependsOn:** FT-232A  
+         **Source:** v0.2 terminology and rollback behavior
 
 ---
 
@@ -530,19 +541,15 @@ Task checklist template (copy into PR description):
 
 ### [FT-232] LM streaming merge policy (expanded)
 
-- [ ] Define BandPolicy v1: newline‑safe render/context ranges; tests
+- [ ] Define ActiveRegionPolicy v1: newline‑safe render/context ranges; tests
 - [ ] Implement single‑flight controller (abort on new input) with cooldown
 - [ ] Confidence gates: prefer rules on structural conflicts; LM on semantic
-- [ ] Rollback on conflict: revert last LM merge if caret enters band
+- [ ] Rollback on conflict: revert last LM merge if caret enters active region
 - [ ] Caret/Unicode safety tests: surrogate pairs, zero‑width chars
 
-### [FT-234] Integrate LM adapter into `DiffusionController`
+### [FT-234] (Removed) Integrate LM adapter into `DiffusionController`
 
-- [ ] Add optional `lmAdapter` + `injector` params to controller factory
-- [ ] On tick: request span selection via policy; on idle: catch‑up loop
-- [ ] Stream tokens → accumulate → post‑process → apply via injector
-- [ ] Emit `renderHighlight` on merges; preserve frontier advancement
-- [ ] Unit tests: abort/resume, stale‑drop, and deterministic precedence
+- Status: Removed in v0.2 — LM orchestration lives in Rust core. TS controller remains rules‑only and emits UI events.
 
 ### [FT-235] Host injector abstraction
 
@@ -554,9 +561,9 @@ Task checklist template (copy into PR description):
 ### [FT-236] Remove demo‑side LM scheduling/merge
 
 - [x] Delete LM runner/adapter wiring in `web-demo/src/App.tsx`
-- [x] Remove LM mode toggles and metrics UI; keep band/highlight listeners
+- [x] Remove LM mode toggles and metrics UI; keep activeRegion/highlight listeners
 - [x] Keep rules‑only pipeline operational until FT‑234 lands
-- [ ] Smoke test demo (typing, band, highlights; no LM path)
+- [ ] Smoke test demo (typing, active region, highlights; no LM path)
 
 ### [FT-238] Workerize Transformers + memory guard
 
@@ -579,6 +586,37 @@ Task checklist template (copy into PR description):
 - [ ] Accessibility permission flow with state badge
 - [ ] Debug overlay (⌥⇧⌘L) with latency/token counters (stub)
 
+### [FT-404] macOS preferences & settings (P1)
+
+- [ ] SwiftUI Preferences window with confidence dial, formality slider, active region style
+- [ ] Persist settings (UserDefaults); sync with core via FFI setters
+- [ ] Respect system reduced‑motion/high‑contrast
+
+### [FT-405] macOS onboarding & permissions (P1)
+
+- [ ] First‑run onboarding flow; explain privacy, caret safety, and controls
+- [ ] Accessibility permission prompt + error states; retry flow
+- [ ] Status item menu: enable/disable, preferences, quit
+
+### [FT-406] macOS Swift wrapper + FFI bridge (P1)
+
+- [ ] cbindgen headers consumed by Swift; thin Swift wrapper types
+- [ ] Bridge `{text, caret}` updates to Rust core; apply diffs via injector
+- [ ] Unit tests for marshaling and memory safety (alloc/free)
+
+### [FT-402] macOS UI design surfaces (P1)
+
+- [ ] App icon, menu bar icon states (idle/processing/disabled)
+- [ ] Preferences UI: confidence dial, formality slider, active region style
+- [ ] Reduced‑motion and high‑contrast theme variants
+- [ ] UX copy for announcements and status
+
+### [FT-403] macOS active region visuals (P1)
+
+- [ ] Render subtle underline/overlay in focused field using overlay window
+- [ ] Honor reduced‑motion with static styles
+- [ ] Announce updates via AX (optional SR cue)
+
 ### [FT-401] AX watcher + injector
 
 - [ ] Focused field tracking; snapshot reset on focus change
@@ -598,7 +636,7 @@ Task checklist template (copy into PR description):
 - REQ-SECURE-FIELDS → FT-115, FT-116, FT-420 (iOS secure fields bypass)
 - REQ-TIDY-SWEEP → FT-210, FT-211, FT-212, FT-213, FT-214, FT-215
 - REQ-STREAMED-DIFFUSION → FT-125, FT-201, FT-232, FT-232A, FT-232B, FT-243
-- REQ-VALIDATION-BAND → FT-310, FT-315, FT-318
+- REQ-ACTIVE-REGION → FT-310, FT-315, FT-318
 - REQ-A11Y-MOTION → FT-312 (and reduced‑motion branches in FT-310)
 - REQ-LOCAL-LM-INTEGRATION → FT-230, FT-231, FT-231A, FT-231B, FT-231C, FT-231D, FT-231E, FT-231F, FT-231G, FT-231H, FT-238, FT-233
 - REQ-CONTEXTUAL-CORRECTIONS → FT-211, FT-212, FT-216, FT-232
@@ -606,10 +644,12 @@ Task checklist template (copy into PR description):
 ## Documentation To‑Do (created/updated in this PR)
 
 - [x] `docs/ADHD-docs.md` — approachable deep dive; links across system
-- [x] `docs/guide/reference/band-policy.md` — BandPolicy design & API
+- [x] `docs/guide/reference/band-policy.md` — ActiveRegionPolicy design & API
 - [x] `docs/guide/reference/injector.md` — Injector contract + hosts
 - [x] `docs/guide/reference/lm-worker.md` — Worker protocol & memory guard
 - [x] `docs/guide/reference/rust-merge.md` — Caret‑safe merge in Rust/FFI
+- [ ] `docs/guide/reference/active-region-design.md` — Visual design, tokens, reduced‑motion variants
+- [ ] `docs/guide/how-to/mac-ux.md` — macOS UX flows (onboarding, prefs, overlays)
 
 All docs follow house comment header style; stubs will be filled as tasks land.
 

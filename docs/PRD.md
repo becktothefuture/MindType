@@ -48,8 +48,8 @@ on‑device, system‑wide, with zero input sent to cloud. Target uplift:
 - REQ-A11Y-MOTION: Visual feedback MUST honor `prefers-reduced-motion`.
 - REQ-SECURE-FIELDS: The system MUST disable in secure fields and during
   active IME composition.
-- REQ-STREAMED-DIFFUSION: Corrections MUST stream word‑by‑word behind the caret during typing; on pause (~500 ms), diffusion MUST catch up until the band reaches the caret.
-- REQ-VALIDATION-BAND: The UI MUST render a subtle validation band indicating the currently validated region (typically 3–8 words). Exact visual styling remains configurable; reduced‑motion MUST degrade to a gentle static band/fade.
+- REQ-STREAMED-DIFFUSION: Corrections MUST stream word‑by‑word behind the caret during typing; on pause (~500 ms), diffusion MUST catch up until the active region reaches the caret.
+- REQ-ACTIVE-REGION: The UI MUST render a subtle active region indicating the currently validated span (typically 3–8 words). Exact visual styling remains configurable; reduced‑motion MUST degrade to a gentle static band/fade.
 - REQ-LOCAL-LM-INTEGRATION: The system MUST support on-device language model integration for semantic and grammatical corrections; MUST fallback gracefully to rule-based corrections when LM unavailable; MUST maintain <150MB typical memory footprint including model. Target initial integration: Transformers.js with Qwen2.5‑0.5B‑Instruct (q4, WebGPU) for text‑centric quality.
 - REQ-CONTEXTUAL-CORRECTIONS: Beyond word substitutions, the engine MUST handle transpositions, punctuation spacing, capitalization, and semantic coherence using broader context while maintaining caret safety.
 
@@ -57,8 +57,8 @@ on‑device, system‑wide, with zero input sent to cloud. Target uplift:
 
 - Caret safety: Given caret sits mid‑word, When sweep runs, Then no edit
   occurs. (maps: docs/qa/acceptance/caret_safety.feature)
-- Streamed diffusion: Given active typing, When diffusion runs, Then validation band trails behind caret word‑by‑word; on pause, band catches up. (maps: docs/qa/acceptance/streamed_diffusion.feature)
-- Visual feedback: Given corrections apply, Then brief highlight shows changes and validation band shows active region. (maps: docs/qa/acceptance/two_word_highlight.feature)
+- Streamed diffusion: Given active typing, When diffusion runs, Then the active region trails behind the caret word‑by‑word; on pause, the region catches up. (maps: docs/qa/acceptance/streamed_diffusion.feature)
+- Visual feedback: Given corrections apply, Then brief highlight shows changes and the active region shows the currently validated span. (maps: docs/qa/acceptance/two_word_highlight.feature)
 
 ### Constraints
 

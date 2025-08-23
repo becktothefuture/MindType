@@ -22,7 +22,7 @@
 
 ### TL;DR
 
-- Typing engines propose caret-safe diffs in real time (Tidy Sweep) and during idle (Backfill Consistency). A validation band (3–8 words) trails the caret and “draws in” corrections.
+- Typing engines propose caret-safe diffs in real time (Tidy Sweep) and during idle (Backfill Consistency). An active region (3–8 words) trails the caret and “draws in” corrections.
 - A small TypeScript core wires input monitoring and scheduling. A Rust crate powers WASM-ready primitives. Local LM target: Transformers.js + Qwen2.5‑0.5B‑Instruct (q4, WebGPU) with graceful fallback to rules.
 - Quality gates: pnpm typecheck, lint, format:check, test. Tasks live in `docs/implementation.md`.
 
@@ -81,7 +81,7 @@ MindTyper turns noisy keystreams into clean text via small, reversible diffs. Fo
      - `wasm-pack build crates/core-rs --target web --out-dir bindings/wasm/pkg`
      - `pnpm --prefix web-demo install`
 3. Run: `pnpm --prefix web-demo dev` → open the printed URL
-4. Type a sentence and watch the validation band trail behind your cursor; pause to see diffusion catch up.
+4. Type a sentence and watch the active region trail behind your cursor; pause to see diffusion catch up.
 
 ## Development Workflow & Quality Gates
 
@@ -128,7 +128,7 @@ MindTyper/
 
 - `core/typingMonitor.ts`: Emits timestamped typing events; decouples input capture from processing.
 - `core/sweepScheduler.ts`: Orchestrates streamed diffusion via typing ticks and pause catch-up; integrates with `DiffusionController`.
-- `core/diffusionController.ts`: Advances a validation frontier word-by-word behind the caret; renders validation band; catches up on pause.
+- `core/diffusionController.ts`: Advances a validation frontier word-by-word behind the caret; renders the active region; catches up on pause.
 
 ### engines/
 
@@ -137,7 +137,7 @@ MindTyper/
 
 ### ui/
 
-- `ui/highlighter.ts`: Renders validation band (3–8 words behind caret) and applied fix highlights; honors reduced-motion.
+- `ui/highlighter.ts`: Renders active region (3–8 words behind caret) and applied fix highlights; honors reduced-motion.
 - `ui/groupUndo.ts`: Intended to batch engine diffs so each sweep collapses into a single undo step (current stub returns input).
 
 ### utils/

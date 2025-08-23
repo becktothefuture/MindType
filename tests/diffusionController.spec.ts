@@ -14,7 +14,7 @@ import { createDiffusionController } from '../core/diffusionController';
 
 // Mock the UI calls since we're testing logic only
 vi.mock('../ui/highlighter', () => ({
-  renderValidationBand: vi.fn(),
+  emitActiveRegion: vi.fn(),
   renderHighlight: vi.fn(),
 }));
 

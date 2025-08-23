@@ -59,7 +59,7 @@
 ## Glossary
 
 - Caret: The text insertion cursor in an editor.
-- Validation band (band): Small neighborhood behind the caret used for safe corrections.
+- Active region: Small neighborhood behind the caret used for safe corrections.
 - Sweep: Lightweight pass that tidies recent input without heavy model calls.
 
 ## Conventions

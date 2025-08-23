@@ -270,7 +270,7 @@ function App() {
 
   // 5b. Wire UI event listeners for visualization from TS pipeline
   useEffect(() => {
-    const onBand = (e: Event) => {
+    const onActiveRegion = (e: Event) => {
       const { start, end } = (e as CustomEvent).detail as {
         start: number;
         end: number;
@@ -291,7 +291,7 @@ function App() {
           const before = escapeHtml(t.slice(0, adjusted.start));
           const band = escapeHtml(t.slice(adjusted.start, adjusted.end));
           const after = escapeHtml(t.slice(adjusted.end));
-          ov.innerHTML = `${before}<span class="band">${band || "\u200b"}</span>${after}`;
+          ov.innerHTML = `${before}<span class="active-region">${band || "\u200b"}</span>${after}`;
         }
       };
       if (bandDelayMs > 0) setTimeout(apply, bandDelayMs);
@@ -320,13 +320,10 @@ function App() {
         }
       }
     };
-    window.addEventListener("mindtyper:validationBand", onBand as EventListener);
+    window.addEventListener("mindtyper:activeRegion", onActiveRegion as EventListener);
     window.addEventListener("mindtyper:highlight", onHighlight as EventListener);
     return () => {
-      window.removeEventListener(
-        "mindtyper:validationBand",
-        onBand as EventListener,
-      );
+      window.removeEventListener("mindtyper:activeRegion", onActiveRegion as EventListener);
       window.removeEventListener("mindtyper:highlight", onHighlight as EventListener);
     };
   }, [text, freezeBand, bandDelayMs]);
@@ -428,7 +425,7 @@ function App() {
         {bandRange && (
           <div style={{ fontFamily: "monospace", marginTop: 8 }}>
             <small>
-              Validation band: [{bandRange.start}, {bandRange.end}]
+              Active region: [{bandRange.start}, {bandRange.end}]
             </small>
           </div>
         )}
@@ -441,7 +438,7 @@ function App() {
         )}
         <p>
           <i>
-            Type to see the validation band trail behind your cursor. The engine catches up after a short pause.
+            Type to see the active region trail behind your cursor. The engine catches up after a short pause.
           </i>
         </p>
       </div>

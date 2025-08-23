@@ -30,7 +30,7 @@ describe('defaultThresholds', () => {
     expect(getTypingTickMs()).toBe(500);
   });
 
-  it('enforces validation band word limits and ordering', () => {
+  it('enforces active region word limits and ordering', () => {
     // Values beyond allowed range should be clamped
     setValidationBandWords(0, 100);
     expect(getMinValidationWords()).toBeGreaterThanOrEqual(1);

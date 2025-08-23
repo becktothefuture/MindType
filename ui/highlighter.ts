@@ -1,7 +1,7 @@
 /*╔══════════════════════════════════════════════════════════════╗
   ║  ░  H I G H L I G H T E R  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
   ║                                                              ║
-  ║   Renders validation band + fix highlights in host editor.    ║
+  ║   Renders active region + fix highlights in host editor.     ║
   ║   Visual feedback for streamed diffusion behind CARET.       ║
   ║                                                              ║
   ║                                                              ║
@@ -9,7 +9,7 @@
   ║                                                              ║
   ║                                                              ║
   ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Draws validation band + transient highlights for applied fixes
+  • WHAT ▸ Draws active region + transient highlights for applied fixes
   • WHY  ▸ Shows streaming progress; aids awareness; reduced motion support
   • HOW  ▸ Consumes ranges from diffusion; updates DOM/accessibility
 */
@@ -32,11 +32,11 @@ export function renderHighlight(_range: { start: number; end: number; text?: str
   }
 }
 
-// Subtle shimmer band showing currently validated text behind caret
-export function renderValidationBand(_range: { start: number; end: number }) {
+// Active region showing currently validated text behind caret
+export function emitActiveRegion(_range: { start: number; end: number }) {
   const g = globalThis as unknown as MinimalGlobal;
   if (g.dispatchEvent && g.CustomEvent) {
-    const event = new g.CustomEvent('mindtyper:validationBand', {
+    const event = new g.CustomEvent('mindtyper:activeRegion', {
       detail: { start: _range.start, end: _range.end },
     });
     g.dispatchEvent(event);

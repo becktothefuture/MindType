@@ -13,12 +13,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Capture UI events
-const validationCalls: Array<{ start: number; end: number }> = [];
+const activeRegionCalls: Array<{ start: number; end: number }> = [];
 const highlightCalls: Array<{ start: number; end: number; text?: string }> = [];
 
 vi.mock('../ui/highlighter', () => ({
-  renderValidationBand: (r: { start: number; end: number }) => {
-    validationCalls.push({ start: r.start, end: r.end });
+  emitActiveRegion: (r: { start: number; end: number }) => {
+    activeRegionCalls.push({ start: r.start, end: r.end });
   },
   renderHighlight: (r: { start: number; end: number; text?: string }) => {
     highlightCalls.push({ start: r.start, end: r.end, text: r.text });
@@ -27,7 +27,7 @@ vi.mock('../ui/highlighter', () => ({
 
 describe('DiffusionController branches', () => {
   beforeEach(() => {
-    validationCalls.length = 0;
+    activeRegionCalls.length = 0;
     highlightCalls.length = 0;
     vi.resetModules();
   });
@@ -66,8 +66,8 @@ describe('DiffusionController branches', () => {
     const caret = text.length;
     ctrl.update(text, caret);
 
-    expect(validationCalls.length).toBeGreaterThan(0);
-    const last = validationCalls[validationCalls.length - 1];
+    expect(activeRegionCalls.length).toBeGreaterThan(0);
+    const last = activeRegionCalls[activeRegionCalls.length - 1];
     expect(last.end).toBe(caret);
   });
 

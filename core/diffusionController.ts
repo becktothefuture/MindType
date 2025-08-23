@@ -18,7 +18,7 @@ import {
 import { tidySweep } from '../engines/tidySweep';
 import { replaceRange } from '../utils/diff';
 import type { LMAdapter } from './lm/types';
-import { renderValidationBand, renderHighlight } from '../ui/highlighter';
+import { emitActiveRegion, renderHighlight } from '../ui/highlighter';
 import { createLogger } from './logger';
 
 export interface DiffusionState {
@@ -27,10 +27,10 @@ export interface DiffusionState {
   frontier: number; // leftmost index not yet validated
 }
 
-// BandPolicy: future-proof hook for LM integration
-// - computeRenderRange: what to visualize (UI band)
+// ActiveRegionPolicy: future-proof hook for LM integration
+// - computeRenderRange: what to visualize (active region)
 // - computeContextRange: what to provide to an LLM adapter (can span sentences/paragraphs)
-export interface BandPolicy {
+export interface ActiveRegionPolicy {
   computeRenderRange(state: DiffusionState): { start: number; end: number };
   computeContextRange(state: DiffusionState): { start: number; end: number };
 }
@@ -38,7 +38,10 @@ export interface BandPolicy {
 // LIB_TOUCH: Using Intl.Segmenter for Unicode-aware word boundary detection
 // Context7 docs: Intl.Segmenter provides granularity: 'word' for word-like segments
 // The isWordLike property indicates segments that are actual words vs punctuation/spaces
-export function createDiffusionController(policy?: BandPolicy, _lmAdapter?: LMAdapter) {
+export function createDiffusionController(
+  policy?: ActiveRegionPolicy,
+  _lmAdapter?: LMAdapter,
+) {
   // Safari/older browsers: Intl.Segmenter may be missing or partial. Provide a fallback.
   let seg: Intl.Segmenter | null = null;
   try {
@@ -58,7 +61,7 @@ export function createDiffusionController(policy?: BandPolicy, _lmAdapter?: LMAd
     if (now - lastRenderMs >= MIN_RENDER_INTERVAL_MS) {
       lastRenderMs = now;
       const renderRange = policy ? policy.computeRenderRange(state) : bandRange();
-      renderValidationBand(renderRange);
+      emitActiveRegion(renderRange);
       // Emit selection snapshot for LM inspector/debug
       try {
         const { start, end } = renderRange;

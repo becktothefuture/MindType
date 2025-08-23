@@ -54,7 +54,7 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 - FT-212: Punctuation normalization in `engines/tidySweep.ts` (spaces around commas/periods, em dash spacing).
 - FT-214: Whitespace normalization (collapse multi-spaces/tabs; trim trailing whitespace before newline).
 - FT-216: Capitalization rules (sentence-start capitalization; standalone 'i' → 'I').
-- Web demo: validation band alignment and newline safety improvements; `SecurityContext` gating hooks.
+- Web demo: active region alignment and newline safety improvements; `SecurityContext` gating hooks.
 
 ### Tests
 

@@ -16,11 +16,11 @@ import { createSweepScheduler } from '../core/sweepScheduler';
 import { SHORT_PAUSE_MS, getTypingTickMs } from '../config/defaultThresholds';
 
 // Capture UI render calls (no DOM in node env)
-const bandCalls: Array<{ start: number; end: number }> = [];
+const regionCalls: Array<{ start: number; end: number }> = [];
 const highlights: Array<{ start: number; end: number }> = [];
 vi.mock('../ui/highlighter', () => ({
-  renderValidationBand: vi.fn((range: { start: number; end: number }) => {
-    bandCalls.push(range);
+  emitActiveRegion: vi.fn((range: { start: number; end: number }) => {
+    regionCalls.push(range);
   }),
   renderHighlight: vi.fn((range: { start: number; end: number }) => {
     highlights.push(range);
@@ -41,7 +41,7 @@ import { backfillConsistency } from '../engines/backfillConsistency';
 describe('FT-202 Integration Harness', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    bandCalls.length = 0;
+    regionCalls.length = 0;
     highlights.length = 0;
     (tidySweep as unknown as { mockClear?: () => void }).mockClear?.();
     (backfillConsistency as unknown as { mockClear?: () => void }).mockClear?.();
@@ -50,7 +50,7 @@ describe('FT-202 Integration Harness', () => {
     vi.useRealTimers();
   });
 
-  it('streams band during typing and catches up on pause without crossing caret', async () => {
+  it('streams active region during typing and catches up on pause without crossing caret', async () => {
     const monitor = createTypingMonitor();
     const scheduler = createSweepScheduler(monitor);
     scheduler.start();
@@ -65,19 +65,19 @@ describe('FT-202 Integration Harness', () => {
     monitor.emit({ text: 'Hello teh world', caret: 15, atMs: Date.now() });
     vi.advanceTimersByTime(getTypingTickMs() + 1);
 
-    // Expect band to have rendered at least once during typing
-    expect(bandCalls.length).toBeGreaterThan(0);
-    const lastBandDuringTyping = bandCalls[bandCalls.length - 1];
-    expect(lastBandDuringTyping.end).toBeLessThanOrEqual(15);
+    // Expect active region to have rendered at least once during typing
+    expect(regionCalls.length).toBeGreaterThan(0);
+    const lastRegionDuringTyping = regionCalls[regionCalls.length - 1];
+    expect(lastRegionDuringTyping.end).toBeLessThanOrEqual(15);
 
     // Pause → run catch-up; engines should execute
     vi.advanceTimersByTime(SHORT_PAUSE_MS + 1);
     await vi.runOnlyPendingTimersAsync();
     await Promise.resolve();
 
-    // After pause catch-up, band end should equal caret (frontier reached caret)
-    const afterPauseBand = bandCalls[bandCalls.length - 1];
-    expect(afterPauseBand.end).toBe(15);
+    // After pause catch-up, region end should equal caret (frontier reached caret)
+    const afterPauseRegion = regionCalls[regionCalls.length - 1];
+    expect(afterPauseRegion.end).toBe(15);
 
     // Engines invoked as part of pause processing
     expect(tidySweep).toHaveBeenCalled();

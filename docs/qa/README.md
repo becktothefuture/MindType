@@ -54,7 +54,7 @@
 ### LM Testing Notes
 
 - Runner init: verify backend detection (webgpu/wasm/cpu), lazy model load, warm-up.
-- Streaming: ensure `abort()` on input within ≤1 tick; stream confined to the validation band.
+- Streaming: ensure `abort()` on input within ≤1 tick; stream confined to the active region.
 - Fallback: simulate load/stream errors → rules-only fallback with no caret change.
 - Demo: use Mode = LM, “Load LM”, pick a scenario (e.g., Light grammar), step through and observe streamed fixes; compare against Rules only.
 

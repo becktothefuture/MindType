@@ -125,7 +125,7 @@ _Language: TypeScript + React + WASM_
    SweepScheduler (TS) ──── DiffusionController ──── ticks → word-by-word
         |                           |
         v                           v
-   Rust (WASM) core         Validation Band (3–8 words, shimmer)
+   Rust (WASM) core         Active Region (3–8 words, shimmer)
    ┌───────────────────┐           |
    │ FragmentExtractor │           v
    │ StubTokenStream   │    Apply word (caret‑safe) → Flash → Logs

@@ -1,4 +1,32 @@
-    •	lib.rs defines the high‑level Rust API and re‑exports for internal modules.  It is also the entry point for WebAssembly compilation via wasm32-unknown-unknown.
+Mind::Type Technical Architecture & Integration Guide (v1)
+
+Introduction
+
+This document outlines the system architecture and implementation guidelines for Mind::Type, focusing on a cross‑platform approach centred on a Rust core library. It covers how the core should be structured, how it interfaces with different front‑ends (macOS, iOS, Windows, and web), and best practices to ensure performance, safety, and maintainability.
+
+Architectural Overview
+
+At a high level, Mind::Type is composed of three layers: 1. Core diffusion engine (Rust) – Implements the text tapestry logic, language model integration, confidence gating, scheduler, and undo grouping. This library exposes a stable C ABI for platform bindings and can be compiled to WebAssembly. 2. Platform interface layers – Thin wrappers in Swift/Objective‑C (macOS, iOS), C#/.NET or C++ (Windows), and JavaScript/TypeScript (web) that handle OS‑specific APIs: capturing text input events, retrieving context around the caret, and applying edits/animations. These layers interface with the Rust core through FFI or WebAssembly. 3. User interface & visual feedback – Platform‑native UI that renders the active region, animated dots/braille symbol, and optional controls (formality slider, confidence dial). Each platform uses its native UI toolkit (AppKit/SwiftUI for macOS, UIKit/SwiftUI for iOS, WinUI/WPF for Windows, and HTML/CSS for the web).
+
+High‑Level Flow 1. When a user focuses a text field, the platform layer informs the Rust core of the field content and current caret position. 2. As the user types, the platform layer streams keystrokes and real‑time context slices (near‑field) to the core. 3. The core schedules diffusion passes based on typing rate, computes corrections using the on‑device language model, and returns a sequence of edits with associated confidence scores. 4. The platform layer applies edits behind the caret and triggers the appropriate animations (e.g. animated dots) and UI updates. 5. Undo commands operate only on the user’s keystrokes; a separate safety net allows stepping back through time‑grouped edits emitted by the core.
+
+Rust Core Design
+
+Crate Structure
+mind_type_core/
+├── Cargo.toml
+├── src/
+│ ├── lib.rs (public API, FFI bindings)
+│ ├── engine.rs (tapestry engine and scheduler)
+│ ├── lm.rs (language model integration and inference)
+│ ├── context.rs (context window management, near‑field extraction)
+│ ├── confidence.rs (confidence gating logic and adaptive thresholds)
+│ ├── undo.rs (time‑grouped undo safety net)
+│ ├── ffi.rs (C ABI wrappers and type conversions)
+│ └── utils.rs (helper types, logging, error handling)
+└── bindings/ (generated headers / TypeScript bindings)
+
+    lib.rs defines the high‑level Rust API and re‑exports for internal modules.  It is also the entry point for WebAssembly compilation via wasm32-unknown-unknown.
     •	ffi.rs uses the cbindgen or uniffi crate to generate C‑compatible functions and data types.  This allows Swift/Obj‑C, C#, and C++ to call into Rust easily.
 
 Concurrency & Asynchronous Processing
@@ -58,7 +86,7 @@ Web (Browser / TypeScript)
 
 User Interface & Visual Feedback Guidelines
 • Animated symbol: Use a three‑dot motif inspired by Braille that animates in place of text being processed. The dots can cycle or fade, indicating that the text is being cleaned. The animation should progress backwards from the caret.
-• Validation band: Draw a subtle band beneath the validated region. On reduced‑motion settings, use a static underline or colour wash.
+• Active region: Draw a subtle band beneath the validated region. On reduced‑motion settings, use a static underline or colour wash.
 • Settings: Provide a formality slider (friendly ↔ formal ↔ neutral) and a confidence sensitivity dial. These controls should sync across devices via user preferences.
 • Accessibility: Support screen readers by announcing when text has been updated behind the caret (“Text cleaned”). Provide sufficient contrast for visual indicators and respect OS‑level preferences for reduced motion and high contrast.
 

@@ -11,10 +11,10 @@
 
 import { describe, it, expect, vi } from 'vitest';
 
-const bands: Array<{ start: number; end: number }> = [];
+const regions: Array<{ start: number; end: number }> = [];
 vi.mock('../ui/highlighter', () => ({
-  renderValidationBand: vi.fn((range: { start: number; end: number }) => {
-    bands.push(range);
+  emitActiveRegion: vi.fn((range: { start: number; end: number }) => {
+    regions.push(range);
   }),
   renderHighlight: vi.fn(),
 }));
@@ -25,7 +25,7 @@ describe('DiffusionController bandRange edge', () => {
   it('renders [frontier, caret] when no word-like segments exist', () => {
     const c = createDiffusionController();
     c.update('    ', 3); // spaces only
-    const last = bands[bands.length - 1];
+    const last = regions[regions.length - 1];
     expect(last).toEqual({ start: 0, end: 3 });
   });
 });
