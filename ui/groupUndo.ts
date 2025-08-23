@@ -15,6 +15,9 @@
 */
 
 export function groupUndo<T>(_diffs: T[]): T[] {
-  /* ⟢ TODO: group by sweep id and time window */
+  /* ⟢ Simple time-bucket grouping placeholder for FT-242
+     In hosts we expect diffs to carry an appliedAt timestamp; here we
+     preserve order and would batch by ~150ms. For now we return input.
+  */
   return _diffs;
 }
