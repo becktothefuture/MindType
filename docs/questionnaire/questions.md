@@ -82,10 +82,10 @@ Notes:
 
 - Keeping it in policy keeps host-agnostic behavior; controller may pass runtime hints to policy.
 
-### Q004: Rollback granularity
+### Q004: Rollback granularity (active region)
 
 - Related: FT-232A
-- Context: If the caret enters the band mid-stream, we need to undo any partial LM merge.
+- Context: If the caret enters the active region mid-stream, we need to undo any partial LM merge.
 - Question: Should rollback be span-level (revert entire span) or incremental (revert only the yet-unconfirmed suffix)?
 
 Answer:

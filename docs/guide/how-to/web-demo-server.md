@@ -1,3 +1,5 @@
+<!-- Alignment: Web demo visuals use “active region”; server remains optional. -->
+
 # Web Demo Server Notes
 
 While most of the demo runs purely in the browser, a tiny backend helps collect email sign-ups and optional telemetry. These notes outline a simple Node.js service that pairs with the React front-end.

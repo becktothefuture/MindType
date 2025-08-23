@@ -123,3 +123,5 @@ Run `cargo test` for correctness. When we add benchmarks we’ll use Criterion (
 ### Tip: WASM time sources
 
 If you see time/clock errors when building for WASM (due to `chrono`), we’ll switch to the browser clock via `js_sys::Date::now()` for WASM builds and keep `chrono` for native.
+
+<!-- Alignment: Rust core uses Tokio for async, wasm-bindgen for web, and cbindgen/UniFFI for C/Swift bindings. -->

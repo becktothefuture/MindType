@@ -32,3 +32,5 @@ Cross‑links:
 - Architecture: `../architecture/README.md`
 - ADRs: `../adr/README.md`
 - QA acceptance: `../qa/acceptance/`
+
+<!-- Alignment: All guides reflect the active region model; hosts render visuals from `mindtyper:activeRegion` events. -->

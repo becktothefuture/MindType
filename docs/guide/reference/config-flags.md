@@ -35,3 +35,5 @@ LM execution & privacy defaults:
 - SUGGESTION_LISTS: false (no alternatives UI)
 - PREVIEW_STYLE: underline/highlight baseline
 - NO_UNDO: true (system corrections do not enter host undo stack)
+
+<!-- Alignment: Flags impacting visuals → active region size, shimmer duration; LM flags → localOnly, device tier, token caps. -->

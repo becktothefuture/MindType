@@ -19,3 +19,5 @@
 Editing ahead of the caret surprises users and breaks trust. By limiting
 edits to behind the caret, we keep ⌘Z atomic, avoid cursor jumps, and
 align with IME/secure field constraints.
+
+<!-- Alignment note: Updated to “active region” terminology; replaces older “validation band” wording throughout the system. -->

@@ -350,3 +350,5 @@ _This index is automatically maintained and should be updated when questions are
 
 1. [Web Demo & Brand Experience](14_web_demo_brand_experience.md) — starts at question 208
 1. [Reflection](15_reflection.md) — starts at question 216
+
+<!-- Alignment: Questionnaire remains the live source for clarifications; terminology updated to “active region”. -->

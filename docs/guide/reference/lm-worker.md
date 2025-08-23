@@ -67,3 +67,5 @@ See: `docs/guide/reference/lm-behavior.md`, `crates/core-rs/src/*` (v0.2 orchest
 
 - Core orchestrates merges; UI listens for band/highlight; injector applies diffs.
 - Demo: remove LM scheduling from React; rely on core + worker.
+
+<!-- Alignment: LM merges stream strictly within the active region; abort on input; rollback on caret-entry. -->

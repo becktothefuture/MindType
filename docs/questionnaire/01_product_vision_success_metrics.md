@@ -138,3 +138,5 @@ At the same time, we do want to optimize for signups, renewals, and daily usage 
 ---
 
 **Next Section:** [User Research & Ergonomics →](02_user_research_ergonomics.md)
+
+<!-- Alignment: Success metrics assume the active region (not validation band) as the core UX metaphor. -->

@@ -72,3 +72,5 @@
 
 - Provide optional aria-live updates during testing (polite). Off by default.
 - Acceptance: screen reader users can verify changes without extra noise in production.
+
+<!-- Alignment: Backlog tasks should reference "active region" (not band) and Rust-first orchestration. -->
