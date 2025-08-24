@@ -49,4 +49,24 @@ describe('LM policy branches', () => {
     expect(capped.length).toBeGreaterThan(0);
     expect(capped.length).toBeLessThanOrEqual(Math.max(Math.ceil(10 * 2), 24));
   });
+
+  it('returns empty selection when band cannot be computed', () => {
+    const res = selectSpanAndPrompt('', 0);
+    expect(res.band).toBeNull();
+    expect(res.prompt).toBeNull();
+    expect(res.maxNewTokens).toBe(0);
+  });
+
+  it('allows span ending mid-word when boundary enforcement disabled', () => {
+    const cfg: LMBehaviorConfig = {
+      ...defaultLMBehaviorConfig,
+      enforceWordBoundaryAtEnd: false,
+    };
+    const text = 'abc';
+    const caret = 3; // at end, mid-word by default
+    const res = selectSpanAndPrompt(text, caret, cfg);
+    expect(res.band).not.toBeNull();
+    expect(typeof res.prompt).toBe('string');
+    expect(res.maxNewTokens).toBeGreaterThan(0);
+  });
 });
