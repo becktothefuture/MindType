@@ -34,7 +34,7 @@ export function createTransformersAdapter(runner: TokenStreamer): LMAdapter {
   let inflight: Promise<void> | null = null;
   let resolveInflight: (() => void) | null = null;
   let lastMergeAt = 0;
-  const COOLDOWN_MS = 160;
+  let cooldownMs = 160;
   let caps: LMCapabilities | null = null;
   let runs = 0;
   let staleDrops = 0;
@@ -43,6 +43,8 @@ export function createTransformersAdapter(runner: TokenStreamer): LMAdapter {
     init(opts?: LMInitOptions): LMCapabilities {
       const backend = opts?.preferBackend ?? detectBackend();
       caps = { backend, maxContextTokens: 1024 };
+      // Adjust cooldown policy by backend capability
+      cooldownMs = backend === 'webgpu' ? 120 : backend === 'wasm' ? 200 : 260;
       return caps;
     },
     abort() {
@@ -55,8 +57,8 @@ export function createTransformersAdapter(runner: TokenStreamer): LMAdapter {
       // enforce cooldown
       const now = Date.now();
       const since = now - lastMergeAt;
-      if (since < COOLDOWN_MS) {
-        await new Promise((r) => setTimeout(r, COOLDOWN_MS - since));
+      if (since < cooldownMs) {
+        await new Promise((r) => setTimeout(r, cooldownMs - since));
       }
       // single‑flight: mark previous as stale and request its termination
       if (inflight) staleDrops += 1;

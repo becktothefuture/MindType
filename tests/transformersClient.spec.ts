@@ -107,6 +107,72 @@ describe('Transformers client', () => {
     expect(chunks2.join('')).toBe('ok ');
   });
 
+  it('respects backend-specific cooldown (webgpu faster than cpu)', async () => {
+    vi.useFakeTimers();
+    // runner yields a single chunk immediately
+    const runner = makeRunner(['x']) as unknown as {
+      generateStream: (input: {
+        prompt: string;
+        maxNewTokens?: number;
+      }) => AsyncIterable<string>;
+    };
+
+    // CPU backend
+    const cpuAdapter = createTransformersAdapter(runner);
+    cpuAdapter.init?.({ preferBackend: 'cpu' });
+    // complete one run to set lastMergeAt
+    for await (const _ of cpuAdapter.stream({
+      text: 'ab',
+      caret: 2,
+      band: { start: 0, end: 2 },
+    })) {
+      // drain
+    }
+    let got = false;
+    (async () => {
+      for await (const _ of cpuAdapter.stream({
+        text: 'cd',
+        caret: 2,
+        band: { start: 0, end: 2 },
+      })) {
+        got = true;
+        break;
+      }
+    })();
+    // Should not yield until cooldown elapses (>= 260ms for cpu)
+    await vi.advanceTimersByTimeAsync(200);
+    expect(got).toBe(false);
+    await vi.advanceTimersByTimeAsync(80);
+    expect(got).toBe(true);
+
+    // WEBGPU backend
+    const gpuAdapter = createTransformersAdapter(runner);
+    gpuAdapter.init?.({ preferBackend: 'webgpu' });
+    for await (const _ of gpuAdapter.stream({
+      text: 'ab',
+      caret: 2,
+      band: { start: 0, end: 2 },
+    })) {
+    }
+    let gotGpu = false;
+    (async () => {
+      for await (const _ of gpuAdapter.stream({
+        text: 'cd',
+        caret: 2,
+        band: { start: 0, end: 2 },
+      })) {
+        gotGpu = true;
+        break;
+      }
+    })();
+    await vi.advanceTimersByTimeAsync(100);
+    expect(gotGpu).toBe(false);
+    await vi.advanceTimersByTimeAsync(30); // total 130ms >= 120ms webgpu
+    expect(gotGpu).toBe(true);
+
+    vi.useRealTimers();
+  });
+
   it('returns wasm or cpu depending on environment via detectBackend', () => {
     // webgpu present
     const originalNavigator: Navigator | undefined = globalThis.navigator;

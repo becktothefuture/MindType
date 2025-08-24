@@ -55,7 +55,11 @@ describe('Qwen token streamer', () => {
       env: {},
     }));
 
-    const runner = createQwenTokenStreamer({ localOnly: true });
+    const runner = createQwenTokenStreamer({
+      localOnly: true,
+      localModelPath: '/models/',
+      preflightFetch: async () => true,
+    });
     const chunks: string[] = [];
     for await (const c of runner.generateStream({ prompt: 'x', maxNewTokens: 4 })) {
       chunks.push(c);
@@ -84,7 +88,11 @@ describe('Qwen token streamer', () => {
       env: {},
     }));
 
-    const runner = createQwenTokenStreamer({ localOnly: true });
+    const runner = createQwenTokenStreamer({
+      localOnly: true,
+      localModelPath: '/models/',
+      preflightFetch: async () => true,
+    });
     const chunks: string[] = [];
     for await (const c of runner.generateStream({ prompt: 'x' })) chunks.push(c);
     expect(chunks).toEqual(['alpha ', 'beta ', 'gamma.']);
@@ -108,7 +116,11 @@ describe('Qwen token streamer', () => {
       },
       env: {},
     }));
-    const runner = createQwenTokenStreamer({ localOnly: true });
+    const runner = createQwenTokenStreamer({
+      localOnly: true,
+      localModelPath: '/models/',
+      preflightFetch: async () => true,
+    });
     const chunks: string[] = [];
     for await (const c of runner.generateStream({ prompt: 'x' })) chunks.push(c);
     expect(chunks).toEqual(['NoBoundary']);
@@ -155,6 +167,7 @@ describe('Qwen token streamer', () => {
       localOnly: true,
       localModelPath: '/models/',
       wasmPaths: '/wasm/',
+      preflightFetch: async () => true,
     });
 
     const first: string[] = [];
@@ -171,6 +184,9 @@ describe('Qwen token streamer', () => {
     // env configured
     expect(envRef.localModelPath).toBe('/models/');
     expect(envRef.allowRemoteModels).toBe(false);
+    // wasmPaths configured
+    // @ts-expect-error dynamic env shape
+    expect(envRef.backends?.onnx?.wasm?.wasmPaths).toBe('/wasm/');
     // device not forced for non-WebGPU (per docs); dtype present
     const lo = lastOptions as { device?: string; dtype?: string } | null;
     expect(lo?.device).toBeUndefined();
@@ -183,6 +199,105 @@ describe('Qwen token streamer', () => {
   });
 
   // Device mapping is covered indirectly by ensuring 'device' option is present above.
+
+  it('preflights local assets and throws when missing (localOnly)', async () => {
+    __resetQwenSingletonForTests();
+    vi.mock('../core/lm/transformersClient', () => ({ detectBackend: () => 'cpu' }));
+    const envRef: Record<string, unknown> = {};
+    vi.doMock('@huggingface/transformers', () => ({
+      pipeline: async () => Object.assign(async () => {}, { tokenizer: {} }),
+      TextStreamer: function () {
+        return {} as unknown as object;
+      },
+      env: envRef,
+    }));
+    let error: unknown = null;
+    try {
+      const runner = createQwenTokenStreamer({
+        localOnly: true,
+        localModelPath: '/models/',
+        preflightFetch: async () => false,
+      });
+      const it = runner.generateStream({ prompt: 'x' })[Symbol.asyncIterator]();
+      await it.next();
+    } catch (e) {
+      error = e;
+    }
+    expect(String(error)).toMatch(/local assets missing|no localModelPath/i);
+  });
+
+  it('clamps token cap to [8,48] and honors tier defaults', async () => {
+    __resetQwenSingletonForTests();
+    vi.mock('../core/lm/transformersClient', () => ({ detectBackend: () => 'cpu' }));
+    vi.doMock('@huggingface/transformers', () => ({
+      pipeline: async (_t: string, _m: string, options: Record<string, unknown>) => {
+        return Object.assign(
+          async (_p: string, opts: Record<string, unknown>) => {
+            // cpu tier default 16, clamp applies; ensure value is within bounds
+            const n = Number((opts as { max_new_tokens?: number }).max_new_tokens);
+            if (n < 8 || n > 48) throw new Error('token cap out of bounds');
+          },
+          { tokenizer: {} },
+        );
+      },
+      TextStreamer: function () {
+        return {} as unknown as object;
+      },
+      env: {},
+    }));
+    const runner = createQwenTokenStreamer({ maxNewTokens: 9999, localOnly: false });
+    const it = runner.generateStream({ prompt: 'x' })[Symbol.asyncIterator]();
+    await it.next();
+  });
+
+  it('uses env.localModelPath when options omit localModelPath (preflight)', async () => {
+    __resetQwenSingletonForTests();
+    vi.mock('../core/lm/transformersClient', () => ({ detectBackend: () => 'cpu' }));
+    const envRef: Record<string, unknown> = {};
+    vi.doMock('@huggingface/transformers', () => ({
+      pipeline: async () => Object.assign(async () => {}, { tokenizer: {} }),
+      TextStreamer: function () {
+        return {} as unknown as object;
+      },
+      env: envRef,
+    }));
+    // Set env local path; options omits it
+    envRef.localModelPath = '/env-models/';
+    const runner = createQwenTokenStreamer({
+      localOnly: true,
+      preflightFetch: async () => true,
+    });
+    const it = runner.generateStream({ prompt: 'x' })[Symbol.asyncIterator]();
+    await it.next();
+  });
+
+  it('clamps tiny requested maxNewTokens up to lower bound 8', async () => {
+    __resetQwenSingletonForTests();
+    vi.mock('../core/lm/transformersClient', () => ({ detectBackend: () => 'cpu' }));
+    let seen: number | null = null;
+    vi.doMock('@huggingface/transformers', () => ({
+      pipeline: async () =>
+        Object.assign(
+          async (_p: string, opts: Record<string, unknown>) => {
+            seen = Number((opts as { max_new_tokens?: number }).max_new_tokens ?? 0);
+          },
+          { tokenizer: {} },
+        ),
+      TextStreamer: function () {
+        return {} as unknown as object;
+      },
+      env: {},
+    }));
+    const runner = createQwenTokenStreamer({
+      localOnly: true,
+      localModelPath: '/models/',
+      preflightFetch: async () => true,
+      maxNewTokens: 1,
+    });
+    const it = runner.generateStream({ prompt: 'x' })[Symbol.asyncIterator]();
+    await it.next();
+    expect(seen).toBe(8);
+  });
 
   it('preserves ordering across multiple streamer callbacks', async () => {
     __resetQwenSingletonForTests();
@@ -216,7 +331,11 @@ describe('Qwen token streamer', () => {
       env: {},
     }));
 
-    const runner = createQwenTokenStreamer({ localOnly: true });
+    const runner = createQwenTokenStreamer({
+      localOnly: true,
+      localModelPath: '/models/',
+      preflightFetch: async () => true,
+    });
     const chunks: string[] = [];
     for await (const c of runner.generateStream({ prompt: 'x' })) chunks.push(c);
 
@@ -249,7 +368,11 @@ describe('Qwen token streamer', () => {
       env: {},
     }));
 
-    const runner = createQwenTokenStreamer({ localOnly: true });
+    const runner = createQwenTokenStreamer({
+      localOnly: true,
+      localModelPath: '/models/',
+      preflightFetch: async () => true,
+    });
     const chunks1: string[] = [];
     for await (const c of runner.generateStream({ prompt: 'a' })) chunks1.push(c);
     const chunks2: string[] = [];

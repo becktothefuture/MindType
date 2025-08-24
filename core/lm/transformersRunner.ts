@@ -22,6 +22,8 @@ export interface QwenRunnerOptions {
   localModelPath?: string;
   // Optional path for WASM binaries when falling back
   wasmPaths?: string;
+  // Optional preflight check hook for assets
+  preflightFetch?: (url: string) => Promise<boolean>;
 }
 
 /**
@@ -96,6 +98,33 @@ async function loadGeneratorSingleton(
       loadOptions.device = 'webgpu';
     }
 
+    // FT-231E: Local-only asset preflight guard
+    if (opts?.localOnly) {
+      const fetchFn =
+        opts?.preflightFetch ??
+        (async (url: string) => {
+          try {
+            const res = await fetch(url, { method: 'HEAD' });
+            return res.ok;
+          } catch {
+            return false;
+          }
+        });
+      const base = String(
+        (env as Record<string, unknown>).localModelPath ?? opts?.localModelPath ?? '',
+      );
+      if (!base) {
+        throw new Error('[LM] localOnly enabled but no localModelPath configured');
+      }
+      const likely = `${base.replace(/\/$/, '')}/config.json`;
+      const ok = await fetchFn(likely);
+      if (!ok) {
+        throw new Error(
+          '[LM] local assets missing; switch to rules-only or run setup:local',
+        );
+      }
+    }
+
     const gen = await pipeline(
       'text-generation',
       modelId,
@@ -119,9 +148,10 @@ export function createQwenTokenStreamer(options?: QwenRunnerOptions): TokenStrea
   const localOnlyDefault = options?.localOnly ?? true;
   // Device-tier default token caps
   const backend = detectBackend();
-  const tierDefaultMaxTokens =
-    options?.maxNewTokens ?? (backend === 'webgpu' ? 48 : backend === 'wasm' ? 24 : 16);
-  const maxNewTokensDefault = tierDefaultMaxTokens;
+  // FT-231F: token cap clamp by backend tier [8, 48]
+  const defaultByTier = backend === 'webgpu' ? 48 : backend === 'wasm' ? 24 : 16;
+  const requested = options?.maxNewTokens ?? defaultByTier;
+  const maxNewTokensDefault = Math.max(8, Math.min(48, requested));
 
   return {
     async *generateStream(input: { prompt: string; maxNewTokens?: number }) {
