@@ -13,6 +13,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { createTypingMonitor } from '../core/typingMonitor';
 import { createSweepScheduler } from '../core/sweepScheduler';
 import { createDiffusionController } from '../core/diffusionController';
+import type { LMAdapter } from '../core/lm/types';
 import { tidySweep } from '../engines/tidySweep';
 
 // Mock the UI calls for clean testing
@@ -80,6 +81,28 @@ describe('Streaming Diffusion Integration', () => {
     diffusion.tickOnce();
     const finalState = diffusion.getState();
     expect(finalState.frontier).toBeLessThanOrEqual(finalState.caret);
+  });
+
+  it('emits highlight via LM merge when LMAdapter is provided', async () => {
+    vi.useFakeTimers();
+    // Use mocked highlighter to assert call instead of DOM events
+    const highlighter = await import('../ui/highlighter');
+    const renderHighlight = highlighter.renderHighlight as unknown as ReturnType<
+      typeof vi.fn
+    >;
+
+    const adapter: LMAdapter = {
+      async *stream() {
+        yield 'the ';
+      },
+    } as unknown as LMAdapter;
+
+    const diffusion = createDiffusionController(undefined, () => adapter);
+    const text = 'Hello teh world';
+    diffusion.update(text, text.length);
+    await diffusion.catchUp();
+    await vi.advanceTimersByTimeAsync(10);
+    expect((renderHighlight as any).mock.calls.length).toBeGreaterThan(0);
   });
 
   it('demonstrates correction without affecting the caret', () => {

@@ -20,6 +20,7 @@ import { replaceRange } from '../utils/diff';
 import type { LMAdapter } from './lm/types';
 import { emitActiveRegion, renderHighlight } from '../ui/highlighter';
 import { createLogger } from './logger';
+import { streamMerge } from './lm/mergePolicy';
 
 export interface DiffusionState {
   text: string;
@@ -40,7 +41,7 @@ export interface ActiveRegionPolicy {
 // The isWordLike property indicates segments that are actual words vs punctuation/spaces
 export function createDiffusionController(
   policy?: ActiveRegionPolicy,
-  _lmAdapter?: LMAdapter,
+  getLMAdapter?: () => LMAdapter | null | undefined,
 ) {
   // Safari/older browsers: Intl.Segmenter may be missing or partial. Provide a fallback.
   let seg: Intl.Segmenter | null = null;
@@ -188,6 +189,66 @@ export function createDiffusionController(
       await new Promise((r) => setTimeout(r, 0));
       return catchUp();
     }
+    // LM streaming merge (FT-232)
+    try {
+      const adapter = getLMAdapter?.();
+      if (!adapter) return;
+      const renderRange = policy ? policy.computeRenderRange(state) : bandRange();
+      if (renderRange.end > state.caret) return;
+      const controllerText = state.text;
+      const controllerCaret = state.caret;
+      const shouldCancel = () =>
+        controllerText !== state.text || controllerCaret !== state.caret;
+      for await (const ev of streamMerge({
+        adapter,
+        text: controllerText,
+        caret: controllerCaret,
+        band: renderRange,
+        shouldCancel,
+      })) {
+        if (ev.type === 'diff' && ev.diff) {
+          try {
+            const updated = replaceRange(
+              state.text,
+              ev.diff.start,
+              ev.diff.end,
+              ev.diff.text,
+              state.caret,
+            );
+            state.text = updated;
+            renderHighlight({
+              start: ev.diff.start,
+              end: ev.diff.end,
+              text: ev.diff.text,
+            });
+            state.frontier = Math.max(
+              state.frontier,
+              ev.diff.start + ev.diff.text.length,
+            );
+          } catch {}
+        } else if (ev.type === 'rollback' && ev.diff) {
+          try {
+            const updated = replaceRange(
+              state.text,
+              ev.diff.start,
+              ev.diff.end,
+              ev.diff.text,
+              state.caret,
+            );
+            state.text = updated;
+            renderHighlight({
+              start: ev.diff.start,
+              end: ev.diff.end,
+              text: ev.diff.text,
+            });
+          } catch {}
+        } else if (ev.type === 'done' || ev.type === 'cancelled') {
+          break;
+        }
+      }
+      clampFrontier();
+      maybeRender();
+    } catch {}
   }
 
   return { update, tickOnce, catchUp, getState: () => state };

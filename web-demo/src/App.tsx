@@ -5,6 +5,7 @@ import { SCENARIOS } from "./scenarios";
 import { replaceRange } from "../../utils/diff";
 // TS pipeline imports
 import { boot } from "../../index";
+import { createMockLMAdapter } from "../../core/lm/mockAdapter";
 import { setLoggerConfig } from "../../core/logger";
 // LM integration is driven by core pipeline (future task). Demo remains rules-only.
 import {
@@ -110,6 +111,7 @@ function App() {
   // reserved for LM-in-core chase policy
   const [isTyping, setIsTyping] = useState(false);
   const [lmDebug, setLmDebug] = useState<LMDebugInfo | undefined>(undefined);
+  const [lmEnabled, setLmEnabled] = useState(false);
 
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -191,6 +193,16 @@ function App() {
     } catch {}
     return () => pipeline.stop();
   }, [pipeline]);
+
+  // Toggle LM mock adapter for demo visibility
+  useEffect(() => {
+    if (lmEnabled) {
+      pipeline.setLMAdapter(createMockLMAdapter() as unknown as any);
+    } else {
+      // @ts-expect-error using noop via public API
+      pipeline.setLMAdapter({ stream: async function* () {} });
+    }
+  }, [lmEnabled, pipeline]);
 
   // Console access for quick manual testing
   useEffect(() => {
@@ -479,6 +491,14 @@ function App() {
             </>
           )}
           {/* LM controls removed until LM-in-core lands */}
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input
+              type="checkbox"
+              checked={lmEnabled}
+              onChange={(e) => setLmEnabled(e.target.checked)}
+            />
+            Enable LM (mock) — demo only
+          </label>
           <label>
             Tick (ms): {tickMs}
             <input

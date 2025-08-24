@@ -19,6 +19,7 @@ import { tidySweep } from '../engines/tidySweep';
 import { backfillConsistency } from '../engines/backfillConsistency';
 import type { TypingMonitor, TypingEvent } from './typingMonitor';
 import { createDiffusionController } from './diffusionController';
+import type { LMAdapter } from './lm/types';
 import { createLogger } from './logger';
 import type { SecurityContext } from './security';
 
@@ -30,11 +31,12 @@ export interface SweepScheduler {
 export function createSweepScheduler(
   monitor?: TypingMonitor,
   security?: SecurityContext,
+  getLMAdapter?: () => LMAdapter | null,
 ): SweepScheduler {
   let lastEvent: TypingEvent | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
   let typingInterval: ReturnType<typeof setInterval> | null = null;
-  const diffusion = createDiffusionController();
+  const diffusion = createDiffusionController(undefined, getLMAdapter);
   const log = createLogger('sweep');
 
   function clearIntervals() {
