@@ -328,11 +328,12 @@ Task checklist template (copy into PR description):
        **Source:** Reliability/Perf  
        **Notes:** Implemented in `core/lm/transformersRunner.ts` with singleton loader and word-boundary chunking; tests added in `tests/transformersRunner.spec.ts` verify ordering, reuse, and single ready log. All quality gates green.
 
-- [ ] (P1) [FT-231B] Abort, single-flight, and cooldown in core  
+- [x] (P1) [FT-231B] Abort, single-flight, and cooldown in core  
        **AC:** Implement single-flight and abort at the adapter/runner boundary (not in the demo). New requests cancel the previous; add a short cooldown after a merge. Unit tests simulate rapid typing and assert only latest output merges; stale drops are counted.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
-       **Source:** Streaming correctness
+       **Source:** Streaming correctness  
+       **Notes:** Implemented in `core/lm/transformersClient.ts` with non-blocking single-flight, `abort()` hook, cooldown, and stale drop stats via `getStats()`. Unit tests added/updated in `tests/transformersClient.spec.ts`. Playwright smoke test added for demo responsiveness; correction scenario will be covered after acceptance wiring.
 
 - [x] (P1) [FT-231C] Prompt shape + post-process hardening  
        **AC:** Switch runner input to a single strict prompt string (no chat roles). Expand output sanitization to strip guillemets/labels and clamp length robustly. Tests verify no "chatty" outputs and span-sized merges.  

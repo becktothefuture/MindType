@@ -31,4 +31,5 @@ export interface LMAdapter {
   init?(opts?: LMInitOptions): Promise<LMCapabilities> | LMCapabilities;
   stream(params: LMStreamParams): AsyncIterable<string>;
   abort?(): void;
+  getStats?(): { runs: number; staleDrops: number };
 }

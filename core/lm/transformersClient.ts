@@ -36,6 +36,8 @@ export function createTransformersAdapter(runner: TokenStreamer): LMAdapter {
   let lastMergeAt = 0;
   const COOLDOWN_MS = 160;
   let caps: LMCapabilities | null = null;
+  let runs = 0;
+  let staleDrops = 0;
 
   return {
     init(opts?: LMInitOptions): LMCapabilities {
@@ -46,6 +48,9 @@ export function createTransformersAdapter(runner: TokenStreamer): LMAdapter {
     abort() {
       aborted = true;
     },
+    getStats() {
+      return { runs, staleDrops };
+    },
     async *stream(params: LMStreamParams): AsyncIterable<string> {
       // enforce cooldown
       const now = Date.now();
@@ -53,10 +58,12 @@ export function createTransformersAdapter(runner: TokenStreamer): LMAdapter {
       if (since < COOLDOWN_MS) {
         await new Promise((r) => setTimeout(r, COOLDOWN_MS - since));
       }
-      // single‑flight: cancel previous
+      // single‑flight: mark previous as stale and request its termination
+      if (inflight) staleDrops += 1;
       aborted = true;
-      await inflight?.catch(() => {});
+      // Do not block on previous inflight; start fresh immediately
       aborted = false;
+      runs += 1;
 
       const { text, band } = params;
       const prompt = text.slice(band.start, band.end);

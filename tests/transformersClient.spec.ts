@@ -58,8 +58,11 @@ describe('Transformers client', () => {
     };
     const adapter = createTransformersAdapter(runner);
     adapter.init?.();
-    // Start a first stream, but don't consume it
-    void adapter.stream({ text: 'X one two', caret: 9, band: { start: 2, end: 9 } });
+    // Start a first stream and advance once to initialize inflight
+    const it1 = adapter
+      .stream({ text: 'X one two', caret: 9, band: { start: 2, end: 9 } })
+      [Symbol.asyncIterator]();
+    await it1.next();
     // Immediately start a new stream which should cancel previous
     const it2 = adapter
       .stream({ text: 'Y one two', caret: 9, band: { start: 2, end: 9 } })
@@ -69,6 +72,11 @@ describe('Transformers client', () => {
     while (!(n = await it2.next()).done) emitted.push(n.value);
     // Depending on scheduling, 'one ' might be cancelled; ensure last chunk arrives
     expect(emitted.pop()).toBe('two ');
+    const stats = adapter.getStats?.();
+    // Note: first unconsumed generator may not increment runs since async generator body
+    // executes on iteration; ensure at least one run and that we recorded a stale drop.
+    expect(stats?.runs ?? 0).toBeGreaterThanOrEqual(1);
+    expect(stats?.staleDrops ?? 0).toBeGreaterThanOrEqual(1);
   });
 
   it('applies cooldown after a completed merge', async () => {
