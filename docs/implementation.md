@@ -321,11 +321,12 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-230  
        **Source:** Transformers.js research + on-device processing
 
-- [ ] (P1) [FT-231A] True streaming + singleton runner  
+- [x] (P1) [FT-231A] True streaming + singleton runner  
        **AC:** Runner yields tokens as they arrive via `TextStreamer` (no full-buffer flush). Provide a singleton instance reused across React remounts; only one "[LM] ready" per session. Unit tests cover back-to-back generations and ordering; integration test asserts visible incremental updates.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
-       **Source:** Reliability/Perf
+       **Source:** Reliability/Perf  
+       **Notes:** Implemented in `core/lm/transformersRunner.ts` with singleton loader and word-boundary chunking; tests added in `tests/transformersRunner.spec.ts` verify ordering, reuse, and single ready log. All quality gates green.
 
 - [ ] (P1) [FT-231B] Abort, single-flight, and cooldown in core  
        **AC:** Implement single-flight and abort at the adapter/runner boundary (not in the demo). New requests cancel the previous; add a short cooldown after a merge. Unit tests simulate rapid typing and assert only latest output merges; stale drops are counted.  

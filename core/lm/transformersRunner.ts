@@ -90,17 +90,22 @@ async function loadGeneratorSingleton(
     }
 
     const backend = detectBackend();
-    const device = backend === 'webgpu' ? 'webgpu' : backend === 'wasm' ? 'wasm' : 'cpu';
+    const isWebGPU = backend === 'webgpu';
+    const loadOptions: Record<string, unknown> = { dtype: 'q4' };
+    if (isWebGPU) {
+      loadOptions.device = 'webgpu';
+    }
 
-    const gen = await pipeline('text-generation', modelId, {
-      dtype: 'q4',
-      device,
-    } as Record<string, unknown>);
+    const gen = await pipeline(
+      'text-generation',
+      modelId,
+      loadOptions as Record<string, unknown>,
+    );
 
     console.info('[LM] ready', {
       modelId,
       backend,
-      device,
+      device: isWebGPU ? 'webgpu' : undefined,
       localOnly: opts?.localOnly,
     });
 

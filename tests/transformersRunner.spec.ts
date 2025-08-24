@@ -114,7 +114,7 @@ describe('Qwen token streamer', () => {
     expect(chunks).toEqual(['NoBoundary']);
   });
 
-  it('configures env for local hosting, maps device by backend, and reuses generator', async () => {
+  it('configures env for local hosting and reuses generator (device optional)', async () => {
     __resetQwenSingletonForTests();
     // Force CPU backend deterministically
     vi.mock('../core/lm/transformersClient', () => ({ detectBackend: () => 'cpu' }));
@@ -171,9 +171,10 @@ describe('Qwen token streamer', () => {
     // env configured
     expect(envRef.localModelPath).toBe('/models/');
     expect(envRef.allowRemoteModels).toBe(false);
-    // device option present
-    const lo = lastOptions as { device?: string } | null;
-    expect(typeof lo?.device).toBe('string');
+    // device not forced for non-WebGPU (per docs); dtype present
+    const lo = lastOptions as { device?: string; dtype?: string } | null;
+    expect(lo?.device).toBeUndefined();
+    expect(lo?.dtype).toBe('q4');
     // word-by-word streaming may produce a single chunk when no boundaries exist
     expect(first.join('')).toBe('abcdefghijk');
 
@@ -182,4 +183,83 @@ describe('Qwen token streamer', () => {
   });
 
   // Device mapping is covered indirectly by ensuring 'device' option is present above.
+
+  it('preserves ordering across multiple streamer callbacks', async () => {
+    __resetQwenSingletonForTests();
+    vi.mock('../core/lm/transformersClient', () => ({ detectBackend: () => 'cpu' }));
+
+    // Control time so the coalescing window flushes between callbacks
+    let now = 1_000_000;
+    const nowSpy = vi.spyOn(Date, 'now').mockImplementation(() => now);
+
+    vi.doMock('@huggingface/transformers', () => ({
+      pipeline: async () =>
+        Object.assign(
+          async (_messages: unknown[], opts: Record<string, unknown>) => {
+            const streamer = opts.streamer as { callback_function?: (t: string) => void };
+            // 1st callback at t0
+            streamer.callback_function?.('alpha');
+            // advance time beyond COALESCE_MS (25ms)
+            now += 30;
+            // 2nd callback -> should flush previous and keep accumulating new
+            streamer.callback_function?.(' beta');
+            now += 30;
+            // 3rd callback with boundary punctuation
+            streamer.callback_function?.(' gamma.');
+          },
+          { tokenizer: {} },
+        ),
+      TextStreamer: function (_t: unknown, o: Record<string, unknown>) {
+        const opts = o as { callback_function?: (t: string) => void };
+        return { callback_function: opts.callback_function } as unknown as object;
+      },
+      env: {},
+    }));
+
+    const runner = createQwenTokenStreamer({ localOnly: true });
+    const chunks: string[] = [];
+    for await (const c of runner.generateStream({ prompt: 'x' })) chunks.push(c);
+
+    // Expect word-boundary chunking in the original order
+    expect(chunks).toEqual(['alpha ', 'beta ', 'gamma.']);
+
+    nowSpy.mockRestore();
+  });
+
+  it('logs "[LM] ready" only once per session (singleton)', async () => {
+    __resetQwenSingletonForTests();
+    vi.mock('../core/lm/transformersClient', () => ({ detectBackend: () => 'cpu' }));
+
+    // Spy on console.info to count ready logs
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+
+    vi.doMock('@huggingface/transformers', () => ({
+      pipeline: async () =>
+        Object.assign(
+          async (_messages: unknown[], opts: Record<string, unknown>) => {
+            const streamer = opts.streamer as { callback_function?: (t: string) => void };
+            streamer.callback_function?.('ready-once');
+          },
+          { tokenizer: {} },
+        ),
+      TextStreamer: function (_t: unknown, o: Record<string, unknown>) {
+        const opts = o as { callback_function?: (t: string) => void };
+        return { callback_function: opts.callback_function } as unknown as object;
+      },
+      env: {},
+    }));
+
+    const runner = createQwenTokenStreamer({ localOnly: true });
+    const chunks1: string[] = [];
+    for await (const c of runner.generateStream({ prompt: 'a' })) chunks1.push(c);
+    const chunks2: string[] = [];
+    for await (const c of runner.generateStream({ prompt: 'b' })) chunks2.push(c);
+
+    expect(chunks1.join('')).toBe('ready-once');
+    expect(chunks2.join('')).toBe('ready-once');
+    // exactly one ready log despite two runs
+    const calls = infoSpy.mock.calls.filter((c) => String(c[0]).includes('[LM] ready'));
+    expect(calls.length).toBe(1);
+    infoSpy.mockRestore();
+  });
 });
