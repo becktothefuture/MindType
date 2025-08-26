@@ -19,6 +19,8 @@ const WASM_DST = path.join(DEMO_PUBLIC, 'wasm');
 const MODELS_DST = path.join(DEMO_PUBLIC, 'models');
 const REPO = 'onnx-community/Qwen2.5-0.5B-Instruct';
 const REPO_DST = path.join(MODELS_DST, REPO);
+const BRAND_BG_SRC = path.join(ROOT, 'docs', 'brand', 'assets', 'background-video.webm');
+const BRAND_BG_DST = path.join(DEMO_PUBLIC, 'assets', 'background-video.webm');
 
 async function ensureDir(p) {
   await fs.promises.mkdir(p, { recursive: true });
@@ -43,6 +45,16 @@ async function copyWasm() {
     } catch (e) {
       console.warn(`Skip copy ${f}: ${e.message}`);
     }
+  }
+}
+
+async function copyBrandAssets() {
+  try {
+    await ensureDir(path.dirname(BRAND_BG_DST));
+    await fs.promises.copyFile(BRAND_BG_SRC, BRAND_BG_DST);
+    console.log(`Copied background video to ${path.relative(ROOT, BRAND_BG_DST)}`);
+  } catch (e) {
+    console.warn(`Skip background video: ${e.message}`);
   }
 }
 
@@ -113,6 +125,7 @@ async function main() {
   await ensureDir(DEMO_PUBLIC);
   await ensureDir(MODELS_DST);
   await copyWasm();
+  await copyBrandAssets();
   await ensureDir(REPO_DST);
   await downloadModelTree(REPO);
   console.log(

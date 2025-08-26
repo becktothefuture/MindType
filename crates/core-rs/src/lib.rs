@@ -13,6 +13,7 @@ pub mod engine;
 pub mod confidence;
 pub mod tapestry;
 pub mod ffi;
+pub mod caret_monitor;
 
 #[wasm_bindgen]
 pub fn init_logger() {

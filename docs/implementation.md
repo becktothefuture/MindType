@@ -370,7 +370,7 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-231  
        **Source:** Observability hygiene
 
-- [ ] (P1) [FT-232] Add LM streaming merge policy  
+- [x] (P1) [FT-232] Add LM streaming merge policy  
        **AC:** Stream tokens into the active region only; merge with rule-based fixes; deterministic precedence (rules > LM on structural conflicts; LM > rules on semantic-only with confidence); cancel on input; rollback on conflicts; extensive caret safety tests; sentence-aware region growth with confidence gating.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
@@ -381,7 +381,7 @@ Task checklist template (copy into PR description):
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** v0.2 architecture → Language Model Integration
-  - [ ] (P1) [FT-232A] Caret-entry merge guard + rollback  
+  - [x] (P1) [FT-232A] Caret-entry merge guard + rollback  
          **AC:** If caret moves into `[region.start, region.end]` mid-run, cancel and rollback partial merges. Tests simulate caret jumps and verify no caret jumps or overwrites.  
          **Owner:** @alex  
          **DependsOn:** FT-232  

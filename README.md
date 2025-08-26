@@ -379,3 +379,7 @@ Where Swift fits (mac app):
 ## License
 
 MIT — see the badge above.
+
+# Mind::Type
+
+- See `docs/guide/reference/caret-monitor.md` for the Caret Monitor v2 state model and APIs.

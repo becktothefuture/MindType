@@ -1,0 +1,52 @@
+<!--══════════════════════════════════════════════════
+  ╔══════════════════════════════════════════════════════╗
+  ║  ░  C U R S O R   R U L E S  ░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ╚══════════════════════════════════════════════════════╝
+    • WHAT ▸ Cursor generation rules for Mind⠶Type demos
+    • WHY  ▸ Enforce consistent demo header with version and last-updated
+    • HOW  ▸ When editing demo HTML, ensure meta + includes are present
+-->
+
+"use strict";
+
+module.exports = {
+  // Rule: For any HTML file inside demo/*/, inject/ensure the standard header
+  // ⟢ Adds CSS/JS includes and meta tags; title-wrapper is set from page title
+  demoHeader: {
+    when: {
+      pathMatches: ["demo/**/index.html", "web-demo/index.html"],
+      fileType: "html"
+    },
+    ensure: [
+      {
+        find: /<head>[\s\S]*?<\/head>/i,
+        include: [
+          '<meta name="mt-version" content="${package.version}" />',
+          '<meta name="mt-last-updated" content="${nowISO}" />',
+          '<link rel="stylesheet" href="../_shared/header.css" />'
+        ]
+      },
+      {
+        find: /<body[^>]*>/i,
+        includeAfter: [
+          '<script src="../_shared/header.js" defer><\/script>'
+        ]
+      }
+    ],
+    variables: {
+      nowISO: () => new Date().toISOString(),
+      package: () => require('./package.json')
+    }
+  }
+};
+
+
