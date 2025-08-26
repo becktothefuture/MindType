@@ -726,3 +726,106 @@ All docs follow house comment header style; stubs will be filled as tasks land.
        **Owner:** @alex  
        **DependsOn:** FT-132  
        **Source:** v0.2 architecture → Windows (TSF/.NET)
+
+---
+
+## Stage — v0.3 Migration
+
+```yaml
+- id: FT-301
+  title: Implement Caret Monitor
+  priority: P1
+  dependsOn: []
+  acceptance:
+    - Emits states {typing, pause, caret_entered_active_region}
+    - Pause detection 350–600 ms, configurable
+    - Event stream timestamped; debounced; cancellable on new input
+  output: core/caretMonitor.ts, tests/core/caretMonitor.spec.ts
+
+- id: FT-302
+  title: Implement Diff/Merge Gate in Rust with caret safety
+  priority: P1
+  dependsOn: []
+  acceptance:
+    - apply_span clamps edits to Active Region
+    - Never crosses caret; UTF-16 surrogate safe; newline-safe ranges
+    - Undo buckets 100–200 ms exposed
+    - WASM + C FFI exported with alloc/free helpers
+  output: crates/core-rs/{lib.rs,ffi.rs,wasm_bindings.rs}, tests/rust/{merge.rs}
+
+- id: FT-303
+  title: Build Scheduler with single-flight + cooldown
+  priority: P1
+  dependsOn: [FT-301, FT-302]
+  acceptance:
+    - While typing: Noise runs; Context in shadow; Tone off
+    - On pause: Context then Tone commit; one undo bucket
+    - New input aborts in-flight job; stale results dropped
+  output: core/scheduler.ts, tests/core/scheduler.spec.ts
+
+- id: FT-304
+  title: Implement NoiseTransformer
+  priority: P1
+  dependsOn: [FT-303]
+  acceptance:
+    - Weighted DL + keyboard neighbor graph; repeat-trim; split/merge
+    - High-confidence auto-apply (<15 ms) with reason codes
+    - Emits TransformResult with per-span confidence
+  output: engines/noise/index.ts, tests/engines/noise.spec.ts
+
+- id: FT-305
+  title: Implement ContextTransformer with local LM
+  priority: P1
+  dependsOn: [FT-303]
+  acceptance:
+    - Sentence repair within Active Region only; constrained infill
+    - Abort on caret entry; clamp merges via FT-302
+    - WebGPU→WASM→CPU fallback; outputs plain text
+  output: engines/context/index.ts, core/lm/{policy.ts,runner.ts}, tests/engines/context.spec.ts
+
+- id: FT-306
+  title: Implement ToneTransformer (light consistency)
+  priority: P1
+  dependsOn: [FT-305]
+  acceptance:
+    - Punctuation spacing, capitalization, quote normalisation
+    - No semantic changes; only after Context commit
+  output: engines/tone/index.ts, tests/engines/tone.spec.ts
+
+- id: FT-307
+  title: UI Renderer for mechanical swap (no underline/highlight)
+  priority: P1
+  dependsOn: [FT-302, FT-304, FT-305, FT-306]
+  acceptance:
+    - Marker glyph (default '⠿') at swap sites; reduced-motion = instant
+    - SR announcement “text updated behind cursor” once per batch
+  output: ui/swapRenderer.ts, tests/ui/swapRenderer.spec.ts
+
+- id: FT-308
+  title: Platform bindings
+  priority: P1
+  dependsOn: [FT-302]
+  acceptance:
+    - macOS Swift wrapper compiles; applies diffs; preserves caret
+    - Windows TSF/.NET stub compiles; documented injector contract
+    - Web WASM package loads; demo applies diffs to textarea
+  output: bindings/{swift,windows,web}/*, web-demo wiring + tests
+
+- id: FT-309
+  title: Tests for caret safety, rollback, visuals
+  priority: P1
+  dependsOn: [FT-301, FT-302, FT-303, FT-307]
+  acceptance:
+    - Unit + integration pass; Playwright e2e: “Hello teh”→“Hello the”
+    - Abort+rollback when caret enters band mid-merge
+  output: tests/{unit,integration,e2e}/**, playwright config
+
+- id: FT-310
+  title: Documentation rewrite to v0.3 only
+  priority: P1
+  dependsOn: [FT-301, FT-302, FT-303, FT-304, FT-305, FT-306, FT-307, FT-308, FT-309]
+  acceptance:
+    - messaging.md, system_principles.md, implementation.md, mindtyper_manifesto.md, project_structure.md, PRD.md, versioning.md reflect v0.3 only
+    - No mention of underline/highlight/TidySweep/Backfill
+  output: docs/* updated with traceability notes
+```

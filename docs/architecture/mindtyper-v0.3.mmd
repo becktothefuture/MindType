@@ -1,0 +1,32 @@
+%% MindTyper v0.3 Architecture Diagram
+flowchart LR
+    subgraph Input
+        A["Keystrokes"]
+        B["Caret Monitor"]
+    end
+    subgraph Scheduler
+        C["State Router<br>typing/pause/caret_entered"]
+    end
+    subgraph Transformers
+        D["NoiseTransformer"]
+        E["ContextTransformer"]
+        F["ToneTransformer"]
+    end
+    subgraph Core
+        G["Diff/Merge Gate (Rust)"]
+        H["Undo Buckets"]
+    end
+    subgraph Output
+        I["UI Renderer<br>Mechanical Swap Only"]
+        J["Platform Bindings<br>macOS / Windows / Web"]
+    end
+    A --> B --> C
+    C --> D
+    C --> E
+    C --> F
+    D --> G
+    E --> G
+    F --> G
+    G --> H --> I --> J
+
+
