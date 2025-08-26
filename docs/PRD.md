@@ -46,7 +46,8 @@ Mind::Type is a quiet, system‑wide typing utility that converts noisy input in
 - REQ-SECURE-FIELDS: The system MUST disable in secure fields and during
   active IME composition.
 - REQ-STREAMED-DIFFUSION: Corrections MUST stream word‑by‑word behind the caret during typing; on pause (~500 ms), diffusion MUST catch up until the active region reaches the caret.
-- REQ-ACTIVE-REGION: The UI MUST render a subtle active region indicating the currently validated span (typically 3–8 words). Exact visual styling remains configurable; reduced‑motion MUST degrade to a gentle static band/fade.
+- REQ-ACTIVE-REGION: Processing MUST be limited to an active region behind the caret (typically 3–8 words) as the only editable span. The UI is not required to render this band.
+- REQ-VISUAL-SWAP: The UI MUST use mechanical letter‑swap only for applied corrections, with an optional braille‑like marker ('⠿') at swap sites. No underlines/highlights. Reduced‑motion MUST perform instant swaps. Announce once per batch via the live region when enabled.
 - REQ-LOCAL-LM-INTEGRATION: The system MUST support on-device language model integration for semantic and grammatical corrections; MUST fallback gracefully to rule-based corrections when LM unavailable; MUST maintain <150MB typical memory footprint including model. Target initial integration: Transformers.js with Qwen2.5‑0.5B‑Instruct (q4, WebGPU) for text‑centric quality.
 - REQ-CONTEXTUAL-CORRECTIONS: Beyond word substitutions, the engine MUST handle transpositions, punctuation spacing, capitalization, and semantic coherence using broader context while maintaining caret safety.
 
@@ -55,7 +56,7 @@ Mind::Type is a quiet, system‑wide typing utility that converts noisy input in
 - Caret safety: Given caret sits mid‑word, When sweep runs, Then no edit
   occurs. (maps: docs/qa/acceptance/caret_safety.feature)
 - Streamed diffusion: Given active typing, When diffusion runs, Then the active region trails behind the caret word‑by‑word; on pause, the region catches up. (maps: docs/qa/acceptance/streamed_diffusion.feature)
-- Visual feedback: Given corrections apply, Then brief highlight shows changes and the active region shows the currently validated span. (maps: docs/qa/acceptance/two_word_highlight.feature)
+- Visual feedback: Given corrections apply, Then text is replaced via mechanical swap (no highlight), optionally marked with '⠿', and a single screen‑reader announcement "text updated behind cursor" is emitted per batch. (maps: docs/qa/acceptance/two_word_highlight.feature)
 
 ### Constraints
 
@@ -86,13 +87,13 @@ IDs:
 
 Appendix — Traceability Map (starter)
 
-| REQ-ID                   | Principles                   | ADRs     | QA Scenarios                        | Modules/Guides                                                       |
-| ------------------------ | ---------------------------- | -------- | ----------------------------------- | -------------------------------------------------------------------- |
-| REQ-IME-CARETSAFE        | PRIN-SAFETY-04               | ADR-0002 | SCEN-CARETS-001                     | utils/diff.ts; band-policy.md                                        |
-| REQ-STREAMED-DIFFUSION   | PRIN-HUMAN-01, PRIN-LOGIC-10 | —        | SCEN-DIFFUSION-001                  | core/diffusionController.ts; lm-behavior.md                          |
-| REQ-VALIDATION-BAND      | PRIN-HUMAN-01, PRIN-LOGIC-10 | —        | SCEN-DIFFUSION-001, SCEN-HILITE-001 | band-policy.md; ui/highlighter.ts                                    |
-| REQ-A11Y-MOTION          | PRIN-HUMAN-03                | —        | SCEN-HILITE-001                     | a11y/wcag-checklist.md; ui/motion.ts                                 |
-| REQ-LOCAL-LM-INTEGRATION | PRIN-SAFETY-05, PRIN-PERF-11 | ADR-0005 | SCEN-LMLOCAL-001                    | lm-behavior.md; docs/guide/reference/lm-worker.md; crates/core-rs/\* |
+| REQ-ID                   | Principles                   | ADRs     | QA Scenarios       | Modules/Guides                                                       |
+| ------------------------ | ---------------------------- | -------- | ------------------ | -------------------------------------------------------------------- |
+| REQ-IME-CARETSAFE        | PRIN-SAFETY-04               | ADR-0002 | SCEN-CARETS-001    | utils/diff.ts; band-policy.md                                        |
+| REQ-STREAMED-DIFFUSION   | PRIN-HUMAN-01, PRIN-LOGIC-10 | —        | SCEN-DIFFUSION-001 | core/diffusionController.ts; lm-behavior.md                          |
+| REQ-VISUAL-SWAP          | PRIN-HUMAN-02, PRIN-HUMAN-03 | —        | SCEN-DIFFUSION-001 | ui/swapRenderer.ts; a11y/wcag-checklist.md                           |
+| REQ-A11Y-MOTION          | PRIN-HUMAN-03                | —        | SCEN-HILITE-001    | a11y/wcag-checklist.md; ui/motion.ts                                 |
+| REQ-LOCAL-LM-INTEGRATION | PRIN-SAFETY-05, PRIN-PERF-11 | ADR-0005 | SCEN-LMLOCAL-001   | lm-behavior.md; docs/guide/reference/lm-worker.md; crates/core-rs/\* |
 
 ### Stakeholders
 

@@ -18,23 +18,22 @@
 
 ### Policy
 
-- **Release tags**: `vMAJOR.MINOR.PATCH` (pre‑1.0 uses 0.y.z). Example: `v0.1.0`, `v0.2.0-alpha`.
-- **Archived baseline**: `archive/v0.1` branch created from `main@v0.1.0`. No new commits except hotfixes.
-- **Active development**: `main` stays releasable; create `v0.2-dev` for ongoing v0.2 work; merge to `main` via PRs.
-- **Hotfixes**: branch from tag (e.g., `hotfix/v0.1.1`), PR into `archive/v0.1`, tag `v0.1.1`, optionally cherry‑pick to `main` if applicable.
+- **Release tags**: `vMAJOR.MINOR.PATCH` (pre‑1.0 uses 0.y.z). Example: `v0.1.0`, `v0.3.0-alpha`.
+- **Archived baseline**: `archive/v0.1` branch created from `master@v0.1.0`. No new commits except hotfixes.
+- **Active development**: `master` is canonical default. Create `v0.3` for the v0.3 migration and ongoing work; merge via PRs.
+- **Hotfixes**: branch from tag (e.g., `hotfix/v0.1.1`), PR into `archive/v0.1`, tag `v0.1.1`, optionally cherry‑pick to `master` if applicable.
 
 ### Current state
 
-- Tagged: `v0.1.0` (pre‑v0.2 switch).
+- Tagged: `v0.1.0` (archived).
 - Branches:
   - `archive/v0.1` — frozen baseline matching `v0.1.0`.
-  - `main` — will carry v0.2 scaffolding and doc updates.
-  - `v0.2-dev` — feature integration branch for v0.2.
+  - `master` — canonical default (unified).
+  - `v0.3` — active development branch for v0.3 migration.
 
 ### Directory conventions
 
-- `docs/v0.2/` — PRD and architecture for v0.2.
-- `docs/` root indices link to the active version; prior docs remain discoverable via archive branch.
+- `docs/` root reflects v0.3. Prior versions remain discoverable via archive branch.
 
 ### Cursor workflow notes
 

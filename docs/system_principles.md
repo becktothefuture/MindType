@@ -39,10 +39,11 @@ principle links to deeper docs that hold the technical details.
   - If they resume typing, drop any pending idea silently.
 - See also: [PRD](../PRD.md), [Caret-safe diff (ADR)](../adr/0002-caret-safe-diff.md), [Active region policy](guide/reference/band-policy.md), [Acceptance: caret safety](qa/acceptance/caret_safety.feature)
 
-2. Keep the surface calm
+- 2. Keep the surface calm
 
-- Guidance: No suggestion lists. Use subtle underline/highlight to show
-  what changed; keep UI quiet.
+- Guidance: No suggestion lists. Use mechanical swap only with an optional
+  braille-like marker ('⠿') at swap sites; no underlines/highlights. Keep UI
+  quiet; announce via screen reader once per batch when enabled.
 - Examples:
   - Fix a comma and briefly underline it; no popups.
   - Show debug only when explicitly opened.
@@ -171,11 +172,13 @@ principle links to deeper docs that hold the technical details.
 
 2a. Preview style (visual feedback)
 
-- Behaviour: Use underline/text highlight as the baseline visual language
-  for applied corrections. Avoid pill UI; keep feedback subtle.
+- Behaviour: Use mechanical letter‑swap as the only visual. Optional
+  braille-style marker ('⠿') may appear at swap sites. No underlines or
+  highlights.
 - Examples:
-  - Underline the corrected range for a short duration.
-  - Highlight color respects reduced-motion and high-contrast settings.
+  - Swapped characters appear in place with a brief, unobtrusive motion; when
+    reduced motion is on, the swap is instant.
+  - Announce once per batch via the live region: "text updated behind cursor".
 
 3. Minimal cognitive load
 
@@ -189,12 +192,12 @@ principle links to deeper docs that hold the technical details.
 
 4. Accessibility by default
 
-- Behaviour: Respect reduced motion, readable contrast, screen reader
-  cues, and keyboard-only operation. No essential info relies on color
-  or animation alone.
+- Behaviour: Respect reduced motion, readable contrast, screen reader cues,
+  and keyboard-only operation. No essential info relies on color or animation;
+  when reduced motion is on, perform instant swaps with no animation.
 - Examples:
-  - When `prefers-reduced-motion` is true, switch particle effects off
-    and replace animated previews with static highlights.
+  - When `prefers-reduced-motion` is true, switch any effects off and perform
+    instant swaps (no animation); markers remain optional and high-contrast.
   - Use OS-standard phrasing in screen reader announcements via
     `liveRegion`; ensure all actions are reachable by keyboard.
 
