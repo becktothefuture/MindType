@@ -19,7 +19,10 @@ describe('createDefaultLMAdapter', () => {
         yield '!';
       },
     };
-    const adapter = createDefaultLMAdapter({}, runner as any);
+    const adapter = createDefaultLMAdapter(
+      {},
+      runner as unknown as import('../core/lm/transformersClient').TokenStreamer,
+    );
     const it = adapter.stream({
       text: 'xxHello world!yy',
       caret: 13,
@@ -35,8 +38,16 @@ describe('createDefaultLMAdapter', () => {
         yield 'x ';
       },
     };
-    const adapter = createDefaultLMAdapter({}, runner as any);
-    const caps = adapter.init?.({ preferBackend: detectBackend() });
+    const adapter = createDefaultLMAdapter(
+      {},
+      runner as unknown as import('../core/lm/transformersClient').TokenStreamer,
+    );
+    // preferBackend expects 'webgpu' | 'wasm' | 'cpu'; coerce unknown to cpu
+    const pref = ((): 'webgpu' | 'wasm' | 'cpu' => {
+      const b = detectBackend();
+      return b === 'webgpu' || b === 'wasm' || b === 'cpu' ? b : 'cpu';
+    })();
+    const caps = adapter.init?.({ preferBackend: pref });
     expect(caps && 'backend' in caps).toBe(true);
     // Start two streams rapidly to trigger stale drop increment
     const a = adapter.stream({ text: 'abc', caret: 3, band: { start: 0, end: 3 } });

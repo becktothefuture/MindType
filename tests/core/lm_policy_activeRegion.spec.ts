@@ -25,6 +25,17 @@ describe('ActiveRegionPolicy', () => {
     expect(start).toBeGreaterThanOrEqual(lastNewline + 1);
   });
 
+  it('context range expands left/right but is clamped before caret', () => {
+    const text = 'Alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu';
+    const caret = text.length; // end
+    const state = { text, caret, frontier: 0 };
+    const render = defaultActiveRegionPolicy.computeRenderRange(state);
+    const ctx = defaultActiveRegionPolicy.computeContextRange(state);
+    expect(ctx.start).toBeLessThanOrEqual(render.start);
+    expect(ctx.end).toBeGreaterThanOrEqual(render.end);
+    expect(ctx.end).toBeLessThanOrEqual(caret);
+  });
+
   it('context extends beyond render within limits and before caret', () => {
     const text = 'Alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu';
     const caret = text.length - 5; // leave a tail to ensure clamping < caret

@@ -37,7 +37,10 @@ describe('DiffusionController LM branches', () => {
       },
     } as const;
 
-    const diffusion = createDiffusionController(undefined, () => adapter as any);
+    const diffusion = createDiffusionController(
+      undefined,
+      () => adapter as unknown as import('../core/lm/types').LMAdapter,
+    );
     const text = 'Hello teh world';
     diffusion.update(text, text.length);
     const p = diffusion.catchUp(); // start async
@@ -63,7 +66,10 @@ describe('DiffusionController LM branches', () => {
       },
     } as const;
 
-    const diffusion = createDiffusionController(undefined, () => adapter as any);
+    const diffusion = createDiffusionController(
+      undefined,
+      () => adapter as unknown as import('../core/lm/types').LMAdapter,
+    );
     const text = 'Hello teh world';
     diffusion.update(text, text.length);
     const p = diffusion.catchUp();

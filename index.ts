@@ -33,11 +33,7 @@ export function boot(options?: { security?: SecurityContext }) {
   const security = options?.security ?? createDefaultSecurityContext();
   // LM adapter can be injected later; pass getter to scheduler/controller
   let lmAdapter: LMAdapter = createNoopLMAdapter();
-  const scheduler = createSweepScheduler(
-    monitor,
-    security,
-    () => lmAdapter as unknown as any,
-  );
+  const scheduler = createSweepScheduler(monitor, security, () => lmAdapter);
 
   // lmAdapter declared above
 

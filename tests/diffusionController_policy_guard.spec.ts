@@ -28,7 +28,13 @@ describe('DiffusionController policy guard', () => {
         yield 'x ';
       },
     } as const;
-    const ctrl = createDiffusionController(policy as any, () => adapter as any);
+    const ctrl = createDiffusionController(
+      policy as unknown as {
+        computeRenderRange: (s: { caret: number }) => { start: number; end: number };
+        computeContextRange: (s: { caret: number }) => { start: number; end: number };
+      },
+      () => adapter as unknown as import('../core/lm/types').LMAdapter,
+    );
     const text = 'Hello teh world';
     ctrl.update(text, text.length);
     await ctrl.catchUp();

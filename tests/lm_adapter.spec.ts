@@ -26,7 +26,10 @@ describe('LM Adapter optional wiring', () => {
 
   it('accepts an adapter parameter (no-op for now)', async () => {
     const adapter = createMockLMAdapter();
-    const d = createDiffusionController(undefined, adapter);
+    const d = createDiffusionController(
+      undefined,
+      () => adapter as unknown as import('../core/lm/types').LMAdapter,
+    );
     d.update('some teh text', 13);
     d.tickOnce();
     await d.catchUp();

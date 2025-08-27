@@ -14,7 +14,7 @@ import type { LMAdapter } from './types';
 import { createTransformersAdapter, type TokenStreamer } from './transformersClient';
 import { createQwenTokenStreamer, type QwenRunnerOptions } from './transformersRunner';
 
-export interface DefaultLMOptions extends QwenRunnerOptions {}
+export type DefaultLMOptions = QwenRunnerOptions;
 
 export function createDefaultLMAdapter(
   options?: DefaultLMOptions,

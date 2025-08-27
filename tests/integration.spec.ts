@@ -102,7 +102,8 @@ describe('Streaming Diffusion Integration', () => {
     diffusion.update(text, text.length);
     await diffusion.catchUp();
     await vi.advanceTimersByTimeAsync(10);
-    expect((renderHighlight as any).mock.calls.length).toBeGreaterThan(0);
+    const mock = renderHighlight as unknown as { mock: { calls: unknown[] } };
+    expect(mock.mock.calls.length).toBeGreaterThan(0);
   });
 
   it('demonstrates correction without affecting the caret', () => {
