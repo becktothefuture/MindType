@@ -27,7 +27,7 @@
 
 ## Interfaces
 
-- TS: `ActiveRegionPolicy` with `computeRenderRange(state)` and `computeContextRange(state)`; see `core/diffusionController.ts`.
+- TS: `ActiveRegionPolicy` with `computeRenderRange(state)` and `computeContextRange(state)`; see `core/activeRegionPolicy.ts` (used by `core/diffusionController.ts`).
 - Rust: expose equivalent helpers in `crates/core-rs` as needed.
 
 ## Tests

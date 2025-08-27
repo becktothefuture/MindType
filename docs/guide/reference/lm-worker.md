@@ -25,8 +25,9 @@
 ## Host Responsibilities
 
 - Single‑flight generation; abort stale requests; respect cooldowns.
+- Use `createDefaultLMAdapter(options?, runner?)` to obtain an `LMAdapter` backed by a `TokenStreamer`. For browser hosts, the default runner is the Transformers.js Qwen streamer; tests may inject a mock runner.
 
-See: `docs/guide/reference/lm-behavior.md`, `crates/core-rs/src/*` (v0.2 orchestrator).
+See: `docs/guide/reference/lm-behavior.md`, `core/lm/factory.ts`, `core/lm/index.ts`, and `crates/core-rs/src/*` (v0.2 orchestrator).
 
 <!--══════════════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════════════╗

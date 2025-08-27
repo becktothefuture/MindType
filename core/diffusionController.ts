@@ -18,6 +18,7 @@ import {
 import { tidySweep } from '../engines/tidySweep';
 import { replaceRange } from '../utils/diff';
 import type { LMAdapter } from './lm/types';
+import type { ActiveRegionPolicy } from './activeRegionPolicy';
 import { emitActiveRegion, renderHighlight } from '../ui/highlighter';
 import { createLogger } from './logger';
 import { streamMerge } from './lm/mergePolicy';
@@ -28,13 +29,9 @@ export interface DiffusionState {
   frontier: number; // leftmost index not yet validated
 }
 
-// ActiveRegionPolicy: future-proof hook for LM integration
+// ActiveRegionPolicy: future‑proof hook for LM integration (type in core/activeRegionPolicy.ts)
 // - computeRenderRange: what to visualize (active region)
 // - computeContextRange: what to provide to an LLM adapter (can span sentences/paragraphs)
-export interface ActiveRegionPolicy {
-  computeRenderRange(state: DiffusionState): { start: number; end: number };
-  computeContextRange(state: DiffusionState): { start: number; end: number };
-}
 
 // LIB_TOUCH: Using Intl.Segmenter for Unicode-aware word boundary detection
 // Context7 docs: Intl.Segmenter provides granularity: 'word' for word-like segments

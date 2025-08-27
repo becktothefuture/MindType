@@ -87,13 +87,13 @@ IDs:
 
 Appendix — Traceability Map (starter)
 
-| REQ-ID                   | Principles                   | ADRs     | QA Scenarios       | Modules/Guides                                                       |
-| ------------------------ | ---------------------------- | -------- | ------------------ | -------------------------------------------------------------------- |
-| REQ-IME-CARETSAFE        | PRIN-SAFETY-04               | ADR-0002 | SCEN-CARETS-001    | utils/diff.ts; band-policy.md                                        |
-| REQ-STREAMED-DIFFUSION   | PRIN-HUMAN-01, PRIN-LOGIC-10 | —        | SCEN-DIFFUSION-001 | core/diffusionController.ts; lm-behavior.md                          |
-| REQ-VISUAL-SWAP          | PRIN-HUMAN-02, PRIN-HUMAN-03 | —        | SCEN-DIFFUSION-001 | ui/swapRenderer.ts; a11y/wcag-checklist.md                           |
-| REQ-A11Y-MOTION          | PRIN-HUMAN-03                | —        | SCEN-HILITE-001    | a11y/wcag-checklist.md; ui/motion.ts                                 |
-| REQ-LOCAL-LM-INTEGRATION | PRIN-SAFETY-05, PRIN-PERF-11 | ADR-0005 | SCEN-LMLOCAL-001   | lm-behavior.md; docs/guide/reference/lm-worker.md; crates/core-rs/\* |
+| REQ-ID                   | Principles                   | ADRs     | QA Scenarios       | Modules/Guides                                                                           |
+| ------------------------ | ---------------------------- | -------- | ------------------ | ---------------------------------------------------------------------------------------- |
+| REQ-IME-CARETSAFE        | PRIN-SAFETY-04               | ADR-0002 | SCEN-CARETS-001    | utils/diff.ts; band-policy.md                                                            |
+| REQ-STREAMED-DIFFUSION   | PRIN-HUMAN-01, PRIN-LOGIC-10 | —        | SCEN-DIFFUSION-001 | core/diffusionController.ts; lm-behavior.md                                              |
+| REQ-VISUAL-SWAP          | PRIN-HUMAN-02, PRIN-HUMAN-03 | —        | SCEN-DIFFUSION-001 | ui/swapRenderer.ts; a11y/wcag-checklist.md                                               |
+| REQ-A11Y-MOTION          | PRIN-HUMAN-03                | —        | SCEN-HILITE-001    | a11y/wcag-checklist.md; ui/motion.ts                                                     |
+| REQ-LOCAL-LM-INTEGRATION | PRIN-SAFETY-05, PRIN-PERF-11 | ADR-0005 | SCEN-LMLOCAL-001   | lm-behavior.md; core/lm/factory.ts; docs/guide/reference/lm-worker.md; crates/core-rs/\* |
 
 ### Stakeholders
 

@@ -313,7 +313,8 @@ Task checklist template (copy into PR description):
        **AC:** Define `LMAdapter` interface for streaming corrections; support band-bounded context; fallback to rules when LM unavailable; caret-safe constraints. Add backend detection and a mock adapter; optional wiring into controller without behaviour change.  
        **Owner:** @alex  
        **DependsOn:** FT-213  
-       **Source:** User example: "raw → corrected" transformation quality
+       **Source:** User example: "raw → corrected" transformation quality  
+       **Notes:** Implemented `core/activeRegionPolicy.ts` with render/context ranges and tests; added `core/lm/factory.ts` (`createDefaultLMAdapter`) and barrel exports. Controller imports the shared policy type without behavior change.
 
 - [x] (P1) [FT-231] Implement local model bootstrap  
        **AC:** Transformers.js integration with Qwen2.5-0.5B-Instruct (q4); backend detection (WebGPU→WASM→CPU); centralized LM behavior policy (`core/lm/policy.ts`); auto-load in web demo; span-only prompting and guarded merges; single-flight generation with abort and stale-drop; debounce/cooldown to reduce requests.  
@@ -563,7 +564,7 @@ Task checklist template (copy into PR description):
 
 ### [FT-232] LM streaming merge policy (expanded)
 
-- [ ] Define ActiveRegionPolicy v1: newline‑safe render/context ranges; tests
+- [x] Define ActiveRegionPolicy v1: newline‑safe render/context ranges; tests
 - [ ] Implement single‑flight controller (abort on new input) with cooldown
 - [ ] Confidence gates: prefer rules on structural conflicts; LM on semantic
 - [ ] Rollback on conflict: revert last LM merge if caret enters active region

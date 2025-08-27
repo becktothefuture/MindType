@@ -18,6 +18,7 @@ import { createTypingMonitor, type TypingEvent } from './core/typingMonitor';
 import { createSweepScheduler } from './core/sweepScheduler';
 import { createDefaultSecurityContext, type SecurityContext } from './core/security';
 import type { LMAdapter } from './core/lm/types';
+export { createDefaultLMAdapter } from './core/lm/factory';
 
 // Minimal LM adapter stub to stabilise the public API. Will be wired in FT-230+.
 export function createNoopLMAdapter(): LMAdapter {
