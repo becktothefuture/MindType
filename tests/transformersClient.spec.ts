@@ -7,6 +7,7 @@
 */
 import { describe, it, expect, vi } from 'vitest';
 import { createTransformersAdapter, detectBackend } from '../core/lm/transformersClient';
+import { cooldownForBackend } from '../core/lm/transformersClient';
 
 function makeRunner(chunks: string[], delay = 0) {
   return {
@@ -173,6 +174,52 @@ describe('Transformers client', () => {
     vi.useRealTimers();
   });
 
+  it('increases cooldown on wasm when threads are not available', async () => {
+    vi.useFakeTimers();
+    const originalWA: typeof WebAssembly | undefined = (
+      globalThis as unknown as { WebAssembly?: typeof WebAssembly }
+    ).WebAssembly;
+    // Stub WebAssembly to lack Memory so wasmThreads=false
+    (globalThis as unknown as { WebAssembly?: typeof WebAssembly }).WebAssembly =
+      {} as unknown as typeof WebAssembly;
+    const runner = makeRunner(['x']) as unknown as {
+      generateStream: (input: {
+        prompt: string;
+        maxNewTokens?: number;
+      }) => AsyncIterable<string>;
+    };
+    const adapter = createTransformersAdapter(runner);
+    adapter.init?.({ preferBackend: 'wasm' });
+    // Simulate a completed run to set lastMergeAt
+    for await (const _ of adapter.stream({
+      text: 'ab',
+      caret: 2,
+      band: { start: 0, end: 2 },
+    })) {
+    }
+    let yielded = false;
+    (async () => {
+      for await (const _ of adapter.stream({
+        text: 'cd',
+        caret: 2,
+        band: { start: 0, end: 2 },
+      })) {
+        yielded = true;
+        break;
+      }
+    })();
+    // Base wasm cooldown
+    await vi.advanceTimersByTimeAsync(cooldownForBackend('wasm') - 10);
+    expect(yielded).toBe(false);
+    // After base cooldown, since our init set wasmThreads false by default probing, it adds 80ms
+    await vi.advanceTimersByTimeAsync(90);
+    expect(yielded).toBe(true);
+    vi.useRealTimers();
+    // restore
+    (globalThis as unknown as { WebAssembly?: typeof WebAssembly }).WebAssembly =
+      originalWA;
+  });
+
   it('returns wasm or cpu depending on environment via detectBackend', () => {
     // webgpu present
     const originalNavigator: Navigator | undefined = globalThis.navigator;
@@ -185,5 +232,72 @@ describe('Transformers client', () => {
       {} as unknown as typeof WebAssembly;
     vi.stubGlobal('navigator', {} as unknown as Navigator);
     expect(detectBackend()).toBe('wasm');
+
+    // cpu fallback when WebAssembly missing
+    (globalThis as unknown as { WebAssembly?: typeof WebAssembly }).WebAssembly =
+      undefined as unknown as typeof WebAssembly;
+    expect(detectBackend()).toBe('cpu');
+  });
+
+  it('init sets webgpu feature true (no wasm flags) when preferBackend=webgpu', () => {
+    const runner = makeRunner(['x']) as unknown as {
+      generateStream: (input: {
+        prompt: string;
+        maxNewTokens?: number;
+      }) => AsyncIterable<string>;
+    };
+    const adapter = createTransformersAdapter(runner);
+    const caps = adapter.init?.({ preferBackend: 'webgpu' });
+    expect(caps?.backend).toBe('webgpu');
+    expect(caps?.features?.webgpu).toBe(true);
+    expect(caps?.features?.wasmThreads ?? false).toBe(false);
+  });
+
+  it('init sets cpu baseline when preferBackend=cpu', () => {
+    const runner = makeRunner(['x']) as unknown as {
+      generateStream: (input: {
+        prompt: string;
+        maxNewTokens?: number;
+      }) => AsyncIterable<string>;
+    };
+    const adapter = createTransformersAdapter(runner);
+    const caps = adapter.init?.({ preferBackend: 'cpu' });
+    expect(caps?.backend).toBe('cpu');
+    expect(caps?.features?.webgpu ?? false).toBe(false);
+  });
+
+  it('cpu cooldown enforcement blocks until base delay elapses', async () => {
+    vi.useFakeTimers();
+    const runner = makeRunner(['x']) as unknown as {
+      generateStream: (input: {
+        prompt: string;
+        maxNewTokens?: number;
+      }) => AsyncIterable<string>;
+    };
+    const adapter = createTransformersAdapter(runner);
+    adapter.init?.({ preferBackend: 'cpu' });
+    // First run to set lastMergeAt
+    for await (const _ of adapter.stream({
+      text: 'ab',
+      caret: 2,
+      band: { start: 0, end: 2 },
+    })) {
+    }
+    let yielded = false;
+    (async () => {
+      for await (const _ of adapter.stream({
+        text: 'cd',
+        caret: 2,
+        band: { start: 0, end: 2 },
+      })) {
+        yielded = true;
+        break;
+      }
+    })();
+    await vi.advanceTimersByTimeAsync(200);
+    expect(yielded).toBe(false);
+    await vi.advanceTimersByTimeAsync(70); // 200+70 >= 260 base cpu cooldown
+    expect(yielded).toBe(true);
+    vi.useRealTimers();
   });
 });
