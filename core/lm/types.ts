@@ -13,6 +13,11 @@
 export interface LMCapabilities {
   backend: 'webgpu' | 'wasm' | 'cpu' | 'unknown';
   maxContextTokens?: number;
+  features?: {
+    webgpu?: boolean;
+    wasmSimd?: boolean;
+    wasmThreads?: boolean;
+  };
 }
 
 export interface LMInitOptions {

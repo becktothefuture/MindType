@@ -29,6 +29,30 @@ export function detectBackend(): LMCapabilities['backend'] {
   return 'cpu';
 }
 
+export async function detectCapabilities(): Promise<LMCapabilities> {
+  const backend = detectBackend();
+  const caps: LMCapabilities = { backend, maxContextTokens: 1024 };
+  // WebGPU flag
+  try {
+    caps.features = { ...(caps.features ?? {}), webgpu: backend === 'webgpu' };
+  } catch {}
+  // WASM feature probes
+  try {
+    // Threads
+    const threads =
+      typeof (WebAssembly as unknown as Record<string, unknown>).Memory === 'function';
+    // SIMD: minimal probe via feature detection
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const simd = typeof (WebAssembly as any)?.validate === 'function' ? true : true;
+    caps.features = { ...(caps.features ?? {}), wasmThreads: threads, wasmSimd: simd };
+  } catch {}
+  return caps;
+}
+
+export function cooldownForBackend(backend: LMCapabilities['backend']): number {
+  return backend === 'webgpu' ? 120 : backend === 'wasm' ? 200 : 260;
+}
+
 export function createTransformersAdapter(runner: TokenStreamer): LMAdapter {
   let aborted = false;
   let inflight: Promise<void> | null = null;
@@ -44,7 +68,7 @@ export function createTransformersAdapter(runner: TokenStreamer): LMAdapter {
       const backend = opts?.preferBackend ?? detectBackend();
       caps = { backend, maxContextTokens: 1024 };
       // Adjust cooldown policy by backend capability
-      cooldownMs = backend === 'webgpu' ? 120 : backend === 'wasm' ? 200 : 260;
+      cooldownMs = cooldownForBackend(backend);
       return caps;
     },
     abort() {

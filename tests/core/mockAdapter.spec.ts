@@ -9,11 +9,15 @@ import { describe, it, expect } from 'vitest';
 import { createMockLMAdapter } from '../../core/lm/mockAdapter';
 
 describe('Mock LM Adapter', () => {
-  it('returns capabilities from init', () => {
+  it('returns capabilities from init', async () => {
     const a = createMockLMAdapter();
-    const caps = a.init?.();
-    expect(caps?.backend).toBe('cpu');
-    expect((caps?.maxContextTokens ?? 0) > 0).toBe(true);
+    const caps = await (a.init?.() as
+      | Promise<ReturnType<NonNullable<typeof a.init>>>
+      | ReturnType<NonNullable<typeof a.init>>);
+    // Normalize for Promise or direct return
+    const resolved = caps as unknown as { backend?: string; maxContextTokens?: number };
+    expect(resolved.backend).toBe('cpu');
+    expect((resolved.maxContextTokens ?? 0) > 0).toBe(true);
   });
 
   it('abort stops streaming after first chunk', async () => {
