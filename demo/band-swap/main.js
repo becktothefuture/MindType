@@ -72,20 +72,30 @@ function drawFrame() {
   const end = Math.min(total - 1, bandCenter + half);
   const mix = state.bandMix / 100;
 
-  // subtle shimmer band marker
-  ctx.fillStyle = 'rgba(0,0,0,0.06)';
-  const top = 0;
-  ctx.fillRect(0, top, canvas.width / dpr, canvas.height / dpr);
+  // Mask background under band chars, then draw swapped glyphs only
+  const styles = getComputedStyle(document.body);
+  const bg = styles.backgroundColor || '#fff';
+  ctx.fillStyle = bg;
+  const metrics = ctx.measureText('M');
+  const ascent = metrics.actualBoundingBoxAscent || 0;
+  const descent = metrics.actualBoundingBoxDescent || 0;
+  const height = ascent + descent || parseFloat(getComputedStyle(paragraphEl).lineHeight) || 20;
+
+  for (let i = start; i <= end; i++) {
+    const { ch, x, y, w } = boxes[i];
+    // Skip spaces to reduce work
+    if (!ch || ch === ' ') continue;
+    // Fill background rect to hide underlying text
+    ctx.fillRect(x, y - ascent, w || 1, height);
+  }
 
   ctx.fillStyle = getComputedStyle(paragraphEl).color || '#000';
-  for (let i = 0; i < boxes.length; i++) {
+  for (let i = start; i <= end; i++) {
     const { ch, x, y } = boxes[i];
-    let out = ch;
-    if (i >= start && i <= end && ch.trim().length > 0) {
-      if (Math.random() < mix) {
-        out = DEFAULT_SYMBOLS[Math.floor(Math.random() * DEFAULT_SYMBOLS.length)];
-      }
-    }
+    if (!ch || ch === ' ') continue;
+    const out = Math.random() < mix
+      ? DEFAULT_SYMBOLS[Math.floor(Math.random() * DEFAULT_SYMBOLS.length)]
+      : ch;
     ctx.fillText(out, x, y);
   }
 }
