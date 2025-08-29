@@ -78,7 +78,13 @@ describe('LM merge policy (fuzz)', () => {
       const shouldCancel = () => seen >= cancelAfter;
       try {
         for await (const ev of streamMerge({
-          adapter: adapter as any,
+          adapter: adapter as unknown as {
+            stream: (p: {
+              text: string;
+              caret: number;
+              band: { start: number; end: number };
+            }) => AsyncIterable<string>;
+          },
           text,
           caret,
           band,

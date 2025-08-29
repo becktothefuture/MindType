@@ -1,18 +1,18 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  A R I A   L I V E   R E G I O N  ░░░░░░░░░░░░░░░░░░░░░  ║
-  ║                                                              ║
-  ║   Minimal utility to announce changes to screen readers.     ║
-  ║   Follows WAI‑ARIA APG guidance for polite/assertive cues.   ║
-  ║                                                              ║
-  ║           ╌╌  P L A C E H O L D E R  ╌╌                      ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Create/destroy a live region and announce messages
-  • WHY  ▸ Meet FT-311: subtle SR notifications for corrections
-  • HOW  ▸ aria-live + role mapping; visually hidden container
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  LIVEREGION  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ Respect reduced-motion; single announcement; mechanical swap
+  • WHY  ▸ REQ-A11Y-MOTION
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 export type Politeness = 'polite' | 'assertive';

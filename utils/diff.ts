@@ -1,17 +1,18 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  D I F F   U T I L S  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
-  ║                                                              ║
-  ║   Helpers for safe text replacement operations that never    ║
-  ║   cross the CARET. Consumed by engines and tests.            ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Provides replaceRange with guardrails
-  • WHY  ▸ Centralises safety to reduce duplicated checks
-  • HOW  ▸ Pure functions; no I/O; imported by engines/tests
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  DIFF  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ No edits at or after the caret
+  • WHY  ▸ REQ-IME-CARETSAFE
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 export function replaceRange(

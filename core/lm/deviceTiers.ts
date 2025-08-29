@@ -1,5 +1,5 @@
 /*╔══════════════════════════════════════════════════════╗
-  ║  ░  A U T O  T H R E S H O L D S  ░░░░░░░░░░░░░░░░░░░  ║
+  ║  ░  A U T O  D E V I C E  T I E R S  ░░░░░░░░░░░░░░░░░░░  ║
   ║                                                      ║
   ║                                                      ║
   ║                                                      ║
@@ -15,31 +15,30 @@
   • HOW  ▸ Generated via scripts/doc2code.cjs
 */
 
-export const SHORT_PAUSE_MS = 300;
-export const LONG_PAUSE_MS = 2000;
-export const MAX_SWEEP_WINDOW = 80;
-
-let typingTickMs = 75;
-let minValidationWords = 5;
-let maxValidationWords = 5;
-
-export function getTypingTickMs(): number {
-  return typingTickMs;
+export interface DeviceTierPolicy {
+  maxTokens: number;
+  debounceMs: number;
+  cooldownMs: number;
 }
-export function setTypingTickMs(value: number): void {
-  const clamped = Math.max(10, Math.min(500, Math.floor(value)));
-  typingTickMs = clamped;
+export interface DeviceTiers {
+  webgpu: DeviceTierPolicy;
+  wasm: DeviceTierPolicy;
+  cpu: DeviceTierPolicy;
 }
-
-export function getMinValidationWords(): number {
-  return minValidationWords;
-}
-export function getMaxValidationWords(): number {
-  return maxValidationWords;
-}
-export function setValidationBandWords(minWords: number, maxWords: number): void {
-  const min = Math.max(1, Math.min(5, Math.floor(minWords)));
-  const max = Math.max(3, Math.min(12, Math.floor(maxWords)));
-  minValidationWords = Math.min(min, max);
-  maxValidationWords = Math.max(min, max);
-}
+export const DEVICE_TIERS: DeviceTiers = {
+  webgpu: {
+    maxTokens: 48,
+    debounceMs: 120,
+    cooldownMs: 150,
+  },
+  wasm: {
+    maxTokens: 24,
+    debounceMs: 180,
+    cooldownMs: 250,
+  },
+  cpu: {
+    maxTokens: 16,
+    debounceMs: 220,
+    cooldownMs: 300,
+  },
+} as const;

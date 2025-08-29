@@ -1,13 +1,18 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  L M   A D A P T E R   F A C T O R Y  ░░░░░░░░░░░░░░░░░░  ║
-  ║                                                              ║
-  ║   Creates a default LMAdapter using a pluggable TokenRunner. ║
-  ║   Defaults to Transformers.js runner; testable via override.  ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Factory for LMAdapter with capability detection
-  • WHY  ▸ Decouple core from heavy deps; enable mocking
-  • HOW  ▸ Wrap TokenStreamer with createTransformersAdapter
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  FACTORY  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ On-device LM integration with graceful fallback; LMAdapter streaming contract
+  • WHY  ▸ REQ-LOCAL-LM-INTEGRATION, CONTRACT-LM-ADAPTER
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 import type { LMAdapter } from './types';

@@ -1,13 +1,18 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  T R A N S F O R M E R S . J S   C L I E N T  ░░░░░░░░░░  ║
-  ║                                                              ║
-  ║   Thin adapter around a token streamer to fit LMAdapter.     ║
-  ║   No heavy deps here; inject a runner for tests/real impl.   ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Feature detection + adapter factory for Transformers.js
-  • WHY  ▸ Keep core light; allow mocking in tests
-  • HOW  ▸ Takes band-bounded text and streams tokens
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  TRANSFORMERSCLIENT  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ On-device LM integration with graceful fallback
+  • WHY  ▸ REQ-LOCAL-LM-INTEGRATION
+  • HOW  ▸ See linked contracts and guides in docs
 */
 import type { LMAdapter, LMCapabilities, LMInitOptions, LMStreamParams } from './types';
 

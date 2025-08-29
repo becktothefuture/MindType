@@ -1,0 +1,37 @@
+---
+alwaysApply: true
+---
+<!--══════════════════════════════════════════════════
+  ╔══════════════════════════════════════════════════════╗
+  ║  ░  C U R S O R   D O C 2 C O D E   R U L E S  ░░░░░  ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ╚══════════════════════════════════════════════════════╝
+    • WHAT ▸ Doc-first editing rules for Cursor
+    • WHY  ▸ Keep code synced with PRD/ADR/Guides/QA
+    • HOW  ▸ Load docs in context; respect doc-managed headers
+-->
+
+# Doc2Code Authoring Rules
+
+- Load these docs when editing `core/**`, `engines/**`, `ui/**`, or `tests/**`:
+  - `docs/implementation.md`, `docs/PRD.md`, `docs/system_principles.md`, `docs/adr/**`.
+- Do not hand-edit the Swiss-grid header in source files; run `pnpm doc:sync` instead.
+- When introducing new behavior, add a SPEC block (REQ or CONTRACT) in the appropriate doc.
+- PRs must pass `pnpm doc:check`; missing SPECs should block.
+
+## Agent Workflow (always)
+
+- Start from docs: propose SPEC block(s) (REQ/CONTRACT) for the user's request in plain language.
+- Add a novice-friendly explainer under each edited doc section.
+- Run `pnpm doc:check` → if missing refs, offer to create stubs; then `pnpm doc:sync`.
+- Only after docs are authoritative, implement code linked by `modules:`.
+- Update tests or generate stubs; map scenarios with SCEN IDs.
+- Reject hand-edits to doc-managed headers; instruct to edit docs instead.

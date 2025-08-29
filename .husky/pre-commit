@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
-cd -P -- "$(git rev-parse --show-toplevel)"
-# Use our local lint-staged config and avoid legacy configs
-pnpm exec lint-staged --config lint-staged.config.mjs
+. "$(dirname -- "$0")/_/husky.sh"
+
+npm test

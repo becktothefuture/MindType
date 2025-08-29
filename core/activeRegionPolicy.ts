@@ -1,13 +1,18 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  A C T I V E   R E G I O N   P O L I C Y  ░░░░░░░░░░░░░░  ║
-  ║                                                              ║
-  ║   Compute render vs context ranges behind the caret.         ║
-  ║   Newline‑aware, Unicode‑safe, and band‑bounded.             ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Central policy to derive ranges for UI and LM
-  • WHY  ▸ One source of truth: consistent band semantics
-  • HOW  ▸ Word segmentation + newline clamp + char window
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  ACTIVEREGIONPOLICY  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ No edits at or after the caret; Active region policy (render vs context ranges)
+  • WHY  ▸ REQ-IME-CARETSAFE, CONTRACT-ACTIVE-REGION
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 import {

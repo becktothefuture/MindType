@@ -8,6 +8,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createTransformersAdapter, detectBackend } from '../core/lm/transformersClient';
 import { cooldownForBackend } from '../core/lm/transformersClient';
+import type { LMCapabilities } from '../core/lm/types';
 
 function makeRunner(chunks: string[], delay = 0) {
   return {
@@ -127,7 +128,7 @@ describe('Transformers client', () => {
       caret: 2,
       band: { start: 0, end: 2 },
     })) {
-      // drain
+      void _;
     }
     let got = false;
     (async () => {
@@ -136,6 +137,7 @@ describe('Transformers client', () => {
         caret: 2,
         band: { start: 0, end: 2 },
       })) {
+        void _;
         got = true;
         break;
       }
@@ -154,6 +156,7 @@ describe('Transformers client', () => {
       caret: 2,
       band: { start: 0, end: 2 },
     })) {
+      void _;
     }
     let gotGpu = false;
     (async () => {
@@ -162,6 +165,7 @@ describe('Transformers client', () => {
         caret: 2,
         band: { start: 0, end: 2 },
       })) {
+        void _;
         gotGpu = true;
         break;
       }
@@ -196,6 +200,7 @@ describe('Transformers client', () => {
       caret: 2,
       band: { start: 0, end: 2 },
     })) {
+      void _;
     }
     let yielded = false;
     (async () => {
@@ -204,6 +209,7 @@ describe('Transformers client', () => {
         caret: 2,
         band: { start: 0, end: 2 },
       })) {
+        void _;
         yielded = true;
         break;
       }
@@ -247,7 +253,7 @@ describe('Transformers client', () => {
       }) => AsyncIterable<string>;
     };
     const adapter = createTransformersAdapter(runner);
-    const caps = adapter.init?.({ preferBackend: 'webgpu' });
+    const caps = adapter.init?.({ preferBackend: 'webgpu' }) as LMCapabilities;
     expect(caps?.backend).toBe('webgpu');
     expect(caps?.features?.webgpu).toBe(true);
     expect(caps?.features?.wasmThreads ?? false).toBe(false);
@@ -261,7 +267,7 @@ describe('Transformers client', () => {
       }) => AsyncIterable<string>;
     };
     const adapter = createTransformersAdapter(runner);
-    const caps = adapter.init?.({ preferBackend: 'cpu' });
+    const caps = adapter.init?.({ preferBackend: 'cpu' }) as LMCapabilities;
     expect(caps?.backend).toBe('cpu');
     expect(caps?.features?.webgpu ?? false).toBe(false);
   });
@@ -282,6 +288,7 @@ describe('Transformers client', () => {
       caret: 2,
       band: { start: 0, end: 2 },
     })) {
+      void _;
     }
     let yielded = false;
     (async () => {
@@ -290,6 +297,7 @@ describe('Transformers client', () => {
         caret: 2,
         band: { start: 0, end: 2 },
       })) {
+        void _;
         yielded = true;
         break;
       }

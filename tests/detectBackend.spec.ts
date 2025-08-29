@@ -92,9 +92,9 @@ describe('detectBackend', () => {
     ).WebAssembly;
     vi.stubGlobal('navigator', {} as unknown as Navigator);
     (globalThis as unknown as { WebAssembly?: typeof WebAssembly }).WebAssembly = {
-      // @ts-expect-error minimal shape for test
+      // minimal shape for test
       Memory: function () {},
-      // @ts-expect-error minimal probe for simd
+      // minimal probe for simd
       validate: function () {
         return true;
       },

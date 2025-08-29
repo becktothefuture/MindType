@@ -830,3 +830,22 @@ All docs follow house comment header style; stubs will be filled as tasks land.
     - No mention of underline/highlight/TidySweep/Backfill
   output: docs/* updated with traceability notes
 ```
+
+---
+
+## Doc2Code Rollout Tasks (live)
+
+- [ ] Add SPEC blocks for core REQs in `docs/PRD.md`
+- [ ] Add CONTRACT for LMAdapter in `docs/guide/reference/lm-behavior.md`
+- [x] Add CONTRACT for Active Region in `docs/guide/reference/active-region-design.md`
+- [x] Add doc2code CLI and package scripts
+- [x] Add Cursor authoring rule `.cursor/rules/doc2code.mdc`
+- [ ] Update headers by running `pnpm doc:sync`
+- [ ] Verify `docs/traceability.json` is generated and linked in PRD appendix
+- [ ] Run full checks: `pnpm ci` including `pnpm doc:check`
+
+### In simple terms
+
+- **Write the truth in docs.** The tool mirrors that truth onto files so others can see WHAT/WHY/HOW.
+- **Add SPEC blocks** (REQ/CONTRACT) where changes happen.
+- **Run `pnpm doc:sync`** to propagate updates.

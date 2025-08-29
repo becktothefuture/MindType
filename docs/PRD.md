@@ -118,3 +118,64 @@ Appendix — Traceability Map (starter)
 - Usability: Reduced‑motion compliance; minimal unobtrusive UI
 - Reliability: p95 latency targets met on M‑series in demo; unit/integration tests green; coverage guard passes
 - Supportability: Local‑only default; clear setup script `pnpm setup:local`; logs gated; docs updated (PRD, implementation, QA mapping)
+
+<!-- SPEC:REQ
+id: REQ-STREAMED-DIFFUSION
+title: Streamed diffusion of LM corrections
+status: active
+modules:
+  - core/diffusionController.ts
+  - core/lm/mergePolicy.ts
+acceptance:
+  - docs/qa/acceptance/streamed_diffusion.feature#SCEN-DIFFUSION-001
+tests:
+  - tests/diffusionController.spec.ts
+  - tests/diffusionController_lm_branches.spec.ts
+-->
+
+<!-- SPEC:REQ
+id: REQ-IME-CARETSAFE
+title: No edits at or after the caret
+status: active
+modules:
+  - utils/diff.ts
+  - core/activeRegionPolicy.ts
+acceptance:
+  - docs/qa/acceptance/caret_safety.feature#SCEN-CARETS-001
+tests:
+  - tests/diff.spec.ts
+  - tests/policy.spec.ts
+-->
+
+<!-- SPEC:REQ
+id: REQ-A11Y-MOTION
+title: Respect reduced-motion; single announcement; mechanical swap
+status: active
+modules:
+  - ui/motion.ts
+  - ui/liveRegion.ts
+acceptance:
+  - docs/qa/acceptance/two_word_highlight.feature#SCEN-HILITE-001
+tests:
+  - tests/motion.spec.ts
+  - tests/liveRegion.spec.ts
+-->
+
+<!-- SPEC:REQ
+id: REQ-LOCAL-LM-INTEGRATION
+title: On-device LM integration with graceful fallback
+status: active
+modules:
+  - core/lm/factory.ts
+  - core/lm/transformersClient.ts
+acceptance:
+  - docs/qa/acceptance/local_lm_integration.feature#SCEN-LMLOCAL-001
+tests:
+  - tests/transformersClient.spec.ts
+  - tests/transformersClient_factory.spec.ts
+-->
+
+### In simple terms
+
+- **What this section is for**: It lists our requirements and where to find their code and tests.
+- **How to use**: Add a SPEC block like above when you add/change a requirement. Our tool syncs file headers and the traceability map.

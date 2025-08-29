@@ -1,13 +1,18 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  D I F F U S I O N   C O N T R O L L E R  ░░░░░░░░░░░░░░  ║
-  ║                                                              ║
-  ║   Streams caret‑safe fixes behind the caret word‑by‑word.    ║
-  ║   Advances a frontier toward the caret and updates the UI.   ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Incremental "diffusion" behind caret
-  • WHY  ▸ Visible trailing stream; catch‑up on pause
-  • HOW  ▸ Unicode word segmentation; never edits at/after caret
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  DIFFUSIONCONTROLLER  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ Streamed diffusion of LM corrections
+  • WHY  ▸ REQ-STREAMED-DIFFUSION
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 import {
