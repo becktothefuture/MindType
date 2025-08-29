@@ -84,10 +84,24 @@ function writeTraceability(specs) {
   fs.writeFileSync(TRACE_JSON, JSON.stringify(map, null, 2));
 }
 
-function formatBoxHeader(title, what, why, how) {
+function formatBoxHeader(title, what, why, how, style = 'js') {
   // Box width must be 72 chars total; compose lines accordingly
+  const lineStart = style === 'html' ? '<!--' : '/*';
+  const lineEnd = style === 'html' ? '-->' : '*/';
   const top =
-    '/*╔' +
+    (style === 'html' ? '' : '') +
+    (style === 'html' ? '' : '') +
+    (style === 'html' ? '' : '') +
+    (style === 'html' ? '' : '') +
+    (style === 'html' ? '' : '') +
+    (style === 'html' ? '' : '') +
+    (style === 'html' ? '' : '') +
+    (style === 'html' ? '' : '') +
+    (style === 'html' ? '' : '') +
+    (style === 'html' ? '' : '');
+  const headTop =
+    (style === 'html' ? '<!--' : '/*') +
+    '╔' +
     '══════════════════════════════════════════════════════'.padEnd(58, '═') +
     '╗\n';
   function lineCenter(text) {
@@ -115,14 +129,15 @@ function formatBoxHeader(title, what, why, how) {
     '  ╚' +
     '══════════════════════════════════════════════════════'.padEnd(58, '═') +
     '╝\n';
-  const bullets = `  • WHAT ▸ ${what}\n  • WHY  ▸ ${why}\n  • HOW  ▸ ${how}\n*/\n`;
-  return top + mid + bot + bullets;
+  const bullets = `  • WHAT ▸ ${what}\n  • WHY  ▸ ${why}\n  • HOW  ▸ ${how}\n`;
+  const headBot = (style === 'html' ? '-->' : '*/') + '\n';
+  return headTop + mid + bot + bullets + headBot;
 }
 
-function ensureHeaderForFile(absPath, headerText) {
+function ensureHeaderForFile(absPath, headerText, style = 'js') {
   if (!fs.existsSync(absPath)) return { changed: false, reason: 'missing' };
   const original = fs.readFileSync(absPath, 'utf8');
-  const hdrRe = /\/\*╔[\s\S]*?\*\//;
+  const hdrRe = style === 'html' ? /<!--[\s\S]*?-->/ : /\/\*╔[\s\S]*?\*\//;
   let updated;
   if (hdrRe.test(original)) {
     updated = original.replace(hdrRe, headerText.trim());
@@ -145,6 +160,7 @@ function computeHeaderFromSpecs(fileRel, specsById) {
   const title = path
     .basename(fileRel)
     .replace(/\.[tj]s$/, '')
+    .replace(/\.(html|css)$/, '')
     .replace(/[-_]/g, ' ');
   const what =
     entries
@@ -160,7 +176,8 @@ function computeHeaderFromSpecs(fileRel, specsById) {
   const whyIds = idParts.join(', ');
   const why = whyIds || 'See docs';
   const how = 'See linked contracts and guides in docs';
-  return formatBoxHeader(title, what, why, how);
+  const style = fileRel.endsWith('.html') ? 'html' : 'js';
+  return formatBoxHeader(title, what, why, how, style);
 }
 
 function syncHeaders(specs) {
@@ -175,7 +192,8 @@ function syncHeaders(specs) {
     const abs = path.join(REPO_ROOT, rel);
     const header = computeHeaderFromSpecs(rel, specsById);
     if (!header) continue;
-    const r = ensureHeaderForFile(abs, header);
+    const style = rel.endsWith('.html') ? 'html' : 'js';
+    const r = ensureHeaderForFile(abs, header, style);
     results.push({ file: rel, changed: r.changed });
   }
   return results;
@@ -301,7 +319,8 @@ function main() {
       if (!header) continue;
       if (!fs.existsSync(abs)) continue;
       const original = fs.readFileSync(abs, 'utf8');
-      const hdrRe = /\/\*╔[\s\S]*?\*\//;
+      const style = rel.endsWith('.html') ? 'html' : 'js';
+      const hdrRe = style === 'html' ? /<!--\s*╔[\s\S]*?-->/ : /\/\*╔[\s\S]*?\*\//;
       let wouldChange = false;
       if (hdrRe.test(original)) {
         const replaced = original.replace(hdrRe, header.trim());

@@ -29,6 +29,7 @@ export default defineConfig({
         'tests/**',
         'coverage/**',
         'node_modules/**',
+        'core/lm/types.generated.ts',
       ],
       thresholds: {
         lines: 90,

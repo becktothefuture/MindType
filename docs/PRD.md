@@ -179,3 +179,18 @@ tests:
 
 - **What this section is for**: It lists our requirements and where to find their code and tests.
 - **How to use**: Add a SPEC block like above when you add/change a requirement. Our tool syncs file headers and the traceability map.
+
+<!-- SPEC:REQ
+id: REQ-BAND-SWAP
+title: Band-swap noise-cluster animation demo
+status: active
+modules:
+  - demo/band-swap/index.html
+  - demo/band-swap/main.js
+  - demo/band-swap/styles.css
+  - contracts/animTokens.ts
+acceptance:
+  - docs/qa/acceptance/mechanical_swap.feature#SCEN-BAND-SWAP-001
+tests:
+  - e2e/tests/demo-band-swap.spec.ts
+-->
