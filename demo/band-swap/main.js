@@ -27,6 +27,9 @@ let rafId = 0;
 let running = false;
 let layout = null;
 
+let lastBandInfo = { start: 0, end: 0, center: 0 };
+let lastSamplePoint = { x: 0, y: 0 };
+
 function measureLayout() {
   const rect = paragraphEl.getBoundingClientRect();
   const styles = getComputedStyle(paragraphEl);
@@ -70,6 +73,8 @@ function drawFrame() {
   const half = Math.max(1, Math.floor(state.bandSpread));
   const start = Math.max(0, bandCenter - half);
   const end = Math.min(total - 1, bandCenter + half);
+  lastBandInfo = { start, end, center: bandCenter };
+
   const mix = state.bandMix / 100;
 
   // Mask background under band chars, then draw swapped glyphs only
@@ -83,9 +88,7 @@ function drawFrame() {
 
   for (let i = start; i <= end; i++) {
     const { ch, x, y, w } = boxes[i];
-    // Skip spaces to reduce work
     if (!ch || ch === ' ') continue;
-    // Fill background rect to hide underlying text
     ctx.fillRect(x, y - ascent, w || 1, height);
   }
 
@@ -98,6 +101,11 @@ function drawFrame() {
       : ch;
     ctx.fillText(out, x, y);
   }
+
+  // Record a central sample point for tests
+  const midIdx = Math.min(end, Math.max(start, bandCenter));
+  const b = boxes[midIdx] || { x: 0, y: 0 };
+  lastSamplePoint = { x: Math.floor((b.x + (b.w || 8) / 2) * dpr), y: Math.floor((b.y - ascent / 2) * dpr) };
 }
 
 function loop() {
@@ -183,3 +191,10 @@ window.addEventListener('load', () => {
   if (state.autoplay) start();
   else drawFrame();
 });
+
+// Expose debug hooks for tests
+window.bandSwap = {
+  getBandInfo: () => ({ ...lastBandInfo }),
+  getSamplePoint: () => ({ ...lastSamplePoint }),
+  state,
+};
