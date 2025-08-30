@@ -1,5 +1,5 @@
 /*╔══════════════════════════════════════════════════════════╗
-  ║  ░  MAIN  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║  ░  BAND-SWAP NOISE WAVE DEMO  ░░░░░░░░░░░░░░░░░░░░░░░░  ║
   ║                                                            ║
   ║                                                            ║
   ║                                                            ║
@@ -10,346 +10,568 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ Band-swap noise-cluster animation demo; Band-swap animation tokens
-  • WHY  ▸ REQ-BAND-SWAP, CONTRACT-BAND-SWAP
-  • HOW  ▸ See linked contracts and guides in docs
+  • WHAT ▸ Noise wave animation that travels line-by-line through text
+  • WHY  ▸ Demonstrate living text with dynamic character swapping
+  • HOW  ▸ Line-by-line wave movement with 10fps noise evolution
 */
 
-// Animation configuration
-const DEFAULT_TOKENS = {
-  bandSpeed: 0.15,        // Band movement speed (playhead)
-  bandSize: 12,           // Band size in characters
-  bandMix: 80,            // Character swap probability %
-  noiseFPS: 15,           // Noise evolution speed in FPS
-  noiseIntensity: 90,     // Noise field strength %
-  noiseDensity: 70,       // Noise coverage area %
-  autoplay: true,         // Automatic band movement
-  playhead: 0             // Manual band position %
+// Animation configuration with comprehensive controls
+const DEFAULTS = {
+  // Wave movement
+  waveSpeed: 0.5,           // Speed of wave movement (0-1)
+  waveWidth: 8,             // Width of noise band in characters
+  waveDirection: 'left-to-right', // 'left-to-right' | 'right-to-left'
+  
+  // Noise behavior
+  noiseFPS: 10,             // Noise evolution speed (frames per second)
+  noiseIntensity: 0.8,      // Probability of character swapping (0-1)
+  noiseDensity: 0.7,        // Density of noise within band (0-1)
+  
+  // Visual effects
+  bandOpacity: 0.9,         // Opacity of noise band highlight
+  bandColor: '#FF2DAA',     // Color of band highlight
+  bandBlur: 2,              // Blur effect on band edges (px)
+  
+  // Animation control
+  autoplay: true,           // Automatic wave movement
+  loop: true,               // Loop animation when complete
+  pauseOnHover: true,       // Pause when hovering over text
+  
+  // Braille symbols for noise effect
+  brailleBias: 0.6,         // Probability of using braille vs regular chars (0-1)
+  charset: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()',
 };
 
-// Braille symbols for the noise effect
-const DEFAULT_SYMBOLS = [
+// Braille symbols (middle rows only for better visual consistency)
+const BRAILLE_SYMBOLS = [
   '⠁', '⠂', '⠃', '⠄', '⠅', '⠆', '⠇', '⠈', '⠉', '⠊', '⠋', '⠌', '⠍', '⠎', '⠏',
   '⠐', '⠑', '⠒', '⠓', '⠔', '⠕', '⠖', '⠗', '⠘', '⠙', '⠚', '⠛', '⠜', '⠝', '⠞', '⠟',
   '⠠', '⠡', '⠢', '⠣', '⠤', '⠥', '⠦', '⠧', '⠨', '⠩', '⠪', '⠫', '⠬', '⠭', '⠮', '⠯',
   '⠰', '⠱', '⠲', '⠳', '⠴', '⠵', '⠶', '⠷', '⠸', '⠹', '⠺', '⠻', '⠼', '⠽', '⠾', '⠿'
 ];
 
-const textElements = document.querySelectorAll('[data-mt]');
-const state = { ...DEFAULT_TOKENS };
-
-let rafId = 0;
-let running = false;
+// State management
+let config = { ...DEFAULTS };
+let animationId = null;
+let isRunning = false;
+let currentLine = 0;
+let currentPosition = 0;
+let lastNoiseUpdate = 0;
+let textLines = [];
 let originalText = '';
-let textChars = [];
-let currentText = [];
-let lastNoiseFrame = 0;
+let currentText = '';
 let bandHighlight = null;
 
-// Track band info for testing
-let lastBandInfo = { start: 0, end: 0, center: 0 };
-let lastSamplePoint = { x: 0, y: 0 };
+// DOM elements
+const textElement = document.querySelector('[data-mt]');
+const panel = document.getElementById('mt-panel');
 
-function initializeText() {
-  if (!textElements.length) return;
+// Initialize the demo
+function init() {
+  if (!textElement) return;
   
-  // Get the original text and convert to character array
-  const textEl = textElements[0]; // Focus on first text element
-  originalText = (textEl.textContent || '').trim();
-  textChars = [...originalText];
-  currentText = [...originalText]; // Track current state
+  // Store original text and split into lines
+  originalText = textElement.textContent.trim();
+  textElement.textContent = originalText;
+  currentText = originalText;
   
-  // Update the element with trimmed text
-  textEl.textContent = originalText;
-  
-  // Store original for restoration
-  textEl.dataset.originalText = originalText;
+  // Split text into lines (simple approach)
+  textLines = splitIntoLines(originalText);
   
   // Create band highlight element
   createBandHighlight();
-}
-
-function createBandHighlight() {
-  if (!textElements.length) return;
   
-  const textEl = textElements[0];
-  const container = textEl.parentElement;
+  // Build control panel
+  buildPanel();
   
-  // Create highlight element
-  bandHighlight = document.createElement('div');
-  bandHighlight.className = 'band-highlight';
-  bandHighlight.setAttribute('aria-hidden', 'true');
-  
-  // Insert before text element
-  container.insertBefore(bandHighlight, textEl);
-}
-
-function updateBandHighlight(start, end) {
-  if (!bandHighlight || !textElements.length) return;
-  
-  const textEl = textElements[0];
-  const rect = textEl.getBoundingClientRect();
-  const containerRect = textEl.parentElement.getBoundingClientRect();
-  
-  // Approximate character width (rough estimation)
-  const charWidth = rect.width / originalText.length;
-  const charHeight = parseFloat(getComputedStyle(textEl).fontSize) * 1.2;
-  
-  // Calculate highlight position
-  const highlightLeft = start * charWidth;
-  const highlightWidth = Math.max(charWidth, (end - start + 1) * charWidth);
-  
-  // Position relative to container
-  bandHighlight.style.left = `${highlightLeft}px`;
-  bandHighlight.style.top = `${rect.top - containerRect.top - 4}px`;
-  bandHighlight.style.width = `${highlightWidth}px`;
-  bandHighlight.style.height = `${charHeight + 8}px`;
-}
-
-function drawFrame() {
-  if (!textElements.length || !textChars.length) return;
-  
-  const now = performance.now();
-  const textEl = textElements[0];
-  
-  // Calculate noise frame based on FPS
-  const noiseFrameTime = 1000 / state.noiseFPS; // Convert FPS to milliseconds
-  const currentNoiseFrame = Math.floor(now / noiseFrameTime);
-  
-  // Only update noise on new frames to maintain consistent FPS
-  const shouldUpdateNoise = currentNoiseFrame !== lastNoiseFrame;
-  lastNoiseFrame = currentNoiseFrame;
-  
-  // Band position calculation (separate from noise)
-  const play = state.autoplay
-    ? (now * state.bandSpeed * 0.001) % 1
-    : state.playhead / 100;
-  
-  // Band moves through the entire paragraph
-  const maxChars = textChars.length;
-  const bandCenter = Math.floor(play * maxChars);
-  const half = Math.max(1, Math.floor(state.bandSize / 2));
-  const start = Math.max(0, bandCenter - half);
-  const end = Math.min(maxChars - 1, bandCenter + half);
-  
-  lastBandInfo = { start, end, center: bandCenter };
-  
-  // Update visual band highlight
-  updateBandHighlight(start, end);
-  
-  // First, restore all characters to original state
-  for (let i = 0; i < maxChars; i++) {
-    currentText[i] = textChars[i];
+  // Start animation
+  if (config.autoplay) {
+    start();
   }
   
-  // Apply character swapping only within the current band
-  for (let i = 0; i < maxChars; i++) {
-    const originalChar = textChars[i];
-    if (!originalChar || originalChar === ' ') continue;
-    
-    const inBand = i >= start && i <= end;
-    
-    if (inBand && shouldUpdateNoise) {
-      // Noise calculation for character swapping
-      const mix = state.bandMix / 100;
-      const noiseTime = currentNoiseFrame * 0.1; // Use frame-based time
-      const noiseIntensity = state.noiseIntensity / 100;
-      const noiseDensity = state.noiseDensity / 100;
-      
-      // Simple time-based noise for variation
-      const timeNoise = Math.sin(noiseTime + i * 0.1) * 0.5 + 0.5;
-      
-      // Calculate final swap probability (much more direct)
-      const baseProbability = mix * noiseDensity * noiseIntensity;
-      const finalProbability = baseProbability * timeNoise;
-      const shouldSwap = Math.random() < finalProbability;
-      
-      if (shouldSwap) {
-        // Select braille symbol based on noise
-        const symbolNoise = Math.sin(noiseTime * 4 + i * 0.15) * 0.5 + 0.5;
-        const symbolIndex = Math.floor(symbolNoise * DEFAULT_SYMBOLS.length);
-        currentText[i] = DEFAULT_SYMBOLS[symbolIndex];
-      }
+  // Setup hover pause
+  if (config.pauseOnHover) {
+    textElement.addEventListener('mouseenter', pause);
+    textElement.addEventListener('mouseleave', resume);
+  }
+}
+
+// Split text into lines based on natural breaks
+function splitIntoLines(text) {
+  const words = text.split(' ');
+  const lines = [];
+  let currentLine = '';
+  const maxCharsPerLine = 80; // Approximate line length
+  
+  for (const word of words) {
+    if ((currentLine + word).length > maxCharsPerLine && currentLine) {
+      lines.push(currentLine.trim());
+      currentLine = word + ' ';
+    } else {
+      currentLine += word + ' ';
     }
   }
   
-  // Update DOM only if text changed (performance optimization)
-  const newTextString = currentText.join('');
-  if (textEl.textContent !== newTextString) {
-    textEl.textContent = newTextString;
+  if (currentLine.trim()) {
+    lines.push(currentLine.trim());
   }
   
-  // Update sample point for testing (approximate center of band)
-  const midIdx = Math.min(end, Math.max(start, bandCenter));
-  lastSamplePoint = { x: midIdx * 20, y: 50 }; // Approximate positioning
+  return lines;
 }
 
-
-
-function loop() {
-  if (!running) return;
-  drawFrame();
-  rafId = requestAnimationFrame(loop);
+// Create visual band highlight
+function createBandHighlight() {
+  bandHighlight = document.createElement('div');
+  bandHighlight.className = 'band-highlight';
+  bandHighlight.style.cssText = `
+    position: absolute;
+    pointer-events: none;
+    border-radius: 4px;
+    transition: all 0.1s ease;
+    z-index: 1;
+  `;
+  
+  textElement.parentElement.style.position = 'relative';
+  textElement.parentElement.appendChild(bandHighlight);
 }
 
+// Update band highlight position and appearance
+function updateBandHighlight() {
+  if (!bandHighlight || !textLines[currentLine]) return;
+  
+  const lineText = textLines[currentLine];
+  const charWidth = estimateCharWidth();
+  const lineHeight = estimateLineHeight();
+  
+  const startPos = currentPosition * charWidth;
+  const width = Math.min(config.waveWidth * charWidth, (lineText.length - currentPosition) * charWidth);
+  const top = currentLine * lineHeight;
+  
+  bandHighlight.style.cssText = `
+    position: absolute;
+    left: ${startPos}px;
+    top: ${top}px;
+    width: ${width}px;
+    height: ${lineHeight}px;
+    background: ${config.bandColor}20;
+    border: 1px solid ${config.bandColor}40;
+    border-radius: 4px;
+    backdrop-filter: blur(${config.bandBlur}px);
+    pointer-events: none;
+    transition: all 0.1s ease;
+    z-index: 1;
+  `;
+}
+
+// Estimate character width for positioning
+function estimateCharWidth() {
+  const testSpan = document.createElement('span');
+  testSpan.style.cssText = `
+    position: absolute;
+    visibility: hidden;
+    font-family: inherit;
+    font-size: inherit;
+    white-space: pre;
+  `;
+  testSpan.textContent = 'A';
+  document.body.appendChild(testSpan);
+  const width = testSpan.getBoundingClientRect().width;
+  document.body.removeChild(testSpan);
+  return width;
+}
+
+// Estimate line height
+function estimateLineHeight() {
+  const computed = getComputedStyle(textElement);
+  return parseFloat(computed.lineHeight) || parseFloat(computed.fontSize) * 1.2;
+}
+
+// Main animation loop
+function animate(timestamp) {
+  if (!isRunning) return;
+  
+  // Update noise at specified FPS
+  const noiseInterval = 1000 / config.noiseFPS;
+  if (timestamp - lastNoiseUpdate >= noiseInterval) {
+    updateNoise();
+    lastNoiseUpdate = timestamp;
+  }
+  
+  // Update wave position
+  updateWavePosition(timestamp);
+  
+  // Update visual highlight
+  updateBandHighlight();
+  
+  // Continue animation
+  animationId = requestAnimationFrame(animate);
+}
+
+// Update noise within the current band
+function updateNoise() {
+  if (!textLines[currentLine]) return;
+  
+  const lineText = textLines[currentLine];
+  const start = Math.floor(currentPosition);
+  const end = Math.min(start + config.waveWidth, lineText.length);
+  
+  // Create new text with noise applied
+  let newText = '';
+  let lineStart = 0;
+  
+  for (let i = 0; i < textLines.length; i++) {
+    if (i === currentLine) {
+      // Apply noise to current line
+      const before = lineText.substring(0, start);
+      const band = lineText.substring(start, end);
+      const after = lineText.substring(end);
+      
+      // Apply noise to band characters
+      const noisyBand = band.split('').map(char => {
+        if (char === ' ') return ' ';
+        
+        const shouldSwap = Math.random() < config.noiseIntensity;
+        if (shouldSwap) {
+          const useBraille = Math.random() < config.brailleBias;
+          if (useBraille) {
+            return BRAILLE_SYMBOLS[Math.floor(Math.random() * BRAILLE_SYMBOLS.length)];
+          } else {
+            return config.charset[Math.floor(Math.random() * config.charset.length)];
+          }
+        }
+        return char;
+      }).join('');
+      
+      newText += before + noisyBand + after;
+    } else {
+      // Keep other lines unchanged
+      newText += textLines[i];
+    }
+    
+    if (i < textLines.length - 1) {
+      newText += '\n';
+    }
+  }
+  
+  // Update DOM only if text changed
+  if (newText !== currentText) {
+    textElement.textContent = newText;
+    currentText = newText;
+  }
+}
+
+// Update wave position
+function updateWavePosition(timestamp) {
+  if (!config.autoplay) return;
+  
+  const lineText = textLines[currentLine];
+  if (!lineText) return;
+  
+  // Move wave along current line
+  currentPosition += config.waveSpeed * 0.1; // Adjust speed factor
+  
+  // Check if wave has reached end of line
+  if (currentPosition >= lineText.length) {
+    // Move to next line
+    currentLine++;
+    currentPosition = 0;
+    
+    // Check if we've completed all lines
+    if (currentLine >= textLines.length) {
+      if (config.loop) {
+        // Reset to beginning
+        currentLine = 0;
+        currentPosition = 0;
+      } else {
+        // Stop animation
+        stop();
+        return;
+      }
+    }
+  }
+}
+
+// Control functions
 function start() {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  if (running) return;
-  running = true;
-  rafId = requestAnimationFrame(loop);
+  if (isRunning) return;
+  isRunning = true;
+  animationId = requestAnimationFrame(animate);
 }
 
 function stop() {
-  running = false;
-  cancelAnimationFrame(rafId);
+  isRunning = false;
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+    animationId = null;
+  }
 }
 
-function onResize() {
-  // No layout measurement needed for direct text manipulation
-  drawFrame();
+function pause() {
+  if (isRunning) {
+    stop();
+  }
 }
 
+function resume() {
+  if (!isRunning && config.autoplay) {
+    start();
+  }
+}
+
+// Panel building (copied from mt-scroll-anim-v1 style)
 function buildPanel() {
-  const panel = document.getElementById('mt-panel');
   panel.innerHTML = '';
   
   // Add title
   const title = document.createElement('h3');
-  title.textContent = 'Animation Controls';
+  title.textContent = 'Noise Wave Controls';
   panel.appendChild(title);
   
-  const controls = [
-    { label: 'Band Speed', key: 'bandSpeed', type: 'range', min: 0, max: 1, step: 0.01, desc: 'Band movement speed (playhead)' },
-    { label: 'Band Size', key: 'bandSize', type: 'range', min: 1, max: 20, step: 1, desc: 'Band size in characters' },
-    { label: 'Band Mix', key: 'bandMix', type: 'range', min: 0, max: 100, step: 1, desc: 'Character swap probability %' },
-    { label: 'Noise FPS', key: 'noiseFPS', type: 'range', min: 1, max: 60, step: 1, desc: 'Noise evolution speed in FPS' },
-    { label: 'Noise Intensity', key: 'noiseIntensity', type: 'range', min: 0, max: 100, step: 1, desc: 'Noise field strength %' },
-    { label: 'Noise Density', key: 'noiseDensity', type: 'range', min: 0, max: 100, step: 1, desc: 'Noise coverage area %' },
-    { label: 'Autoplay', key: 'autoplay', type: 'checkbox', desc: 'Automatic band movement' },
-    { label: 'Position', key: 'playhead', type: 'range', min: 0, max: 100, step: 1, desc: 'Manual band position %' },
+  // Define control fields
+  const fields = [
+    {
+      key: 'waveSpeed',
+      type: 'range',
+      label: 'Wave Speed',
+      min: 0.1,
+      max: 2.0,
+      step: 0.1,
+      desc: 'Speed of wave movement'
+    },
+    {
+      key: 'waveWidth',
+      type: 'range',
+      label: 'Wave Width',
+      min: 3,
+      max: 20,
+      step: 1,
+      desc: 'Width of noise band in characters'
+    },
+    {
+      key: 'noiseFPS',
+      type: 'range',
+      label: 'Noise FPS',
+      min: 5,
+      max: 30,
+      step: 1,
+      desc: 'Noise evolution speed'
+    },
+    {
+      key: 'noiseIntensity',
+      type: 'range',
+      label: 'Noise Intensity',
+      min: 0,
+      max: 1,
+      step: 0.05,
+      desc: 'Probability of character swapping'
+    },
+    {
+      key: 'noiseDensity',
+      type: 'range',
+      label: 'Noise Density',
+      min: 0,
+      max: 1,
+      step: 0.05,
+      desc: 'Density of noise within band'
+    },
+    {
+      key: 'brailleBias',
+      type: 'range',
+      label: 'Braille Bias',
+      min: 0,
+      max: 1,
+      step: 0.05,
+      desc: 'Probability of using braille symbols'
+    },
+    {
+      key: 'bandColor',
+      type: 'color',
+      label: 'Band Color',
+      desc: 'Color of band highlight'
+    },
+    {
+      key: 'autoplay',
+      type: 'checkbox',
+      label: 'Autoplay',
+      desc: 'Automatic wave movement'
+    },
+    {
+      key: 'loop',
+      type: 'checkbox',
+      label: 'Loop',
+      desc: 'Loop animation when complete'
+    },
+    {
+      key: 'pauseOnHover',
+      type: 'checkbox',
+      label: 'Pause on Hover',
+      desc: 'Pause when hovering over text'
+    }
   ];
   
-  for (const c of controls) {
-    const row = document.createElement('div');
-    row.className = 'mt-row';
-    
-    const labelContainer = document.createElement('div');
-    labelContainer.style.display = 'flex';
-    labelContainer.style.flexDirection = 'column';
-    labelContainer.style.minWidth = '80px';
-    
-    const label = document.createElement('label');
-    label.textContent = c.label;
-    labelContainer.appendChild(label);
-    
-    const input = document.createElement('input');
-    input.type = c.type;
-    input.title = c.desc;
-    
-    if (c.type === 'checkbox') {
-      input.checked = state[c.key];
-      input.addEventListener('change', () => {
-        state[c.key] = input.checked;
-        updatePlayheadVisibility();
-        if (state.autoplay) start();
-        else stop();
-        drawFrame();
-      });
-    } else {
-      input.min = String(c.min);
-      input.max = String(c.max);
-      input.step = String(c.step);
-      input.value = String(state[c.key]);
-      
-      // Add value display
-      const valueDisplay = document.createElement('span');
-      valueDisplay.style.fontSize = '0.8rem';
-      valueDisplay.style.color = '#64748b';
-      valueDisplay.style.minWidth = '40px';
-      valueDisplay.style.textAlign = 'right';
-      
-      const updateValue = () => {
-        const v = Number(input.value);
-        state[c.key] = v;
-        valueDisplay.textContent = c.key === 'bandSpeed' ? v.toFixed(1) : String(v);
-        if (!state.autoplay && c.key !== 'playhead') return;
-        drawFrame();
-      };
-      
-      input.addEventListener('input', updateValue);
-      updateValue();
-      
-      const inputContainer = document.createElement('div');
-      inputContainer.style.display = 'flex';
-      inputContainer.style.alignItems = 'center';
-      inputContainer.style.gap = '0.5rem';
-      inputContainer.style.flex = '1';
-      inputContainer.appendChild(input);
-      inputContainer.appendChild(valueDisplay);
-      
-      row.appendChild(labelContainer);
-      row.appendChild(inputContainer);
-      panel.appendChild(row);
-      continue;
+  // Create sections
+  const sections = [
+    {
+      title: 'Wave Movement',
+      desc: 'Control the speed and size of the noise wave.',
+      keys: ['waveSpeed', 'waveWidth']
+    },
+    {
+      title: 'Noise Behavior',
+      desc: 'Adjust how the noise evolves and affects characters.',
+      keys: ['noiseFPS', 'noiseIntensity', 'noiseDensity', 'brailleBias']
+    },
+    {
+      title: 'Visual Effects',
+      desc: 'Customize the appearance of the noise band.',
+      keys: ['bandColor']
+    },
+    {
+      title: 'Animation Control',
+      desc: 'Control playback and interaction behavior.',
+      keys: ['autoplay', 'loop', 'pauseOnHover']
     }
-    
-    row.appendChild(labelContainer);
-    row.appendChild(input);
-    panel.appendChild(row);
-  }
+  ];
   
-  updatePlayheadVisibility();
-}
-
-function updatePlayheadVisibility() {
-  const playheadRow = document.querySelector('.mt-row:last-child');
-  if (playheadRow) {
-    playheadRow.style.opacity = state.autoplay ? '0.5' : '1';
-    playheadRow.style.pointerEvents = state.autoplay ? 'none' : 'auto';
-  }
-}
-
-function setupIOPause() {
-  const io = new IntersectionObserver((entries) => {
-    const anyVisible = entries.some(e => e.isIntersecting);
-    if (anyVisible) start();
-    else stop();
-  });
-  textElements.forEach(el => io.observe(el));
-}
-
-window.addEventListener('resize', onResize);
-window.addEventListener('load', () => {
-  // Ensure text elements are visible
-  textElements.forEach(el => {
-    el.style.opacity = '1';
-    el.style.visibility = 'visible';
+  // Build sections
+  sections.forEach(section => {
+    const sectionEl = createSection(section.title, section.desc);
+    section.keys.forEach(key => {
+      const field = fields.find(f => f.key === key);
+      if (field) {
+        sectionEl.appendChild(createField(field));
+      }
+    });
+    panel.appendChild(sectionEl);
   });
   
-  initializeText();
-  buildPanel();
-  setupIOPause();
-  
-  // Add keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    if (e.key === ' ' && e.target === document.body) {
-      e.preventDefault();
-      state.autoplay = !state.autoplay;
-      const checkbox = document.querySelector('input[type="checkbox"]');
-      if (checkbox) checkbox.checked = state.autoplay;
-      updatePlayheadVisibility();
-      if (state.autoplay) start();
-      else stop();
+  // Add reset button
+  const resetSection = createSection('Reset', 'Restore default settings.');
+  const resetBtn = document.createElement('button');
+  resetBtn.textContent = 'Reset to Defaults';
+  resetBtn.className = 'mt-reset-btn';
+  resetBtn.addEventListener('click', () => {
+    config = { ...DEFAULTS };
+    updateAllFields();
+    if (config.autoplay) {
+      start();
     }
   });
-  
-  if (state.autoplay) start();
-  else drawFrame();
-});
+  resetSection.appendChild(resetBtn);
+  panel.appendChild(resetSection);
+}
 
-// Expose debug hooks for tests
+// Create section element
+function createSection(title, desc) {
+  const section = document.createElement('div');
+  section.className = 'mt-section';
+  
+  const titleEl = document.createElement('div');
+  titleEl.className = 'mt-title';
+  titleEl.textContent = title;
+  
+  const descEl = document.createElement('div');
+  descEl.className = 'mt-desc';
+  descEl.textContent = desc;
+  
+  const fieldsEl = document.createElement('div');
+  fieldsEl.className = 'mt-fields';
+  
+  section.appendChild(titleEl);
+  section.appendChild(descEl);
+  section.appendChild(fieldsEl);
+  
+  return section;
+}
+
+// Create field element
+function createField(field) {
+  const group = document.createElement('div');
+  group.className = 'group';
+  
+  const label = document.createElement('label');
+  label.textContent = field.label;
+  label.title = field.desc;
+  
+  const input = document.createElement('input');
+  input.type = field.type;
+  input.id = `mt-${field.key}`;
+  
+  if (field.type === 'range') {
+    input.min = field.min;
+    input.max = field.max;
+    input.step = field.step;
+    input.value = config[field.key];
+    
+    // Add value display
+    const valueSpan = document.createElement('span');
+    valueSpan.className = 'mt-value';
+    valueSpan.textContent = config[field.key];
+    
+    input.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      config[field.key] = value;
+      valueSpan.textContent = value;
+    });
+    
+    group.appendChild(label);
+    group.appendChild(input);
+    group.appendChild(valueSpan);
+  } else if (field.type === 'checkbox') {
+    input.checked = config[field.key];
+    
+    input.addEventListener('change', (e) => {
+      config[field.key] = e.target.checked;
+    });
+    
+    group.appendChild(input);
+    group.appendChild(label);
+  } else if (field.type === 'color') {
+    input.value = config[field.key];
+    
+    input.addEventListener('input', (e) => {
+      config[field.key] = e.target.value;
+    });
+    
+    group.appendChild(label);
+    group.appendChild(input);
+  }
+  
+  return group;
+}
+
+// Update all field values
+function updateAllFields() {
+  Object.keys(config).forEach(key => {
+    const input = document.getElementById(`mt-${key}`);
+    if (input) {
+      if (input.type === 'checkbox') {
+        input.checked = config[key];
+      } else {
+        input.value = config[key];
+      }
+    }
+  });
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+// Expose for testing
 window.bandSwap = {
-  getBandInfo: () => ({ ...lastBandInfo }),
-  getSamplePoint: () => ({ ...lastSamplePoint }),
-  state,
+  start,
+  stop,
+  pause,
+  resume,
+  config: () => config,
+  getBandInfo: () => ({
+    currentLine,
+    currentPosition,
+    waveWidth: config.waveWidth,
+    isRunning
+  })
 };
