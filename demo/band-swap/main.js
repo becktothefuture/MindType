@@ -18,7 +18,7 @@
 // Animation configuration
 const DEFAULT_TOKENS = {
   bandSpeed: 0.15,        // Band movement speed (playhead)
-  bandSize: 7,            // Band size in characters
+  bandSize: 12,           // Band size in characters
   bandMix: 80,            // Character swap probability %
   noiseFPS: 15,           // Noise evolution speed in FPS
   noiseIntensity: 90,     // Noise field strength %
@@ -125,8 +125,8 @@ function drawFrame() {
     ? (now * state.bandSpeed * 0.001) % 1
     : state.playhead / 100;
   
-  // Limit to first 7 characters only
-  const maxChars = Math.min(7, textChars.length);
+  // Band moves through the entire paragraph
+  const maxChars = textChars.length;
   const bandCenter = Math.floor(play * maxChars);
   const half = Math.max(1, Math.floor(state.bandSize / 2));
   const start = Math.max(0, bandCenter - half);
@@ -220,7 +220,7 @@ function buildPanel() {
   
   const controls = [
     { label: 'Band Speed', key: 'bandSpeed', type: 'range', min: 0, max: 1, step: 0.01, desc: 'Band movement speed (playhead)' },
-    { label: 'Band Size', key: 'bandSize', type: 'range', min: 1, max: 7, step: 1, desc: 'Band size in characters' },
+    { label: 'Band Size', key: 'bandSize', type: 'range', min: 1, max: 20, step: 1, desc: 'Band size in characters' },
     { label: 'Band Mix', key: 'bandMix', type: 'range', min: 0, max: 100, step: 1, desc: 'Character swap probability %' },
     { label: 'Noise FPS', key: 'noiseFPS', type: 'range', min: 1, max: 60, step: 1, desc: 'Noise evolution speed in FPS' },
     { label: 'Noise Intensity', key: 'noiseIntensity', type: 'range', min: 0, max: 100, step: 1, desc: 'Noise field strength %' },
