@@ -1,18 +1,18 @@
 /*╔══════════════════════════════════════════════════════════╗
-  ║  ░  BAND-SWAP NOISE WAVE DEMO  ░░░░░░░░░░░░░░░░░░░░░░░░  ║
-  ║                                                            ║
-  ║                                                            ║
-  ║                                                            ║
-  ║                                                            ║
+  ║  ░  BAND-SWAP NOISE WAVE DEMO (OPTIMIZED)  ░░░░░░░░░░░  ║
+  ║                                                          ║
+  ║                                                          ║
+  ║                                                          ║
+  ║                                                          ║
   ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
-  ║                                                            ║
-  ║                                                            ║
-  ║                                                            ║
-  ║                                                            ║
+  ║                                                          ║
+  ║                                                          ║
+  ║                                                          ║
+  ║                                                          ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ Noise wave animation that travels line-by-line through text
-  • WHY  ▸ Demonstrate living text with dynamic character swapping
-  • HOW  ▸ Line-by-line wave movement with 10fps noise evolution
+  • WHAT ▸ High-performance noise wave animation with character swapping
+  • WHY  ▸ Demonstrate living text with optimized performance
+  • HOW  ▸ Efficient text manipulation, minimal DOM operations
 */
 
 // Animation configuration with comprehensive controls
@@ -26,11 +26,6 @@ const DEFAULTS = {
   noiseFPS: 10,             // Noise evolution speed (frames per second)
   noiseIntensity: 0.8,      // Probability of character swapping (0-1)
   noiseDensity: 0.7,        // Density of noise within band (0-1)
-  
-  // Visual effects
-  bandOpacity: 0.9,         // Opacity of noise band highlight
-  bandColor: '#FF2DAA',     // Color of band highlight
-  bandBlur: 2,              // Blur effect on band edges (px)
   
   // Animation control
   autoplay: true,           // Automatic wave movement
@@ -60,11 +55,17 @@ let lastNoiseUpdate = 0;
 let textLines = [];
 let originalText = '';
 let currentText = '';
-let bandHighlight = null;
+let originalLines = []; // Cache original line data
+let charWidth = 0; // Cache character width
+let lineHeight = 0; // Cache line height
 
 // DOM elements
 const textElement = document.querySelector('[data-mt]');
 const panel = document.getElementById('mt-panel');
+
+// Performance optimizations
+let noiseFrame = 0; // Track noise frame for consistent randomization
+let lastTextUpdate = ''; // Track last text to avoid unnecessary DOM updates
 
 // Initialize the demo
 function init() {
@@ -75,11 +76,12 @@ function init() {
   textElement.textContent = originalText;
   currentText = originalText;
   
-  // Split text into lines (simple approach)
+  // Split text into lines and cache original data
   textLines = splitIntoLines(originalText);
+  originalLines = textLines.map(line => line.split(''));
   
-  // Create band highlight element
-  createBandHighlight();
+  // Cache measurements once
+  cacheMeasurements();
   
   // Build control panel
   buildPanel();
@@ -119,52 +121,9 @@ function splitIntoLines(text) {
   return lines;
 }
 
-// Create visual band highlight
-function createBandHighlight() {
-  bandHighlight = document.createElement('div');
-  bandHighlight.className = 'band-highlight';
-  bandHighlight.style.cssText = `
-    position: absolute;
-    pointer-events: none;
-    border-radius: 4px;
-    transition: all 0.1s ease;
-    z-index: 1;
-  `;
-  
-  textElement.parentElement.style.position = 'relative';
-  textElement.parentElement.appendChild(bandHighlight);
-}
-
-// Update band highlight position and appearance
-function updateBandHighlight() {
-  if (!bandHighlight || !textLines[currentLine]) return;
-  
-  const lineText = textLines[currentLine];
-  const charWidth = estimateCharWidth();
-  const lineHeight = estimateLineHeight();
-  
-  const startPos = currentPosition * charWidth;
-  const width = Math.min(config.waveWidth * charWidth, (lineText.length - currentPosition) * charWidth);
-  const top = currentLine * lineHeight;
-  
-  bandHighlight.style.cssText = `
-    position: absolute;
-    left: ${startPos}px;
-    top: ${top}px;
-    width: ${width}px;
-    height: ${lineHeight}px;
-    background: ${config.bandColor}20;
-    border: 1px solid ${config.bandColor}40;
-    border-radius: 4px;
-    backdrop-filter: blur(${config.bandBlur}px);
-    pointer-events: none;
-    transition: all 0.1s ease;
-    z-index: 1;
-  `;
-}
-
-// Estimate character width for positioning
-function estimateCharWidth() {
+// Cache measurements once to avoid repeated DOM queries
+function cacheMeasurements() {
+  // Create temporary element to measure character width
   const testSpan = document.createElement('span');
   testSpan.style.cssText = `
     position: absolute;
@@ -175,18 +134,15 @@ function estimateCharWidth() {
   `;
   testSpan.textContent = 'A';
   document.body.appendChild(testSpan);
-  const width = testSpan.getBoundingClientRect().width;
+  charWidth = testSpan.getBoundingClientRect().width;
   document.body.removeChild(testSpan);
-  return width;
-}
-
-// Estimate line height
-function estimateLineHeight() {
+  
+  // Cache line height
   const computed = getComputedStyle(textElement);
-  return parseFloat(computed.lineHeight) || parseFloat(computed.fontSize) * 1.2;
+  lineHeight = parseFloat(computed.lineHeight) || parseFloat(computed.fontSize) * 1.2;
 }
 
-// Main animation loop
+// Main animation loop (optimized)
 function animate(timestamp) {
   if (!isRunning) return;
   
@@ -195,19 +151,17 @@ function animate(timestamp) {
   if (timestamp - lastNoiseUpdate >= noiseInterval) {
     updateNoise();
     lastNoiseUpdate = timestamp;
+    noiseFrame++;
   }
   
   // Update wave position
   updateWavePosition(timestamp);
   
-  // Update visual highlight
-  updateBandHighlight();
-  
   // Continue animation
   animationId = requestAnimationFrame(animate);
 }
 
-// Update noise within the current band
+// Update noise within the current band (optimized)
 function updateNoise() {
   if (!textLines[currentLine]) return;
   
@@ -215,52 +169,73 @@ function updateNoise() {
   const start = Math.floor(currentPosition);
   const end = Math.min(start + config.waveWidth, lineText.length);
   
-  // Create new text with noise applied
-  let newText = '';
-  let lineStart = 0;
+  // Use more efficient string building
+  const lines = [];
   
   for (let i = 0; i < textLines.length; i++) {
     if (i === currentLine) {
-      // Apply noise to current line
+      // Apply noise to current line only
       const before = lineText.substring(0, start);
       const band = lineText.substring(start, end);
       const after = lineText.substring(end);
       
-      // Apply noise to band characters
-      const noisyBand = band.split('').map(char => {
-        if (char === ' ') return ' ';
-        
-        const shouldSwap = Math.random() < config.noiseIntensity;
-        if (shouldSwap) {
-          const useBraille = Math.random() < config.brailleBias;
-          if (useBraille) {
-            return BRAILLE_SYMBOLS[Math.floor(Math.random() * BRAILLE_SYMBOLS.length)];
-          } else {
-            return config.charset[Math.floor(Math.random() * config.charset.length)];
-          }
-        }
-        return char;
-      }).join('');
+      // Apply noise to band characters (optimized)
+      const noisyBand = applyNoiseToBand(band, start);
       
-      newText += before + noisyBand + after;
+      lines.push(before + noisyBand + after);
     } else {
       // Keep other lines unchanged
-      newText += textLines[i];
-    }
-    
-    if (i < textLines.length - 1) {
-      newText += '\n';
+      lines.push(textLines[i]);
     }
   }
   
-  // Update DOM only if text changed
-  if (newText !== currentText) {
+  // Join lines efficiently
+  const newText = lines.join('\n');
+  
+  // Update DOM only if text actually changed
+  if (newText !== lastTextUpdate) {
     textElement.textContent = newText;
-    currentText = newText;
+    lastTextUpdate = newText;
   }
 }
 
-// Update wave position
+// Apply noise to a band of characters (optimized)
+function applyNoiseToBand(band, startOffset) {
+  if (!band) return band;
+  
+  // Use deterministic but varied randomization based on frame and position
+  const chars = band.split('');
+  
+  for (let i = 0; i < chars.length; i++) {
+    const char = chars[i];
+    if (char === ' ') continue;
+    
+    // Use frame-based randomization for consistent but varied results
+    const seed = noiseFrame * 1000 + startOffset + i;
+    const random = seededRandom(seed);
+    
+    if (random < config.noiseIntensity) {
+      const useBraille = seededRandom(seed + 1000) < config.brailleBias;
+      if (useBraille) {
+        const symbolIndex = Math.floor(seededRandom(seed + 2000) * BRAILLE_SYMBOLS.length);
+        chars[i] = BRAILLE_SYMBOLS[symbolIndex];
+      } else {
+        const charIndex = Math.floor(seededRandom(seed + 3000) * config.charset.length);
+        chars[i] = config.charset[charIndex];
+      }
+    }
+  }
+  
+  return chars.join('');
+}
+
+// Seeded random function for consistent but varied results
+function seededRandom(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+// Update wave position (optimized)
 function updateWavePosition(timestamp) {
   if (!config.autoplay) return;
   
@@ -268,7 +243,7 @@ function updateWavePosition(timestamp) {
   if (!lineText) return;
   
   // Move wave along current line
-  currentPosition += config.waveSpeed * 0.1; // Adjust speed factor
+  currentPosition += config.waveSpeed * 0.1;
   
   // Check if wave has reached end of line
   if (currentPosition >= lineText.length) {
@@ -384,12 +359,6 @@ function buildPanel() {
       desc: 'Probability of using braille symbols'
     },
     {
-      key: 'bandColor',
-      type: 'color',
-      label: 'Band Color',
-      desc: 'Color of band highlight'
-    },
-    {
       key: 'autoplay',
       type: 'checkbox',
       label: 'Autoplay',
@@ -420,11 +389,6 @@ function buildPanel() {
       title: 'Noise Behavior',
       desc: 'Adjust how the noise evolves and affects characters.',
       keys: ['noiseFPS', 'noiseIntensity', 'noiseDensity', 'brailleBias']
-    },
-    {
-      title: 'Visual Effects',
-      desc: 'Customize the appearance of the noise band.',
-      keys: ['bandColor']
     },
     {
       title: 'Animation Control',
@@ -526,15 +490,6 @@ function createField(field) {
     
     group.appendChild(input);
     group.appendChild(label);
-  } else if (field.type === 'color') {
-    input.value = config[field.key];
-    
-    input.addEventListener('input', (e) => {
-      config[field.key] = e.target.value;
-    });
-    
-    group.appendChild(label);
-    group.appendChild(input);
   }
   
   return group;
