@@ -142,10 +142,10 @@ describe('Transformers client', () => {
         break;
       }
     })();
-    // Should not yield until cooldown elapses (>= 260ms for cpu)
-    await vi.advanceTimersByTimeAsync(200);
+    // Should not yield until cooldown elapses (>= 300ms for cpu per device tiers)
+    await vi.advanceTimersByTimeAsync(250);
     expect(got).toBe(false);
-    await vi.advanceTimersByTimeAsync(80);
+    await vi.advanceTimersByTimeAsync(60);
     expect(got).toBe(true);
 
     // WEBGPU backend
@@ -170,9 +170,9 @@ describe('Transformers client', () => {
         break;
       }
     })();
-    await vi.advanceTimersByTimeAsync(100);
+    await vi.advanceTimersByTimeAsync(120);
     expect(gotGpu).toBe(false);
-    await vi.advanceTimersByTimeAsync(30); // total 130ms >= 120ms webgpu
+    await vi.advanceTimersByTimeAsync(40); // total 160ms >= 150ms webgpu device tier
     expect(gotGpu).toBe(true);
 
     vi.useRealTimers();
@@ -302,9 +302,9 @@ describe('Transformers client', () => {
         break;
       }
     })();
-    await vi.advanceTimersByTimeAsync(200);
+    await vi.advanceTimersByTimeAsync(250);
     expect(yielded).toBe(false);
-    await vi.advanceTimersByTimeAsync(70); // 200+70 >= 260 base cpu cooldown
+    await vi.advanceTimersByTimeAsync(60); // 250+60 >= 300 device tier cpu cooldown
     expect(yielded).toBe(true);
     vi.useRealTimers();
   });

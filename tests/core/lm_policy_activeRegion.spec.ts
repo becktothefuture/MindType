@@ -70,7 +70,6 @@ describe('ActiveRegionPolicy', () => {
     (globalThis as unknown as { Intl: Record<string, unknown> }).Intl = {
       ...originalIntl,
       Segmenter: class {
-        // eslint-disable-next-line @typescript-eslint/no-useless-constructor
         constructor() {
           throw new Error('no-segmenter');
         }

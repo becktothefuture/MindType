@@ -19,6 +19,9 @@ import { tidySweep } from '../engines/tidySweep';
 // Mock the UI calls for clean testing
 vi.mock('../ui/highlighter', () => ({
   emitActiveRegion: vi.fn(),
+}));
+
+vi.mock('../ui/swapRenderer', () => ({
   renderHighlight: vi.fn(),
 }));
 
@@ -86,8 +89,8 @@ describe('Streaming Diffusion Integration', () => {
   it('emits highlight via LM merge when LMAdapter is provided', async () => {
     vi.useFakeTimers();
     // Use mocked highlighter to assert call instead of DOM events
-    const highlighter = await import('../ui/highlighter');
-    const renderHighlight = highlighter.renderHighlight as unknown as ReturnType<
+    const swapRenderer = await import('../ui/swapRenderer');
+    const renderHighlight = swapRenderer.renderHighlight as unknown as ReturnType<
       typeof vi.fn
     >;
 

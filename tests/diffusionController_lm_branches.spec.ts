@@ -11,6 +11,9 @@ const highlightCalls: Array<{ start: number; end: number; text?: string }> = [];
 
 vi.mock('../ui/highlighter', () => ({
   emitActiveRegion: () => {},
+}));
+
+vi.mock('../ui/swapRenderer', () => ({
   renderHighlight: (r: { start: number; end: number; text?: string }) => {
     highlightCalls.push({ start: r.start, end: r.end, text: r.text });
   },

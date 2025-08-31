@@ -1,5 +1,5 @@
 /*╔══════════════════════════════════════════════════════════╗
-  ║  ░  BAND-SWAP NOISE WAVE STYLES  ░░░░░░░░░░░░░░░░░░░░░  ║
+  ║  ░  MANUAL NOISE WAVE STYLES v2  ░░░░░░░░░░░░░░░░░░░░  ║
   ║                                                            ║
   ║                                                            ║
   ║                                                            ║
@@ -10,15 +10,15 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ Dark theme with comprehensive control panel
-  • WHY  ▸ Match mt-scroll-anim-v1 design system
-  • HOW  ▸ CSS variables, responsive layout, accessibility
+  • WHAT ▸ Interactive manual wave control with click/drag support
+  • WHY  ▸ Enable precise user control of noise wave position
+  • HOW  ▸ Cursor states, visual feedback, touch support
 */
 
 :root {
   --bg: #000;
   --fg: #fff;
-  --active: #FF2DAA;
+  --active: #ff2daa;
   --panel-w: 384px;
   --mt-font-desktop: 120px;
   --mt-font-mobile: 54px;
@@ -77,7 +77,7 @@ h1 {
   margin: 0 0 2rem 0;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #FF2DAA, #FF6A00);
+  background: linear-gradient(135deg, #ff2daa, #ff6a00);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -106,6 +106,42 @@ p[data-mt] {
   opacity: 1 !important;
   position: relative;
   z-index: 2;
+  cursor: crosshair;
+  user-select: none;
+  transition: cursor 0.2s ease;
+}
+
+p[data-mt]:hover {
+  cursor: grab;
+}
+
+p[data-mt]:active {
+  cursor: grabbing;
+}
+
+/* Instructions styling */
+.mt-instructions {
+  background: linear-gradient(135deg, rgba(255, 45, 170, 0.1), rgba(255, 45, 170, 0.05));
+  border: 1px solid rgba(255, 45, 170, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.mt-instructions p {
+  margin: 0 0 6px 0;
+  opacity: 0.9;
+}
+
+.mt-instructions p:last-child {
+  margin-bottom: 0;
+}
+
+.mt-instructions strong {
+  color: var(--active);
+  font-weight: 600;
 }
 
 /* Panel styles (copied from mt-scroll-anim-v1) */
@@ -192,7 +228,7 @@ p[data-mt] {
   font-weight: 500;
 }
 
-.group input[type="range"] {
+.group input[type='range'] {
   width: 100%;
   height: 6px;
   background: linear-gradient(90deg, rgba(255, 45, 170, 0.3), rgba(255, 45, 170, 0.1));
@@ -203,31 +239,31 @@ p[data-mt] {
   margin: 8px 0;
 }
 
-.group input[type="range"]::-webkit-slider-thumb {
+.group input[type='range']::-webkit-slider-thumb {
   appearance: none;
   -webkit-appearance: none;
   width: 18px;
   height: 18px;
-  background: linear-gradient(135deg, #FF2DAA, #FF6A00);
+  background: linear-gradient(135deg, #ff2daa, #ff6a00);
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(255, 45, 170, 0.4);
   transition: all 0.2s ease;
 }
 
-.group input[type="range"]::-webkit-slider-thumb:hover {
+.group input[type='range']::-webkit-slider-thumb:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(255, 45, 170, 0.6);
 }
 
-.group input[type="checkbox"] {
+.group input[type='checkbox'] {
   width: 16px;
   height: 16px;
   accent-color: var(--active);
   margin-right: 8px;
 }
 
-.group input[type="color"] {
+.group input[type='color'] {
   width: 100%;
   height: 36px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -275,14 +311,14 @@ p[data-mt] {
   .mt-app {
     grid-template-columns: 1fr;
   }
-  
+
   .mt-panel {
     position: relative;
     border-left: none;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     max-height: none;
   }
-  
+
   .mt-content {
     padding: 5vh 4vw;
   }
@@ -292,22 +328,27 @@ p[data-mt] {
   .mt-fields {
     grid-template-columns: 1fr;
   }
-  
+
   h1 {
     font-size: clamp(1.5rem, 4vw, 2.5rem);
   }
-  
+
   p[data-mt] {
     font-size: clamp(1rem, 2.5vw, 1.4rem);
   }
-  
+
   .mt-panel {
     padding: 16px 12px;
   }
-  
+
   .mt-section {
     padding: 10px;
     margin: 12px 0;
+  }
+
+  .mt-instructions {
+    padding: 10px;
+    font-size: 10px;
   }
 }
 
@@ -315,16 +356,16 @@ p[data-mt] {
   .mt-content {
     padding: 3vh 3vw;
   }
-  
+
   .demo-container {
     max-width: 100%;
   }
-  
+
   h1 {
     font-size: clamp(1.2rem, 3vw, 2rem);
     margin-bottom: 1.5rem;
   }
-  
+
   p[data-mt] {
     font-size: clamp(0.9rem, 2vw, 1.2rem);
     line-height: 1.5;
@@ -333,16 +374,16 @@ p[data-mt] {
 
 /* Accessibility */
 @media (prefers-reduced-motion: reduce) {
-  .band-highlight {
-    transition: none;
-  }
-  
   .mt-reset-btn:hover {
     transform: none;
   }
-  
-  .group input[type="range"]::-webkit-slider-thumb:hover {
+
+  .group input[type='range']::-webkit-slider-thumb:hover {
     transform: none;
+  }
+
+  p[data-mt] {
+    transition: none;
   }
 }
 
@@ -358,9 +399,24 @@ p[data-mt] {
   .mt-section {
     border-color: rgba(255, 255, 255, 0.3);
   }
-  
-  .band-highlight {
+
+  .mt-instructions {
     border-color: rgba(255, 45, 170, 0.8);
     background: rgba(255, 45, 170, 0.2);
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  p[data-mt] {
+    cursor: pointer;
+  }
+
+  p[data-mt]:hover {
+    cursor: pointer;
+  }
+
+  p[data-mt]:active {
+    cursor: pointer;
   }
 }

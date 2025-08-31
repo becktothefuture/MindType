@@ -24,7 +24,8 @@ import { tidySweep } from '../engines/tidySweep';
 import { replaceRange } from '../utils/diff';
 import type { LMAdapter } from './lm/types';
 import type { ActiveRegionPolicy } from './activeRegionPolicy';
-import { emitActiveRegion, renderHighlight } from '../ui/highlighter';
+import { emitActiveRegion } from '../ui/highlighter';
+import { renderHighlight } from '../ui/swapRenderer';
 import { createLogger } from './logger';
 import { streamMerge } from './lm/mergePolicy';
 

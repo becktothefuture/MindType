@@ -20,6 +20,9 @@ vi.mock('../ui/highlighter', () => ({
   emitActiveRegion: (r: { start: number; end: number }) => {
     activeRegionCalls.push({ start: r.start, end: r.end });
   },
+}));
+
+vi.mock('../ui/swapRenderer', () => ({
   renderHighlight: (r: { start: number; end: number; text?: string }) => {
     highlightCalls.push({ start: r.start, end: r.end, text: r.text });
   },
