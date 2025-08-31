@@ -1,3 +1,27 @@
+<!-- SPEC:CONTRACT
+id: CONTRACT-LM-ADAPTER
+title: LMAdapter streaming contract
+types:
+  - name: LMStreamParams
+    ts: |
+      export interface LMStreamParams {
+        contextText: string;
+        band: { start: number; end: number };
+        maxNewTokens: number;
+      }
+invariants:
+  - Never emit a diff that modifies content at/after the caret (REQ-IME-CARETSAFE)
+modules:
+  - core/lm/types.ts
+  - core/lm/factory.ts
+-->
+
+#### In simple terms
+
+- **Idea**: `LMAdapter` is a small plug that streams suggestions from a model.
+- **Promise**: It must never change text at or after your cursor.
+- **Where**: The adapter’s shape lives in `core/lm/types.ts` and is built by `core/lm/factory.ts`.
+
 <!--══════════════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════════════╗
   ║  ░  L M   B E H A V I O R   A N D   P O L I C Y  ░░░░░░░░░░  ║

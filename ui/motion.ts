@@ -1,18 +1,18 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  R E D U C E D   M O T I O N   U T I L S  ░░░░░░░░░░░░░░  ║
-  ║                                                              ║
-  ║   Detects prefers-reduced-motion and exposes helpers to      ║
-  ║   toggle minimal/alternative visuals.                        ║
-  ║                                                              ║
-  ║           ╌╌  P L A C E H O L D E R  ╌╌                      ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Query user preference and set an attribute/class
-  • WHY  ▸ FT-312: honour reduced-motion across UI effects
-  • HOW  ▸ Uses matchMedia with safe fallbacks
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  MOTION  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ Respect reduced-motion; single announcement; mechanical swap
+  • WHY  ▸ REQ-A11Y-MOTION
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 export function prefersReducedMotion(): boolean {

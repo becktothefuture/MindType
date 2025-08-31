@@ -7,6 +7,7 @@ import { replaceRange } from "../../utils/diff";
 import { boot } from "../../index";
 import { createMockLMAdapter } from "../../core/lm/mockAdapter";
 import { setLoggerConfig } from "../../core/logger";
+import { createLiveRegion, type LiveRegion } from "../../ui/liveRegion";
 // LM integration is driven by core pipeline (future task). Demo remains rules-only.
 import {
   getTypingTickMs,
@@ -176,6 +177,7 @@ function App() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const caretRef = useRef<number>(0);
   const typingGlowTimerRef = useRef<number | null>(null);
+  const liveRegionRef = useRef<LiveRegion | null>(null);
 
   // Caret monitor UI state
   const [caretState, setCaretState] = useState<CaretSnapshot | null>(null);
@@ -245,9 +247,15 @@ function App() {
     ov.scrollLeft = ta.scrollLeft;
   }
 
-  // Start TS pipeline
+  // Start TS pipeline and live region
   useEffect(() => {
     pipeline.start();
+    // ⟢ Initialize screen reader live region
+    liveRegionRef.current = createLiveRegion({
+      id: 'mt-corrections-announcer',
+      politeness: 'polite',
+    });
+    
     try {
       const stored = localStorage.getItem('mt.debug');
       if (stored === 'true') {
@@ -256,7 +264,10 @@ function App() {
         console.info('[demo] debug logging enabled');
       }
     } catch {}
-    return () => pipeline.stop();
+    return () => {
+      pipeline.stop();
+      liveRegionRef.current?.destroy();
+    };
   }, [pipeline]);
 
   // Toggle LM mock adapter for demo visibility
@@ -374,34 +385,57 @@ function App() {
       if (bandDelayMs > 0) setTimeout(apply, bandDelayMs);
       else apply();
     };
-    const onHighlight = (e: Event) => {
-      const { start, end, text: diffText } = (e as CustomEvent).detail as {
+    const onMechanicalSwap = (e: Event) => {
+      const { start, end, text: diffText, markerGlyph, durationMs, instant } = (e as CustomEvent).detail as {
         start: number;
         end: number;
-        text?: string;
+        text: string;
+        markerGlyph?: string;
+        durationMs: number;
+        instant: boolean;
       };
+      
+      // Show visual feedback (mechanical swap or instant for reduced-motion)
       setLastHighlight({ start, end });
-      setTimeout(() => setLastHighlight(null), 800);
-      // Apply correction if provided (rules-only path)
-      if (typeof diffText === 'string') {
-        try {
-          const caret = caretRef.current;
-          const updated = replaceRange(text, start, end, diffText, caret);
-          setText(updated);
-          requestAnimationFrame(() => {
-            const ta = textareaRef.current;
-            if (ta) ta.setSelectionRange(caret, caret);
-          });
-        } catch (err) {
-          console.warn('[web-demo] failed to apply diff', { start, end, diffText, err });
-        }
+      const clearDelay = instant ? 100 : Math.max(800, durationMs + 200);
+      setTimeout(() => setLastHighlight(null), clearDelay);
+      
+      // Apply correction to textarea
+      try {
+        const caret = caretRef.current;
+        const updated = replaceRange(text, start, end, diffText, caret);
+        setText(updated);
+        // ⟢ Critical: sync the pipeline's internal state with the corrected text
+        pipeline.ingest(updated, caret);
+        requestAnimationFrame(() => {
+          const ta = textareaRef.current;
+          if (ta) ta.setSelectionRange(caret, caret);
+        });
+      } catch (err) {
+        console.warn('[web-demo] failed to apply swap', { start, end, diffText, err });
       }
     };
+    
+    const onSwapAnnouncement = (e: Event) => {
+      const { message, count } = (e as CustomEvent).detail as {
+        message: string;
+        count: number;
+      };
+      // ⟢ Announce to screen readers via live region
+      const announcement = `${message} (${count} correction${count === 1 ? '' : 's'})`;
+      liveRegionRef.current?.announce(announcement);
+      console.info(`[SR] ${announcement}`);
+    };
     window.addEventListener("mindtype:activeRegion", onActiveRegion as EventListener);
-    window.addEventListener("mindtype:highlight", onHighlight as EventListener);
+    window.addEventListener("mindtype:mechanicalSwap", onMechanicalSwap as EventListener);
+    window.addEventListener("mindtype:swapAnnouncement", onSwapAnnouncement as EventListener);
+    // ⟢ Keep legacy highlight listener for compatibility during transition
+    window.addEventListener("mindtype:highlight", onMechanicalSwap as EventListener);
     return () => {
       window.removeEventListener("mindtype:activeRegion", onActiveRegion as EventListener);
-      window.removeEventListener("mindtype:highlight", onHighlight as EventListener);
+      window.removeEventListener("mindtype:mechanicalSwap", onMechanicalSwap as EventListener);
+      window.removeEventListener("mindtype:swapAnnouncement", onSwapAnnouncement as EventListener);
+      window.removeEventListener("mindtype:highlight", onMechanicalSwap as EventListener);
     };
   }, [text, freezeBand, bandDelayMs]);
 

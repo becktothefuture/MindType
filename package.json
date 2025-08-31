@@ -10,29 +10,44 @@
     "format:check": "prettier -c .",
     "format:write": "prettier -w .",
     "test": "vitest run --reporter=dot --coverage",
-    "ci": "pnpm typecheck && pnpm lint && pnpm run -s format:check && pnpm test",
+    "ci": "pnpm typecheck && pnpm lint && pnpm run -s format:check && pnpm test && pnpm run -s doc:check",
     "posttest": "node scripts/coverage-guard.cjs",
     "dev": "vitest watch",
     "prepare": "husky",
-    "setup:local": "node scripts/setup-local-assets.cjs"
+    "setup:local": "node scripts/setup-local-assets.cjs",
+    "doc:sync": "node scripts/doc2code.cjs sync",
+    "doc:check": "node scripts/doc2code.cjs check"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,md,css,scss,json,mdx}": "prettier --write"
+    "*.{js,jsx,ts,tsx,md,css,scss,json,mdx}": "prettier --write",
+    "docs/**/*.{md,mdx}": [
+      "prettier --write",
+      "pnpm doc:check"
+    ]
   },
   "devDependencies": {
+    "@huggingface/transformers": "^3.7.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.2.1",
     "@typescript-eslint/eslint-plugin": "^8.4.0",
     "@typescript-eslint/parser": "^8.4.0",
     "@vitest/coverage-v8": "^1.6.1",
-    "@huggingface/transformers": "^3.7.0",
     "eslint": "^9.9.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.5.4",
+    "fast-glob": "^3.3.3",
+    "gray-matter": "^4.0.3",
     "husky": "^9.1.7",
+    "js-yaml": "^4.1.0",
     "jsdom": "^26.1.0",
     "lint-staged": "^16.1.5",
     "prettier": "^3.3.3",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
     "typescript": "^5.5.4",
+    "unified": "^11.0.5",
     "vitest": "^1.6.0"
   }
 }

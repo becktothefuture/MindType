@@ -11,6 +11,9 @@ const highlightCalls: Array<{ start: number; end: number; text?: string }> = [];
 
 vi.mock('../ui/highlighter', () => ({
   emitActiveRegion: () => {},
+}));
+
+vi.mock('../ui/swapRenderer', () => ({
   renderHighlight: (r: { start: number; end: number; text?: string }) => {
     highlightCalls.push({ start: r.start, end: r.end, text: r.text });
   },
@@ -37,7 +40,10 @@ describe('DiffusionController LM branches', () => {
       },
     } as const;
 
-    const diffusion = createDiffusionController(undefined, () => adapter as any);
+    const diffusion = createDiffusionController(
+      undefined,
+      () => adapter as unknown as import('../core/lm/types').LMAdapter,
+    );
     const text = 'Hello teh world';
     diffusion.update(text, text.length);
     const p = diffusion.catchUp(); // start async
@@ -63,7 +69,10 @@ describe('DiffusionController LM branches', () => {
       },
     } as const;
 
-    const diffusion = createDiffusionController(undefined, () => adapter as any);
+    const diffusion = createDiffusionController(
+      undefined,
+      () => adapter as unknown as import('../core/lm/types').LMAdapter,
+    );
     const text = 'Hello teh world';
     diffusion.update(text, text.length);
     const p = diffusion.catchUp();

@@ -1,3 +1,18 @@
+<!-- SPEC:CONTRACT
+id: CONTRACT-ACTIVE-REGION
+title: Active region policy (render vs context ranges)
+invariants:
+  - Context can extend beyond render band but never crosses secure fields
+  - Render range must not include caret position (REQ-IME-CARETSAFE)
+modules:
+  - core/activeRegionPolicy.ts
+-->
+
+#### In simple terms
+
+- **Active region**: The small part of text we consider “live” for corrections.
+- **Two ranges**: A visual render range and a larger context range for the model.
+- **Safety**: We never touch the caret or secure fields.
 <!--══════════════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════════════╗
   ║  ░  A C T I V E   R E G I O N   D E S I G N  ░░░░░░░░░░░░░░  ║

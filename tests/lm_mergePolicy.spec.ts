@@ -147,6 +147,19 @@ describe('LM merge policy', () => {
     expect(events.at(-1)).toBe('done');
   });
 
+  it('treats quotes/brackets as boundaries for coalescing', async () => {
+    const text = 'say "teh"';
+    const caret = text.length;
+    const band = { start: 5, end: 8 }; // inside quotes
+    const adapter = makeAdapter(['the"']);
+    const diffs: Array<{ start: number; end: number; text: string }> = [];
+    for await (const ev of streamMerge({ adapter, text, caret, band })) {
+      if (ev.type === 'diff' && ev.diff) diffs.push(ev.diff);
+    }
+    expect(diffs.length).toBeGreaterThan(0);
+    expect(diffs.at(-1)?.text.endsWith('"')).toBe(true);
+  });
+
   it('guards when band reaches caret (no events)', async () => {
     const text = 'hello';
     const caret = text.length - 1; // caret before end

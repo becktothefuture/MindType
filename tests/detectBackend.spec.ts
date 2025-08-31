@@ -6,7 +6,11 @@
   ╚══════════════════════════════════════════════════════════════╝
 */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { detectBackend } from '../core/lm/transformersClient';
+import {
+  detectBackend,
+  cooldownForBackend,
+  detectCapabilities,
+} from '../core/lm/transformersClient';
 
 describe('detectBackend', () => {
   const originalNavigator: Navigator | undefined = globalThis.navigator;
@@ -51,6 +55,111 @@ describe('detectBackend', () => {
     if (originalWebAssembly)
       (globalThis as unknown as { WebAssembly?: typeof WebAssembly }).WebAssembly =
         originalWebAssembly;
+  });
+
+  it('maps backend to cooldown policy', () => {
+    expect(cooldownForBackend('webgpu')).toBeLessThan(cooldownForBackend('wasm'));
+    expect(cooldownForBackend('wasm')).toBeLessThan(cooldownForBackend('cpu'));
+    // unknown maps to cpu branch in our helper
+    expect(cooldownForBackend('unknown' as unknown as 'webgpu')).toBe(
+      cooldownForBackend('cpu'),
+    );
+  });
+
+  it('detectCapabilities returns a reasonable shape', async () => {
+    const caps = await detectCapabilities();
+    expect(caps.backend).toBeDefined();
+    expect(caps.maxContextTokens).toBeGreaterThan(0);
+    // Ensure else branches: when not webgpu, webgpu flag should be false/undefined
+    if (caps.backend !== 'webgpu') {
+      expect(caps.features?.webgpu ?? false).toBe(false);
+    }
+  });
+
+  it('detectCapabilities reports webgpu=true when navigator.gpu exists', async () => {
+    const originalNavigator: Navigator | undefined = globalThis.navigator;
+    vi.stubGlobal('navigator', { gpu: {} } as unknown as Navigator);
+    const caps = await detectCapabilities();
+    expect(caps.backend).toBe('webgpu');
+    expect(caps.features?.webgpu).toBe(true);
+    vi.stubGlobal('navigator', originalNavigator as unknown as Navigator);
+  });
+
+  it('detectCapabilities reports wasmThreads=true/SIMD flag when WebAssembly.Memory exists', async () => {
+    const originalNavigator: Navigator | undefined = globalThis.navigator;
+    const originalWA: typeof WebAssembly | undefined = (
+      globalThis as unknown as { WebAssembly?: typeof WebAssembly }
+    ).WebAssembly;
+    vi.stubGlobal('navigator', {} as unknown as Navigator);
+    (globalThis as unknown as { WebAssembly?: typeof WebAssembly }).WebAssembly = {
+      // minimal shape for test
+      Memory: function () {},
+      // minimal probe for simd
+      validate: function () {
+        return true;
+      },
+    } as unknown as typeof WebAssembly;
+    const caps = await detectCapabilities();
+    expect(['wasm', 'cpu']).toContain(caps.backend);
+    expect(caps.features?.wasmThreads).toBe(true);
+    expect(caps.features?.wasmSimd).toBe(true);
+    // restore
+    vi.stubGlobal('navigator', originalNavigator as unknown as Navigator);
+    (globalThis as unknown as { WebAssembly?: typeof WebAssembly }).WebAssembly =
+      originalWA;
+  });
+
+  it('detectCapabilities reports wasmThreads=false and wasmSimd=false when features are absent', async () => {
+    const originalNavigator: Navigator | undefined = globalThis.navigator;
+    const originalWA: typeof WebAssembly | undefined = (
+      globalThis as unknown as { WebAssembly?: typeof WebAssembly }
+    ).WebAssembly;
+    vi.stubGlobal('navigator', {} as unknown as Navigator);
+    // Present WebAssembly but with no Memory or validate
+    (globalThis as unknown as { WebAssembly?: typeof WebAssembly }).WebAssembly =
+      {} as unknown as typeof WebAssembly;
+    const caps = await detectCapabilities();
+    expect(['wasm', 'cpu']).toContain(caps.backend);
+    expect(caps.features?.wasmThreads ?? false).toBe(false);
+    expect(caps.features?.wasmSimd ?? false).toBe(false);
+    // restore
+    vi.stubGlobal('navigator', originalNavigator as unknown as Navigator);
+    (globalThis as unknown as { WebAssembly?: typeof WebAssembly }).WebAssembly =
+      originalWA;
+  });
+
+  it('detectCapabilities with navigator present (no gpu) and no WebAssembly returns cpu and false flags', async () => {
+    const originalNavigator: Navigator | undefined = globalThis.navigator;
+    const originalWA: typeof WebAssembly | undefined = (
+      globalThis as unknown as { WebAssembly?: typeof WebAssembly }
+    ).WebAssembly;
+    vi.stubGlobal('navigator', {} as unknown as Navigator);
+    (globalThis as unknown as { WebAssembly?: typeof WebAssembly }).WebAssembly =
+      undefined as unknown as typeof WebAssembly;
+    const caps = await detectCapabilities();
+    expect(caps.backend).toBe('cpu');
+    expect(caps.features?.webgpu ?? false).toBe(false);
+    expect(caps.features?.wasmThreads ?? false).toBe(false);
+    expect(caps.features?.wasmSimd ?? false).toBe(false);
+    // restore
+    vi.stubGlobal('navigator', originalNavigator as unknown as Navigator);
+    (globalThis as unknown as { WebAssembly?: typeof WebAssembly }).WebAssembly =
+      originalWA;
+  });
+
+  it('detectCapabilities gracefully handles missing navigator and WebAssembly', async () => {
+    const originalNavigator: Navigator | undefined = globalThis.navigator;
+    const originalWA: typeof WebAssembly | undefined = (
+      globalThis as unknown as { WebAssembly?: typeof WebAssembly }
+    ).WebAssembly;
+    vi.stubGlobal('navigator', undefined as unknown as Navigator);
+    (globalThis as unknown as { WebAssembly?: typeof WebAssembly }).WebAssembly =
+      undefined as unknown as typeof WebAssembly;
+    const caps = await detectCapabilities();
+    expect(['cpu', 'wasm']).toContain(caps.backend);
+    vi.stubGlobal('navigator', originalNavigator as unknown as Navigator);
+    (globalThis as unknown as { WebAssembly?: typeof WebAssembly }).WebAssembly =
+      originalWA;
   });
 
   it('gracefully handles errors while checking navigator.gpu and falls back', () => {

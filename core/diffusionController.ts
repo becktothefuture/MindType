@@ -1,13 +1,18 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  D I F F U S I O N   C O N T R O L L E R  ░░░░░░░░░░░░░░  ║
-  ║                                                              ║
-  ║   Streams caret‑safe fixes behind the caret word‑by‑word.    ║
-  ║   Advances a frontier toward the caret and updates the UI.   ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Incremental "diffusion" behind caret
-  • WHY  ▸ Visible trailing stream; catch‑up on pause
-  • HOW  ▸ Unicode word segmentation; never edits at/after caret
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  DIFFUSIONCONTROLLER  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ Streamed diffusion of LM corrections
+  • WHY  ▸ REQ-STREAMED-DIFFUSION
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 import {
@@ -18,7 +23,9 @@ import {
 import { tidySweep } from '../engines/tidySweep';
 import { replaceRange } from '../utils/diff';
 import type { LMAdapter } from './lm/types';
-import { emitActiveRegion, renderHighlight } from '../ui/highlighter';
+import type { ActiveRegionPolicy } from './activeRegionPolicy';
+import { emitActiveRegion } from '../ui/highlighter';
+import { renderHighlight } from '../ui/swapRenderer';
 import { createLogger } from './logger';
 import { streamMerge } from './lm/mergePolicy';
 
@@ -28,13 +35,9 @@ export interface DiffusionState {
   frontier: number; // leftmost index not yet validated
 }
 
-// ActiveRegionPolicy: future-proof hook for LM integration
+// ActiveRegionPolicy: future‑proof hook for LM integration (type in core/activeRegionPolicy.ts)
 // - computeRenderRange: what to visualize (active region)
 // - computeContextRange: what to provide to an LLM adapter (can span sentences/paragraphs)
-export interface ActiveRegionPolicy {
-  computeRenderRange(state: DiffusionState): { start: number; end: number };
-  computeContextRange(state: DiffusionState): { start: number; end: number };
-}
 
 // LIB_TOUCH: Using Intl.Segmenter for Unicode-aware word boundary detection
 // Context7 docs: Intl.Segmenter provides granularity: 'word' for word-like segments

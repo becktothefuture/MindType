@@ -230,7 +230,7 @@ describe('Qwen token streamer', () => {
     __resetQwenSingletonForTests();
     vi.mock('../core/lm/transformersClient', () => ({ detectBackend: () => 'cpu' }));
     vi.doMock('@huggingface/transformers', () => ({
-      pipeline: async (_t: string, _m: string, options: Record<string, unknown>) => {
+      pipeline: async (_t: string, _m: string, _options: Record<string, unknown>) => {
         return Object.assign(
           async (_p: string, opts: Record<string, unknown>) => {
             // cpu tier default 16, clamp applies; ensure value is within bounds

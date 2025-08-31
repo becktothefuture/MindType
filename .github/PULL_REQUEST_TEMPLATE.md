@@ -28,5 +28,6 @@ Describe the change.
 - [ ] Code + tests updated
 - [ ] Typecheck/lint/format/test gates pass (pnpm typecheck | lint | format:check | test)
 - [ ] Docs updated (PRD/ADR/Guides where relevant)
+- [ ] Doc2Code: SPEC blocks added/updated and `pnpm doc:check` passes
 - [ ] Accessibility considered (reduced motion, SR announces)
 - [ ] No edits at/after caret; diffs grouped for undo

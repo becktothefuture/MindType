@@ -1,13 +1,18 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  L M   S T R E A M I N G   M E R G E   P O L I C Y  ░░░░  ║
-  ║                                                              ║
-  ║   Merges LM token streams strictly within the ACTIVE REGION. ║
-  ║   Cancels on input and supports caret-entry rollback.        ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Compute diffs from streamed chunks within band only
-  • WHY  ▸ Caret-safe, deterministic merging for FT-232/232A
-  • HOW  ▸ Accumulate span, emit boundary-coalesced diffs; rollback safe
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  MERGEPOLICY  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ Streamed diffusion of LM corrections
+  • WHY  ▸ REQ-STREAMED-DIFFUSION
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 import type { LMAdapter } from './types';

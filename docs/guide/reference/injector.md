@@ -41,7 +41,7 @@ See also: `core/diffusionController.ts` and `utils/diff.ts`.
 ## Events listened
 
 - `mindtype:activeRegion`
-- `mindtype:highlight`
+- `mindtype:mechanicalSwap` (replaces legacy `mindtype:highlight`)
 
 ## Undo policy
 

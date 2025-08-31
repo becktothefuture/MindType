@@ -1,9 +1,9 @@
 /*╔══════════════════════════════════════════════════════════════╗
   ║  ░  L O C A L   A S S E T S   S E T U P   S C R I P T  ░░░░░  ║
   ║                                                              ║
-  ║   Copies ONNX WASM to /web-demo/public/wasm and downloads    ║
-  ║   Qwen2.5-0.5B-Instruct model files to /web-demo/public/     ║
-  ║   models for local-only serving.                             ║
+  ║   Copies ONNX WASM to /assets/wasm and downloads             ║
+  ║   Qwen2.5-0.5B-Instruct model files to /assets/models        ║
+  ║   for local-only serving (host-agnostic).                    ║
   ║                                                              ║
   ╚══════════════════════════════════════════════════════════════╝
   • WHAT ▸ Prepare static assets for offline/Local-Only mode
@@ -14,9 +14,10 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const ROOT = path.resolve(__dirname, '..');
+const ASSETS_ROOT = path.join(ROOT, 'assets');
 const DEMO_PUBLIC = path.join(ROOT, 'web-demo', 'public');
-const WASM_DST = path.join(DEMO_PUBLIC, 'wasm');
-const MODELS_DST = path.join(DEMO_PUBLIC, 'models');
+const WASM_DST = path.join(ASSETS_ROOT, 'wasm');
+const MODELS_DST = path.join(ASSETS_ROOT, 'models');
 const REPO = 'onnx-community/Qwen2.5-0.5B-Instruct';
 const REPO_DST = path.join(MODELS_DST, REPO);
 const BRAND_BG_SRC = path.join(ROOT, 'docs', 'brand', 'assets', 'background-video.webm');
@@ -123,6 +124,7 @@ async function downloadModelTree(repo) {
 async function main() {
   console.log('Setting up Local-Only assets...');
   await ensureDir(DEMO_PUBLIC);
+  await ensureDir(ASSETS_ROOT);
   await ensureDir(MODELS_DST);
   await copyWasm();
   await copyBrandAssets();

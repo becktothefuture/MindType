@@ -1,18 +1,28 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  L M   A D A P T E R   T Y P E S  ░░░░░░░░░░░░░░░░░░░░░  ║
-  ║                                                              ║
-  ║   Contracts for streaming language model corrections.        ║
-  ║   Designed to be caret-safe and band-bounded.                ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Interfaces for LM adapter and capabilities
-  • WHY  ▸ Enable optional LM integration without behaviour change
-  • HOW  ▸ Stream API constrained to [band.start, band.end)
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  TYPES  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ LMAdapter streaming contract
+  • WHY  ▸ CONTRACT-LM-ADAPTER
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 export interface LMCapabilities {
   backend: 'webgpu' | 'wasm' | 'cpu' | 'unknown';
   maxContextTokens?: number;
+  features?: {
+    webgpu?: boolean;
+    wasmSimd?: boolean;
+    wasmThreads?: boolean;
+  };
 }
 
 export interface LMInitOptions {

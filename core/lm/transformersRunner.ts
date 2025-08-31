@@ -47,6 +47,7 @@ type LoadedGenerator = {
 // ──────────────────────────────────────────────────────────────
 let singletonGenerator: Promise<LoadedGenerator> | null = null;
 let singletonInitOptions: QwenRunnerOptions | undefined;
+let warmupCompleted = false;
 
 async function loadGeneratorSingleton(
   options?: QwenRunnerOptions,
@@ -153,11 +154,56 @@ export function createQwenTokenStreamer(options?: QwenRunnerOptions): TokenStrea
   const requested = options?.maxNewTokens ?? defaultByTier;
   const maxNewTokensDefault = Math.max(8, Math.min(48, requested));
 
+  async function ensureWarmup() {
+    if (warmupCompleted) return;
+
+    try {
+      const { gen } = await loadGeneratorSingleton({
+        ...options,
+        localOnly: localOnlyDefault,
+        localModelPath:
+          options?.localModelPath ?? '/models/onnx-community/Qwen2.5-0.5B-Instruct',
+        wasmPaths: options?.wasmPaths ?? '/wasm/',
+      });
+
+      // ⟢ One-time warm-up generation (FT-231F)
+      console.info('[LM] warming up model...');
+      const warmupStart = Date.now();
+
+      // Check if this is a test environment (mock generator)
+      if (
+        typeof (gen as { callback_function?: unknown })?.callback_function === 'undefined'
+      ) {
+        // Mock/test environment - skip actual generation
+        console.info('[LM] warm-up completed in 0ms (test env)');
+        warmupCompleted = true;
+        return;
+      }
+
+      const warmupGen = gen('Hi', { max_new_tokens: 4, do_sample: false });
+      // Consume the generator to trigger model initialization
+      await warmupGen;
+      const warmupMs = Date.now() - warmupStart;
+      console.info(`[LM] warm-up completed in ${warmupMs}ms`);
+      warmupCompleted = true;
+    } catch (err) {
+      console.warn('[LM] warm-up failed:', err);
+      // Continue anyway - first real generation will be slower
+      warmupCompleted = true;
+    }
+  }
+
   return {
     async *generateStream(input: { prompt: string; maxNewTokens?: number }) {
+      // Ensure warm-up before first real generation
+      await ensureWarmup();
+
       const { gen, TextStreamer } = await loadGeneratorSingleton({
         ...options,
         localOnly: localOnlyDefault,
+        localModelPath:
+          options?.localModelPath ?? '/models/onnx-community/Qwen2.5-0.5B-Instruct',
+        wasmPaths: options?.wasmPaths ?? '/wasm/',
       });
 
       // Simple async queue to yield chunks as they arrive (word-by-word)
