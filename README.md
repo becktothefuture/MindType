@@ -133,7 +133,7 @@ MindType/
 
 ### engines/
 
-- `engines/tidySweep.ts`: Forward pass that proposes minimal diffs behind the CARET within a `MAX_SWEEP_WINDOW` window (stub returns no diff until rules land).
+- `engines/noiseTransformer.ts`: Forward pass that proposes minimal diffs behind the CARET within a `MAX_SWEEP_WINDOW` window.
 - `engines/backfillConsistency.ts`: Reverse pass that proposes consistency diffs in the stable zone behind the caret (stub returns empty array).
 
 ### ui/
@@ -147,7 +147,7 @@ MindType/
 
 ### tests/
 
-- `tests/tidySweep.spec.ts`: Verifies tidy sweep returns no crossing-caret edits (stubbed now).
+- `tests/noiseTransformer.spec.ts`: Verifies noise transformer returns no crossing-caret edits.
 - `tests/backfill.spec.ts`: Ensures reverse pass outputs array of diffs (shape guard for stable zone logic).
 - `tests/diff.spec.ts`: Validates `replaceRange` correctness and caret guardrails.
 
@@ -222,7 +222,7 @@ MindType/
 ### core/
 
 - **purpose**: Orchestration glue: subscribe to typing, debounce, trigger sweeps.
-- **responsibilities**: Emit `TypingEvent` snapshots, schedule `tidySweep` and `backfillConsistency` after pauses.
+- **responsibilities**: Emit `TypingEvent` snapshots, schedule `noiseTransform` and `backfillConsistency` after pauses.
 - **when to change**: Adjust debounce rules, add/remove sweep phases, connect monitors in hosts.
 - **contracts**:
   - `TypingEvent` shape is `{ text, caret, atMs }`.
@@ -324,7 +324,7 @@ Keep these contracts visible in code (types, tests) and docs; if you change one,
 ## Cross-Module Data Flow (high level)
 
 - Host editor → `core/typingMonitor` (keystrokes, caret, timestamps)
-- `core/sweepScheduler` → triggers `engines/tidySweep` (short pause) and `engines/backfillConsistency` (idle)
+- `core/sweepScheduler` → triggers `engines/noiseTransformer` (short pause) and `engines/backfillConsistency` (idle)
 - Engines propose diffs → host applies (grouping optional; tapestry/LM evolutions are exempt) → `ui/highlighter` shows feedback
 - Rust crate primitives (WASM) may augment extraction/merging/logging when integrated into the demo or apps
 

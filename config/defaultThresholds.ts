@@ -23,6 +23,18 @@ let typingTickMs = 75;
 let minValidationWords = 5;
 let maxValidationWords = 5;
 
+// Confidence thresholds for v0.4 pipeline
+export const CONFIDENCE_THRESHOLDS = {
+  // τ_input: minimum input fidelity to attempt Context stage
+  τ_input: 0.65,
+  // τ_commit: minimum combined score to apply any proposal
+  τ_commit: 0.9,
+  // τ_tone: tone proposals must also meet this
+  τ_tone: 0.85,
+  // τ_discard: below this, proposals are dropped
+  τ_discard: 0.3,
+} as const;
+
 export function getTypingTickMs(): number {
   return typingTickMs;
 }

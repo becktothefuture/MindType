@@ -1,43 +1,69 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  S W E E P   S C H E D U L E R  ░░░░░░░░░░░░░░░░░░░░░░░  ║
-  ║                                                              ║
-  ║   Schedules forward (tidy) and reverse (backfill) passes     ║
-  ║   based on TYPING MONITOR signals and pause thresholds.      ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Debounces events; triggers tidySweep/backfill passes
-  • WHY  ▸ Avoids excessive compute; respects CARET dynamics
-  • HOW  ▸ Subscribes to TypingMonitor; invokes engines with input
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  SWEEPSCHEDULER  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ Integrate Noise → Context → Tone pipeline with staging buffer; English-only gating for full pipeline (Noise for others)
+  • WHY  ▸ REQ-THREE-STAGE-PIPELINE, REQ-LANGUAGE-GATING
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 import { SHORT_PAUSE_MS, getTypingTickMs } from '../config/defaultThresholds';
-import { tidySweep } from '../engines/tidySweep';
+import { noiseTransform } from '../engines/noiseTransformer';
 import { backfillConsistency } from '../engines/backfillConsistency';
 import type { TypingMonitor, TypingEvent } from './typingMonitor';
 import { createDiffusionController } from './diffusionController';
 import type { LMAdapter } from './lm/types';
 import { createLogger } from './logger';
 import type { SecurityContext } from './security';
+import { contextTransform } from '../engines/contextTransformer';
+import {
+  detectBaseline,
+  planAdjustments,
+  type ToneOption,
+} from '../engines/toneTransformer';
+import { detectLanguage } from './languageDetection';
+import { StagingBuffer } from './stagingBuffer';
+import {
+  applyThresholds,
+  computeConfidence,
+  computeInputFidelity,
+  type ConfidenceInputs,
+} from './confidenceGate';
 
 export interface SweepScheduler {
   start(): void;
   stop(): void;
 }
 
+export interface PipelineOptions {
+  toneEnabled?: boolean;
+  toneTarget?: ToneOption; // 'None' | 'Casual' | 'Professional'
+}
+
 export function createSweepScheduler(
   monitor?: TypingMonitor,
   security?: SecurityContext,
   getLMAdapter?: () => LMAdapter | null,
+  pipeline?: PipelineOptions,
 ): SweepScheduler {
   let lastEvent: TypingEvent | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
   let typingInterval: ReturnType<typeof setInterval> | null = null;
   const diffusion = createDiffusionController(undefined, getLMAdapter);
   const log = createLogger('sweep');
+  const sb = new StagingBuffer();
+  const opts: Required<PipelineOptions> = {
+    toneEnabled: pipeline?.toneEnabled ?? false,
+    toneTarget: pipeline?.toneTarget ?? 'None',
+  };
 
   function clearIntervals() {
     if (timer) clearTimeout(timer);
@@ -56,6 +82,10 @@ export function createSweepScheduler(
     lastEvent = ev;
     log.debug('onEvent', { caret: ev.caret, textLen: ev.text.length });
     diffusion.update(ev.text, ev.caret);
+    // Caret moved; mark overlapping proposals for rollback (future: apply rollback)
+    try {
+      sb.onCaretMove(ev.caret);
+    } catch {}
     if (timer) clearTimeout(timer);
     // schedule pause catch-up
     timer = setTimeout(() => runSweeps(), SHORT_PAUSE_MS);
@@ -93,8 +123,71 @@ export function createSweepScheduler(
       log.warn('catchUp threw; continuing');
     }
     // Legacy engines can still run after catch-up
-    tidySweep({ text: lastEvent.text, caret: lastEvent.caret });
+    noiseTransform({ text: lastEvent.text, caret: lastEvent.caret });
     backfillConsistency({ text: lastEvent.text, caret: lastEvent.caret });
+
+    // v0.4 pipeline: Context → Tone (English-only) under confidence gating
+    try {
+      const st = diffusion.getState();
+      const lang = detectLanguage(st.text);
+      if (lang === 'en') {
+        // Context stage
+        const ctx = contextTransform({ text: st.text, caret: st.caret });
+        for (const p of ctx.proposals) {
+          const sample = st.text.slice(
+            Math.max(0, p.start - 80),
+            Math.min(st.caret, p.end + 80),
+          );
+          const inputs: ConfidenceInputs = {
+            inputFidelity: computeInputFidelity(sample),
+            transformationQuality: p.text === st.text.slice(p.start, p.end) ? 0 : 0.95,
+            contextCoherence: 0.8,
+            temporalDecay: 1,
+          };
+          const score = computeConfidence(inputs);
+          const decision = applyThresholds(score);
+          sb.updateScore(`ctx-${p.start}-${p.end}`, score, decision);
+          if (decision === 'commit') {
+            diffusion.applyExternal(p);
+          }
+        }
+
+        // Tone stage (optional)
+        if (opts.toneEnabled && opts.toneTarget !== 'None') {
+          const updated = diffusion.getState();
+          const baseline = detectBaseline(updated.text);
+          const tProps = planAdjustments(
+            baseline,
+            opts.toneTarget,
+            updated.text,
+            updated.caret,
+          );
+          for (const p of tProps) {
+            const sample = updated.text.slice(
+              Math.max(0, p.start - 80),
+              Math.min(updated.caret, p.end + 80),
+            );
+            const inputs: ConfidenceInputs = {
+              inputFidelity: computeInputFidelity(sample),
+              transformationQuality:
+                p.text === updated.text.slice(p.start, p.end) ? 0 : 0.9,
+              contextCoherence: 0.75,
+              temporalDecay: 1,
+            };
+            const score = computeConfidence(inputs);
+            const decision = applyThresholds(score, undefined, { requireTone: true });
+            sb.updateScore(`tone-${p.start}-${p.end}`, score, decision);
+            if (decision === 'commit') {
+              diffusion.applyExternal(p);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      log.warn('v0.4 pipeline run failed', { err: (err as Error).message });
+    } finally {
+      sb.cleanup();
+    }
   }
 
   let unsubscribe: (() => void) | null = null;

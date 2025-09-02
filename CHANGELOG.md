@@ -51,14 +51,14 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 
 ### Added
 
-- FT-212: Punctuation normalization in `engines/tidySweep.ts` (spaces around commas/periods, em dash spacing).
+- FT-212: Punctuation normalization in `engines/noiseTransformer.ts` (spaces around commas/periods, em dash spacing).
 - FT-214: Whitespace normalization (collapse multi-spaces/tabs; trim trailing whitespace before newline).
 - FT-216: Capitalization rules (sentence-start capitalization; standalone 'i' → 'I').
 - Web demo: active region alignment and newline safety improvements; `SecurityContext` gating hooks.
 
 ### Tests
 
-- Expanded unit tests across tidySweep rules, diffusion controller, and sweep scheduler; integration harness proves end-to-end flow.
+- Expanded unit tests across noise transformer rules, diffusion controller, and sweep scheduler; integration harness proves end-to-end flow.
 - Added branch-edge tests to lift global branch coverage ≥90%; utils guard at 100% branches.
 
 ### CI / Quality Gates

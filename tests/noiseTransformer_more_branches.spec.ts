@@ -7,13 +7,13 @@
 */
 
 import { describe, it, expect } from 'vitest';
-import { tidySweep } from '../engines/tidySweep';
+import { noiseTransform } from '../engines/noiseTransformer';
 
-describe('tidySweep extra branches', () => {
+describe('noiseTransform extra branches', () => {
   it('normalizes tabs between tokens to single space', () => {
     const text = 'foo\t\tbar baz';
     const caret = text.length; // caret at end
-    const res = tidySweep({ text, caret });
+    const res = noiseTransform({ text, caret });
     expect(res.diff).not.toBeNull();
     if (res.diff) {
       const applied =
@@ -25,7 +25,7 @@ describe('tidySweep extra branches', () => {
   it('removes trailing spaces before newline', () => {
     const text = 'line with space   \nnext';
     const caret = text.length; // caret at end
-    const res = tidySweep({ text, caret });
+    const res = noiseTransform({ text, caret });
     expect(res.diff).not.toBeNull();
     if (res.diff) {
       const applied =

@@ -18,7 +18,7 @@
 
 - TypingMonitor (`core/typingMonitor.ts`): emits keystream events.
 - SweepScheduler (`core/sweepScheduler.ts`): orchestrates passes.
-- TidySweep (`engines/tidySweep.ts`): proposes minimal, caret‑safe diffs.
+- Noise Transformer (`engines/noiseTransformer.ts`): proposes minimal, caret‑safe diffs.
   - REQ-TIDY-SWEEP, REQ-IME-CARETSAFE
 - BackfillConsistency (`engines/backfillConsistency.ts`): stable‑zone passes.
 - Diff (`utils/diff.ts`): replaceRange with caret safety. REQ-IME-CARETSAFE

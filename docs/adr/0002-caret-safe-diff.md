@@ -38,5 +38,5 @@ Links (Traceability)
 - PRD: `docs/PRD.md#functional-requirements`
 - Principles: `docs/system_principles.md#4-caret-safe-never-risky`
 - Architecture: `docs/architecture/C3-components.md`
-- Code: `utils/diff.ts`, `engines/tidySweep.ts`
-- Tests: `tests/diff.spec.ts`, `tests/tidySweep.spec.ts`
+- Code: `utils/diff.ts`, `engines/noiseTransformer.ts`
+- Tests: `tests/diff.spec.ts`, `tests/noiseTransformer.spec.ts`

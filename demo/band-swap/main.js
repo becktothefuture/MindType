@@ -1,18 +1,18 @@
 /*╔══════════════════════════════════════════════════════════╗
-  ║  ░  MANUAL NOISE WAVE DEMO v2  ░░░░░░░░░░░░░░░░░░░░░░░  ║
-  ║                                                          ║
-  ║                                                          ║
-  ║                                                          ║
-  ║                                                          ║
+  ║  ░  MAIN  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
   ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
-  ║                                                          ║
-  ║                                                          ║
-  ║                                                          ║
-  ║                                                          ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ Manually controllable noise wave with 0.1s updates
-  • WHY  ▸ Interactive living text experience with user control
-  • HOW  ▸ Click/drag positioning, efficient noise generation
+  • WHAT ▸ Band-swap noise-cluster animation demo; Band-swap animation tokens
+  • WHY  ▸ REQ-BAND-SWAP, CONTRACT-BAND-SWAP
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 // Configuration for the manual noise wave

@@ -82,9 +82,9 @@ describe('DiffusionController branches', () => {
       },
     }));
 
-    // Mock tidySweep to return a diff so we hit the try/catch path
-    vi.doMock('../engines/tidySweep', () => ({
-      tidySweep: () => ({ diff: { start: 0, end: 3, text: 'the' } }),
+    // Mock noiseTransform to return a diff so we hit the try/catch path
+    vi.doMock('../engines/noiseTransformer', () => ({
+      noiseTransform: () => ({ diff: { start: 0, end: 3, text: 'the' } }),
     }));
 
     const { createDiffusionController } = await import('../core/diffusionController');

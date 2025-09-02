@@ -10,8 +10,8 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ Streamed diffusion of LM corrections
-  • WHY  ▸ REQ-STREAMED-DIFFUSION
+  • WHAT ▸ Streamed diffusion of LM corrections; Context transformer with ±2 sentence look-around; Tone transformer with baseline detection and selectable tone; Confidence gating across pipeline stages; Integrate Noise → Context → Tone pipeline with staging buffer; English-only gating for full pipeline (Noise for others)
+  • WHY  ▸ REQ-STREAMED-DIFFUSION, REQ-CONTEXT-TRANSFORMER, REQ-TONE-TRANSFORMER, REQ-CONFIDENCE-GATE, REQ-THREE-STAGE-PIPELINE, REQ-LANGUAGE-GATING
   • HOW  ▸ See linked contracts and guides in docs
 */
 
@@ -20,7 +20,7 @@ import {
   getMinValidationWords,
   getMaxValidationWords,
 } from '../config/defaultThresholds';
-import { tidySweep } from '../engines/tidySweep';
+import { noiseTransform } from '../engines/noiseTransformer';
 import { replaceRange } from '../utils/diff';
 import type { LMAdapter } from './lm/types';
 import type { ActiveRegionPolicy } from './activeRegionPolicy';
@@ -147,7 +147,7 @@ export function createDiffusionController(
   function tickOnce() {
     const r = nextWordRange();
     if (!r) return;
-    const res = tidySweep({ text: state.text, caret: state.caret, hint: r });
+    const res = noiseTransform({ text: state.text, caret: state.caret, hint: r });
     if (res.diff) {
       // Do not log user text per privacy policy
       log.debug('diff', {
@@ -254,5 +254,26 @@ export function createDiffusionController(
     } catch {}
   }
 
-  return { update, tickOnce, catchUp, getState: () => state };
+  function applyExternal(diff: { start: number; end: number; text: string }): boolean {
+    try {
+      const updated = replaceRange(
+        state.text,
+        diff.start,
+        diff.end,
+        diff.text,
+        state.caret,
+      );
+      state.text = updated;
+      const newEnd = diff.start + diff.text.length;
+      state.frontier = Math.max(state.frontier, newEnd);
+      clampFrontier();
+      maybeRender();
+      return true;
+    } catch {
+      // Safety guards failed; ignore external diff
+      return false;
+    }
+  }
+
+  return { update, tickOnce, catchUp, getState: () => state, applyExternal };
 }

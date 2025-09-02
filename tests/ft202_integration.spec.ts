@@ -28,14 +28,14 @@ vi.mock('../ui/highlighter', () => ({
 }));
 
 // Spy on engines to ensure they run on pause catch-up
-vi.mock('../engines/tidySweep', () => ({
-  tidySweep: vi.fn(() => ({ diff: null })),
+vi.mock('../engines/noiseTransformer', () => ({
+  noiseTransform: vi.fn(() => ({ diff: null })),
 }));
 vi.mock('../engines/backfillConsistency', () => ({
   backfillConsistency: vi.fn(() => ({ diffs: [] })),
 }));
 
-import { tidySweep } from '../engines/tidySweep';
+import { noiseTransform } from '../engines/noiseTransformer';
 import { backfillConsistency } from '../engines/backfillConsistency';
 
 describe('FT-202 Integration Harness', () => {
@@ -43,7 +43,7 @@ describe('FT-202 Integration Harness', () => {
     vi.useFakeTimers();
     regionCalls.length = 0;
     highlights.length = 0;
-    (tidySweep as unknown as { mockClear?: () => void }).mockClear?.();
+    (noiseTransform as unknown as { mockClear?: () => void }).mockClear?.();
     (backfillConsistency as unknown as { mockClear?: () => void }).mockClear?.();
   });
   afterEach(() => {
@@ -80,7 +80,7 @@ describe('FT-202 Integration Harness', () => {
     expect(afterPauseRegion.end).toBe(15);
 
     // Engines invoked as part of pause processing
-    expect(tidySweep).toHaveBeenCalled();
+    expect(noiseTransform).toHaveBeenCalled();
     expect(backfillConsistency).toHaveBeenCalled();
 
     // Any highlights produced must be strictly behind the caret (caret safety)

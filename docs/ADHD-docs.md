@@ -28,7 +28,7 @@
 - **Keystrokes → Events**: `TypingMonitor` emits `{ text, caret, atMs }`. See `core/typingMonitor.ts`.
 - **Scheduler**: `SweepScheduler` paces streaming ticks (~60–90 ms) and catch‑up after ~500 ms idle. See `core/sweepScheduler.ts`.
 - **Diffusion**: `DiffusionController` moves a frontier toward the caret, validating word‑by‑word in a trailing band (3–8 words). See `core/diffusionController.ts` and `docs/guide/reference/band-policy.md`.
-- **Engines**: Rules (`engines/tidySweep.ts`) and (optional) LM stream. Rules fix structure (typos, spaces). LM fixes semantics. See `docs/guide/reference/lm-behavior.md`.
+- **Engines**: Rules (`engines/noiseTransformer.ts`) and (optional) LM stream. Rules fix structure (typos, spaces). LM fixes semantics. See `docs/guide/reference/lm-behavior.md`.
 - **Merge**: Apply tiny diffs, never at/after the caret; Unicode‑safe. TS: `utils/diff.ts`. Rust: `docs/guide/reference/rust-merge.md` (target).
 - **Host Injection**: Web updates a textarea; macOS uses Accessibility APIs. Contract in `docs/guide/reference/injector.md`.
 
@@ -42,7 +42,7 @@
 
 ## Rules vs LM (who fixes what)
 
-- **Rules**: cheap, instant, deterministic. Good for typos, punctuation, capitalisation. File: `engines/tidySweep.ts`.
+- **Rules**: cheap, instant, deterministic. Good for typos, punctuation, capitalisation. File: `engines/noiseTransformer.ts`.
 - **LM**: semantic upgrades (agreement, clarity) with strict policy: span‑only prompts, short outputs, abort on input. Files: `core/lm/policy.ts`, v0.2 orchestrator in `crates/core-rs/src/*`.
 - **Priority**: On conflicts, rules win for structure; LM wins for semantics when safe. Details in `docs/guide/reference/lm-behavior.md`.
 
@@ -68,13 +68,13 @@
 2. `DiffusionController` advances one word → rules apply a tiny diff (if safe).
 3. After a pause, controller catches up to the caret. If LM is on: it selects a short span, prompts, streams, merges safely.
 4. UI shows a subtle band and highlight. Caret never moves. Undo is one step.  
-   See: `core/sweepScheduler.ts`, `core/diffusionController.ts`, `engines/tidySweep.ts`, `docs/guide/reference/lm-behavior.md`.
+   See: `core/sweepScheduler.ts`, `core/diffusionController.ts`, `engines/noiseTransformer.ts`, `docs/guide/reference/lm-behavior.md`.
 
 ## Deep‑dive links (pick your lane)
 
 - Product constraints: `docs/PRD.md`, `docs/adr/0003-architecture-constraints.md`
 - Architecture: `docs/architecture/README.md`, `docs/architecture/C1-context.md`, `C2-containers.md`, `C3-components.md`
-- Core engines: `engines/tidySweep.ts`, `engines/backfillConsistency.ts`
+- Core engines: `engines/noiseTransformer.ts`, `engines/backfillConsistency.ts`
 - Diffusion & Band: `core/diffusionController.ts`, `docs/guide/reference/band-policy.md`
 - LM behavior: `docs/guide/reference/lm-behavior.md`, `core/lm/policy.ts`, `docs/guide/reference/lm-worker.md`, `crates/core-rs/src/*`
 - Merge safety: `utils/diff.ts`, `docs/guide/reference/rust-merge.md`, ADR‑0002

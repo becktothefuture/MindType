@@ -227,7 +227,7 @@ Task checklist template (copy into PR description):
 ### Tidy Sweep Implementation (P1)
 
 - [x] (P1) [FT-210] Create tidy sweep engine scaffold  
-       **AC:** - Basic engine structure in `engines/tidySweep.ts` - Rule interface defined - Test infrastructure
+       **AC:** - Basic engine structure in `engines/noiseTransformer.ts` - Rule interface defined - Test infrastructure
       **Owner:** @alex  
        **DependsOn:** FT-120  
        **Source:** PRD REQ-TIDY-SWEEP
@@ -849,3 +849,245 @@ All docs follow house comment header style; stubs will be filled as tasks land.
 - **Write the truth in docs.** The tool mirrors that truth onto files so others can see WHAT/WHY/HOW.
 - **Add SPEC blocks** (REQ/CONTRACT) where changes happen.
 - **Run `pnpm doc:sync`** to propagate updates.
+
+## Stage 6 — v0.4 Three-Stage Pipeline (P1)
+
+> Beginner-friendly summary
+>
+> We are upgrading from a single-stage “tidy sweep” into a 3-stage pipeline: Noise → Context → Tone. We’ll also add a confidence-scoring system and a staging buffer so only high-quality edits are applied. Finally, we add English-only gating and tone controls in the demo.
+
+```yaml
+- id: FT-401
+  title: Implement Context Transformer
+  priority: P1
+  dependsOn: [FT-232]
+  acceptance:
+    - engines/contextTransformer.ts with ±2 sentence look-around
+    - Grammar, syntax, semantics correction
+    - Integration with confidence gating (τ_input ≥ 0.65)
+    - Never edits at/after caret
+    - Unit tests for context window and lookahead gate
+  output: engines/contextTransformer.ts, tests/contextTransformer.spec.ts
+
+- id: FT-402
+  title: Implement Tone Transformer
+  priority: P1
+  dependsOn: [FT-401]
+  acceptance:
+    - engines/toneTransformer.ts with baseline tone detection
+    - Options: None (pass-through), Casual, Professional
+    - Scope: last N sentences (CPU:10, WebGPU/WASM:20)
+    - Gating: τ_tone (0.85) AND τ_commit to apply
+    - Toggle control with in-flight completion
+    - Unit tests for tone detection and minimal-diff rewrites
+  output: engines/toneTransformer.ts, tests/toneTransformer.spec.ts
+
+- id: FT-403
+  title: Implement Confidence Gating System
+  priority: P1
+  dependsOn: [FT-241]
+  acceptance:
+    - core/confidenceGate.ts with mathematical scoring
+    - Four dimensions: input fidelity, transform quality, context coherence, temporal decay
+    - Threshold enforcement: τ_input, τ_commit, τ_tone, τ_discard
+    - Integration with staging buffer
+    - Unit tests for scoring algorithms and threshold behavior
+  output: core/confidenceGate.ts, tests/confidenceGate.spec.ts
+
+- id: FT-404
+  title: Implement Staging Buffer State Machine
+  priority: P1
+  dependsOn: [FT-403]
+  acceptance:
+    - core/stagingBuffer.ts with HOLD/COMMIT/DISCARD/ROLLBACK states
+    - State transition logic triggered by confidence scores
+    - Memory management and stale proposal cleanup
+    - Caret movement triggers and rollback handling
+    - Unit tests for state machine and edge cases
+  output: core/stagingBuffer.ts, tests/stagingBuffer.spec.ts
+
+- id: FT-405
+  title: Integrate Three-Stage Pipeline
+  priority: P1
+  dependsOn: [FT-401, FT-402, FT-403, FT-404]
+  acceptance:
+    - Update core/diffusionController.ts for Noise → Context → Tone flow
+    - Replace simple frontier with staging buffer
+    - Add confidence gating before edits
+    - Rollback triggers on caret entry
+    - Integration tests for full pipeline
+  output: Updated core/diffusionController.ts, tests/integration.spec.ts
+
+- id: FT-406
+  title: Add Language Detection and English-Only Gating
+  priority: P1
+  dependsOn: [FT-405]
+  acceptance:
+    - Language detection for input text
+    - Full pipeline (Context + Tone) only for English
+    - Noise-only for non-English (future multilingual support)
+    - Unit tests for language gating behavior
+  output: core/languageDetection.ts, tests/languageDetection.spec.ts
+
+- id: FT-407
+  title: Update Web Demo for v0.4 Controls
+  priority: P1
+  dependsOn: [FT-405, FT-406]
+  acceptance:
+    - Tone selection dropdown: None, Casual, Professional
+    - Toggle control for tone ON/OFF
+    - Confidence threshold sliders: τ_input, τ_commit, τ_tone
+    - Settings persistence to localStorage
+    - Performance metrics for each stage
+    - Cross-browser compatibility
+  output: Updated web-demo/src/App.tsx, web-demo/src/App.css
+
+- id: FT-408
+  title: Update Examples and Rename Neutral → None
+  priority: P1
+  dependsOn: [FT-407]
+  acceptance:
+    - All examples show three-stage pipeline flow
+    - Add None (pass-through) examples
+    - Add low-tier (N=10) scope examples
+    - Add English-only gating examples
+    - Rename "Neutral" → "None (pass-through)" throughout codebase
+    - Update all test fixtures and documentation
+  output: Updated tests/**, docs/**, web-demo/**
+```
+
+## Stage 7 — v0.4 Polish & Optimization (P2)
+
+```yaml
+- id: FT-501
+  title: Undo Isolation System
+  priority: P2
+  dependsOn: [FT-405]
+  acceptance:
+    - core/undoIsolation.ts with time-bucketed system edits
+    - 100-200ms grouping windows
+    - Separate from user undo stack
+    - Internal rollback API
+    - Unit tests for bucket management
+  output: core/undoIsolation.ts, tests/undoIsolation.spec.ts
+
+- id: FT-502
+  title: Enhanced Visual Feedback
+  priority: P2
+  dependsOn: [FT-407]
+  acceptance:
+    - Complete mechanical swap animation in ui/swapRenderer.ts
+    - Braille marker ('⠿') option at swap sites
+    - Reduced-motion compliance (instant swaps)
+    - Timing coordination with confidence system
+    - Cross-browser compatibility
+  output: Updated ui/swapRenderer.ts, tests/ui/swapRenderer.spec.ts
+
+- id: FT-503
+  title: Performance Optimization by Device Tier
+  priority: P2
+  dependsOn: [FT-406]
+  acceptance:
+    - Tone analysis scope by tier: CPU (10), WebGPU/WASM (20)
+    - Token limits and cooldowns per tier
+    - Memory pressure monitoring and degradation
+    - Performance benchmarks and regression tests
+  output: Updated core/lm/**, tests/performance/**
+
+- id: FT-504
+  title: macOS Platform Foundation
+  priority: P2
+  dependsOn: [FT-405]
+  acceptance:
+    - Swift app with NSStatusItem menu bar presence
+    - Accessibility API integration for text monitoring
+    - FFI bridge to shared Rust core
+    - Overlay window system for visual feedback
+    - Basic preferences UI
+  output: macOS/** directory structure, bindings/swift/**
+```
+
+<!-- SPEC:REQ
+id: REQ-CONTEXT-TRANSFORMER
+title: Context transformer with ±2 sentence look-around
+status: active
+modules:
+  - engines/contextTransformer.ts
+  - core/diffusionController.ts
+acceptance:
+  - docs/qa/acceptance/context_transformer.feature#SCEN-CONTEXT-001
+tests:
+  - tests/contextTransformer.spec.ts
+invariants:
+  - Never edits at/after caret (REQ-IME-CARETSAFE)
+-->
+
+<!-- SPEC:REQ
+id: REQ-TONE-TRANSFORMER
+title: Tone transformer with baseline detection and selectable tone
+status: active
+modules:
+  - engines/toneTransformer.ts
+  - core/diffusionController.ts
+acceptance:
+  - docs/qa/acceptance/tone_transformer.feature#SCEN-TONE-001
+tests:
+  - tests/toneTransformer.spec.ts
+invariants:
+  - Never edits at/after caret (REQ-IME-CARETSAFE)
+-->
+
+<!-- SPEC:REQ
+id: REQ-CONFIDENCE-GATE
+title: Confidence gating across pipeline stages
+status: active
+modules:
+  - core/confidenceGate.ts
+  - core/stagingBuffer.ts
+  - core/diffusionController.ts
+acceptance:
+  - docs/qa/acceptance/confidence_gate.feature#SCEN-CONFIDENCE-001
+tests:
+  - tests/confidenceGate.spec.ts
+  - tests/stagingBuffer.spec.ts
+-->
+
+<!-- SPEC:REQ
+id: REQ-THREE-STAGE-PIPELINE
+title: Integrate Noise → Context → Tone pipeline with staging buffer
+status: active
+modules:
+  - core/diffusionController.ts
+  - core/sweepScheduler.ts
+acceptance:
+  - docs/qa/acceptance/three_stage_pipeline.feature#SCEN-PIPELINE-001
+tests:
+  - tests/integration.spec.ts
+-->
+
+<!-- SPEC:REQ
+id: REQ-LANGUAGE-GATING
+title: English-only gating for full pipeline (Noise for others)
+status: active
+modules:
+  - core/languageDetection.ts
+  - core/diffusionController.ts
+  - core/sweepScheduler.ts
+acceptance:
+  - docs/qa/acceptance/language_gating.feature#SCEN-LANG-001
+tests:
+  - tests/languageDetection.spec.ts
+-->
+
+<!-- SPEC:REQ
+id: REQ-TONE-CONTROLS-UI
+title: Web demo tone controls and thresholds
+status: active
+modules:
+  - web-demo/src/App.tsx
+  - web-demo/src/App.css
+acceptance:
+  - docs/qa/acceptance/tone_controls_ui.feature#SCEN-TONE-UI-001
+tests:
+  - e2e/tests/web-demo-tone-controls.spec.ts
+-->

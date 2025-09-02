@@ -14,7 +14,7 @@ import { createTypingMonitor } from '../core/typingMonitor';
 import { createSweepScheduler } from '../core/sweepScheduler';
 import { createDiffusionController } from '../core/diffusionController';
 import type { LMAdapter } from '../core/lm/types';
-import { tidySweep } from '../engines/tidySweep';
+import { noiseTransform } from '../engines/noiseTransformer';
 
 // Mock the UI calls for clean testing
 vi.mock('../ui/highlighter', () => ({
@@ -50,7 +50,7 @@ describe('Streaming Diffusion Integration', () => {
     const hint = { start: 5, end: 10 }; // " teh " with spaces
 
     // Test 4: TidySweep engine processes the hint
-    const sweepResult = tidySweep({
+    const sweepResult = noiseTransform({
       text,
       caret,
       hint,
@@ -114,7 +114,7 @@ describe('Streaming Diffusion Integration', () => {
     const text = 'I was typing teh wrong word here';
     const caretPosition = 32; // At end
 
-    const result = tidySweep({
+    const result = noiseTransform({
       text,
       caret: caretPosition,
     });
@@ -138,7 +138,7 @@ describe('Streaming Diffusion Integration', () => {
     ];
 
     testCases.forEach(({ text, expected }) => {
-      const result = tidySweep({
+      const result = noiseTransform({
         text,
         caret: text.length,
       });

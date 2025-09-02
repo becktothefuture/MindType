@@ -13,11 +13,11 @@
   ╚══════════════════════════════════════════════════════╝
     • WHAT ▸ Add a safe grammar tidy rule
     • WHY  ▸ Improve fluency without changing voice
-    • HOW  ▸ Implement in `engines/tidySweep.ts`
+    • HOW  ▸ Implement in `engines/noiseTransformer.ts`
 -->
 
 Checklist
 
 - Never cross CARET; operate ≤ 80 chars behind it.
 - Confidence gate; return null if unsure.
-- Add unit tests in `tests/tidySweep.spec.ts`.
+- Add unit tests in `tests/noiseTransformer.spec.ts`.

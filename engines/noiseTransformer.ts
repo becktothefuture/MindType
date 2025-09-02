@@ -1,5 +1,5 @@
 /*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  T I D Y   S W E E P   E N G I N E  ░░░░░░░░░░░░░░░░░░░  ║
+  ║  ░  N O I S E   T R A N S F O R M E R  ░░░░░░░░░░░░░░░░░░░  ║
   ║                                                              ║
   ║   Forward cleanup (<80 chars) with caret-safe diffs.         ║
   ║   Works on the live TYPING ZONE just behind the caret.       ║
@@ -16,32 +16,32 @@
 
 import { MAX_SWEEP_WINDOW } from '../config/defaultThresholds';
 
-export interface SweepInput {
+export interface NoiseInput {
   text: string;
   caret: number;
   // Optional hint constraining the proposed edit to a word range
   hint?: { start: number; end: number };
 }
 
-export interface SweepResult {
+export interface NoiseResult {
   diff: { start: number; end: number; text: string } | null;
 }
 
 // Rule interface for individual correction rules
-export interface SweepRule {
+export interface NoiseRule {
   name: string;
   priority: number; // Lower number = higher priority
-  apply(input: SweepInput): SweepResult;
+  apply(input: NoiseInput): NoiseResult;
 }
 
 // ⟢ Future: Confidence threshold for applying corrections
 // const CONFIDENCE_THRESHOLD = 0.7;
 
 // Basic rule: Simple word substitutions (space-delimited for safety)
-const wordSubstitutionRule: SweepRule = {
+const wordSubstitutionRule: NoiseRule = {
   name: 'word-substitution',
   priority: 1,
-  apply(input: SweepInput): SweepResult {
+  apply(input: NoiseInput): NoiseResult {
     const { text, caret, hint } = input;
 
     // Define safe editing window (never at/after caret)
@@ -98,10 +98,10 @@ const wordSubstitutionRule: SweepRule = {
 };
 
 // Whitespace normalization: collapse multiple spaces/tabs; trim trailing spaces before newline
-const whitespaceNormalizationRule: SweepRule = {
+const whitespaceNormalizationRule: NoiseRule = {
   name: 'whitespace-normalization',
   priority: 1,
-  apply(input: SweepInput): SweepResult {
+  apply(input: NoiseInput): NoiseResult {
     const { text, caret, hint } = input;
     const windowStart = Math.max(0, caret - MAX_SWEEP_WINDOW);
     const windowEnd = caret;
@@ -169,10 +169,10 @@ function isWordBoundary(char: string | undefined): boolean {
 }
 
 // Transposition detection rule: detects common letter swaps inside words
-const transpositionRule: SweepRule = {
+const transpositionRule: NoiseRule = {
   name: 'transposition-detection',
   priority: 0,
-  apply(input: SweepInput): SweepResult {
+  apply(input: NoiseInput): NoiseResult {
     const { text, caret, hint } = input;
 
     const windowStart = Math.max(0, caret - MAX_SWEEP_WINDOW);
@@ -222,10 +222,10 @@ const transpositionRule: SweepRule = {
 };
 
 // Punctuation normalization rule: spacing around commas, periods, em dashes, quotes
-const punctuationNormalizationRule: SweepRule = {
+const punctuationNormalizationRule: NoiseRule = {
   name: 'punctuation-normalization',
   priority: 0,
-  apply(input: SweepInput): SweepResult {
+  apply(input: NoiseInput): NoiseResult {
     const { text, caret, hint } = input;
     const windowStart = Math.max(0, caret - MAX_SWEEP_WINDOW);
     const windowEnd = caret;
@@ -294,10 +294,10 @@ const punctuationNormalizationRule: SweepRule = {
 };
 
 // Capitalization rules: sentence-start capitalization; standalone 'i' pronoun → 'I'
-const capitalizationRule: SweepRule = {
+const capitalizationRule: NoiseRule = {
   name: 'capitalization',
   priority: 1,
-  apply(input: SweepInput): SweepResult {
+  apply(input: NoiseInput): NoiseResult {
     const { text, caret, hint } = input;
     const windowStart = Math.max(0, caret - MAX_SWEEP_WINDOW);
     const windowEnd = caret;
@@ -344,7 +344,7 @@ const capitalizationRule: SweepRule = {
 };
 
 // Registry of all rules, ordered by priority
-const RULES: SweepRule[] = [
+const RULES: NoiseRule[] = [
   transpositionRule,
   punctuationNormalizationRule,
   capitalizationRule,
@@ -353,7 +353,7 @@ const RULES: SweepRule[] = [
   // ⟢ Future rules will be added here
 ];
 
-export function tidySweep(input: SweepInput): SweepResult {
+export function noiseTransform(input: NoiseInput): NoiseResult {
   const { text, caret } = input;
 
   // Safety check: never edit at or after the caret

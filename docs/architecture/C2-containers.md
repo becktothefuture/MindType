@@ -26,5 +26,5 @@
 Contracts
 
 - REQ-IME-CARETSAFE: applies within Engine/Accessibility boundary.
-- REQ-TIDY-SWEEP: `engines/tidySweep.ts` public function contract.
+- REQ-NOISE-TRANSFORMER: `engines/noiseTransformer.ts` public function contract.
 - REQ-A11Y-MOTION: `ui/highlighter.ts` honors motion prefs.
