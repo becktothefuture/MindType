@@ -133,5 +133,24 @@ export function contextTransform(input: TransformInput): TransformResult {
   if (changed) {
     proposals.push({ start: curStart, end: safeEnd, text: repaired });
   }
+  // Punctuation normalization within current sentence
+  const normalizePunct = (s: string): string => {
+    let out = s;
+    out = out.replace(/\s+([,.])/g, '$1');
+    out = out.replace(/([,.])(\S)/g, '$1 $2');
+    // Em dash spacing unify
+    out = out.replace(/\s?—\s?/g, ' — ');
+    return out;
+  };
+  const punctNorm = normalizePunct(curSpan);
+  if (punctNorm !== curSpan) {
+    proposals.push({ start: curStart, end: safeEnd, text: punctNorm });
+  }
+  // Capitalization: sentence start and standalone 'i'
+  let capSpan = curSpan.replace(/(^|[.!?]\s+)([a-z])/g, (m, p1, p2) => `${p1}${p2.toUpperCase()}`);
+  capSpan = capSpan.replace(/(?<=^|\s)i(?=\s|$)/g, 'I');
+  if (capSpan !== curSpan) {
+    proposals.push({ start: curStart, end: safeEnd, text: capSpan });
+  }
   return { window, proposals };
 }

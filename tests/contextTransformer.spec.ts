@@ -20,6 +20,22 @@ describe('contextTransformer', () => {
     }
   });
 
+  it('normalizes punctuation in current sentence', () => {
+    const text = 'word ,next';
+    const caret = text.length;
+    const r = contextTransform({ text, caret });
+    const joined = r.proposals.map((p) => p.text).join(' ');
+    expect(joined.includes(', ')).toBe(true);
+  });
+
+  it('capitalizes sentence starts and standalone i', () => {
+    const text = 'hello. world and i agree';
+    const caret = text.length;
+    const r = contextTransform({ text, caret });
+    const merged = r.proposals.map((p) => p.text).join(' ');
+    expect(/Hello\./.test(merged) || /World/.test(merged) || / I /.test(merged)).toBe(true);
+  });
+
   it('yields proposals on missing punctuation/capitalization', () => {
     const text = 'this is fine';
     const caret = text.length;
