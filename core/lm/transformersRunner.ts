@@ -145,8 +145,8 @@ async function loadGeneratorSingleton(
 }
 
 export function createQwenTokenStreamer(options?: QwenRunnerOptions): TokenStreamer {
-  // Default to local-only unless explicitly disabled per session
-  const localOnlyDefault = options?.localOnly ?? true;
+  // Default to remote models for easier setup, local-only when explicitly enabled
+  const localOnlyDefault = options?.localOnly ?? false;
   // Device-tier default token caps
   const backend = detectBackend();
   // FT-231F: token cap clamp by backend tier [8, 48]

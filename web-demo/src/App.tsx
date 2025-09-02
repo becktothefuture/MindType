@@ -22,6 +22,7 @@ import { replaceRange } from "../../utils/diff";
 // TS pipeline imports
 import { boot } from "../../index";
 import { createMockLMAdapter } from "../../core/lm/mockAdapter";
+import { createDefaultLMAdapter } from "../../core/lm/factory";
 import { setLoggerConfig } from "../../core/logger";
 import { createLiveRegion, type LiveRegion } from "../../ui/liveRegion";
 import { setSwapConfig } from "../../ui/swapRenderer";
@@ -296,10 +297,18 @@ function App() {
     };
   }, [pipeline]);
 
-  // Toggle LM mock adapter for demo visibility
+  // Toggle LM adapter for demo visibility
   useEffect(() => {
     if (lmEnabled) {
-      pipeline.setLMAdapter(createMockLMAdapter() as unknown as any);
+      try {
+        // Use real Transformers.js adapter with platform defaults
+        const realAdapter = createDefaultLMAdapter();
+        pipeline.setLMAdapter(realAdapter);
+        console.log('[Demo] Real LM adapter enabled');
+      } catch (error) {
+        console.warn('[Demo] Real LM failed, falling back to mock:', error);
+        pipeline.setLMAdapter(createMockLMAdapter() as unknown as any);
+      }
     } else {
       // @ts-expect-error using noop via public API
       pipeline.setLMAdapter({ stream: async function* () {} });
@@ -828,7 +837,7 @@ function App() {
               checked={lmEnabled}
               onChange={(e) => setLmEnabled(e.target.checked)}
             />
-            Enable LM (mock) — demo only
+Enable Real LM (Qwen2.5-0.5B)
           </label>
           <label>
             Tick (ms): {tickMs}
