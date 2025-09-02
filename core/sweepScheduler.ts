@@ -162,21 +162,28 @@ export function createSweepScheduler(
         if (opts.toneEnabled && opts.toneTarget !== 'None') {
           const updated = diffusion.getState();
           const baseline = detectBaseline(updated.text);
-          const tProps = planAdjustments(
-            baseline,
-            opts.toneTarget,
-            updated.text,
-            updated.caret,
-          );
+          // Device-tier scope: CPU:10, WebGPU/WASM:20
+          const scopeN = (() => {
+            try {
+              if ((globalThis as any)?.navigator?.gpu) return 20;
+              if (typeof WebAssembly !== 'undefined') return 20;
+            } catch {}
+            return 10;
+          })();
+          const textForTone = (() => {
+            const full = updated.text.slice(0, updated.caret);
+            const parts = full.split(/(?<=[.!?])\s+/);
+            const tail = parts.slice(Math.max(0, parts.length - scopeN));
+            return tail.join(' ');
+          })();
+          const caretForTone = textForTone.length;
+          const tProps = planAdjustments(baseline, opts.toneTarget, textForTone, caretForTone);
           for (const p of tProps) {
-            const sample = updated.text.slice(
-              Math.max(0, p.start - 80),
-              Math.min(updated.caret, p.end + 80),
-            );
+            const sample = textForTone.slice(Math.max(0, p.start - 80), Math.min(caretForTone, p.end + 80));
             const inputs: ConfidenceInputs = {
               inputFidelity: computeInputFidelity(sample),
               transformationQuality:
-                p.text === updated.text.slice(p.start, p.end) ? 0 : 0.9,
+                p.text === textForTone.slice(p.start, p.end) ? 0 : 0.9,
               contextCoherence: 0.75,
               temporalDecay: 1,
             };
@@ -184,7 +191,8 @@ export function createSweepScheduler(
             const decision = applyThresholds(score, undefined, { requireTone: true });
             sb.updateScore(`tone-${p.start}-${p.end}`, score, decision);
             if (decision === 'commit') {
-              diffusion.applyExternal(p);
+              const offset = updated.caret - caretForTone;
+              diffusion.applyExternal({ start: p.start + offset, end: p.end + offset, text: p.text });
             }
           }
         }
