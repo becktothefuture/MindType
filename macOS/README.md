@@ -15,5 +15,10 @@ Structure
 
 Notes
 
-- This is scaffolding only (no build system included). Integrate with an Xcode project and add the Swift files.
+- This is scaffolding only. Prefer using XcodeGen for a lightweight template.
+- Option A — XcodeGen (recommended):
+  1. Install XcodeGen: `brew install xcodegen`
+  2. Run `xcodegen generate --spec macOS/Template/project.yml` from repo root
+  3. Open the generated `.xcodeproj` and build/run
+- Option B — Manual Xcode project: create a new macOS App project and add the Swift files under `macOS/App` and `bindings/swift`.
 - FFI bridge is a placeholder for connecting to a Rust core (via cbindgen or UniFFI).

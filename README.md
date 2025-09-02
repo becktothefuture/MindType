@@ -46,6 +46,7 @@
 - Product narrative: see `docs/mindtyper_manifesto.md` for the vision and feel.
 - Brand pitch: see `docs/brand/messaging.md` (Mind::Type v0.2 Vision Pitch).
 - Changelog: see `CHANGELOG.md` for release history.
+- What's New: see `docs/guide/whats-new-v0.4.md` for v0.4 highlights.
 
 ## Overview
 

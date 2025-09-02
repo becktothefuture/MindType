@@ -1,0 +1,16 @@
+name: MindTypeStatusBar
+options:
+  minimumXcodeGenVersion: 2.30.0
+targets:
+  MindTypeStatusBar:
+    type: application
+    platform: macOS
+    deploymentTarget: '13.0'
+    sources:
+      - path: ../App
+      - path: ../../bindings/swift
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.example.MindTypeStatusBar
+      CODE_SIGN_STYLE: Automatic
+    postCompileScripts: []
+    postBuildScripts: []
