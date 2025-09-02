@@ -83,9 +83,14 @@ export function createSweepScheduler(
     lastEvent = ev;
     log.debug('onEvent', { caret: ev.caret, textLen: ev.text.length });
     diffusion.update(ev.text, ev.caret);
-    // Caret moved; mark overlapping proposals for rollback (future: apply rollback)
+    // Caret moved; mark overlapping proposals for rollback; apply rollback of last system bucket
     try {
-      sb.onCaretMove(ev.caret);
+      const rolled = sb.onCaretMove(ev.caret);
+      if (rolled > 0) {
+        // Roll back last system edits group to keep caret region safe
+        // @ts-expect-error internal method available on controller
+        (diffusion as any).rollbackLastSystemGroup?.();
+      }
     } catch {}
     if (timer) clearTimeout(timer);
     // schedule pause catch-up

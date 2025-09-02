@@ -33,7 +33,9 @@ describe('contextTransformer', () => {
     const caret = text.length;
     const r = contextTransform({ text, caret });
     const merged = r.proposals.map((p) => p.text).join(' ');
-    expect(/Hello\./.test(merged) || /World/.test(merged) || / I /.test(merged)).toBe(true);
+    expect(/Hello\./.test(merged) || /World/.test(merged) || / I /.test(merged)).toBe(
+      true,
+    );
   });
 
   it('yields proposals on missing punctuation/capitalization', () => {

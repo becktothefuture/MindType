@@ -95,6 +95,18 @@ describe('swapRenderer events', () => {
     expect(typeof got[0].instant).toBe('boolean');
   });
 
+  it('includes marker glyph by default and can be disabled', () => {
+    const got: Array<{ markerGlyph?: string | null }> = [];
+    (globalThis as unknown as { addEventListener: (t: string, l: (e: MTEvent) => void) => void }).addEventListener(
+      'mindtype:mechanicalSwap',
+      (e: MTEvent) => got.push(e.detail as { markerGlyph?: string | null }),
+    );
+    renderMechanicalSwap({ start: 0, end: 1, text: 'A' });
+    renderMechanicalSwap({ start: 2, end: 3, text: 'B' }, { showMarker: false });
+    expect(got[0].markerGlyph).toBe('⠿');
+    expect(got[1].markerGlyph).toBeNull();
+  });
+
   it('respects reduced-motion (instant=true, duration=0)', () => {
     (globalThis as unknown as { window?: WindowLike }).window = {
       matchMedia: (q: string) => ({ matches: q.includes('prefers-reduced-motion') }),

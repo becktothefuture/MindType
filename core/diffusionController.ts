@@ -28,6 +28,7 @@ import { emitActiveRegion } from '../ui/highlighter';
 import { renderHighlight } from '../ui/swapRenderer';
 import { createLogger } from './logger';
 import { streamMerge } from './lm/mergePolicy';
+import { UndoIsolation } from './undoIsolation';
 
 export interface DiffusionState {
   text: string;
@@ -54,6 +55,7 @@ export function createDiffusionController(
     seg = null;
   }
   const log = createLogger('diffusion');
+  const undo = new UndoIsolation(150);
 
   let state: DiffusionState = { text: '', caret: 0, frontier: 0 };
   // Throttle rendering to avoid UI storms (esp. Safari). ~60fps ceiling.
@@ -256,6 +258,7 @@ export function createDiffusionController(
 
   function applyExternal(diff: { start: number; end: number; text: string }): boolean {
     try {
+      const before = state.text.slice(diff.start, diff.end);
       const updated = replaceRange(
         state.text,
         diff.start,
@@ -268,6 +271,9 @@ export function createDiffusionController(
       state.frontier = Math.max(state.frontier, newEnd);
       clampFrontier();
       maybeRender();
+      try {
+        undo.addEdit({ start: diff.start, end: newEnd, before, after: diff.text, appliedAt: Date.now() });
+      } catch {}
       return true;
     } catch {
       // Safety guards failed; ignore external diff
@@ -275,5 +281,26 @@ export function createDiffusionController(
     }
   }
 
-  return { update, tickOnce, catchUp, getState: () => state, applyExternal };
+  function rollbackLastSystemGroup(): void {
+    const g = undo.popLastGroup();
+    if (!g || g.edits.length === 0) return;
+    for (let i = g.edits.length - 1; i >= 0; i--) {
+      const e = g.edits[i];
+      try {
+        const updated = replaceRange(
+          state.text,
+          e.start,
+          e.start + e.after.length,
+          e.before,
+          state.caret,
+        );
+        state.text = updated;
+        state.frontier = Math.min(state.frontier, e.start);
+      } catch {}
+    }
+    clampFrontier();
+    maybeRender();
+  }
+
+  return { update, tickOnce, catchUp, getState: () => state, applyExternal, rollbackLastSystemGroup };
 }

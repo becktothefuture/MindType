@@ -147,7 +147,10 @@ export function contextTransform(input: TransformInput): TransformResult {
     proposals.push({ start: curStart, end: safeEnd, text: punctNorm });
   }
   // Capitalization: sentence start and standalone 'i'
-  let capSpan = curSpan.replace(/(^|[.!?]\s+)([a-z])/g, (m, p1, p2) => `${p1}${p2.toUpperCase()}`);
+  let capSpan = curSpan.replace(
+    /(^|[.!?]\s+)([a-z])/g,
+    (m, p1, p2) => `${p1}${p2.toUpperCase()}`,
+  );
   capSpan = capSpan.replace(/(?<=^|\s)i(?=\s|$)/g, 'I');
   if (capSpan !== curSpan) {
     proposals.push({ start: curStart, end: safeEnd, text: capSpan });
