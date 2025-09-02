@@ -97,9 +97,12 @@ describe('swapRenderer events', () => {
 
   it('includes marker glyph by default and can be disabled', () => {
     const got: Array<{ markerGlyph?: string | null }> = [];
-    (globalThis as unknown as { addEventListener: (t: string, l: (e: MTEvent) => void) => void }).addEventListener(
-      'mindtype:mechanicalSwap',
-      (e: MTEvent) => got.push(e.detail as { markerGlyph?: string | null }),
+    (
+      globalThis as unknown as {
+        addEventListener: (t: string, l: (e: MTEvent) => void) => void;
+      }
+    ).addEventListener('mindtype:mechanicalSwap', (e: MTEvent) =>
+      got.push(e.detail as { markerGlyph?: string | null }),
     );
     renderMechanicalSwap({ start: 0, end: 1, text: 'A' });
     renderMechanicalSwap({ start: 2, end: 3, text: 'B' }, { showMarker: false });

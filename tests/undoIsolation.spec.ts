@@ -31,4 +31,3 @@ describe('UndoIsolation', () => {
     expect(u.getGroups().length).toBe(1);
   });
 });
-

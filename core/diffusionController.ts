@@ -272,7 +272,13 @@ export function createDiffusionController(
       clampFrontier();
       maybeRender();
       try {
-        undo.addEdit({ start: diff.start, end: newEnd, before, after: diff.text, appliedAt: Date.now() });
+        undo.addEdit({
+          start: diff.start,
+          end: newEnd,
+          before,
+          after: diff.text,
+          appliedAt: Date.now(),
+        });
       } catch {}
       return true;
     } catch {
@@ -302,5 +308,12 @@ export function createDiffusionController(
     maybeRender();
   }
 
-  return { update, tickOnce, catchUp, getState: () => state, applyExternal, rollbackLastSystemGroup };
+  return {
+    update,
+    tickOnce,
+    catchUp,
+    getState: () => state,
+    applyExternal,
+    rollbackLastSystemGroup,
+  };
 }

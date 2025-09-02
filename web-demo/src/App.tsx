@@ -24,6 +24,7 @@ import { boot } from "../../index";
 import { createMockLMAdapter } from "../../core/lm/mockAdapter";
 import { setLoggerConfig } from "../../core/logger";
 import { createLiveRegion, type LiveRegion } from "../../ui/liveRegion";
+import { setSwapConfig } from "../../ui/swapRenderer";
 // LM integration is driven by core pipeline (future task). Demo remains rules-only.
 import {
   getTypingTickMs,
@@ -196,6 +197,7 @@ function App() {
   const [tauInput, setTauInput] = useState<number>(getConfidenceThresholds().τ_input);
   const [tauCommit, setTauCommit] = useState<number>(getConfidenceThresholds().τ_commit);
   const [tauTone, setTauTone] = useState<number>(getConfidenceThresholds().τ_tone);
+  const [showMarkers, setShowMarkers] = useState<boolean>(true);
 
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -316,6 +318,11 @@ function App() {
   useEffect(() => {
     setConfidenceThresholds({ τ_input: tauInput, τ_commit: tauCommit, τ_tone: tauTone });
   }, [tauInput, tauCommit, tauTone]);
+
+  // Apply visual swap marker preference
+  useEffect(() => {
+    setSwapConfig({ showMarker: showMarkers });
+  }, [showMarkers]);
 
   // Console access for quick manual testing
   useEffect(() => {
@@ -521,6 +528,7 @@ function App() {
       const storedTauInput = localStorage.getItem('mt.tauInput');
       const storedTauCommit = localStorage.getItem('mt.tauCommit');
       const storedTauTone = localStorage.getItem('mt.tauTone');
+      const storedShowMarkers = localStorage.getItem('mt.showMarkers');
       const prefersReduced =
         typeof window !== 'undefined' &&
         window.matchMedia &&
@@ -534,6 +542,7 @@ function App() {
       if (storedTauInput) setTauInput(parseFloat(storedTauInput));
       if (storedTauCommit) setTauCommit(parseFloat(storedTauCommit));
       if (storedTauTone) setTauTone(parseFloat(storedTauTone));
+      if (storedShowMarkers) setShowMarkers(storedShowMarkers === 'true');
     } catch {}
   }, []);
   useEffect(() => {
@@ -546,8 +555,9 @@ function App() {
       localStorage.setItem('mt.tauInput', String(tauInput));
       localStorage.setItem('mt.tauCommit', String(tauCommit));
       localStorage.setItem('mt.tauTone', String(tauTone));
+      localStorage.setItem('mt.showMarkers', String(showMarkers));
     } catch {}
-  }, [tickMs, minBand, maxBand, toneEnabled, toneTarget, tauInput, tauCommit, tauTone]);
+  }, [tickMs, minBand, maxBand, toneEnabled, toneTarget, tauInput, tauCommit, tauTone, showMarkers]);
 
   // 6. Keyboard shortcut for debug panel
   useEffect(() => {
@@ -861,6 +871,10 @@ function App() {
           <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <input type="checkbox" checked={toneEnabled} onChange={(e) => setToneEnabled(e.target.checked)} />
             Tone: Enabled
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input type="checkbox" checked={showMarkers} onChange={(e) => setShowMarkers(e.target.checked)} />
+            Show Braille markers
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span>Tone target</span>

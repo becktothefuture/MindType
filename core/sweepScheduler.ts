@@ -86,10 +86,9 @@ export function createSweepScheduler(
     // Caret moved; mark overlapping proposals for rollback; apply rollback of last system bucket
     try {
       const rolled = sb.onCaretMove(ev.caret);
-      if (rolled > 0) {
-        // Roll back last system edits group to keep caret region safe
-        // @ts-expect-error internal method available on controller
-        (diffusion as any).rollbackLastSystemGroup?.();
+      const d = diffusion as unknown as { rollbackLastSystemGroup?: () => void };
+      if (rolled > 0 && typeof d.rollbackLastSystemGroup === 'function') {
+        d.rollbackLastSystemGroup();
       }
     } catch {}
     if (timer) clearTimeout(timer);
@@ -163,13 +162,11 @@ export function createSweepScheduler(
           const updated = diffusion.getState();
           const baseline = detectBaseline(updated.text);
           // Device-tier scope: CPU:10, WebGPU/WASM:20
-          const scopeN = (() => {
-            try {
-              if ((globalThis as any)?.navigator?.gpu) return 20;
-              if (typeof WebAssembly !== 'undefined') return 20;
-            } catch {}
-            return 10;
-          })();
+          const w: unknown = (globalThis as unknown as { navigator?: { gpu?: unknown } })
+            ?.navigator;
+          const hasWebGPU = Boolean((w as { gpu?: unknown })?.gpu);
+          const hasWASM = typeof WebAssembly !== 'undefined';
+          const scopeN = hasWebGPU || hasWASM ? 20 : 10;
           const textForTone = (() => {
             const full = updated.text.slice(0, updated.caret);
             const parts = full.split(/(?<=[.!?])\s+/);
@@ -177,9 +174,17 @@ export function createSweepScheduler(
             return tail.join(' ');
           })();
           const caretForTone = textForTone.length;
-          const tProps = planAdjustments(baseline, opts.toneTarget, textForTone, caretForTone);
+          const tProps = planAdjustments(
+            baseline,
+            opts.toneTarget,
+            textForTone,
+            caretForTone,
+          );
           for (const p of tProps) {
-            const sample = textForTone.slice(Math.max(0, p.start - 80), Math.min(caretForTone, p.end + 80));
+            const sample = textForTone.slice(
+              Math.max(0, p.start - 80),
+              Math.min(caretForTone, p.end + 80),
+            );
             const inputs: ConfidenceInputs = {
               inputFidelity: computeInputFidelity(sample),
               transformationQuality:
@@ -192,7 +197,11 @@ export function createSweepScheduler(
             sb.updateScore(`tone-${p.start}-${p.end}`, score, decision);
             if (decision === 'commit') {
               const offset = updated.caret - caretForTone;
-              diffusion.applyExternal({ start: p.start + offset, end: p.end + offset, text: p.text });
+              diffusion.applyExternal({
+                start: p.start + offset,
+                end: p.end + offset,
+                text: p.text,
+              });
             }
           }
         }
