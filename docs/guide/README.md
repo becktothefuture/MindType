@@ -30,7 +30,7 @@ Cross‑links:
 
 - Principles: `../system_principles.md`
 - Architecture: `../architecture/README.md`
-- What's New: `./whats-new-v0.4.md`
+- **What's New**: [`./whats-new-v0.4.md`](./whats-new-v0.4.md) — v0.4 highlights and changes
 - ADRs: `../adr/README.md`
 - QA acceptance: `../qa/acceptance/`
 

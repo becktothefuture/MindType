@@ -39,6 +39,7 @@
 - Contracts (what this means)
 - Cross-Module Data Flow
 - Task Board & Docs
+- What's New
 - License
 
 ### Recommended reading
@@ -46,7 +47,7 @@
 - Product narrative: see `docs/mindtyper_manifesto.md` for the vision and feel.
 - Brand pitch: see `docs/brand/messaging.md` (Mind::Type v0.2 Vision Pitch).
 - Changelog: see `CHANGELOG.md` for release history.
-- What's New: see `docs/guide/whats-new-v0.4.md` for v0.4 highlights.
+- **What's New**: see [`docs/guide/whats-new-v0.4.md`](docs/guide/whats-new-v0.4.md) for v0.4 highlights.
 
 ## Overview
 
@@ -376,6 +377,19 @@ Where Swift fits (mac app):
 - Tasks: `docs/implementation.md` (first unchecked drives work in Cursor)
 - System rules: `.cursor/rules/workflow.mdc`, `.cursor/rules/comment_style.mdc`, `.cursor/rules/generate.mdc`
 - Glossary: `.cursor/rules/glossary.mdc`
+
+## What's New
+
+For the latest features, changes, and improvements in v0.4, see:
+
+📋 **[What's New in v0.4](docs/guide/whats-new-v0.4.md)**
+
+Key highlights include:
+- Enhanced active region tracking and visualization
+- Improved caret safety with undo isolation
+- Performance optimizations and LM adapter interface
+- Comprehensive test coverage and e2e validation
+- Swift/FFI bridge foundations for native apps
 
 ## License
 
