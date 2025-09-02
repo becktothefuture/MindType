@@ -15,7 +15,7 @@
   • HOW  ▸ See linked contracts and guides in docs
 */
 
-import { CONFIDENCE_THRESHOLDS } from '../config/defaultThresholds';
+import { getConfidenceThresholds } from '../config/defaultThresholds';
 
 export interface ConfidenceInputs {
   inputFidelity: number; // [0,1]
@@ -78,7 +78,7 @@ export interface Thresholds {
 
 export function applyThresholds(
   score: ConfidenceScore,
-  thresholds: Thresholds = CONFIDENCE_THRESHOLDS,
+  thresholds: Thresholds = getConfidenceThresholds(),
   opts?: { requireTone?: boolean },
 ): GateDecision {
   // If the raw input isn't good enough, hold (don’t proceed to deeper stages)

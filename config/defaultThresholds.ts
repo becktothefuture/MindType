@@ -24,7 +24,14 @@ let minValidationWords = 5;
 let maxValidationWords = 5;
 
 // Confidence thresholds for v0.4 pipeline
-export const CONFIDENCE_THRESHOLDS = {
+type ConfidenceThresholds = {
+  τ_input: number;
+  τ_commit: number;
+  τ_tone: number;
+  τ_discard: number;
+};
+
+let CONFIDENCE_THRESHOLDS_MUT: ConfidenceThresholds = {
   // τ_input: minimum input fidelity to attempt Context stage
   τ_input: 0.65,
   // τ_commit: minimum combined score to apply any proposal
@@ -33,7 +40,18 @@ export const CONFIDENCE_THRESHOLDS = {
   τ_tone: 0.85,
   // τ_discard: below this, proposals are dropped
   τ_discard: 0.3,
-} as const;
+};
+
+export function getConfidenceThresholds(): Readonly<ConfidenceThresholds> {
+  return CONFIDENCE_THRESHOLDS_MUT;
+}
+
+export function setConfidenceThresholds(partial: Partial<ConfidenceThresholds>): void {
+  CONFIDENCE_THRESHOLDS_MUT = { ...CONFIDENCE_THRESHOLDS_MUT, ...partial };
+}
+
+// Back-compat named export (read-only view)
+export const CONFIDENCE_THRESHOLDS = getConfidenceThresholds();
 
 export function getTypingTickMs(): number {
   return typingTickMs;

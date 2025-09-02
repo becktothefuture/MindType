@@ -41,6 +41,7 @@ import {
 export interface SweepScheduler {
   start(): void;
   stop(): void;
+  setOptions(opts: Partial<PipelineOptions>): void;
 }
 
 export interface PipelineOptions {
@@ -199,6 +200,10 @@ export function createSweepScheduler(
     stop() {
       if (unsubscribe) unsubscribe();
       clearIntervals();
+    },
+    setOptions(next) {
+      if (typeof next.toneEnabled === 'boolean') opts.toneEnabled = next.toneEnabled;
+      if (next.toneTarget) opts.toneTarget = next.toneTarget;
     },
   };
 }

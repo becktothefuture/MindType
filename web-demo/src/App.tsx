@@ -31,6 +31,8 @@ import {
   getMinValidationWords,
   getMaxValidationWords,
   setValidationBandWords,
+  getConfidenceThresholds,
+  setConfidenceThresholds,
 } from "../../config/defaultThresholds";
 
 function StatusStrip() {
@@ -188,6 +190,12 @@ function App() {
   const [isTyping, setIsTyping] = useState(false);
   const [lmDebug, setLmDebug] = useState<LMDebugInfo | undefined>(undefined);
   const [lmEnabled, setLmEnabled] = useState(false);
+  // Tone controls
+  const [toneEnabled, setToneEnabled] = useState<boolean>(false);
+  const [toneTarget, setToneTarget] = useState<'None' | 'Casual' | 'Professional'>('None');
+  const [tauInput, setTauInput] = useState<number>(getConfidenceThresholds().τ_input);
+  const [tauCommit, setTauCommit] = useState<number>(getConfidenceThresholds().τ_commit);
+  const [tauTone, setTauTone] = useState<number>(getConfidenceThresholds().τ_tone);
 
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -295,6 +303,19 @@ function App() {
       pipeline.setLMAdapter({ stream: async function* () {} });
     }
   }, [lmEnabled, pipeline]);
+
+  // Apply tone options to pipeline
+  useEffect(() => {
+    pipeline.setToneEnabled(toneEnabled);
+  }, [toneEnabled, pipeline]);
+  useEffect(() => {
+    pipeline.setToneTarget(toneTarget);
+  }, [toneTarget, pipeline]);
+
+  // Apply confidence thresholds live
+  useEffect(() => {
+    setConfidenceThresholds({ τ_input: tauInput, τ_commit: tauCommit, τ_tone: tauTone });
+  }, [tauInput, tauCommit, tauTone]);
 
   // Console access for quick manual testing
   useEffect(() => {
@@ -495,6 +516,11 @@ function App() {
       const storedTick = localStorage.getItem('mt.tickMs');
       const storedMin = localStorage.getItem('mt.minBand');
       const storedMax = localStorage.getItem('mt.maxBand');
+      const storedToneEnabled = localStorage.getItem('mt.toneEnabled');
+      const storedToneTarget = localStorage.getItem('mt.toneTarget');
+      const storedTauInput = localStorage.getItem('mt.tauInput');
+      const storedTauCommit = localStorage.getItem('mt.tauCommit');
+      const storedTauTone = localStorage.getItem('mt.tauTone');
       const prefersReduced =
         typeof window !== 'undefined' &&
         window.matchMedia &&
@@ -503,6 +529,11 @@ function App() {
       else if (prefersReduced) setTickMs(120);
       if (storedMin) setMinBand(parseInt(storedMin, 10));
       if (storedMax) setMaxBand(parseInt(storedMax, 10));
+      if (storedToneEnabled) setToneEnabled(storedToneEnabled === 'true');
+      if (storedToneTarget === 'None' || storedToneTarget === 'Casual' || storedToneTarget === 'Professional') setToneTarget(storedToneTarget);
+      if (storedTauInput) setTauInput(parseFloat(storedTauInput));
+      if (storedTauCommit) setTauCommit(parseFloat(storedTauCommit));
+      if (storedTauTone) setTauTone(parseFloat(storedTauTone));
     } catch {}
   }, []);
   useEffect(() => {
@@ -510,8 +541,13 @@ function App() {
       localStorage.setItem('mt.tickMs', String(tickMs));
       localStorage.setItem('mt.minBand', String(minBand));
       localStorage.setItem('mt.maxBand', String(maxBand));
+      localStorage.setItem('mt.toneEnabled', String(toneEnabled));
+      localStorage.setItem('mt.toneTarget', toneTarget);
+      localStorage.setItem('mt.tauInput', String(tauInput));
+      localStorage.setItem('mt.tauCommit', String(tauCommit));
+      localStorage.setItem('mt.tauTone', String(tauTone));
     } catch {}
-  }, [tickMs, minBand, maxBand]);
+  }, [tickMs, minBand, maxBand, toneEnabled, toneTarget, tauInput, tauCommit, tauTone]);
 
   // 6. Keyboard shortcut for debug panel
   useEffect(() => {
@@ -823,6 +859,30 @@ function App() {
           </label>
           {/* WASM demo toggle removed */}
           <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input type="checkbox" checked={toneEnabled} onChange={(e) => setToneEnabled(e.target.checked)} />
+            Tone: Enabled
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span>Tone target</span>
+            <select aria-label="Tone target" value={toneTarget} onChange={(e) => setToneTarget(e.target.value as any)}>
+              <option value="None">None (pass-through)</option>
+              <option value="Casual">Casual</option>
+              <option value="Professional">Professional</option>
+            </select>
+          </label>
+          <label>
+            τ_input: {tauInput.toFixed(2)}
+            <input type="range" min={0} max={1} step={0.01} value={tauInput} onChange={(e) => setTauInput(parseFloat(e.target.value))} />
+          </label>
+          <label>
+            τ_commit: {tauCommit.toFixed(2)}
+            <input type="range" min={0} max={1} step={0.01} value={tauCommit} onChange={(e) => setTauCommit(parseFloat(e.target.value))} />
+          </label>
+          <label>
+            τ_tone: {tauTone.toFixed(2)}
+            <input type="range" min={0} max={1} step={0.01} value={tauTone} onChange={(e) => setTauTone(parseFloat(e.target.value))} />
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <input
               type="checkbox"
               checked={isSecure}
@@ -886,4 +946,3 @@ function App() {
 }
 
 export default App;
-
