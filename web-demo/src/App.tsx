@@ -155,7 +155,7 @@ function computeNewlineSafeRange(
 
 function App() {
   const [text, setText] = useState(
-    "",
+    "Welcome to Mind⠶Type! Try typing: 'teh qiuck brwon fox jmups oevr the lzay dog'",
   );
   const [scenarioId, setScenarioId] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState<number>(0);
@@ -600,7 +600,61 @@ function App() {
       <h1>Mind::Type Web Demo</h1>
 
       <div className="card">
-        <h2>Editor</h2>
+        <h2>✍️ Mind⠶Type Editor</h2>
+        <p style={{ textAlign: 'center', marginBottom: 16, fontSize: '1.1em', color: 'rgba(255,255,255,0.8)' }}>
+          Type in the text area below to see real-time corrections and active region tracking
+        </p>
+        
+        {/* Main Editor Area */}
+        <div style={{ marginBottom: 20, padding: '12px', border: '1px solid rgba(0, 200, 120, 0.3)', borderRadius: '12px', background: 'rgba(0, 200, 120, 0.05)' }}>
+          <div className={`editor-wrap ${isTyping ? 'typing' : ''}`}>
+            <div className="editor-overlay" aria-hidden id="mt-overlay" ref={overlayRef} />
+            <textarea
+              className="editor-textarea"
+              ref={textareaRef}
+              value={text}
+              placeholder="Type here. Pause to see live corrections."
+              onChange={handleTextChange}
+              onBlur={() => setIsTyping(false)}
+              onCompositionStart={() => {
+                setIsIMEComposing(true);
+                imeRef.current = true;
+                setIsTyping(true);
+              }}
+              onCompositionEnd={() => {
+                setIsIMEComposing(false);
+                imeRef.current = false;
+                if (typingGlowTimerRef.current) window.clearTimeout(typingGlowTimerRef.current);
+                typingGlowTimerRef.current = window.setTimeout(() => setIsTyping(false), 1200);
+              }}
+              rows={10}
+              cols={80}
+              data-gramm="false"
+              data-lt-active="false"
+              spellCheck={false}
+              autoCorrect="off"
+              autoCapitalize="off"
+            />
+          </div>
+          {bandRange && (
+            <div style={{ fontFamily: "monospace", marginTop: 8 }}>
+              <small data-testid="active-region-label">
+                Active region: [{bandRange.start}, {bandRange.end}]
+              </small>
+            </div>
+          )}
+          {lastHighlight && (
+            <div style={{ fontFamily: "monospace" }}>
+              <small>
+                Last highlight: [{lastHighlight.start}, {lastHighlight.end}]
+              </small>
+            </div>
+          )}
+          <p style={{ textAlign: 'center', fontStyle: 'italic', marginTop: 12, color: 'rgba(255,255,255,0.7)' }}>
+            Type to see the active region trail behind your cursor. The engine catches up after a short pause.
+          </p>
+        </div>
+        
         {/* Caret Monitor Status */}
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
           <span style={{ fontFamily: 'monospace' }}>EPS: {eps}</span>
@@ -642,54 +696,6 @@ function App() {
             <span>jumps: {stats.caret_jumps ?? 0}</span>
           </div>
         )}
-        <div className={`editor-wrap ${isTyping ? 'typing' : ''}`}>
-          <div className="editor-overlay" aria-hidden id="mt-overlay" ref={overlayRef} />
-          <textarea
-            className="editor-textarea"
-            ref={textareaRef}
-            value={text}
-            placeholder="Type here. Pause to see live corrections."
-            onChange={handleTextChange}
-            onBlur={() => setIsTyping(false)}
-            onCompositionStart={() => {
-              setIsIMEComposing(true);
-              imeRef.current = true;
-              setIsTyping(true);
-            }}
-            onCompositionEnd={() => {
-              setIsIMEComposing(false);
-              imeRef.current = false;
-              if (typingGlowTimerRef.current) window.clearTimeout(typingGlowTimerRef.current);
-              typingGlowTimerRef.current = window.setTimeout(() => setIsTyping(false), 1200);
-            }}
-            rows={10}
-            cols={80}
-            data-gramm="false"
-            data-lt-active="false"
-            spellCheck={false}
-            autoCorrect="off"
-            autoCapitalize="off"
-          />
-        </div>
-        {bandRange && (
-          <div style={{ fontFamily: "monospace", marginTop: 8 }}>
-            <small data-testid="active-region-label">
-              Active region: [{bandRange.start}, {bandRange.end}]
-            </small>
-          </div>
-        )}
-        {lastHighlight && (
-          <div style={{ fontFamily: "monospace" }}>
-            <small>
-              Last highlight: [{lastHighlight.start}, {lastHighlight.end}]
-            </small>
-          </div>
-        )}
-        <p>
-          <i>
-            Type to see the active region trail behind your cursor. The engine catches up after a short pause.
-          </i>
-        </p>
       </div>
 
       {/* Field grid + sim buttons */}

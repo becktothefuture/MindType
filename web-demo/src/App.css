@@ -65,11 +65,13 @@
 /* Editor overlay for active region inside the field */
 .editor-wrap {
   position: relative;
-  display: inline-block;
+  display: block;
+  width: 100%;
 }
 .editor-textarea {
   position: relative;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.4);
+  color: rgba(255, 255, 255, 0.95);
   box-sizing: border-box;
   width: 100%;
   height: clamp(280px, 36vh, 440px);
@@ -82,6 +84,11 @@
   transition: box-shadow 1200ms ease, border-color 600ms ease;
   resize: none;
   overflow: auto;
+}
+
+.editor-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
 }
 .editor-overlay {
   position: absolute;
