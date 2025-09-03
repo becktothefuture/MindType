@@ -22,7 +22,7 @@ import { boot } from "../../index";
 import { createMockLMAdapter } from "../../core/lm/mockAdapter";
 import { createDefaultLMAdapter } from "../../core/lm/factory";
 import { createLiveRegion, type LiveRegion } from "../../ui/liveRegion";
-import { setSwapConfig } from "../../ui/swapRenderer";
+import { setSwapConfig, emitSwap } from "../../ui/swapRenderer";
 import {
   getTypingTickMs,
   getMinValidationWords,
@@ -222,6 +222,8 @@ function App() {
         pushLog('APPLY', `len=${text.length}->${updated.length}`);
         setText(updated);
         pipeline.ingest(updated, caret);
+        // Emit mechanical swap for UI/announcements
+        try { emitSwap({ start, end, text: corrected }); } catch {}
         requestAnimationFrame(() => {
           const ta = textareaRef.current;
           if (ta) ta.setSelectionRange(caret, caret);
@@ -286,10 +288,18 @@ function App() {
         .replace(/\brecieve\b/g, 'receive')
         .replace(/\bhte\b/g, 'the')
         .replace(/\byuor\b/g, 'your')
+        // Transpositions mirrored from engine
+        .replace(/\bwaht\b/g, 'what')
+        .replace(/\btaht\b/g, 'that')
+        .replace(/\bnto\b/g, 'not')
+        .replace(/\bthier\b/g, 'their')
         .replace(/\s{2,}/g, ' ');
       setPreviewNoise(n === buf ? '' : n);
-      // Context preview: capitalize first letter and ensure terminal punctuation
+      // Context preview: punctuation spacing + capitalization + terminal punctuation
       let c = n || buf;
+      // Normalize punctuation spacing similar to contextTransform
+      c = c.replace(/\s+([,.])/g, '$1');
+      c = c.replace(/([,.])(\S)/g, '$1 $2');
       c = c.replace(/(^|[.!?]\s+)([a-z])/g, (_m, p1, p2) => `${p1}${p2.toUpperCase()}`);
       if (/\w[\w\s,'”\)\]]+$/.test(c) && !/[.!?]\s*$/.test(c)) c = c.trimEnd() + '.';
       setPreviewContext(c === (n || buf) ? '' : c);
@@ -690,7 +700,7 @@ function App() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <label style={{ textAlign: 'left', opacity: 0.8, fontSize: '0.75em' }}>Context window</label>
-            <textarea readOnly value={contextWindowPreview} placeholder="(context window)" style={{ width: '100%', height: 44, background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none', fontSize: '0.75em' }} />
+            <textarea data-testid="context-window" readOnly value={contextWindowPreview} placeholder="(context window)" style={{ width: '100%', height: 44, background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none', fontSize: '0.75em' }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minHeight: 90 }}>
             <label style={{ textAlign: 'left', opacity: 0.8, fontSize: '0.75em' }}>Process Log</label>
@@ -717,19 +727,19 @@ function App() {
           <div style={{ display: 'grid', gridTemplateRows: 'repeat(4, minmax(28px, 1fr))', gap: '6px', fontSize: '0.7em' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <label style={{ textAlign: 'left', opacity: 0.8 }}>1) Buffer</label>
-              <textarea readOnly value={previewBuffer} style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none' }} />
+              <textarea data-testid="preview-buffer" readOnly value={previewBuffer} style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none' }} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <label style={{ textAlign: 'left', opacity: 0.8 }}>2) After Noise</label>
-              <textarea readOnly value={previewNoise} placeholder={previewNoise ? '' : '(no change)'} style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none' }} />
+              <textarea data-testid="preview-noise" readOnly value={previewNoise} placeholder={previewNoise ? '' : '(no change)'} style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none' }} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <label style={{ textAlign: 'left', opacity: 0.8 }}>3) After Context</label>
-              <textarea readOnly value={previewContext} placeholder={previewContext ? '' : '(no change)'} style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none' }} />
+              <textarea data-testid="preview-context" readOnly value={previewContext} placeholder={previewContext ? '' : '(no change)'} style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none' }} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <label style={{ textAlign: 'left', opacity: 0.8 }}>4) After Tone</label>
-              <textarea readOnly value={previewTone} placeholder={previewTone ? '' : '(no change)'} style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none' }} />
+              <textarea data-testid="preview-tone" readOnly value={previewTone} placeholder={previewTone ? '' : '(no change)'} style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none' }} />
             </div>
           </div>
         </div>

@@ -128,7 +128,12 @@ export function createSweepScheduler(
       log.warn('catchUp threw; continuing');
     }
     // Legacy engines can still run after catch-up
-    noiseTransform({ text: lastEvent.text, caret: lastEvent.caret });
+    const noise = noiseTransform({ text: lastEvent.text, caret: lastEvent.caret });
+    if (noise.diff) {
+      try {
+        diffusion.applyExternal(noise.diff);
+      } catch {}
+    }
     backfillConsistency({ text: lastEvent.text, caret: lastEvent.caret });
 
     // v0.4 pipeline: Context → Tone (English-only) under confidence gating
