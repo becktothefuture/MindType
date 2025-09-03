@@ -49,7 +49,7 @@ In plain words: today we already run a small Qwen model in the browser.
 We give it a short instruction and a prompt. It streams words back while
 you type.
 
-- In v0.2 the LM path is orchestrated by Rust (WASM) and workerized; prompts remain strict single‑string from `core/lm/policy.ts`.
+- The LM path is handled by the shared v0.4 LM stack (`core/lm/*`) with strict single‑string prompts from `core/lm/policy.ts` and device‑tiered fallbacks.
 
 - Determinism: `do_sample: false`, small `max_new_tokens` (~32 by default)
   and boundary‑aware chunking.

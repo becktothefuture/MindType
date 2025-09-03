@@ -16,16 +16,16 @@
     • HOW  ▸ Updated by agent in PLAN_ONLY/EXECUTE modes
 -->
 
-# Implementation Plan (live, v0.2)
+# Implementation Plan (live, v0.4)
 
-> Plan (auto) — 2025-08-09 (v0.2 switch: Rust‑centric core + clean repo)
+> Plan (auto) — 2025-09-03 (v0.4 alignment with master guide & architecture)
 >
-> Scope: v0.2 per `docs/v0.2/*` PRD/architecture. v0.1 archived at tag `v0.1.0` and branch `archive/v0.1`.
+> Scope: v0.4 per `docs/v0.4/MindType v0.4-master guide.md` and `docs/v0.4/MindType-v0.4-Architecture.mmd`. Prior v0.2/v0.3 content below is maintained for historical context and will be archived as needed.
 >
 > Core milestones in sequence:
 >
 > 1. Versioning + repo hygiene ✅
-> 2. Rust core modules (scheduler, tapestry, confidence, LM) ◻︎
+> 2. Rust core modules (scheduler, active region (formerly tapestry), confidence, LM) ◻︎
 > 3. FFI surface + wasm bindings ◻︎
 > 4. TS host integration (injector, active region render) ◻︎
 > 5. CI updates + workerization ◻︎
@@ -268,13 +268,13 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-211, FT-212, FT-214, FT-216  
        **Source:** Manifesto → Safety guarantees
 
-### Tapestry, Confidence, and Undo Safety Net (P1)
+### Active Region (formerly “Tapestry”), Confidence, and Undo Safety Net (P1)
 
-- [ ] (P1) [FT-240] Implement tapestry data structure  
+- [ ] (P1) [FT-240] Implement active-region data structure  
        **AC:** Represent validated/unvalidated spans and animated region; spans store `{original, corrected, confidence, appliedAt}`; APIs to merge, split, and query near-field; unit tests cover edge cases and Unicode boundaries.  
        **Owner:** @alex  
        **DependsOn:** FT-125  
-       **Source:** v0.2 architecture → Scheduler & Tapestry
+       **Source:** v0.4 architecture → Scheduler & Active Region
 
 - [ ] (P1) [FT-241] Confidence thresholds module  
        **AC:** Compute threshold by distance-from-caret and edit type; expose adjustable sensitivity; integrate undo-feedback to adapt thresholds; unit tests verify gating behavior.  

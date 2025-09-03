@@ -85,9 +85,9 @@ The demo renders luminous particle bursts under a frosted glass layer. It is des
 - Why not MSAA on 32F? Bandwidth/compat constraints; we avoid MSAA at 32F for perf stability.
 - Why ordered dither? Texture‑free and deterministic; ideal for low‑end while still effective.
 
-# Web Demo Walkthrough (v0.2)
+# Web Demo Walkthrough (v0.4)
 
-This document paints a picture of the interactive demo found at `/demo`. It explains how the web version of MindType behaves and how it showcases the core technology.
+This document paints a picture of the interactive demo found at `/web-demo`. It explains how the web version of MindType behaves and how it showcases the core technology.
 
 ## Purpose
 
@@ -99,43 +99,39 @@ The demo serves three goals:
 
 Current state:
 
-- The demo uses a simple `<textarea>` and is wired to the TypeScript streaming pipeline (TypingMonitor → SweepScheduler → DiffusionController) for real‑time active region and corrections. LM scheduling was removed from the demo; v0.2 rewires LM through the Rust orchestrator via WASM.
-- `Editable.tsx`, `useTypingTick.ts` (replacing pause‑only logic), and `useMindType.ts` are planned improvements; the names here describe intent.
+- The demo uses a simple `<textarea>` and is wired to the TypeScript streaming pipeline (TypingMonitor → SweepScheduler → DiffusionController) for real‑time active region and corrections. LM integration uses the shared `core/lm/*` stack with device‑tier fallbacks.
 
 ## Components (what each piece does)
 
-- **Editable.tsx**: A `contentEditable` surface (like a rich textarea). Listens for keystrokes and keeps the caret stable across React renders.
-- **useTypingTick.ts**: Drives a ~60–90 ms cadence during typing for streamed diffusion; pairs with pause detection for catch‑up.
-- **useMindType.ts**: Orchestrates the flow: on typing tick → active‑region‑bounded tidy sweep; on idle → catch‑up. Cancels mid‑stream if the user resumes typing.
-- **LMClient.ts**: In future, wraps a local model via Transformers.js (Qwen2.5‑0.5B‑Instruct, q4, WebGPU) with streaming tokens. Today we use rule‑based tidy sweep.
-- **UI Polish**: Subtle highlight for the changed fragment; latency badge; keyboard toggle for the Debug Panel.
+- **App.tsx**: The demo shell; wires typing to `boot()` and renders controls.
+- **Typing/Caret handling**: `core/typingMonitor.ts` emits `TypingEvent`s; `core/security.ts` gates secure/IME.
+- **Pipeline**: `core/sweepScheduler.ts` schedules Noise during typing and Context/Tone on pause.
+- **LM stack**: `core/lm/{factory.ts,transformersClient.ts,transformersRunner.ts}` provides local LM with WebGPU→WASM→CPU fallback.
+- **UI Polish**: `ui/highlighter.ts`, `ui/swapRenderer.ts`, `ui/liveRegion.ts` for visuals and SR.
 
 ## User Flow (step-by-step)
 
 1. The user starts typing into the editable area.
 2. While typing, a typing tick (~60–90 ms) advances a trailing active region (typically 3–8 words long) behind the caret.
-3. Words stream back and apply as tiny, caret‑safe patches within that region. The UI uses a subtle shimmer; reduced-motion falls back to a gentle fade.
-4. After ~500 ms of idle time, the diffusion catches up until the active region reaches the caret.
-5. If the user resumes typing mid-stream, diffusion continues behind the moving caret; any word at the caret is skipped until a boundary appears.
+3. Rules apply minimal, caret‑safe patches within that region.
+4. After ~500 ms of idle time, Context and Tone stages engage subject to confidence gating.
+5. Corrections apply atomically via `replaceRange`, preserving caret and undo isolation.
 
-## Reasoning
+### How the layers talk (ASCII map)
 
-- **Minimal React State** – Most of the logic lives outside React to avoid unnecessary re-renders. This keeps the typing experience smooth even on slower machines.
-- **One Undo Step** – By using the browser’s native `insertText` command, the entire correction can be undone with a single `Cmd+Z`, matching the behaviour of the macOS app.
-- **No Shortcut Clashes** – The demo is careful not to call `preventDefault` on standard shortcuts. This emphasises how the final product will feel invisible until it makes a fix.
-
-The web demo is intentionally lightweight; it mirrors the eventual macOS experience but runs entirely in the browser.
-
-### Implementation Notes (how to run and tinker)
-
-- Import the TypeScript streaming pipeline for immediate realism; optionally augment with the WASM package `@mindtype/core` (compiled from `crates/core-rs`) when Rust components land.
-- Build the `usePauseTimer` hook to wrap the Rust `PauseTimer` and expose an `idle` event to React components.
-- Implement `Editable.tsx` so it never resets the DOM tree — rely on refs and `contentEditable` to maintain cursor position.
-- When integrating `LMClient.ts`, use Transformers.js streaming with a `TextStreamer`; keep corrections band‑bounded and caret‑safe. A strict single‑string prompt is used (see `core/lm/policy.ts`).
-
-### How the layers talk (ASCII map, v0.2)
-
-│ Engine/LM Worker │ Apply word (caret‑safe) → Flash → Logs
+```
+[Your typing]
+     |
+     v
+TypingMonitor (TS) -- emits {text, caret, atMs}
+     |
+     v         TYPING_TICK_MS (streaming) + SHORT_PAUSE_MS (catch-up)
+SweepScheduler (TS) ──── DiffusionController ──── Noise → Context → Tone
+     |                           |
+     v                           v
+ LM (local, device-tiered)   Active Region (3–8 words)
+Apply diff (caret‑safe) → Visual → Announce
+```
 
 ## Notes
 

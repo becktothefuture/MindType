@@ -20,7 +20,7 @@
 
 - Root (this folder)
   - Top‑level product/plan docs and indices: `PRD.md`, `implementation.md`, `system_principles.md`, `project_structure.md`, `backlog.md`. Start here for the current plan and principles.
-  - Versioning policy: see `docs/versioning.md`. Active PRD/architecture for v0.2 live under `docs/v0.2/`.
+  - Versioning policy: see `docs/versioning.md`. Active PRD/architecture for v0.4 live under `docs/v0.4/` (see `docs/v0.4/MindType v0.4-master guide.md` and `docs/v0.4/MindType-v0.4-Architecture.mmd`).
 
 - `architecture/`
   - System design and C4 views. Use `README.md` for the overview; `C1-context.md`, `C2-containers.md`, `C3-components.md` for deeper levels. ADRs live separately under `adr/`.
@@ -43,7 +43,7 @@
 
 - `brand/`
   - Brand assets, specs, and guides (visual identity, tone, motion). Not product behavior.
-  - See `brand/messaging.md` for the v0.2 Vision Pitch (Mind::Type) and long‑form messaging.
+  - See `brand/messaging.md` for the Vision Pitch (Mind::Type) and long‑form messaging.
 
 - `questionnaire/`
   - Product questionnaire sections and live `questions.md` (clarifications). Treat as the primary Q&A surface; deprecated `questions-incomplete.md` has been removed.

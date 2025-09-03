@@ -1,16 +1,16 @@
-<!--══════════════════════════════════════════════════
-  ╔══════════════════════════════════════════════════════╗
-  ║  ░  CODE OVERVIEW (PLAIN-ENGLISH)  ░░░░░░░░░░░░░░░░  ║
-  ║                                                      ║
-  ║                                                      ║
-  ║                                                      ║
-  ║                                                      ║
-  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
-  ║                                                      ║
-  ║                                                      ║
-  ║                                                      ║
-  ║                                                      ║
-  ╚══════════════════════════════════════════════════════╝
+<!--══════════════════════════════════════════════════════════
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  ░  C O D E  O V E R V I E W ( P L A I N - E N G L I S H )  ░  ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌                      ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ╚══════════════════════════════════════════════════════════════╝
     • WHAT ▸ Friendly tour of the codebase
     • WHY  ▸ Help newcomers build a deep mental model
     • HOW  ▸ Gentle definitions, diagrams, and examples
@@ -75,7 +75,7 @@ What those bold phrases mean (in simple terms):
   Core ML to stream tokens (words) for the corrected sentence without
   calling a cloud API.
 
-- **Are we using an LLM?** In v0.2, LM scheduling/merge is centralized in the Rust core (exposed via WASM). The demo remains rules‑only until the orchestrator path is wired; then a workerized LM path will stream band‑bounded tokens into caret‑safe diffs.
+- **Are we using an LLM?** In v0.4, the shared LM stack (`core/lm/*`) provides local on‑device inference (Transformers.js) with single‑flight, abort, cooldown, and device‑tiered fallbacks, feeding Context/Tone transforms strictly behind the caret.
 
 ## Clever Things We’re Doing
 
@@ -122,65 +122,9 @@ _Language: TypeScript + React + WASM_
    TypingMonitor (TS) -- emits {text, caret, atMs}
         |
         v         TYPING_TICK_MS (streaming) + SHORT_PAUSE_MS (catch-up)
-   SweepScheduler (TS) ──── DiffusionController ──── ticks → word-by-word
+   SweepScheduler (TS) ──── DiffusionController ──── Noise → Context → Tone
         |                           |
         v                           v
-   Rust (WASM) core         Active Region (3–8 words, shimmer)
-   ┌───────────────────┐           |
-   │ FragmentExtractor │           v
-   │ StubTokenStream   │    Apply word (caret‑safe) → Flash → Logs
-   │ Merger            │
-   └───────────────────┘
+    LM (local)                 Active Region (3–8 words, shimmer)
+Apply diff (caret‑safe) → Visual → Announce
 ```
-
-## 3. macOS Layer – `mac/`
-
-_Language: Swift + SwiftUI + Rust static lib_
-
-1. **MenuBarController** – Pencil icon in menu bar, toggle on/off.
-2. **EventTapMonitor** – Passively listens to keys, ignores ⌘ shortcuts.
-3. **AXWatcher** – Knows which app/text field is focused.
-4. **Rust Core** – Linked via `libmindtype.a`; same brain as web.
-5. **MacInjector** – Uses Accessibility APIs (or clipboard fallback) to drop the diff into the field.
-6. **Debug Window** – SwiftUI version of the web panel, talking to Rust over FFI.
-
-### macOS vs Web (same brain, different shells)
-
-```
-              Shared Core Logic (Rust)
-                    │
-     ┌──────────────┴──────────────┐
-     v                             v
-  Web Demo (TS/React + WASM)   macOS App (Swift/SwiftUI + FFI)
-     │                             │
-  DOM, hooks, hot reload        AX APIs, event taps, menu bar
-```
-
-## 4. Backends
-
-1. **OpenAI Cloud** – Default; simple HTTPS SSE request.
-2. **Core ML Local Model** – Downloaded once, ~110 MB, runs completely offline.
-3. **StubStream** – Fake generator spitting out canned tokens for unit tests.
-
-Which backend creates the “clear text”?
-
-- For simple clean‑ups, our rule‑based engines do the job (no ML).
-- For richer rewrites (e.g., grammar/style), an LLM backend proposes a
-  better sentence. We then apply it safely as tiny diffs behind the
-  caret so it feels native and undo‑friendly.
-
-## 5. Configuration
-
-_Hot-reloaded JSON5 file_ → event bus → all layers pick up changes instantly. Env-vars always win.
-
-## 6. Build & CI
-
-- `just build-web` – Rust → WASM, Vite build.
-- `just build-mac` – Xcode + static Rust link.
-- GitHub Actions run lint + tests + Playwright e2e on every PR.
-
-### Tests in this repo (quick guide)
-
-- Unit (TS): `pnpm test` (Vitest). Fast, checks individual functions.
-- Unit (Rust): `cargo test` in `crates/core-rs`. Fast, checks core ops.
-- E2E (Web): `

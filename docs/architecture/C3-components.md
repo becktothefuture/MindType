@@ -25,4 +25,4 @@
 - DiffusionController (`core/diffusionController.ts`): advances a frontier, requests word‑bounded diffs, updates the active region, catches up on pause.
 - Highlighter (`ui/highlighter.ts`): active region (3–8 words behind caret) with subtle shimmer and reduced‑motion fallback; draws‑in corrections smoothly.
   - REQ-A11Y-MOTION
-- GroupUndo (`ui/groupUndo.ts`): optional grouping of host‑applied diffs. Tapestry/LM evolutions are excluded; they must preserve native undo behavior.
+- GroupUndo (`ui/groupUndo.ts`): optional grouping of host‑applied diffs. Active region (formerly “tapestry”)/LM evolutions are excluded; they must preserve native undo behavior.

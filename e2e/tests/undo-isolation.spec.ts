@@ -19,7 +19,7 @@ import { test, expect } from '@playwright/test';
 test('undo isolation: system edits can be rolled back via keyboard shortcut', async ({ page }) => {
   await page.goto('/');
   
-  const textarea = page.getByPlaceholder('Type here. Pause to see live corrections.');
+  const textarea = page.getByPlaceholder('Type here...');
   await expect(textarea).toBeVisible();
   await textarea.click();
 
@@ -63,7 +63,7 @@ test('undo isolation: system edits can be rolled back via keyboard shortcut', as
 test('undo isolation: multiple system edit groups can be rolled back', async ({ page }) => {
   await page.goto('/');
   
-  const textarea = page.getByPlaceholder('Type here. Pause to see live corrections.');
+  const textarea = page.getByPlaceholder('Type here...');
   await textarea.click();
 
   // Type first batch of text
@@ -117,7 +117,7 @@ test('undo isolation: beforeinput events are captured for undo detection', async
     });
   });
   
-  const textarea = page.getByPlaceholder('Type here. Pause to see live corrections.');
+  const textarea = page.getByPlaceholder('Type here...');
   await textarea.click();
   await textarea.fill('Test text for undo detection');
   

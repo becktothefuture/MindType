@@ -236,6 +236,7 @@ const [pipeline] = useState(() =>
 const adapter = createTransformersAdapter(runner);
 const capabilities = adapter.init({ preferBackend: 'webgpu' });
 // Auto-degrades: WebGPU → WASM → CPU with appropriate token limits
+// Demo default: LM enabled by default for Context/Tone; Noise works without LM
 ```
 
 #### Visual Feedback System
@@ -679,7 +680,7 @@ _Note: iOS implementation deferred until macOS + Web are solid_
 
 **Frame 9: Validation and Cleanup**
 
-- **Tapestry** marks corrected spans as validated
+- **Active region** (formerly “tapestry”) marks corrected spans as validated
 - **Active region** advances past corrected text
 - **Staging buffer** clears committed proposals
 - **Performance metrics** updated: latency, confidence scores
@@ -875,7 +876,7 @@ The v0.4 system follows a streaming pipeline architecture with three-stage trans
 | **Noise Transformer**   | ✅ Implemented    | `engines/noiseTransformer.ts` | Yes         |
 | **Context Transformer** | ❌ Missing        | Need to create                | **No**      |
 | **Tone Transformer**    | ❌ Missing        | Need to create                | **No**      |
-| **Confidence Gating**   | 🔄 Partial        | `core/tapestry.ts` exists     | **No**      |
+| **Confidence Gating**   | 🔄 Partial        | `core/confidenceGate.ts`/`core/tapestry.ts` planned | **No**      |
 | **Staging Buffer**      | 🔄 Partial        | State machine designed        | **No**      |
 | **LM Integration**      | ✅ Infrastructure | `core/lm/` complete           | Yes         |
 | **Web Demo**            | ✅ Implemented    | `web-demo/` working           | Yes         |
@@ -1065,6 +1066,8 @@ _This is where your messy typing gets progressively cleaner._
 **Examples**: `teh → the`, `helllo → hello`
 **Think of it as**: A spell-checker that works as you type
 
+Note: Noise runs without the Language Model. It is rules‑ and heuristic‑driven and always available, even when the LM is disabled or unavailable.
+
 ### **📚 Stage 2: CONTEXT (Smart Grammar)**
 
 **What it does**: Understands meaning and fixes grammar
@@ -1131,7 +1134,7 @@ Manages suggestion states:
 
 _This actually changes your text safely._
 
-### **Tapestry**
+### **Active Region (formerly “Tapestry”)**
 
 Keeps track of what's been changed and what hasn't.
 

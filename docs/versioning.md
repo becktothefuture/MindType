@@ -11,16 +11,16 @@
   ║                                                              ║
   ║                                                              ║
   ╚══════════════════════════════════════════════════════════════╝
-    • WHAT ▸ Repository versioning, tags, and branches for MindTyper
-    • WHY  ▸ Keep v0.1 archived and advance v0.2 cleanly without drift
+    • WHAT ▸ Repository versioning, tags, and branches for MindType
+    • WHY  ▸ Keep v0.1 archived and advance v0.4 cleanly without drift
     • HOW  ▸ Lightweight semantic tags + long‑lived archive and dev branches
 -->
 
 ### Policy
 
-- **Release tags**: `vMAJOR.MINOR.PATCH` (pre‑1.0 uses 0.y.z). Example: `v0.1.0`, `v0.3.0-alpha`.
+- **Release tags**: `vMAJOR.MINOR.PATCH` (pre‑1.0 uses 0.y.z). Example: `v0.4.0`, `v0.4.1`.
 - **Archived baseline**: `archive/v0.1` branch created from `master@v0.1.0`. No new commits except hotfixes.
-- **Active development**: `master` is canonical default. Create `v0.3` for the v0.3 migration and ongoing work; merge via PRs.
+- **Active development**: `v0.4` is the active branch for the v0.4 release; merge via PRs. `master` mirrors the latest stable when applicable.
 - **Hotfixes**: branch from tag (e.g., `hotfix/v0.1.1`), PR into `archive/v0.1`, tag `v0.1.1`, optionally cherry‑pick to `master` if applicable.
 
 ### Current state
@@ -29,13 +29,12 @@
 - Branches:
   - `archive/v0.1` — frozen baseline matching `v0.1.0`.
   - `master` — canonical default (unified).
-  - `v0.3` — active development branch for v0.3 migration.
+  - `v0.4` — active development branch for v0.4.
 
 ### Directory conventions
 
-- `docs/` root reflects v0.3. Prior versions remain discoverable via archive branch.
+- `docs/` root reflects v0.4. Prior versions remain discoverable via archive branch.
 
 ### Cursor workflow notes
 
-- Update `docs/implementation.md` to explicitly state v0.2 scope and checklists.
-- All code references in discussions should use Context7 doc citations to avoid stale code snippets.
+- Keep `docs/implementation.md` aligned with `docs/v0.4/MindType v0.4-master guide.md` and the v0.4 architecture. Use doc citations to avoid stale snippets.

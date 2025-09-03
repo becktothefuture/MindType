@@ -45,5 +45,5 @@ See also: `core/diffusionController.ts` and `utils/diff.ts`.
 
 ## Undo policy
 
-- Tapestry/LM evolutions must preserve the platform editor's native undo stack.
-- Do not apply `groupUndo` to tapestry/LM merges; grouping (if any) is reserved for simple rule-based engine diffs and remains optional.
+- Active region (formerly “tapestry”)/LM evolutions must preserve the platform editor's native undo stack.
+- Do not apply `groupUndo` to active‑region/LM merges; grouping (if any) is reserved for simple rule-based engine diffs and remains optional.

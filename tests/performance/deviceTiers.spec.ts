@@ -76,6 +76,18 @@ describe('DeviceTiers Performance', () => {
       const tier = detectDeviceTier();
       expect(tier).toBe('cpu');
     });
+
+    it('detects WASM via SIMD when threads missing', () => {
+      Object.defineProperty(navigator, 'gpu', { value: undefined, writable: true });
+      // Force SharedArrayBuffer missing but WebAssembly.validate returns true
+      Object.defineProperty(global, 'SharedArrayBuffer', { value: undefined, writable: true });
+      const validate = WebAssembly.validate;
+      // @ts-ignore
+      WebAssembly.validate = () => true;
+      const tier = detectDeviceTier();
+      expect(tier).toBe('wasm');
+      WebAssembly.validate = validate;
+    });
   });
 
   describe('Performance Monitoring', () => {

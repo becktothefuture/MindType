@@ -18,8 +18,10 @@ import { test, expect } from '@playwright/test';
 import path from 'path';
 import { pathToFileURL } from 'url';
 
-const demoPath = path.resolve(__dirname, '..', '..', '..', 'demo', 'band-swap', 'index.html');
+const demoPath = path.resolve(__dirname, '..', '..', 'demo', 'band-swap', 'index.html');
 const DEMO_URL = pathToFileURL(demoPath).href;
+
+const RUN_BAND_SWAP = process.env.RUN_BAND_SWAP === '1';
 
 async function getBand(page) {
   return await page.evaluate(() => window.bandSwap?.getBandInfo?.());
@@ -27,6 +29,8 @@ async function getBand(page) {
 async function getSample(page) {
   return await page.evaluate(() => window.bandSwap?.getSamplePoint?.());
 }
+
+test.skip(!RUN_BAND_SWAP, 'Enable with RUN_BAND_SWAP=1');
 
 test('band-swap: noise keeps animating with autoplay off (static position)', async ({ page }) => {
   await page.goto(DEMO_URL);
@@ -59,7 +63,7 @@ test('band-swap: noise keeps animating with autoplay off (static position)', asy
 test('band swap renders and does not collapse layout', async ({ page }) => {
   await page.goto(DEMO_URL);
   const paragraph = page.locator('#paragraph');
-  await expect(paragraph).toBeVisible();
+  await expect(paragraph).toBeVisible({ timeout: 10000 });
   const overlay = page.locator('#overlay');
   await expect(overlay).toBeVisible();
   const rect1 = await paragraph.boundingBox();

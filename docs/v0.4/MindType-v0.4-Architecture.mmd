@@ -70,12 +70,12 @@ graph LR
         end
         
         subgraph STAGE2 ["**📚 STAGE 2: CONTEXT**<br/>Window: current sentence ±2<br/>Weights: S±1=1.0, S±2=0.5<br/>Never edit at/after caret"]
-            T2["**Context Transformer**<br/>engines/contextTransformer.ts<br/>*Needs creation*<br/>Trigger: Pause (500ms)<br/>Timing: LM inference (~30ms)"]
+            T2["**Context Transformer**<br/>engines/contextTransformer.ts<br/>Trigger: Pause (500ms)<br/>Timing: LM inference (~30ms)"]
             T2_EXAMPLES["**Corrections:**<br/>• Grammar, syntax, semantics<br/>• Punctuation, capitalization<br/>• Cross-sentence coherence"]
         end
         
         subgraph STAGE3 ["**🎨 STAGE 3: TONE**<br/>Options: None, Casual, Professional<br/>May change wording/grammar/punctuation<br/>Never edit at/after caret<br/>Scope: last N sentences (CPU:10, higher:20)"]
-            T3["**Tone Transformer**<br/>engines/toneTransformer.ts<br/>*Needs creation*<br/>Trigger: After Context<br/>Timing: Analysis (~50ms)"]
+            T3["**Tone Transformer**<br/>engines/toneTransformer.ts<br/>Trigger: After Context<br/>Timing: Analysis (~50ms)"]
             T3_POLISH["**Features:**<br/>• Baseline tone detection<br/>• Minimal‑diff rewrites<br/>• Document consistency"]
             T3_TOGGLE["**Toggle Control**<br/>Default: ON<br/>OFF mid‑process:<br/>finish in‑flight, stop new"]
         end
@@ -108,7 +108,7 @@ graph LR
     subgraph LM ["🧠 **LANGUAGE MODEL SUBSYSTEM** (11)"]
         direction TB
         
-        LM_FACTORY["**LM Factory**<br/>core/lm/factory.ts<br/>*Needs completion*<br/>createDefaultLMAdapter()<br/>Device detection + fallback"]
+        LM_FACTORY["**LM Factory**<br/>core/lm/factory.ts<br/>Implemented<br/>createDefaultLMAdapter()<br/>Device detection + fallback"]
         LM_CLIENT["**TransformersClient**<br/>core/lm/transformersClient.ts<br/>Single-flight + abort<br/>Device-tier adaptive cooldown<br/>Tracks runs + stale drops"]
         LM_RUNNER["**TransformersRunner**<br/>core/lm/transformersRunner.ts<br/>Qwen2.5-0.5B-Instruct<br/>True token-by-token streaming<br/>Singleton pattern"]
         
@@ -128,10 +128,10 @@ graph LR
     subgraph CONFIDENCE ["⚖️ **CONFIDENCE & STAGING** (12)"]
         direction TB
         
-        CG["**Confidence Gate**<br/>core/confidenceGate.ts<br/>*Critical for v0.4*<br/>Mathematical scoring<br/>All transformer proposals<br/>Includes τ_tone gating"]
+        CG["**Confidence Gate**<br/>core/confidenceGate.ts<br/>Implemented<br/>Mathematical scoring<br/>All transformer proposals<br/>Includes τ_tone gating"]
         CG_MATH["**Scoring Algorithm:**<br/>• Input fidelity (30%)<br/>• Transform quality (40%)<br/>• Context coherence (20%)<br/>• Temporal decay (10%)"]
         
-        SB["**Staging Buffer**<br/>core/stagingBuffer.ts<br/>*Critical for v0.4*<br/>Proposal state machine<br/>Cleanup stale proposals<br/>Caret movement triggers"]
+        SB["**Staging Buffer**<br/>core/stagingBuffer.ts<br/>Implemented<br/>Proposal state machine<br/>Cleanup stale proposals<br/>Caret movement triggers"]
         SB_STATES["**State Machine:**<br/>🟡 HOLD → Waiting<br/>🟢 COMMIT → Apply<br/>🔴 DISCARD → Reject<br/>🔄 ROLLBACK → Revert"]
         
         THRESHOLDS["**Decision Thresholds:**<br/>τ_input = 0.65 (try Context)<br/>τ_commit = 0.90 (apply)<br/>τ_tone = 0.85 (Tone)<br/>τ_discard = 0.30 (discard)<br/>Tone: no rollback on caret move"]
@@ -145,13 +145,13 @@ graph LR
     subgraph VALIDATION ["🧩 **VALIDATION & MERGE** (13)"]
         direction TB
         
-        TAP["**Tapestry**<br/>core/tapestry.ts<br/>*Data structures exist*<br/>Track validated spans<br/>{original, corrected, confidence}<br/>Prevent re-processing"]
+        TAP["**Active Region Tracker**<br/>core/tapestry.ts<br/>Implemented<br/>Track validated spans<br/>{original, corrected, confidence}<br/>Prevent re-processing"]
         TAP_DATA["**Capabilities:**<br/>• Span tracking/merging<br/>• Confidence score storage<br/>• Applied timestamps<br/>• Re-processing prevention<br/>• Rollback state management"]
         
         DMG["**Diff/Merge Gate**<br/>utils/diff.ts<br/>replaceRange() atomic ops<br/>Comprehensive caret protection<br/>All text changes go through here"]
         DMG_SAFETY["**Safety Guarantees:**<br/>• Never edits at/after caret<br/>• UTF-16 surrogate pair safe<br/>• Atomic all-or-nothing<br/>• Preserves cursor position<br/>• Exception-safe rollback"]
         
-        UNDO["**Undo Isolation**<br/>core/undoIsolation.ts<br/>*Important for UX*<br/>Separate system/user undo<br/>100-200ms time windows<br/>Internal rollback capability"]
+        UNDO["**Undo Isolation**<br/>core/undoIsolation.ts<br/>Important UX<br/>Separate system/user undo<br/>100-200ms time windows<br/>Internal rollback capability"]
         
         TAP -->|"**Span Data**"| DMG
         DMG -->|"**System Edits**"| UNDO
@@ -164,7 +164,7 @@ graph LR
         direction LR
         
         UI_HIGH["**UI Highlighter**<br/>ui/highlighter.ts<br/>emitActiveRegion() events<br/>Called from DiffusionController<br/>Subtle region highlighting"]
-        UI_SWAP["**SwapRenderer**<br/>ui/swapRenderer.ts<br/>*Needs polish*<br/>Mechanical letter swap<br/>Target: Braille markers"]
+        UI_SWAP["**SwapRenderer**<br/>ui/swapRenderer.ts<br/>Needs polish<br/>Mechanical letter swap<br/>Target: Braille markers"]
         UI_LIVE["**LiveRegion**<br/>ui/liveRegion.ts<br/>WCAG 2.2 AA compliant<br/>Screen reader announcements<br/>'text updated behind cursor'"]
         
         UI_EVENTS["**Event Flow:**<br/>• mindtype:activeRegion<br/>• mindtype:highlight<br/>• Screen reader announcements<br/>• Reduced motion detection<br/>• Cross-browser compatibility"]
@@ -273,10 +273,6 @@ graph LR
     class UI_FEEDBACK,UI_HIGH,UI_SWAP,UI_LIVE,UI_EVENTS ui
     class LOOP_DETAIL,LOOP_TITLE,RUNS,LOOP_PERFORMANCE explanation
     
-    %% Apply Implementation Status (simplified)
-    class ENTRY,TM,SEC,SS,DC,ARP,T1,LM_CLIENT,LM_RUNNER,DMG,UI_HIGH,UI_LIVE,WEB ready
-    class TAP,UI_SWAP,LM_FACTORY,T2,T3,CG,SB,UNDO,MAC,TONE_TOGGLE,TONE_OPTIONS,TONE_ANALYSIS partial
-    
-    %% Apply specialized styling for tone control
-    classDef toneControl fill:#f8bbd9,stroke:#e91e63,stroke-width:2px
-    class TONE_CONTROL,TONE_TOGGLE,TONE_OPTIONS,TONE_ANALYSIS,T3_TOGGLE toneControl
+    %% Apply Implementation Status (v0.4 end state)
+    class ENTRY,TM,SEC,SS,DC,ARP,T1,T2,T3,CG,SB,LM_CLIENT,LM_RUNNER,DMG,UI_HIGH,UI_LIVE,WEB,TAP ready
+    class UI_SWAP,LM_FACTORY,UNDO,MAC,TONE_TOGGLE,TONE_OPTIONS,TONE_ANALYSIS partial
