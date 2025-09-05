@@ -93,7 +93,7 @@ function deterministicRepairs(span: string): { span: string; changed: boolean } 
   let changed = false;
   // Minimal grammar repairs suitable for Context stage
   // 1) Capitalize first letter after sentence boundary if lowercase
-  out = out.replace(/(^|[.!?]\s+)([a-z])/g, (m, p1, p2) => {
+  out = out.replace(/(^|[.!?]\s+)([a-z])/g, (_m, p1, p2) => {
     changed = changed || p2 !== p2.toUpperCase();
     return `${p1}${p2.toUpperCase()}`;
   });
@@ -149,7 +149,7 @@ export function contextTransform(input: TransformInput): TransformResult {
   // Capitalization: sentence start and standalone 'i'
   let capSpan = curSpan.replace(
     /(^|[.!?]\s+)([a-z])/g,
-    (m, p1, p2) => `${p1}${p2.toUpperCase()}`,
+    (_m, p1, p2) => `${p1}${p2.toUpperCase()}`,
   );
   capSpan = capSpan.replace(/(?<=^|\s)i(?=\s|$)/g, 'I');
   if (capSpan !== curSpan) {

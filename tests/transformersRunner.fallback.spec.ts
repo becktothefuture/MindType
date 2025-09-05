@@ -6,6 +6,7 @@
   ╚══════════════════════════════════════════════════════╝*/
 import { describe, it, expect } from 'vitest';
 import { createDefaultLMAdapter } from '../core/lm/factory';
+import type { LMStreamParams } from '../core/lm/types';
 
 const RUN = process.env.ENABLE_REAL_LM === '1';
 
@@ -14,7 +15,12 @@ describe('transformers fallback gating', () => {
     it('gracefully returns minimal stream when assets unavailable', async () => {
       const adapter = createDefaultLMAdapter({ localOnly: true });
       const chunks: string[] = [];
-      for await (const c of adapter.stream({ text: 'abc', band: { start: 0, end: 3 } } as any)) chunks.push(c);
+      const params: LMStreamParams = {
+        text: 'abc',
+        caret: 3,
+        band: { start: 0, end: 3 },
+      };
+      for await (const c of adapter.stream(params)) chunks.push(c);
       expect(chunks.join('')).toBeDefined();
     });
   } else {

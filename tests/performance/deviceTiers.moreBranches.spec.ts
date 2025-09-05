@@ -16,7 +16,7 @@ import { getExpectedLatency, PerformanceMonitor } from '../../core/lm/deviceTier
 
 describe('deviceTiers extra branches', () => {
   it('getExpectedLatency default branch', () => {
-    // @ts-ignore force invalid tier
+    // @ts-expect-error force invalid tier
     expect(getExpectedLatency('unknown')).toBe(100);
   });
 

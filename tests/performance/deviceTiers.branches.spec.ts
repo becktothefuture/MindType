@@ -15,15 +15,23 @@
   • HOW  ▸ Exercise detectDeviceTier fallbacks and adjustPolicy branches
 */
 import { describe, it, expect, vi } from 'vitest';
-import { detectDeviceTier, adjustPolicyForPressure, DEVICE_TIERS, type PerformanceMetrics } from '../../core/lm/deviceTiers';
+import {
+  detectDeviceTier,
+  adjustPolicyForPressure,
+  DEVICE_TIERS,
+  type PerformanceMetrics,
+} from '../../core/lm/deviceTiers';
 
 describe('deviceTiers branches', () => {
   it('detectDeviceTier falls back to cpu when no features present', () => {
     Object.defineProperty(navigator, 'gpu', { value: undefined, writable: true });
     // Force WebAssembly validate to throw
     const validate = WebAssembly.validate;
-    // @ts-ignore
-    WebAssembly.validate = vi.fn(() => { throw new Error('no simd'); });
+    WebAssembly.validate = vi.fn(() => {
+      throw new Error('no simd');
+    });
+    // override for test (not present in JSDOM)
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     global.SharedArrayBuffer = undefined;
     const tier = detectDeviceTier();
@@ -56,6 +64,8 @@ describe('deviceTiers branches', () => {
     };
     const adjusted = adjustPolicyForPressure('webgpu', m);
     expect(adjusted.toneAnalysisScope).toBeLessThan(base.toneAnalysisScope);
-    expect(adjusted.maxConcurrentRequests).toBeLessThanOrEqual(base.maxConcurrentRequests);
+    expect(adjusted.maxConcurrentRequests).toBeLessThanOrEqual(
+      base.maxConcurrentRequests,
+    );
   });
 });

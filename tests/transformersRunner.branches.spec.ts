@@ -16,6 +16,7 @@
 */
 import { describe, it, expect } from 'vitest';
 import { createDefaultLMAdapter } from '../core/lm/factory';
+import type { LMStreamParams } from '../core/lm/types';
 
 const RUN_REMOTE = process.env.ENABLE_REAL_LM === '1';
 
@@ -24,7 +25,12 @@ describe('transformersRunner branches', () => {
     it('clamps tiny maxNewTokens and supports remote mode', async () => {
       const adapter = createDefaultLMAdapter({ localOnly: false, maxNewTokens: 1 });
       const chunks: string[] = [];
-      for await (const c of adapter.stream({ text: 'hello world', band: { start: 0, end: 5 } } as any)) chunks.push(c);
+      const params: LMStreamParams = {
+        text: 'hello world',
+        caret: 5,
+        band: { start: 0, end: 5 },
+      };
+      for await (const c of adapter.stream(params)) chunks.push(c);
       expect(chunks.join('')).toBeDefined();
     });
   } else {

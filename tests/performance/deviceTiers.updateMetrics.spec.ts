@@ -5,20 +5,25 @@
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝*/
 import { describe, it, expect } from 'vitest';
-import { PerformanceMonitor } from '../../core/lm/deviceTiers';
+import { PerformanceMonitor, type DeviceTier } from '../../core/lm/deviceTiers';
 
 describe('PerformanceMonitor.updateMetrics zero-sample branches', () => {
   it('produces zero averages and error rate when no samples', () => {
     const m = new PerformanceMonitor();
+    type Tier = DeviceTier;
+    const hack = m as unknown as Record<string, unknown>;
     // Force internal maps to empty and invoke update directly
-    // @ts-ignore private access
-    (m as any).requestTimes.set('cpu', []);
-    // @ts-ignore private access
-    (m as any).requestCounts.set('cpu', 0);
-    // @ts-ignore private access
-    (m as any).errorCounts.set('cpu', 0);
-    // @ts-ignore private access
-    (m as any).updateMetrics('cpu');
+    const requestTimes = hack['requestTimes'] as Map<Tier, number[]>;
+    const requestCounts = hack['requestCounts'] as Map<Tier, number>;
+    const errorCounts = hack['errorCounts'] as Map<Tier, number>;
+    const updateMetrics = hack['updateMetrics'] as (
+      this: PerformanceMonitor,
+      tier: Tier,
+    ) => void;
+    requestTimes.set('cpu', []);
+    requestCounts.set('cpu', 0);
+    errorCounts.set('cpu', 0);
+    updateMetrics.call(m, 'cpu');
     const metrics = m.getMetrics('cpu')!;
     expect(metrics.avgLatencyMs).toBe(0);
     expect(metrics.requestsPerMinute).toBe(0);

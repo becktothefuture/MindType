@@ -12,9 +12,14 @@ describe('PerformanceMonitor memory estimation catch branch', () => {
     const monitor = new PerformanceMonitor();
     const original = (global as any).performance;
     // Create a proxy that throws on any property access
-    const throwingPerf = new Proxy({}, {
-      get() { throw new Error('perf blocked'); }
-    });
+    const throwingPerf = new Proxy(
+      {},
+      {
+        get() {
+          throw new Error('perf blocked');
+        },
+      },
+    );
     (global as any).performance = throwingPerf;
 
     // Trigger updateMetrics via recordRequest

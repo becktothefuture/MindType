@@ -869,18 +869,18 @@ The v0.4 system follows a streaming pipeline architecture with three-stage trans
 
 ### 🎯 Implementation Status Matrix
 
-| Component               | Status            | Location                      | v0.4 Ready? |
-| ----------------------- | ----------------- | ----------------------------- | ----------- |
-| **Core Pipeline**       | ✅ Implemented    | `index.ts` → `core/`          | Yes         |
-| **Active Region**       | ✅ Implemented    | `core/diffusionController.ts` | Yes         |
-| **Noise Transformer**   | ✅ Implemented    | `engines/noiseTransformer.ts` | Yes         |
-| **Context Transformer** | ❌ Missing        | Need to create                | **No**      |
-| **Tone Transformer**    | ❌ Missing        | Need to create                | **No**      |
+| Component               | Status            | Location                                            | v0.4 Ready? |
+| ----------------------- | ----------------- | --------------------------------------------------- | ----------- |
+| **Core Pipeline**       | ✅ Implemented    | `index.ts` → `core/`                                | Yes         |
+| **Active Region**       | ✅ Implemented    | `core/diffusionController.ts`                       | Yes         |
+| **Noise Transformer**   | ✅ Implemented    | `engines/noiseTransformer.ts`                       | Yes         |
+| **Context Transformer** | ❌ Missing        | Need to create                                      | **No**      |
+| **Tone Transformer**    | ❌ Missing        | Need to create                                      | **No**      |
 | **Confidence Gating**   | 🔄 Partial        | `core/confidenceGate.ts`/`core/tapestry.ts` planned | **No**      |
-| **Staging Buffer**      | 🔄 Partial        | State machine designed        | **No**      |
-| **LM Integration**      | ✅ Infrastructure | `core/lm/` complete           | Yes         |
-| **Web Demo**            | ✅ Implemented    | `web-demo/` working           | Yes         |
-| **macOS Bindings**      | ❌ Missing        | Need Swift/FFI                | **No**      |
+| **Staging Buffer**      | 🔄 Partial        | State machine designed                              | **No**      |
+| **LM Integration**      | ✅ Infrastructure | `core/lm/` complete                                 | Yes         |
+| **Web Demo**            | ✅ Implemented    | `web-demo/` working                                 | Yes         |
+| **macOS Bindings**      | ❌ Missing        | Need Swift/FFI                                      | **No**      |
 
 ### 🔄 Data Flow Architecture (Detailed)
 

@@ -24,7 +24,7 @@ describe('FFI Bridge', () => {
         ptr: new ArrayBuffer(8), // Pointer size
         len: 42,
       };
-      
+
       expect(typeof mockMTString.ptr).toBe('object');
       expect(typeof mockMTString.len).toBe('number');
       expect(mockMTString.len).toBe(42);
@@ -38,7 +38,7 @@ describe('FFI Bridge', () => {
         timestamp_ms: Date.now(),
         event_kind: 0, // TYPING
       };
-      
+
       expect(mockEvent.caret).toBeLessThanOrEqual(mockEvent.text_len);
       expect(mockEvent.event_kind).toBeGreaterThanOrEqual(0);
       expect(mockEvent.event_kind).toBeLessThanOrEqual(2);
@@ -53,7 +53,7 @@ describe('FFI Bridge', () => {
         blocked: false,
         ime_active: false,
       };
-      
+
       expect(mockSnapshot.primary).toBeGreaterThanOrEqual(0);
       expect(mockSnapshot.primary).toBeLessThanOrEqual(4);
       expect(mockSnapshot.caret).toBeLessThanOrEqual(mockSnapshot.text_len);
@@ -67,7 +67,7 @@ describe('FFI Bridge', () => {
         end: 30,
         valid: true,
       };
-      
+
       expect(mockBand.start).toBeLessThanOrEqual(mockBand.end);
       expect(typeof mockBand.valid).toBe('boolean');
     });
@@ -80,7 +80,7 @@ describe('FFI Bridge', () => {
         PAUSE: 1,
         SELECTION: 2,
       };
-      
+
       expect(EventKind.TYPING).toBe(0);
       expect(EventKind.PAUSE).toBe(1);
       expect(EventKind.SELECTION).toBe(2);
@@ -94,7 +94,7 @@ describe('FFI Bridge', () => {
         SELECTION_ACTIVE: 3,
         BLUR: 4,
       };
-      
+
       expect(PrimaryState.TYPING).toBe(0);
       expect(PrimaryState.SHORT_PAUSE).toBe(1);
       expect(PrimaryState.LONG_PAUSE).toBe(2);
@@ -111,7 +111,7 @@ describe('FFI Bridge', () => {
         }
         return mtString;
       };
-      
+
       expect(safeStringAccess({ ptr: null, len: 0 })).toBeNull();
       expect(safeStringAccess({ ptr: null, len: 10 })).toBeNull();
       expect(safeStringAccess({ ptr: new ArrayBuffer(8), len: 0 })).toBeNull();
@@ -125,7 +125,7 @@ describe('FFI Bridge', () => {
         if (textLen < 0) return false;
         return true;
       };
-      
+
       expect(validateTextParams(null, 0)).toBe(true);
       expect(validateTextParams(null, 10)).toBe(false);
       expect(validateTextParams(new ArrayBuffer(8), 0)).toBe(false);
@@ -142,7 +142,7 @@ describe('FFI Bridge', () => {
         if (end > textLen) return false;
         return true;
       };
-      
+
       expect(validateBandRange(0, 10, 20)).toBe(true);
       expect(validateBandRange(5, 15, 20)).toBe(true);
       expect(validateBandRange(-1, 10, 20)).toBe(false);
@@ -154,30 +154,31 @@ describe('FFI Bridge', () => {
       const computeSimpleBand = (text: string, caret: number) => {
         const caretPos = Math.min(caret, text.length);
         const start = Math.max(0, caretPos - 50);
-        
+
         // Find word boundary
         const beforeCaret = text.slice(0, caretPos);
         const lastSpace = beforeCaret.lastIndexOf(' ');
-        const startBoundary = lastSpace !== -1 && lastSpace >= start ? lastSpace + 1 : start;
-        
+        const startBoundary =
+          lastSpace !== -1 && lastSpace >= start ? lastSpace + 1 : start;
+
         return {
           start: startBoundary,
           end: caretPos,
           valid: startBoundary < caretPos,
         };
       };
-      
-      const text = "Hello world this is a test sentence";
+
+      const text = 'Hello world this is a test sentence';
       const band = computeSimpleBand(text, 20); // Position 20 is in "test"
-      
+
       console.log(`Text: "${text}"`);
       console.log(`Caret at position ${20}: "${text[20]}" (should be 's' in 'test')`);
       console.log(`Band: start=${band.start}, end=${band.end}, valid=${band.valid}`);
       console.log(`Band text: "${text.slice(band.start, band.end)}"`);
-      
+
       expect(band.start).toBeLessThanOrEqual(band.end);
       expect(band.end).toBeLessThanOrEqual(text.length);
-      
+
       // For this specific case, the band should be valid since we're in the middle of text
       if (band.start < band.end) {
         expect(band.valid).toBe(true);
@@ -193,7 +194,7 @@ describe('FFI Bridge', () => {
       const clampCaret = (caret: number, textLen: number) => {
         return Math.max(0, Math.min(caret, textLen));
       };
-      
+
       expect(clampCaret(-5, 100)).toBe(0);
       expect(clampCaret(150, 100)).toBe(100);
       expect(clampCaret(50, 100)).toBe(50);
@@ -202,12 +203,12 @@ describe('FFI Bridge', () => {
     it('handles timestamp validation', () => {
       const isValidTimestamp = (timestampMs: number) => {
         const now = Date.now();
-        const oneHourAgo = now - (60 * 60 * 1000);
-        const oneHourFromNow = now + (60 * 60 * 1000);
-        
+        const oneHourAgo = now - 60 * 60 * 1000;
+        const oneHourFromNow = now + 60 * 60 * 1000;
+
         return timestampMs >= oneHourAgo && timestampMs <= oneHourFromNow;
       };
-      
+
       const now = Date.now();
       expect(isValidTimestamp(now)).toBe(true);
       expect(isValidTimestamp(now - 30 * 60 * 1000)).toBe(true); // 30 min ago
@@ -220,21 +221,24 @@ describe('FFI Bridge', () => {
     it('simulates Swift-style FFI bridge pattern', () => {
       class MockFFIBridge {
         private monitor: { id: string } | null = null;
-        
+
         constructor() {
           this.monitor = { id: 'mock_monitor_' + Date.now() };
         }
-        
+
         ingest(text: string, caret: number, eventKind: number = 0): boolean {
           if (!this.monitor) return false;
           if (caret < 0 || caret > text.length) return false;
           if (eventKind < 0 || eventKind > 2) return false;
           return true;
         }
-        
-        computeBand(text: string, caret: number): { start: number; end: number; valid: boolean } | null {
+
+        computeBand(
+          text: string,
+          caret: number,
+        ): { start: number; end: number; valid: boolean } | null {
           if (caret < 0 || caret > text.length) return null;
-          
+
           const start = Math.max(0, caret - 50);
           return {
             start,
@@ -242,23 +246,23 @@ describe('FFI Bridge', () => {
             valid: start < caret,
           };
         }
-        
+
         getCoreVersion(): string {
-          return "0.4.0-alpha.0";
+          return '0.4.0-alpha.0';
         }
       }
-      
+
       const bridge = new MockFFIBridge();
-      
-      expect(bridge.ingest("Hello world", 5)).toBe(true);
-      expect(bridge.ingest("Hello world", -1)).toBe(false);
-      expect(bridge.ingest("Hello world", 100)).toBe(false);
-      
-      const band = bridge.computeBand("Hello world", 5);
+
+      expect(bridge.ingest('Hello world', 5)).toBe(true);
+      expect(bridge.ingest('Hello world', -1)).toBe(false);
+      expect(bridge.ingest('Hello world', 100)).toBe(false);
+
+      const band = bridge.computeBand('Hello world', 5);
       expect(band).not.toBeNull();
       expect(band?.valid).toBe(true);
-      
-      expect(bridge.getCoreVersion()).toBe("0.4.0-alpha.0");
+
+      expect(bridge.getCoreVersion()).toBe('0.4.0-alpha.0');
     });
   });
 });

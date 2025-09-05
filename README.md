@@ -272,6 +272,7 @@ For the latest features, changes, and improvements in v0.4, see:
 📋 **[What's New in v0.4](docs/guide/whats-new-v0.4.md)**
 
 Key highlights include:
+
 - Enhanced active region tracking and visualization
 - Improved caret safety with undo isolation
 - Performance optimizations and LM adapter interface

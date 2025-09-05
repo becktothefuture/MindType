@@ -15,7 +15,10 @@ describe('PerformanceMonitor.shouldDegrade branches', () => {
     m.recordRequest(tier, 10, true);
     // Monkey patch metrics to exceed memory
     const metrics = m.getMetrics(tier)!;
-    const patched = { ...metrics, memoryUsageMB: DEVICE_TIERS[tier].memoryPressureThreshold + 1 };
+    const patched = {
+      ...metrics,
+      memoryUsageMB: DEVICE_TIERS[tier].memoryPressureThreshold + 1,
+    };
     // @ts-ignore private access bypass via direct map mutation
     (m as any).metrics.set(tier, patched);
     expect(m.shouldDegrade(tier)).toBe(true);

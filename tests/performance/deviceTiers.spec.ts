@@ -51,7 +51,7 @@ describe('DeviceTiers Performance', () => {
         value: undefined,
         writable: true,
       });
-      
+
       // Mock SharedArrayBuffer (threads)
       Object.defineProperty(global, 'SharedArrayBuffer', {
         value: function SharedArrayBuffer() {},
@@ -80,7 +80,10 @@ describe('DeviceTiers Performance', () => {
     it('detects WASM via SIMD when threads missing', () => {
       Object.defineProperty(navigator, 'gpu', { value: undefined, writable: true });
       // Force SharedArrayBuffer missing but WebAssembly.validate returns true
-      Object.defineProperty(global, 'SharedArrayBuffer', { value: undefined, writable: true });
+      Object.defineProperty(global, 'SharedArrayBuffer', {
+        value: undefined,
+        writable: true,
+      });
       const validate = WebAssembly.validate;
       // @ts-ignore
       WebAssembly.validate = () => true;
@@ -93,7 +96,7 @@ describe('DeviceTiers Performance', () => {
   describe('Performance Monitoring', () => {
     it('records and calculates average latency correctly', () => {
       const tier: DeviceTier = 'webgpu';
-      
+
       monitor.recordRequest(tier, 10, true);
       monitor.recordRequest(tier, 20, true);
       monitor.recordRequest(tier, 30, true);
@@ -104,7 +107,7 @@ describe('DeviceTiers Performance', () => {
 
     it('tracks error rates accurately', () => {
       const tier: DeviceTier = 'cpu';
-      
+
       monitor.recordRequest(tier, 100, true);
       monitor.recordRequest(tier, 110, false); // error
       monitor.recordRequest(tier, 120, true);
@@ -116,7 +119,7 @@ describe('DeviceTiers Performance', () => {
 
     it('maintains rolling window of request times', () => {
       const tier: DeviceTier = 'wasm';
-      
+
       // Record more than 100 requests to test rolling window
       for (let i = 0; i < 150; i++) {
         monitor.recordRequest(tier, i + 10, true);
@@ -142,7 +145,7 @@ describe('DeviceTiers Performance', () => {
 
       // Mock the getMetrics method
       vi.spyOn(monitor, 'getMetrics').mockReturnValue(mockMetrics);
-      
+
       expect(monitor.shouldDegrade(tier)).toBe(true);
     });
 
@@ -157,7 +160,7 @@ describe('DeviceTiers Performance', () => {
       };
 
       vi.spyOn(monitor, 'getMetrics').mockReturnValue(mockMetrics);
-      
+
       expect(monitor.shouldDegrade(tier)).toBe(true);
     });
 
@@ -173,7 +176,7 @@ describe('DeviceTiers Performance', () => {
       };
 
       vi.spyOn(monitor, 'getMetrics').mockReturnValue(mockMetrics);
-      
+
       expect(monitor.shouldDegrade(tier)).toBe(true);
     });
 
@@ -188,7 +191,7 @@ describe('DeviceTiers Performance', () => {
       };
 
       vi.spyOn(monitor, 'getMetrics').mockReturnValue(mockMetrics);
-      
+
       expect(monitor.shouldDegrade(tier)).toBe(false);
     });
   });
@@ -206,11 +209,13 @@ describe('DeviceTiers Performance', () => {
       };
 
       const adjustedPolicy = adjustPolicyForPressure(tier, pressureMetrics);
-      
+
       expect(adjustedPolicy.toneAnalysisScope).toBeLessThan(basePolicy.toneAnalysisScope);
       expect(adjustedPolicy.cooldownMs).toBeGreaterThan(basePolicy.cooldownMs);
       expect(adjustedPolicy.maxTokens).toBeLessThan(basePolicy.maxTokens);
-      expect(adjustedPolicy.maxConcurrentRequests).toBeLessThanOrEqual(basePolicy.maxConcurrentRequests);
+      expect(adjustedPolicy.maxConcurrentRequests).toBeLessThanOrEqual(
+        basePolicy.maxConcurrentRequests,
+      );
     });
 
     it('increases debounce and cooldown under high error rate', () => {
@@ -225,10 +230,12 @@ describe('DeviceTiers Performance', () => {
       };
 
       const adjustedPolicy = adjustPolicyForPressure(tier, errorMetrics);
-      
+
       expect(adjustedPolicy.debounceMs).toBeGreaterThan(basePolicy.debounceMs);
       expect(adjustedPolicy.cooldownMs).toBeGreaterThan(basePolicy.cooldownMs);
-      expect(adjustedPolicy.maxConcurrentRequests).toBeLessThanOrEqual(basePolicy.maxConcurrentRequests);
+      expect(adjustedPolicy.maxConcurrentRequests).toBeLessThanOrEqual(
+        basePolicy.maxConcurrentRequests,
+      );
     });
 
     it('returns base policy under normal conditions', () => {
@@ -243,7 +250,7 @@ describe('DeviceTiers Performance', () => {
       };
 
       const adjustedPolicy = adjustPolicyForPressure(tier, normalMetrics);
-      
+
       expect(adjustedPolicy).toEqual(basePolicy);
     });
   });
@@ -257,10 +264,10 @@ describe('DeviceTiers Performance', () => {
 
     it('has progressive memory thresholds', () => {
       expect(DEVICE_TIERS.cpu.memoryPressureThreshold).toBeLessThan(
-        DEVICE_TIERS.wasm.memoryPressureThreshold
+        DEVICE_TIERS.wasm.memoryPressureThreshold,
       );
       expect(DEVICE_TIERS.wasm.memoryPressureThreshold).toBeLessThan(
-        DEVICE_TIERS.webgpu.memoryPressureThreshold
+        DEVICE_TIERS.webgpu.memoryPressureThreshold,
       );
     });
 
@@ -281,29 +288,31 @@ describe('DeviceTiers Performance', () => {
     it('detects performance regression over time', () => {
       const tier: DeviceTier = 'webgpu';
       const expectedLatency = getExpectedLatency(tier);
-      
+
       // Simulate severe performance degradation
       monitor.recordRequest(tier, expectedLatency * 3, true); // 3x expected (45ms)
       monitor.recordRequest(tier, expectedLatency * 3, true);
       monitor.recordRequest(tier, expectedLatency * 3, true);
 
       const metrics = monitor.getMetrics(tier);
-      console.log(`Expected: ${expectedLatency}, Actual: ${metrics?.avgLatencyMs}, Threshold: ${expectedLatency * 2}`);
-      
+      console.log(
+        `Expected: ${expectedLatency}, Actual: ${metrics?.avgLatencyMs}, Threshold: ${expectedLatency * 2}`,
+      );
+
       expect(metrics?.avgLatencyMs).toBeGreaterThan(expectedLatency * 2);
-      
+
       // The shouldDegrade method should return true for high latency
       expect(monitor.shouldDegrade(tier)).toBe(true);
     });
 
     it('handles burst error patterns correctly', () => {
       const tier: DeviceTier = 'wasm';
-      
+
       // Simulate burst of errors
       for (let i = 0; i < 10; i++) {
         monitor.recordRequest(tier, 30, false); // All errors
       }
-      
+
       // Then some successes
       for (let i = 0; i < 5; i++) {
         monitor.recordRequest(tier, 25, true);

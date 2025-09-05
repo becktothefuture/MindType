@@ -31,7 +31,7 @@ export function createDefaultLMAdapter(
     ...getDefaultLMConfig(),
     ...options,
   };
-  
+
   const tokenStreamer = runner ?? createQwenTokenStreamer(config);
   return createTransformersAdapter(tokenStreamer);
 }

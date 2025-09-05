@@ -133,10 +133,10 @@ function App() {
   useEffect(() => {
     if (lmEnabled) {
       try {
-        const realAdapter = createDefaultLMAdapter();
+        const realAdapter = createDefaultLMAdapter({ localOnly: false });
         pipeline.setLMAdapter(realAdapter);
-        console.log('[Demo] LM adapter enabled (real)');
-        pushLog('LM', 'enabled: real');
+        console.log('[Demo] LM adapter enabled (real, remote allowed)');
+        pushLog('LM', 'enabled: real (remote)');
       } catch (error) {
         console.warn('[Demo] LM enable failed, falling back to mock:', error);
         pushLog('LM', 'fallback: mock');

@@ -32,7 +32,7 @@ export const LM_CONFIG: PlatformLMConfig = {
     maxNewTokens: 24, // Conservative default, adjusted by device tier
     localOnly: false, // Default to remote for easier setup
   },
-  
+
   web: {
     modelId: 'onnx-community/Qwen2.5-0.5B-Instruct',
     maxNewTokens: 24,
@@ -41,9 +41,9 @@ export const LM_CONFIG: PlatformLMConfig = {
     localModelPath: '/models/',
     wasmPaths: '/wasm/',
   },
-  
+
   macos: {
-    modelId: 'onnx-community/Qwen2.5-0.5B-Instruct', 
+    modelId: 'onnx-community/Qwen2.5-0.5B-Instruct',
     maxNewTokens: 24,
     localOnly: true, // Prefer local models for native app
     // macOS-specific paths (bundled with app)
@@ -55,7 +55,9 @@ export const LM_CONFIG: PlatformLMConfig = {
 /**
  * Get platform-appropriate LM configuration
  */
-export function getLMConfigForPlatform(platform: 'web' | 'macos' = 'web'): QwenRunnerOptions {
+export function getLMConfigForPlatform(
+  platform: 'web' | 'macos' = 'web',
+): QwenRunnerOptions {
   return {
     ...LM_CONFIG.shared,
     ...LM_CONFIG[platform],
