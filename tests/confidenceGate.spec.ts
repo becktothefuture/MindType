@@ -7,6 +7,15 @@ import {
   clamp01,
   type ConfidenceInputs,
 } from '../core/confidenceGate';
+import {
+  computeDynamicThresholds,
+  type EditType,
+} from '../core/confidenceGate';
+import {
+  setConfidenceSensitivity,
+  setConfidenceThresholds,
+  getConfidenceThresholds,
+} from '../config/defaultThresholds';
 import { CONFIDENCE_THRESHOLDS } from '../config/defaultThresholds';
 
 describe('confidenceGate', () => {
@@ -89,5 +98,53 @@ describe('confidenceGate', () => {
   it('clamp01 guards against NaN/Infinity', () => {
     expect(clamp01(NaN as unknown as number)).toBe(0);
     expect(clamp01(Infinity as unknown as number)).toBe(0);
+  });
+
+  it('dynamic thresholds increase τ_commit near caret and with undo feedback', () => {
+    const base = getConfidenceThresholds();
+    setConfidenceSensitivity(1);
+    const near = computeDynamicThresholds({
+      caret: 100,
+      start: 95,
+      end: 99,
+      editType: 'context',
+    });
+    const far = computeDynamicThresholds({
+      caret: 200,
+      start: 95,
+      end: 99,
+      editType: 'context',
+    });
+    // Near caret should be more conservative than far (higher τ_commit)
+    expect(near.τ_commit).toBeGreaterThanOrEqual(base.τ_commit);
+    expect(near.τ_commit).toBeGreaterThan(far.τ_commit);
+
+    const withUndo = computeDynamicThresholds({
+      caret: 200,
+      start: 95,
+      end: 99,
+      editType: 'context',
+      recentRollbackCount: 2,
+      lastRollbackMsAgo: 500,
+    });
+    expect(withUndo.τ_commit).toBeGreaterThan(far.τ_commit);
+  });
+
+  it('dynamic thresholds respect edit type offsets (noise easier, tone stricter)', () => {
+    const ctx = computeDynamicThresholds({ caret: 200, start: 90, end: 99, editType: 'context' });
+    const noise = computeDynamicThresholds({ caret: 200, start: 90, end: 99, editType: 'noise' });
+    const tone = computeDynamicThresholds({ caret: 200, start: 90, end: 99, editType: 'tone' });
+    expect(noise.τ_commit).toBeLessThanOrEqual(ctx.τ_commit);
+    expect(tone.τ_commit).toBeGreaterThanOrEqual(ctx.τ_commit);
+  });
+
+  it('dynamic thresholds enforce invariants and bounds', () => {
+    setConfidenceThresholds({ τ_input: 0.7, τ_commit: 0.75, τ_discard: 0.1 });
+    const t = computeDynamicThresholds({ caret: 0, start: 0, end: 0, editType: 'noise' });
+    expect(t.τ_discard).toBeLessThan(t.τ_input);
+    expect(t.τ_input).toBeLessThanOrEqual(t.τ_commit);
+    expect(t.τ_commit).toBeLessThanOrEqual(0.98);
+    // restore
+    setConfidenceThresholds({});
   });
 });

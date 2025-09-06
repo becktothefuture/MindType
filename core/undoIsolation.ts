@@ -56,4 +56,27 @@ export class UndoIsolation {
   getGroups(): readonly UndoGroup[] {
     return this.groups;
   }
+
+  /**
+   * Generate revert operations for the last bucket without mutating groups.
+   * Revert ops are sorted right-to-left by start index to avoid index-shift.
+   */
+  peekLastGroupRevertOps(): Array<{ start: number; end: number; text: string }> {
+    const g = this.groups[this.groups.length - 1];
+    if (!g) return [];
+    return [...g.edits]
+      .sort((a, b) => b.start - a.start)
+      .map((e) => ({ start: e.start, end: e.end, text: e.before }));
+  }
+
+  /**
+   * Pop the last bucket and return revert operations (right-to-left order).
+   */
+  popLastGroupRevertOps(): Array<{ start: number; end: number; text: string }> {
+    const g = this.popLastGroup();
+    if (!g) return [];
+    return [...g.edits]
+      .sort((a, b) => b.start - a.start)
+      .map((e) => ({ start: e.start, end: e.end, text: e.before }));
+  }
 }

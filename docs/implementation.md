@@ -276,19 +276,19 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-125  
        **Source:** v0.4 architecture → Scheduler & Active Region
 
-- [ ] (P1) [FT-241] Confidence thresholds module  
+- [x] (P1) [FT-241] Confidence thresholds module  
        **AC:** Compute threshold by distance-from-caret and edit type; expose adjustable sensitivity; integrate undo-feedback to adapt thresholds; unit tests verify gating behavior.  
        **Owner:** @alex  
        **DependsOn:** FT-240  
        **Source:** v0.2 architecture → Confidence Gating
 
-- [ ] (P1) [FT-242] Time-bucketed undo safety net  
+- [x] (P1) [FT-242] Time-bucketed undo safety net  
        **AC:** Group applied edits into 100–200 ms buckets; public API to revert last bucket without touching user input; integration tests ensure host undo remains independent.  
        **Owner:** @alex  
        **DependsOn:** FT-240  
        **Source:** v0.2 PRD → Undo independence
 
-- [ ] (P1) [FT-243] Scheduler integration for micro vs pause sweeps  
+- [x] (P1) [FT-243] Scheduler integration for micro vs pause sweeps  
        **AC:** Monitor typing rate; trigger micro-refinements during typing and deeper pause sweeps (~500 ms); deterministic state transitions; tests simulate cadence changes.  
        **Owner:** @alex  
        **DependsOn:** FT-125, FT-240  
@@ -489,7 +489,7 @@ Task checklist template (copy into PR description):
        **Owner:** @alex  
        **DependsOn:** FT-315  
        **Source:** Demo usability for testing different configurations
-  - [ ] (P1) [FT-316C] Add confidence sensitivity dial  
+  - [x] (P1) [FT-316C] Add confidence sensitivity dial  
          **AC:** UI control mapped to confidence module; persists to `localStorage`; affects gating thresholds in real time; reduced‑motion compliant.  
          **Owner:** @alex  
          **DependsOn:** FT-241, FT-315  

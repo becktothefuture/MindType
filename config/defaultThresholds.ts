@@ -73,3 +73,15 @@ export function setValidationBandWords(minWords: number, maxWords: number): void
   minValidationWords = Math.min(min, max);
   maxValidationWords = Math.max(min, max);
 }
+
+// Confidence sensitivity (multiplier for dynamic threshold adjustments)
+let confidenceSensitivity = 1; // 1 = baseline; [0.5, 2] typical safe range
+
+export function getConfidenceSensitivity(): number {
+  return confidenceSensitivity;
+}
+
+export function setConfidenceSensitivity(value: number): void {
+  const clamped = Math.max(0.25, Math.min(4, Number.isFinite(value) ? value : 1));
+  confidenceSensitivity = clamped;
+}

@@ -30,6 +30,8 @@ import {
   setValidationBandWords,
   getConfidenceThresholds,
   setConfidenceThresholds,
+  getConfidenceSensitivity,
+  setConfidenceSensitivity,
 } from "../../config/defaultThresholds";
 
 // Types
@@ -74,6 +76,7 @@ function App() {
   const [tauInput, setTauInput] = useState<number>(getConfidenceThresholds().τ_input);
   const [tauCommit, setTauCommit] = useState<number>(getConfidenceThresholds().τ_commit);
   const [tauTone] = useState<number>(getConfidenceThresholds().τ_tone);
+  const [sensitivity, setSensitivity] = useState<number>(getConfidenceSensitivity());
   const [showMarkers, setShowMarkers] = useState<boolean>(false);
   const [caretState, setCaretState] = useState<CaretSnapshot | null>(null);
   const [eps, setEps] = useState<number>(0);
@@ -156,6 +159,7 @@ function App() {
   useEffect(() => { pipeline.setToneTarget(toneTarget); }, [toneTarget, pipeline]);
   useEffect(() => { setConfidenceThresholds({ τ_input: tauInput, τ_commit: tauCommit, τ_tone: tauTone }); }, [tauInput, tauCommit, tauTone]);
   useEffect(() => { setSwapConfig({ showMarker: showMarkers }); }, [showMarkers]);
+  useEffect(() => { setConfidenceSensitivity(sensitivity); }, [sensitivity]);
 
   // Debug info collection
   useEffect(() => {
@@ -598,6 +602,18 @@ function App() {
                 step={0.05}
                 value={tauCommit}
                 onChange={(e) => setTauCommit(parseFloat(e.target.value))}
+                style={{ width: '100%', height: '3px' }}
+              />
+            </div>
+            <div>
+              Sensitivity ×{sensitivity.toFixed(2)}
+              <input
+                type="range"
+                min={0.5}
+                max={2.0}
+                step={0.05}
+                value={sensitivity}
+                onChange={(e) => setSensitivity(parseFloat(e.target.value))}
                 style={{ width: '100%', height: '3px' }}
               />
             </div>

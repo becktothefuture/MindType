@@ -34,6 +34,7 @@ import { StagingBuffer } from './stagingBuffer';
 import {
   applyThresholds,
   computeConfidence,
+  computeDynamicThresholds,
   computeInputFidelity,
   type ConfidenceInputs,
 } from './confidenceGate';
@@ -62,6 +63,7 @@ export function createSweepScheduler(
   let lastEvent: TypingEvent | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
   let typingInterval: ReturnType<typeof setInterval> | null = null;
+  let isPauseRunning = false; // single-flight guard for pause sweeps
   const diffusion = createDiffusionController(undefined, getLMAdapter);
   const log = createLogger('sweep');
   const sb = new StagingBuffer();
@@ -75,6 +77,7 @@ export function createSweepScheduler(
     if (typingInterval) clearInterval(typingInterval);
     timer = null;
     typingInterval = null;
+    isPauseRunning = false;
   }
 
   function onEvent(ev: TypingEvent) {
@@ -110,7 +113,13 @@ export function createSweepScheduler(
     } catch {
       tierDelay = baseDelay;
     }
-    timer = setTimeout(() => runSweeps(), tierDelay);
+    timer = setTimeout(() => {
+      if (isPauseRunning) return; // guard overlapping sweeps
+      isPauseRunning = true;
+      runSweeps().finally(() => {
+        isPauseRunning = false;
+      });
+    }, tierDelay);
     // ensure streaming tick during active typing
     if (!typingInterval) {
       typingInterval = setInterval(() => {
@@ -170,7 +179,13 @@ export function createSweepScheduler(
             temporalDecay: 1,
           };
           const score = computeConfidence(inputs);
-          const decision = applyThresholds(score);
+          const dyn = computeDynamicThresholds({
+            caret: st.caret,
+            start: p.start,
+            end: p.end,
+            editType: 'context',
+          });
+          const decision = applyThresholds(score, dyn);
           sb.updateScore(`ctx-${p.start}-${p.end}`, score, decision);
           // Defer actual application until conflicts are resolved below
         }
@@ -212,7 +227,13 @@ export function createSweepScheduler(
               temporalDecay: 1,
             };
             const score = computeConfidence(inputs);
-            const decision = applyThresholds(score, undefined, { requireTone: true });
+            const dyn = computeDynamicThresholds({
+              caret: caretForTone,
+              start: p.start,
+              end: p.end,
+              editType: 'tone',
+            });
+            const decision = applyThresholds(score, dyn, { requireTone: true });
             sb.updateScore(`tone-${p.start}-${p.end}`, score, decision);
             // Defer actual application until conflicts are resolved below
           }
@@ -231,6 +252,7 @@ export function createSweepScheduler(
         }
       } catch {}
       sb.cleanup();
+      // resume micro tick if still typing (next onEvent will ensure interval)
     }
   }
 
