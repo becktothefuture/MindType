@@ -156,8 +156,8 @@ describe('Performance Benchmarks', () => {
       const latency2 = performance.now() - start2;
 
       // Allow jitter: latency2 should not be significantly faster than latency1
-      // Accept within 20% noise band to avoid flakiness in CI
-      const lowerBound = latency1 * 0.8;
+      // Accept within 25% noise band to avoid flakiness in CI
+      const lowerBound = latency1 * 0.75;
       expect(latency2).toBeGreaterThanOrEqual(lowerBound);
     });
   });

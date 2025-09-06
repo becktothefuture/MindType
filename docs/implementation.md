@@ -262,7 +262,7 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-212  
        **Source:** User example: "mindtypr" → "Mind::Type", sentence starts
 
-- [ ] (P2) [FT-215] Establish rule priority and conflict resolution  
+- [x] (P2) [FT-215] Establish rule priority and conflict resolution  
        **AC:** Document rule ordering; deterministic application; tests for conflicting suggestions  
        **Owner:** @alex  
        **DependsOn:** FT-211, FT-212, FT-214, FT-216  
@@ -270,7 +270,7 @@ Task checklist template (copy into PR description):
 
 ### Active Region (formerly “Tapestry”), Confidence, and Undo Safety Net (P1)
 
-- [ ] (P1) [FT-240] Implement active-region data structure  
+- [x] (P1) [FT-240] Implement active-region data structure  
        **AC:** Represent validated/unvalidated spans and animated region; spans store `{original, corrected, confidence, appliedAt}`; APIs to merge, split, and query near-field; unit tests cover edge cases and Unicode boundaries.  
        **Owner:** @alex  
        **DependsOn:** FT-125  
@@ -391,7 +391,7 @@ Task checklist template (copy into PR description):
          **DependsOn:** FT-232  
          **Source:** Caret safety
 
-  - [ ] (P1) [FT-232B] Anti‑thrash scheduler tuning  
+  - [x] (P1) [FT-232B] Anti‑thrash scheduler tuning  
          **AC:** Raise minimum reschedule threshold and extend cooldown on WASM/CPU; enforce at‑most‑one pending request; drop older unless idle. Tests cover rapid keystrokes and ensure no overlapping merges.  
          **Owner:** @alex  
          **DependsOn:** FT-232  

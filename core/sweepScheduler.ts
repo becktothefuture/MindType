@@ -37,6 +37,10 @@ import {
   computeInputFidelity,
   type ConfidenceInputs,
 } from './confidenceGate';
+import {
+  resolveConflicts,
+  type Proposal as ResolvedInput,
+} from '../engines/conflictResolver';
 
 export interface SweepScheduler {
   start(): void;
@@ -92,8 +96,21 @@ export function createSweepScheduler(
       }
     } catch {}
     if (timer) clearTimeout(timer);
-    // schedule pause catch-up
-    timer = setTimeout(() => runSweeps(), SHORT_PAUSE_MS);
+    // schedule pause catch-up with anti-thrash buffer per tier
+    // Use device-tier aware debounce: WebGPU fastest, CPU slowest
+    const baseDelay = SHORT_PAUSE_MS;
+    let tierDelay = baseDelay;
+    try {
+      const nav = navigator as Navigator & { gpu?: unknown };
+      if (typeof nav.gpu !== 'undefined')
+        tierDelay = baseDelay; // webgpu
+      else if (typeof WebAssembly !== 'undefined')
+        tierDelay = Math.round(baseDelay * 1.1); // wasm
+      else tierDelay = Math.round(baseDelay * 1.3); // cpu
+    } catch {
+      tierDelay = baseDelay;
+    }
+    timer = setTimeout(() => runSweeps(), tierDelay);
     // ensure streaming tick during active typing
     if (!typingInterval) {
       typingInterval = setInterval(() => {
@@ -127,13 +144,10 @@ export function createSweepScheduler(
       // swallow to keep UI responsive
       log.warn('catchUp threw; continuing');
     }
-    // Legacy engines can still run after catch-up
+    // Collect proposals from engines for deterministic resolution
     const noise = noiseTransform({ text: lastEvent.text, caret: lastEvent.caret });
-    if (noise.diff) {
-      try {
-        diffusion.applyExternal(noise.diff);
-      } catch {}
-    }
+    const collected: ResolvedInput[] = [];
+    if (noise.diff) collected.push({ ...noise.diff, source: 'noise' });
     backfillConsistency({ text: lastEvent.text, caret: lastEvent.caret });
 
     // v0.4 pipeline: Context → Tone (English-only) under confidence gating
@@ -144,6 +158,7 @@ export function createSweepScheduler(
         // Context stage
         const ctx = contextTransform({ text: st.text, caret: st.caret });
         for (const p of ctx.proposals) {
+          collected.push({ ...p, source: 'context' });
           const sample = st.text.slice(
             Math.max(0, p.start - 80),
             Math.min(st.caret, p.end + 80),
@@ -157,9 +172,7 @@ export function createSweepScheduler(
           const score = computeConfidence(inputs);
           const decision = applyThresholds(score);
           sb.updateScore(`ctx-${p.start}-${p.end}`, score, decision);
-          if (decision === 'commit') {
-            diffusion.applyExternal(p);
-          }
+          // Defer actual application until conflicts are resolved below
         }
 
         // Tone stage (optional)
@@ -186,6 +199,7 @@ export function createSweepScheduler(
             caretForTone,
           );
           for (const p of tProps) {
+            collected.push({ ...p, source: 'tone' });
             const sample = textForTone.slice(
               Math.max(0, p.start - 80),
               Math.min(caretForTone, p.end + 80),
@@ -200,20 +214,22 @@ export function createSweepScheduler(
             const score = computeConfidence(inputs);
             const decision = applyThresholds(score, undefined, { requireTone: true });
             sb.updateScore(`tone-${p.start}-${p.end}`, score, decision);
-            if (decision === 'commit') {
-              const offset = updated.caret - caretForTone;
-              diffusion.applyExternal({
-                start: p.start + offset,
-                end: p.end + offset,
-                text: p.text,
-              });
-            }
+            // Defer actual application until conflicts are resolved below
           }
         }
       }
     } catch (err) {
       log.warn('v0.4 pipeline run failed', { err: (err as Error).message });
     } finally {
+      // After collecting, resolve conflicts per precedence and apply
+      try {
+        const resolved = resolveConflicts(collected);
+        for (const p of resolved) {
+          // Translate tone proposals' relative offsets if needed: proposals are pre-caret
+          // Our collected includes only pre-caret spans; apply directly
+          diffusion.applyExternal(p);
+        }
+      } catch {}
       sb.cleanup();
     }
   }
