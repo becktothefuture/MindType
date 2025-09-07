@@ -12,17 +12,23 @@ Cross‑links:
 ## High-Level Pipeline
 
 1. **Keystroke Handling** – Every printable key resets the pause timer and advances a typing tick (~60–90 ms cadence) for streamed diffusion.
-2. **Fragment Extraction** – The active fragment is the sentence behind the caret within 250 characters (± context). Diffusion operates within a trailing band of ~3–8 words.
-3. **LM/Rules Correction** – Word‑sized chunks are validated and corrected in the trailing band while typing continues. On‑device language models (Transformers.js + Qwen2.5‑0.5B‑Instruct, q4, WebGPU) handle semantic corrections with graceful fallback to rule‑based fixes.
-4. **Incremental Diff and Merge** – Patches are caret‑safe and word‑bounded. During typing, a frontier advances toward the caret; on pause (~500 ms), diffusion catches up.
-5. **Injection** – Apply in place, preserving formatting, undo grouping, and cursor position. Visuals: subtle shimmer band; reduced‑motion fallback.
+2. **Click-to-Activate LM** – User focus/click initializes the dual-context LM system with wide context (full document) and close context (2-5 sentences around caret).
+3. **Fragment Extraction** – The active fragment is the sentence behind the caret within 250 characters (± context). Diffusion operates within a trailing band of ~3–8 words.
+4. **Dual-Context LM Processing** – The LMContextManager maintains both wide context (global document awareness) and close context (focused sentence-level corrections). Context validation ensures proposal coherence.
+5. **LM/Rules Correction** – Word‑sized chunks are validated and corrected in the trailing band while typing continues. On‑device language models (Transformers.js + Qwen2.5‑0.5B‑Instruct, q4, WebGPU) handle semantic corrections with graceful fallback to rule‑based fixes.
+6. **Incremental Diff and Merge** – Patches are caret‑safe and word‑bounded. During typing, a frontier advances toward the caret; on pause (~500 ms), diffusion catches up.
+7. **Injection** – Apply in place, preserving formatting, undo grouping, and cursor position. Visuals: subtle shimmer band; reduced‑motion fallback.
 
 ```
+User Focus → [LMContextManager] → Dual-Context Init
+                    ↓
 key press → [PauseTimer] → idle
            ↓                    ↘
     [FragmentExtractor]   [Abort stream if new key]
            ↓                    ↘
-   [LLMClient] → word stream → [MergeEngine] → patches → [Injector]
+   [ContextTransformer] → LM + Context Validation → [MergeEngine] → patches → [Injector]
+           ↑
+   [LMContextManager] → Wide Context + Close Context
 ```
 
 The arrows illustrate how a typing pause triggers the fragment extractor. Streaming can be aborted if a new key arrives mid-flight. This diagram mirrors both the browser and macOS implementations.

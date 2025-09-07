@@ -112,6 +112,7 @@ export async function contextTransform(
   contextManager?: LMContextManager
 ): Promise<TransformResult> {
   const { text, caret } = input;
+  console.log('[ContextTransformer] Function called', { textLength: text.length, caret, hasLMAdapter: !!lmAdapter, hasContextManager: !!contextManager });
   const window = buildContextWindow(text, caret);
 
   // Gate on input fidelity (cheap heuristic on current+prev context)
