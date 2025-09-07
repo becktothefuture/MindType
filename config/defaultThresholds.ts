@@ -23,6 +23,7 @@ let typingTickMs = 75;
 let minValidationWords = 5;
 let maxValidationWords = 5;
 let confidenceSensitivity = 1.0; // multiplier for dynamic thresholds
+let sentenceContextPerSide = 3; // sentences per side for LM context (2-5 range)
 
 // Confidence thresholds for v0.4 pipeline
 type ConfidenceThresholds = {
@@ -84,4 +85,12 @@ export function setConfidenceSensitivity(value: number): void {
   if (!Number.isFinite(v)) return;
   // Clamp to a reasonable range; demo may set ≥1.6 temporarily
   confidenceSensitivity = Math.max(0.1, Math.min(5, v));
+}
+
+export function getSentenceContextPerSide(): number {
+  return sentenceContextPerSide;
+}
+
+export function setSentenceContextPerSide(value: number): void {
+  sentenceContextPerSide = Math.max(2, Math.min(5, Math.round(value)));
 }
