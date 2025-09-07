@@ -108,6 +108,7 @@ function computeSimpleBand(
   text: string,
   caretIndex: number,
 ): { start: number; end: number } | null {
+  // Find reasonable start position (up to 10 words back or 50 chars)
   const left = text.slice(0, caretIndex);
   const parts = left.split(/(\b)/g);
   let words = 0;
@@ -117,5 +118,26 @@ function computeSimpleBand(
     i--;
   }
   const start = Math.max(0, left.lastIndexOf(parts[Math.max(0, i + 1)] ?? ''));
-  return { start: isNaN(start) ? Math.max(0, caretIndex - 50) : start, end: caretIndex };
+  const bandStart = isNaN(start) ? Math.max(0, caretIndex - 50) : start;
+  
+  // Extend beyond caret to include text that needs correction
+  // Look for next word boundary or take up to 50 more characters
+  const right = text.slice(caretIndex);
+  const wordBoundary = right.search(/\s+/);
+  let bandEnd = caretIndex;
+  
+  if (wordBoundary > 0) {
+    // Include the current word plus a bit more context
+    bandEnd = Math.min(text.length, caretIndex + wordBoundary + 20);
+  } else {
+    // No word boundary found, take a reasonable chunk
+    bandEnd = Math.min(text.length, caretIndex + 50);
+  }
+  
+  // Ensure we have at least some content to work with
+  if (bandEnd <= bandStart) {
+    bandEnd = Math.min(text.length, bandStart + 20);
+  }
+  
+  return { start: bandStart, end: bandEnd };
 }

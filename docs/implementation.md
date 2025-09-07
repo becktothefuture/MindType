@@ -1315,6 +1315,55 @@ The MindType v0.4 codebase represents a **significant achievement**:
 
 The remaining tasks are polish and platform expansion—the **core functionality is production-ready**.
 
+## Post-v0.4 Stabilization & Enhancement Tasks
+
+### 🚨 Critical Priority (Immediate - This Week)
+
+- [ ] **LM-501** Debug LM streaming reliability using enhanced diagnostic logging  
+      **AC:** Identify root causes of empty LM outputs in E2E tests; fix worker message passing; ensure corrections appear consistently in browser  
+      **Owner:** @dev  
+      **Source:** E2E test failures with empty lm-context-output  
+
+- [ ] **LM-501A** Validate corrections work end-to-end in browser dev tools  
+      **AC:** Manual verification in Chrome/Safari dev tools; worker logs show successful generation; LM Lab presets produce visible output  
+      **DependsOn:** LM-501  
+
+- [ ] **LM-501B** Test health monitoring indicators in workbench LM tab  
+      **AC:** Status indicators (healthy/error/unknown) update correctly; worker active state tracked; error messages displayed  
+      **DependsOn:** LM-501  
+
+- [ ] **LM-501C** Verify performance regression detection with artificial slowdowns  
+      **AC:** Trend analysis detects >20% latency changes; visual indicators show regression/improvement; metrics export includes trend data  
+
+### 📈 Short-term Goals (Next 2 Weeks)
+
+- [ ] **LM-502** Stabilize LM reliability to >95% success rate  
+      **AC:** E2E tests pass consistently; LM outputs visible in 95%+ of runs; graceful degradation when models unavailable  
+      **DependsOn:** LM-501*  
+
+- [ ] **LM-503** Optimize first-token latency to <200ms consistently  
+      **AC:** Workbench metrics show <200ms p95 latency; model warmup implemented; backend selection optimized  
+
+- [ ] **LM-504** Add sparkline charts for visual performance trends  
+      **AC:** Workbench metrics tab shows mini-charts; trend visualization clear; historical data preserved  
+
+- [ ] **LM-505** Implement advanced presets with expected outcome validation  
+      **AC:** Presets include expected corrections; automated validation in tests; regression detection for preset quality  
+
+### 🏗️ Medium-term Strategy (Next Month)
+
+- [ ] **PLATFORM-601** macOS MVP planning using proven core architecture  
+      **AC:** Architecture document for Swift app; FFI interface defined; shared core strategy documented  
+
+- [ ] **PLATFORM-602** PWA capabilities for web demo distribution  
+      **AC:** Service worker implemented; offline functionality; app manifest; installation prompts  
+
+- [ ] **QA-701** User acceptance testing with real-world scenarios  
+      **AC:** Test scenarios defined; user feedback collected; acceptance criteria validated  
+
+- [ ] **PERF-801** Performance benchmarking across device tiers  
+      **AC:** Benchmark suite created; performance baselines established; optimization targets defined  
+
 ---
 
-_Review completed: 2025-09-02 by comprehensive codebase analysis_
+_Updated: 2025-01-09 with post-v0.4 stabilization and enhancement roadmap_
