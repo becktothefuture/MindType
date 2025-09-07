@@ -16,6 +16,7 @@
 */
 
 import { CONFIDENCE_THRESHOLDS } from '../config/defaultThresholds';
+import type { LMContextManager } from '../core/lm/contextManager';
 
 export interface ContextWindow {
   currentSentence: string;
@@ -105,7 +106,11 @@ function deterministicRepairs(span: string): { span: string; changed: boolean } 
   return { span: out, changed };
 }
 
-export function contextTransform(input: TransformInput): TransformResult {
+export async function contextTransform(
+  input: TransformInput, 
+  lmAdapter?: any,
+  contextManager?: LMContextManager
+): Promise<TransformResult> {
   const { text, caret } = input;
   const window = buildContextWindow(text, caret);
 
@@ -155,5 +160,65 @@ export function contextTransform(input: TransformInput): TransformResult {
   if (capSpan !== curSpan) {
     proposals.push({ start: curStart, end: safeEnd, text: capSpan });
   }
+
+  // LM-based corrections using dual-context approach
+  if (lmAdapter && contextManager && contextManager.isInitialized()) {
+    try {
+      const contextWindow = contextManager.getContextWindow();
+      
+      // Use close context for focused corrections
+      const closeText = contextWindow.close.text;
+      
+      // Generate LM prompt with wide context awareness
+      const { selectSpanAndPrompt, postProcessLMOutput } = await import('../core/lm/policy');
+      const selection = selectSpanAndPrompt(text, caret);
+      
+      if (selection.band && selection.prompt) {
+        console.log('[ContextTransformer] LM processing with dual-context:', {
+          wideTokens: contextWindow.wide.tokenCount,
+          closeLength: closeText.length,
+          bandSize: selection.band.end - selection.band.start
+        });
+
+        // Stream LM response
+        let lmOutput = '';
+        for await (const chunk of lmAdapter.stream({
+          text,
+          caret,
+          band: selection.band,
+          settings: { 
+            prompt: selection.prompt, 
+            maxNewTokens: selection.maxNewTokens,
+            wideContext: contextWindow.wide.text.slice(0, 2000), // Truncate for performance
+            closeContext: closeText
+          }
+        })) {
+          lmOutput += chunk;
+        }
+
+        const cleanedOutput = postProcessLMOutput(lmOutput.trim(), selection.span?.length || 0);
+        
+        // Validate proposal against wide context
+        if (cleanedOutput && selection.span && contextManager.validateProposal(cleanedOutput, selection.span)) {
+          console.log('[ContextTransformer] LM proposal validated:', {
+            original: selection.span.slice(0, 30),
+            proposal: cleanedOutput.slice(0, 30)
+          });
+          
+          proposals.push({
+            start: selection.band.start,
+            end: selection.band.end,
+            text: cleanedOutput
+          });
+        } else {
+          console.log('[ContextTransformer] LM proposal rejected by validation');
+        }
+      }
+    } catch (error) {
+      console.warn('[ContextTransformer] LM processing failed:', error);
+      // Fall back to deterministic repairs only
+    }
+  }
+
   return { window, proposals };
 }

@@ -51,10 +51,22 @@ self.addEventListener('message', async (e: MessageEvent<Msg>) => {
     controller = new AbortController();
     try {
       console.log('[LMWorker] Generate request:', { requestId, prompt: (params.settings as any)?.prompt?.slice(0, 50) });
+      
+      // Validate input parameters
+      if (!params.band || params.band.start === params.band.end) {
+        throw new Error('Invalid band: empty or zero-length selection');
+      }
+      
       const streamer = await getStreamer();
       console.log('[LMWorker] Streamer ready, starting generation');
+      
+      const prompt = (params.settings as any)?.prompt ?? params.text.slice(params.band.start, params.band.end);
+      const maxNewTokens = (params.settings as any)?.maxNewTokens ?? 16;
+      
+      console.log('[LMWorker] Generation params:', { prompt: prompt.slice(0, 50), maxNewTokens, bandSize: params.band.end - params.band.start });
+      
       let chunkCount = 0;
-      for await (const chunk of streamer.generateStream({ prompt: (params.settings as any)?.prompt ?? params.text.slice(params.band.start, params.band.end), maxNewTokens: (params.settings as any)?.maxNewTokens })) {
+      for await (const chunk of streamer.generateStream({ prompt, maxNewTokens })) {
         chunkCount++;
         console.log('[LMWorker] Chunk', chunkCount, ':', chunk.slice(0, 20));
         (self as unknown as Worker).postMessage({ type: 'chunk', requestId, text: chunk });
@@ -63,7 +75,9 @@ self.addEventListener('message', async (e: MessageEvent<Msg>) => {
       (self as unknown as Worker).postMessage({ type: 'done', requestId });
     } catch (err: any) {
       console.error('[LMWorker] Generation failed:', err);
-      (self as unknown as Worker).postMessage({ type: 'error', requestId, message: String(err?.message || err) });
+      const errorMessage = String(err?.message || err);
+      console.error('[LMWorker] Error details:', { errorMessage, stack: err?.stack });
+      (self as unknown as Worker).postMessage({ type: 'error', requestId, message: errorMessage });
     }
   }
 });

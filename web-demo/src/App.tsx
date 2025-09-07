@@ -20,6 +20,7 @@ import { SCENARIOS } from "./scenarios";
 import { replaceRange } from "../../utils/diff";
 import { boot } from "../../index";
 import { createWorkerLMAdapter } from "../../core/lm/workerAdapter";
+import { createLMContextManager, type LMContextManager } from "../../core/lm/contextManager";
 import { createLiveRegion, type LiveRegion } from "../../ui/liveRegion";
 import { setSwapConfig, emitSwap } from "../../ui/swapRenderer";
 import { setLoggerConfig } from "../../core/logger";
@@ -103,6 +104,7 @@ function App() {
   const [lmHealth, setLmHealth] = useState<{status: 'unknown' | 'healthy' | 'error', lastError?: string, workerActive: boolean}>({
     status: 'unknown', workerActive: false
   });
+  const [lmContextInitialized, setLmContextInitialized] = useState(false);
 
   function pushLog(type: string, msg: string) {
     const entry = { ts: Date.now(), type, msg };
@@ -123,6 +125,40 @@ function App() {
   const caretRef = useRef<number>(0);
   const typingGlowTimerRef = useRef<number | null>(null);
   const liveRegionRef = useRef<LiveRegion | null>(null);
+  const lmContextManagerRef = useRef<LMContextManager | null>(null);
+
+  // Initialize LM context manager
+  useEffect(() => {
+    if (!lmContextManagerRef.current) {
+      lmContextManagerRef.current = createLMContextManager();
+    }
+  }, []);
+
+  // Handle LM context initialization on focus
+  const handleTextareaFocus = async () => {
+    const contextManager = lmContextManagerRef.current;
+    if (!contextManager || lmContextInitialized) return;
+
+    try {
+      pushLog('LM', 'Initializing LM context on focus');
+      await contextManager.initialize(text, caretRef.current);
+      setLmContextInitialized(true);
+      setLmHealth(prev => ({ ...prev, status: 'healthy' }));
+      pushLog('LM', `Context initialized: ${text.length} chars, caret at ${caretRef.current}`);
+    } catch (error) {
+      pushLog('LM', `Context initialization failed: ${error}`);
+      setLmHealth(prev => ({ ...prev, status: 'error', lastError: String(error) }));
+    }
+  };
+
+  // Update LM context when text changes
+  useEffect(() => {
+    const contextManager = lmContextManagerRef.current;
+    if (contextManager && lmContextInitialized) {
+      contextManager.updateWideContext(text);
+      contextManager.updateCloseContext(text, caretRef.current);
+    }
+  }, [text, lmContextInitialized]);
 
   const [pipeline] = useState(() =>
     boot({
@@ -507,6 +543,7 @@ function App() {
               value={text}
               placeholder="Type here..."
               onChange={handleTextChange}
+              onFocus={handleTextareaFocus}
               onBlur={() => setIsTyping(false)}
               onCompositionStart={() => {
                 imeRef.current = true;
@@ -964,6 +1001,7 @@ function App() {
                 </div>
                 <div>Backend: {lmDebug?.backend || 'unknown'}</div>
                 <div>Worker: {lmHealth.workerActive ? '🟢 Active' : '🔴 Inactive'}</div>
+                <div>Context: {lmContextInitialized ? '🟢 Initialized' : '🔴 Not initialized'}</div>
                 <div>Tokens: {lmDebug?.lastChunks?.join('').length || 0}</div>
                 <div>Last latency: {lmMetrics[lmMetrics.length - 1]?.latency || 0}ms</div>
                 {lmHealth.lastError && (

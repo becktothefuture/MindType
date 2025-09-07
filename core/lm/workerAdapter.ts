@@ -20,16 +20,24 @@ export function createWorkerLMAdapter(makeWorker: () => Worker): LMAdapter {
   let runs = 0;
   let staleDrops = 0;
 
-  function ensureWorker(): Worker {
-    if (worker) return worker;
-    console.log('[WorkerAdapter] Creating new worker...');
-    worker = makeWorker();
-    worker.onerror = (e) => {
-      console.error('[WorkerAdapter] Worker error:', e);
-    };
-    console.log('[WorkerAdapter] Worker created successfully');
-    return worker;
-  }
+function ensureWorker(): Worker {
+  if (worker) return worker;
+  console.log('[WorkerAdapter] Creating new worker...');
+  worker = makeWorker();
+  
+  worker.onerror = (e) => {
+    console.error('[WorkerAdapter] Worker error:', e);
+    // Reset worker on error to allow retry
+    worker = null;
+  };
+  
+  worker.onmessageerror = (e) => {
+    console.error('[WorkerAdapter] Worker message error:', e);
+  };
+  
+  console.log('[WorkerAdapter] Worker created successfully');
+  return worker;
+}
 
   return {
     init(_opts?: LMInitOptions): LMCapabilities {
@@ -81,11 +89,22 @@ export function createWorkerLMAdapter(makeWorker: () => Worker): LMAdapter {
           close();
         } else if (msg.type === 'error' && (!msg.requestId || msg.requestId === requestId)) {
           console.error('[WorkerAdapter] Stream error:', msg.message);
-          close();
+          // Surface error to UI by throwing
+          throw new Error(`LM Worker Error: ${msg.message}`);
         }
       };
       w.addEventListener('message', onMessage);
+      
+      // Add timeout to prevent hanging
+      const timeoutMs = 30000; // 30 second timeout
+      const timeoutId = setTimeout(() => {
+        console.error('[WorkerAdapter] Stream timeout after', timeoutMs, 'ms');
+        close();
+        throw new Error(`LM Worker timeout after ${timeoutMs}ms`);
+      }, timeoutMs);
+      
       try {
+        console.log('[WorkerAdapter] Sending generate message:', { requestId, band: params.band });
         w.postMessage({ type: 'generate', requestId, params });
         while (!closed || chunks.length) {
           if (chunks.length) {
@@ -95,6 +114,7 @@ export function createWorkerLMAdapter(makeWorker: () => Worker): LMAdapter {
           }
         }
       } finally {
+        clearTimeout(timeoutId);
         w.removeEventListener('message', onMessage);
       }
     },

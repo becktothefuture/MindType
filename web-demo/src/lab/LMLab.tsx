@@ -11,6 +11,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createWorkerLMAdapter } from '../../../core/lm/workerAdapter';
+import { createLMContextManager } from '../../../core/lm/contextManager';
 import { replaceRange } from '../../../utils/diff';
 
 type Tone = 'None' | 'Casual' | 'Professional';
@@ -32,9 +33,11 @@ export function LMLab() {
 
   // Worker-backed adapter (remote models to avoid local asset requirement)
   const adapter = useMemo(() => createWorkerLMAdapter(() => new Worker(new URL('../worker/lmWorker.ts', import.meta.url), { type: 'module' })), []);
+  const contextManager = useMemo(() => createLMContextManager(), []);
   const lastRunId = useRef(0);
   const pendingPreset = useRef(false);
   const [dynamicPresets, setDynamicPresets] = useState<Array<{ id: string; name: string; text: string; tone?: string }>>([]);
+  const [contextInitialized, setContextInitialized] = useState(false);
 
   async function run() {
     const runId = ++lastRunId.current;
@@ -45,6 +48,18 @@ export function LMLab() {
     setError('');
 
     try {
+      // Initialize context manager if not already done
+      if (!contextInitialized) {
+        const caret = Math.max(0, Math.min(input.length, bandEnd));
+        await contextManager.initialize(input, caret);
+        setContextInitialized(true);
+      } else {
+        // Update context for current input
+        const caret = Math.max(0, Math.min(input.length, bandEnd));
+        contextManager.updateWideContext(input);
+        contextManager.updateCloseContext(input, caret);
+      }
+
       // Build a span + prompt using policy
       const { selectSpanAndPrompt, postProcessLMOutput } = await import('../../../core/lm/policy');
       const caret = Math.max(0, Math.min(input.length, bandEnd));
@@ -54,16 +69,40 @@ export function LMLab() {
         return;
       }
 
-      // Stream tokens from the real adapter
+      // Get context window for enhanced prompting
+      const contextWindow = contextManager.getContextWindow();
+      console.log('[LMLab] Using dual-context:', {
+        wideTokens: contextWindow.wide.tokenCount,
+        closeLength: contextWindow.close.text.length,
+        bandSize: sel.band.end - sel.band.start
+      });
+
+      // Stream tokens from the real adapter with dual-context
       let acc = '';
-      for await (const chunk of adapter.stream({ text: input, caret, band: sel.band, settings: { prompt: sel.prompt, maxNewTokens: sel.maxNewTokens } })) {
+      for await (const chunk of adapter.stream({ 
+        text: input, 
+        caret, 
+        band: sel.band, 
+        settings: { 
+          prompt: sel.prompt, 
+          maxNewTokens: sel.maxNewTokens,
+          wideContext: contextWindow.wide.text.slice(0, 2000), // Truncate for performance
+          closeContext: contextWindow.close.text
+        } 
+      })) {
         acc += chunk;
         setJsonl((prev) => prev + chunk);
       }
       const cleaned = postProcessLMOutput(acc.trim(), sel.span?.length || 0);
-      if (cleaned && sel.span) {
+      
+      // Validate proposal using context manager
+      if (cleaned && sel.span && contextManager.validateProposal(cleaned, sel.span)) {
         setContextOut(cleaned);
         setToneOut(cleaned);
+        console.log('[LMLab] Proposal validated and applied:', cleaned.slice(0, 50));
+      } else if (cleaned && sel.span) {
+        setError('LM proposal rejected by context validation');
+        console.log('[LMLab] Proposal rejected:', { original: sel.span, proposal: cleaned });
       }
     } catch (e: any) {
       setError('LM unavailable. Enable network access or try again later.');
