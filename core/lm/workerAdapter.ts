@@ -22,7 +22,12 @@ export function createWorkerLMAdapter(makeWorker: () => Worker): LMAdapter {
 
   function ensureWorker(): Worker {
     if (worker) return worker;
+    console.log('[WorkerAdapter] Creating new worker...');
     worker = makeWorker();
+    worker.onerror = (e) => {
+      console.error('[WorkerAdapter] Worker error:', e);
+    };
+    console.log('[WorkerAdapter] Worker created successfully');
     return worker;
   }
 
@@ -63,11 +68,19 @@ export function createWorkerLMAdapter(makeWorker: () => Worker): LMAdapter {
       const onMessage = (ev: MessageEvent<WorkerMessage>) => {
         const msg = ev.data;
         if (!msg) return;
+        console.log('[WorkerAdapter] Message received:', { type: msg.type, requestId: msg.requestId });
         if (msg.type === 'chunk' && msg.requestId === requestId) {
-          if (!aborted) push(msg.text);
+          if (!aborted) {
+            console.log('[WorkerAdapter] Processing chunk:', msg.text.slice(0, 20));
+            push(msg.text);
+          } else {
+            console.log('[WorkerAdapter] Chunk ignored (aborted)');
+          }
         } else if (msg.type === 'done' && msg.requestId === requestId) {
+          console.log('[WorkerAdapter] Stream completed');
           close();
         } else if (msg.type === 'error' && (!msg.requestId || msg.requestId === requestId)) {
+          console.error('[WorkerAdapter] Stream error:', msg.message);
           close();
         }
       };

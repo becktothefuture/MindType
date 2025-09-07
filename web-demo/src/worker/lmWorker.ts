@@ -50,15 +50,31 @@ self.addEventListener('message', async (e: MessageEvent<Msg>) => {
     const { requestId, params } = msg;
     controller = new AbortController();
     try {
+      console.log('[LMWorker] Generate request:', { requestId, prompt: (params.settings as any)?.prompt?.slice(0, 50) });
       const streamer = await getStreamer();
+      console.log('[LMWorker] Streamer ready, starting generation');
+      let chunkCount = 0;
       for await (const chunk of streamer.generateStream({ prompt: (params.settings as any)?.prompt ?? params.text.slice(params.band.start, params.band.end), maxNewTokens: (params.settings as any)?.maxNewTokens })) {
+        chunkCount++;
+        console.log('[LMWorker] Chunk', chunkCount, ':', chunk.slice(0, 20));
         (self as unknown as Worker).postMessage({ type: 'chunk', requestId, text: chunk });
       }
+      console.log('[LMWorker] Generation complete, total chunks:', chunkCount);
       (self as unknown as Worker).postMessage({ type: 'done', requestId });
     } catch (err: any) {
+      console.error('[LMWorker] Generation failed:', err);
       (self as unknown as Worker).postMessage({ type: 'error', requestId, message: String(err?.message || err) });
     }
   }
+});
+
+// Add error handler for worker
+self.addEventListener('error', (e) => {
+  console.error('[LMWorker] Worker error:', e);
+});
+
+self.addEventListener('unhandledrejection', (e) => {
+  console.error('[LMWorker] Unhandled rejection:', e.reason);
 });
 
 

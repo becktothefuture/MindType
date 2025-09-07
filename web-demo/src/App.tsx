@@ -100,6 +100,9 @@ function App() {
   const [lmMetrics, setLmMetrics] = useState<Array<{timestamp: number, latency: number, tokens: number, backend: string}>>([]);
   const [sentencesPerSide, setSentencesPerSide] = useState(3);
   const [deterministicMode, setDeterministicMode] = useState(false);
+  const [lmHealth, setLmHealth] = useState<{status: 'unknown' | 'healthy' | 'error', lastError?: string, workerActive: boolean}>({
+    status: 'unknown', workerActive: false
+  });
 
   function pushLog(type: string, msg: string) {
     const entry = { ts: Date.now(), type, msg };
@@ -883,6 +886,24 @@ function App() {
               </div>
               <div style={{ fontSize: '0.7em', color: '#ddd' }}>
                 <div>LM runs: {lmMetrics.length} | Avg latency: {lmMetrics.length ? Math.round(lmMetrics.reduce((a, m) => a + m.latency, 0) / lmMetrics.length) : 0}ms</div>
+                {lmMetrics.length >= 2 && (
+                  <div style={{ fontSize: '0.6em', marginTop: '4px' }}>
+                    {(() => {
+                      const recent = lmMetrics.slice(-5);
+                      const older = lmMetrics.slice(-10, -5);
+                      if (older.length === 0) return null;
+                      const recentAvg = recent.reduce((a, m) => a + m.latency, 0) / recent.length;
+                      const olderAvg = older.reduce((a, m) => a + m.latency, 0) / older.length;
+                      const change = ((recentAvg - olderAvg) / olderAvg) * 100;
+                      const isRegression = Math.abs(change) > 20;
+                      return (
+                        <span style={{ color: isRegression && change > 0 ? '#f66' : isRegression && change < 0 ? '#0c8' : '#aa6' }}>
+                          Trend: {change > 0 ? '+' : ''}{Math.round(change)}% {isRegression ? (change > 0 ? '⚠️ Regression' : '🚀 Improvement') : ''}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                )}
                 <button
                   onClick={() => {
                     const data = {
@@ -932,9 +953,24 @@ function App() {
           {activeWorkbenchTab === 'lm' && (
             <div>
               <div style={{ fontSize: '0.7em', color: '#ddd', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  Status: 
+                  <span style={{ 
+                    color: lmHealth.status === 'healthy' ? '#0c8' : lmHealth.status === 'error' ? '#f66' : '#aa6',
+                    fontWeight: 'bold'
+                  }}>
+                    {lmHealth.status === 'healthy' ? '✅ Healthy' : lmHealth.status === 'error' ? '❌ Error' : '⏳ Unknown'}
+                  </span>
+                </div>
                 <div>Backend: {lmDebug?.backend || 'unknown'}</div>
+                <div>Worker: {lmHealth.workerActive ? '🟢 Active' : '🔴 Inactive'}</div>
                 <div>Tokens: {lmDebug?.lastChunks?.join('').length || 0}</div>
                 <div>Last latency: {lmMetrics[lmMetrics.length - 1]?.latency || 0}ms</div>
+                {lmHealth.lastError && (
+                  <div style={{ color: '#f66', fontSize: '0.6em', marginTop: '4px' }}>
+                    Error: {lmHealth.lastError}
+                  </div>
+                )}
               </div>
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7em', color: '#ddd' }}>
                 <input
