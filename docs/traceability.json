@@ -248,7 +248,8 @@
     "title": "LMAdapter streaming contract",
     "modules": [
       "core/lm/types.ts",
-      "core/lm/factory.ts"
+      "core/lm/factory.ts",
+      "core/activeRegionPolicy.ts"
     ],
     "acceptance": [],
     "tests": [],
@@ -258,7 +259,7 @@
     "types": [
       {
         "name": "LMStreamParams",
-        "ts": "export interface LMStreamParams {\n  contextText: string;\n  band: { start: number; end: number };\n  maxNewTokens: number;\n}\n"
+        "ts": "export interface LMStreamParams {\n  text: string;\n  caret: number;\n  band: { start: number; end: number };\n  settings?: Record<string, unknown>;\n}\n"
       }
     ],
     "source": "docs/guide/reference/lm-behavior.md"

@@ -63,6 +63,19 @@ const wordSubstitutionRule: NoiseRule = {
       ' hte ': ' the ',
       ' yuor ': ' your ',
       ' recieve ': ' receive ',
+      ' thsi ': ' this ',
+      ' si ': ' is ',
+      ' fo ': ' of ',
+      ' ot ': ' to ',
+      ' brwon ': ' brown ',
+      ' qiuck ': ' quick ',
+      ' jmups ': ' jumps ',
+      ' oevr ': ' over ',
+      ' lzay ': ' lazy ',
+      ' dgo ': ' dog ',
+      ' thabjk ': ' thank ',
+      ' gis ': ' this ',
+      ' workgon ': ' working ',
     };
 
     // Find the last (rightmost) match in the window
@@ -234,8 +247,11 @@ const RULES: NoiseRule[] = [
 export function noiseTransform(input: NoiseInput): NoiseResult {
   const { text, caret } = input;
 
+  console.log('[Noise] Processing:', { text, caret });
+
   // Safety check: never edit at or after the caret
   if (!text || caret <= 0) {
+    console.log('[Noise] Safety check failed:', { text, caret });
     return { diff: null };
   }
 
@@ -245,10 +261,14 @@ export function noiseTransform(input: NoiseInput): NoiseResult {
     if (result.diff) {
       // Additional safety: ensure diff doesn't cross caret
       if (result.diff.end <= caret) {
+        console.log('[Noise] Found correction:', result.diff);
         return result;
+      } else {
+        console.log('[Noise] Diff crosses caret, skipping:', result.diff);
       }
     }
   }
 
+  console.log('[Noise] No corrections found');
   return { diff: null };
 }

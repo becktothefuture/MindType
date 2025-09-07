@@ -272,6 +272,10 @@ export function createDiffusionController(
       clampFrontier();
       maybeRender();
       try {
+        // Emit highlight so hosts (web demo) apply the visible replacement
+        renderHighlight({ start: diff.start, end: diff.end, text: diff.text });
+      } catch {}
+      try {
         undo.addEdit({
           start: diff.start,
           end: newEnd,
@@ -315,5 +319,6 @@ export function createDiffusionController(
     getState: () => state,
     applyExternal,
     rollbackLastSystemGroup,
+    getActiveRegionPolicy: () => policy,
   };
 }

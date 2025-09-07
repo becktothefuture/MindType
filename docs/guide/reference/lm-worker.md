@@ -11,12 +11,12 @@
     • HOW  ▸ Message API + abort + auto‑degrade to rules
 -->
 
-## Protocol
+> This document has been merged into `docs/guide/reference/lm.md` (single source of truth).
 
-- `init({ localOnly, localModelPath, wasmPaths })`
-- `generate({ prompt, maxNewTokens, requestId })` → emits `chunk` messages
-- `abort({ requestId })`
-- `status` → backend + memory snapshot
+## Where to read now
+
+- Canonical reference: `docs/guide/reference/lm.md`
+- Includes worker protocol, host responsibilities, and behavior policy.
 
 ## Memory Guard
 
@@ -29,7 +29,7 @@
 - Use `createDefaultLMAdapter(options?, runner?)` to obtain an `LMAdapter` backed by a `TokenStreamer`. For browser hosts, the default runner is the Transformers.js Qwen streamer; tests may inject a mock runner.
 - Capability detection (FT-231D): LM adapter detects `backend` (webgpu/wasm/cpu) and features (wasmThreads, wasmSimd) and tunes cooldown/token caps accordingly. Falling back to slower tiers increases cooldowns and reduces caps.
 
-See: `docs/guide/reference/lm-behavior.md`, `core/lm/factory.ts`, `core/lm/index.ts`, and `crates/core-rs/src/*` (v0.2 orchestrator).
+See: `docs/guide/reference/lm.md`, `core/lm/factory.ts`, `core/lm/index.ts`, and `crates/core-rs/src/*` (v0.2 orchestrator).
 
 <!--══════════════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════════════╗

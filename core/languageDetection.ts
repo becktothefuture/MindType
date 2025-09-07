@@ -41,5 +41,7 @@ export function detectLanguage(text: string): LanguageCode {
   for (const w of words) if (EN_STOPWORDS.has(w)) enHits++;
   // Basic rules: mostly ASCII letters and some English stopwords → en
   if (alpha > 0 && nonLatin / (alpha + 1) < 0.05 && enHits >= 1) return 'en';
+  // Relaxed rule: short ASCII text without stopwords still treated as English
+  if (alpha >= 5 && nonLatin / (alpha + 1) < 0.05) return 'en';
   return 'other';
 }

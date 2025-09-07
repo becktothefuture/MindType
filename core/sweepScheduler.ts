@@ -42,6 +42,7 @@ import {
   resolveConflicts,
   type Proposal as ResolvedInput,
 } from '../engines/conflictResolver';
+import { defaultActiveRegionPolicy } from './activeRegionPolicy';
 
 export interface SweepScheduler {
   start(): void;
@@ -64,7 +65,8 @@ export function createSweepScheduler(
   let timer: ReturnType<typeof setTimeout> | null = null;
   let typingInterval: ReturnType<typeof setInterval> | null = null;
   let isPauseRunning = false; // single-flight guard for pause sweeps
-  const diffusion = createDiffusionController(undefined, getLMAdapter);
+  // Provide default sentence/word-based policy for consistent context windows
+  const diffusion = createDiffusionController(defaultActiveRegionPolicy, getLMAdapter);
   const log = createLogger('sweep');
   const sb = new StagingBuffer();
   const opts: Required<PipelineOptions> = {
@@ -149,6 +151,7 @@ export function createSweepScheduler(
         steps += 1;
         log.debug('catchUp step', { steps, frontier: diffusion.getState().frontier });
       }
+      log.info('pause collected', { steps });
     } catch {
       // swallow to keep UI responsive
       log.warn('catchUp threw; continuing');
@@ -156,7 +159,16 @@ export function createSweepScheduler(
     // Collect proposals from engines for deterministic resolution
     const noise = noiseTransform({ text: lastEvent.text, caret: lastEvent.caret });
     const collected: ResolvedInput[] = [];
-    if (noise.diff) collected.push({ ...noise.diff, source: 'noise' });
+    if (noise.diff) {
+      collected.push({ ...noise.diff, source: 'noise' });
+      // Emit stage preview
+      try {
+        const preview = lastEvent.text.slice(0, noise.diff.start) + 
+                       noise.diff.text + 
+                       lastEvent.text.slice(noise.diff.end);
+        (globalThis as any).__mtStagePreview = { noise: preview };
+      } catch {}
+    }
     backfillConsistency({ text: lastEvent.text, caret: lastEvent.caret });
 
     // v0.4 pipeline: Context → Tone (English-only) under confidence gating
@@ -166,8 +178,13 @@ export function createSweepScheduler(
       if (lang === 'en') {
         // Context stage
         const ctx = contextTransform({ text: st.text, caret: st.caret });
+        let contextPreview = st.text;
         for (const p of ctx.proposals) {
           collected.push({ ...p, source: 'context' });
+          // Build preview with this proposal applied
+          try {
+            contextPreview = contextPreview.slice(0, p.start) + p.text + contextPreview.slice(p.end);
+          } catch {}
           const sample = st.text.slice(
             Math.max(0, p.start - 80),
             Math.min(st.caret, p.end + 80),
@@ -188,6 +205,81 @@ export function createSweepScheduler(
           const decision = applyThresholds(score, dyn);
           sb.updateScore(`ctx-${p.start}-${p.end}`, score, decision);
           // Defer actual application until conflicts are resolved below
+        }
+        try {
+          (globalThis as any).__mtStagePreview = {
+            ...(globalThis as any).__mtStagePreview,
+            buffer: st.text.slice(Math.max(0, st.caret - 48), st.caret),
+            context: contextPreview
+          };
+        } catch {}
+
+        // LM stage (if adapter available)
+        const lmAdapter = getLMAdapter?.();
+        log.debug('LM stage check', { hasAdapter: !!lmAdapter, hasGetLMAdapter: !!getLMAdapter });
+        if (lmAdapter) {
+          try {
+            log.info('LM stage starting', { caret: st.caret, textLen: st.text.length });
+            const policy = diffusion.getActiveRegionPolicy?.() || {
+              computeContextRange: () => ({ start: Math.max(0, st.caret - 100), end: st.caret })
+            };
+            const contextRange = policy.computeContextRange(st);
+            const contextSpan = st.text.slice(contextRange.start, contextRange.end);
+            
+            log.debug('LM context', { contextRange, contextSpan });
+            
+            // Stream LM proposals (contract: pass LMStreamParams)
+            let accumulated = '';
+            let chunkCount = 0;
+            for await (const chunk of lmAdapter.stream({
+              text: st.text,
+              caret: st.caret,
+              band: { start: contextRange.start, end: contextRange.end },
+              settings: { maxNewTokens: Math.min(32, contextSpan.length * 2) }
+            })) {
+              accumulated += chunk;
+              chunkCount++;
+              log.debug('LM chunk', { chunk, chunkCount });
+            }
+            
+            log.info('LM stream complete', { accumulated, chunkCount });
+            
+            // Parse LM output and create proposals
+            const cleaned = accumulated.trim().replace(/^"|"$/g, '');
+            if (cleaned && cleaned !== contextSpan) {
+              log.info('LM proposal created', { original: contextSpan, corrected: cleaned });
+              // Simple full-span replacement for now
+              collected.push({
+                start: contextRange.start,
+                end: contextRange.end,
+                text: cleaned,
+                source: 'lm'
+              });
+              
+              // Score the LM proposal
+              const inputs: ConfidenceInputs = {
+                inputFidelity: computeInputFidelity(contextSpan),
+                transformationQuality: 0.85, // LM corrections generally high quality
+                contextCoherence: 0.9,
+                temporalDecay: 1,
+              };
+              const score = computeConfidence(inputs);
+              const dyn = computeDynamicThresholds({
+                caret: st.caret,
+                start: contextRange.start,
+                end: contextRange.end,
+                editType: 'lm',
+              });
+              const decision = applyThresholds(score, dyn);
+              sb.updateScore(`lm-${contextRange.start}-${contextRange.end}`, score, decision);
+            } else {
+              log.debug('LM no correction needed', { original: contextSpan, cleaned });
+            }
+          } catch (err) {
+            log.warn('LM proposal collection failed', { err: (err as Error).message });
+          }
+        } else {
+          log.debug('LM stage skipped - no adapter');
         }
 
         // Tone stage (optional)
@@ -213,6 +305,7 @@ export function createSweepScheduler(
             textForTone,
             caretForTone,
           );
+          let tonePreview = textForTone;
           for (const p of tProps) {
             collected.push({ ...p, source: 'tone' });
             const sample = textForTone.slice(
@@ -236,15 +329,33 @@ export function createSweepScheduler(
             const decision = applyThresholds(score, dyn, { requireTone: true });
             sb.updateScore(`tone-${p.start}-${p.end}`, score, decision);
             // Defer actual application until conflicts are resolved below
+            try {
+              tonePreview = tonePreview.slice(0, p.start) + p.text + tonePreview.slice(p.end);
+            } catch {}
           }
+          try {
+            (globalThis as any).__mtStagePreview = {
+              ...(globalThis as any).__mtStagePreview,
+              tone: tonePreview,
+            };
+          } catch {}
         }
       }
     } catch (err) {
       log.warn('v0.4 pipeline run failed', { err: (err as Error).message });
     } finally {
+      try {
+        const st2 = diffusion.getState();
+        (globalThis as any).__mtStagePreview = {
+          ...(globalThis as any).__mtStagePreview,
+          buffer: st2.text.slice(Math.max(0, st2.caret - 48), st2.caret),
+        };
+      } catch {}
       // After collecting, resolve conflicts per precedence and apply
       try {
+        log.info('pause proposals', { collected: collected.length });
         const resolved = resolveConflicts(collected);
+        log.info('pause resolved', { resolved: resolved.length });
         for (const p of resolved) {
           // Translate tone proposals' relative offsets if needed: proposals are pre-caret
           // Our collected includes only pre-caret spans; apply directly

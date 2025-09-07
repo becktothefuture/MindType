@@ -104,7 +104,7 @@ export function applyThresholds(
   return 'hold';
 }
 
-export type EditType = 'noise' | 'context' | 'tone';
+export type EditType = 'noise' | 'lm' | 'context' | 'tone';
 
 export interface DynamicThresholdsInput {
   caret: number;

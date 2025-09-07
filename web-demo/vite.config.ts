@@ -42,6 +42,7 @@ export default defineConfig({
         });
       },
     } as PluginOption,
+    // Public directory serves /demo/* and /_shared/* now; custom mount removed
   ],
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
@@ -57,9 +58,10 @@ export default defineConfig({
         "/Users/alexanderbeck/Coding Folder /MindType/bindings/wasm/pkg",
       ],
     },
-    // Dev server defaults; asset aliasing handled in plugin above
+    // Dev server defaults; asset/demo aliasing handled in plugins above
     middlewareMode: false,
     proxy: {},
+    open: '/#/demos',
   },
   build: {
     rollupOptions: {

@@ -5,15 +5,17 @@ types:
   - name: LMStreamParams
     ts: |
       export interface LMStreamParams {
-        contextText: string;
+        text: string;
+        caret: number;
         band: { start: number; end: number };
-        maxNewTokens: number;
+        settings?: Record<string, unknown>;
       }
 invariants:
   - Never emit a diff that modifies content at/after the caret (REQ-IME-CARETSAFE)
 modules:
   - core/lm/types.ts
   - core/lm/factory.ts
+  - core/activeRegionPolicy.ts
 -->
 
 #### In simple terms
@@ -37,7 +39,10 @@ modules:
 
 ## Overview
 
-- We stream incremental corrections behind the caret (active region).
+- This document is now consolidated into `docs/guide/reference/lm.md`.
+- Please see that canonical reference for behavior, policy, and worker runtime.
+
+See: `docs/guide/reference/lm.md`
 - We select a small span near the caret, include a limited context window, and send a precise instruction: “Correct ONLY the Span; return just the corrected Span.”
 - We merge only that span back, preserving caret safety.
 

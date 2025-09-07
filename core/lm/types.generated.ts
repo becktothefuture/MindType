@@ -15,7 +15,8 @@ export const DEFAULT_SYMBOLS = [
 ] as const;
 
 export interface LMStreamParams {
-  contextText: string;
+  text: string;
+  caret: number;
   band: { start: number; end: number };
-  maxNewTokens: number;
+  settings?: Record<string, unknown>;
 }

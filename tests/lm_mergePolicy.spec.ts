@@ -1,3 +1,38 @@
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  L M   M E R G E   P O L I C Y   S P E C  ░░░░░░░░░░  ║
+  ║                                                          ║
+  ║   Exercises boundary-char branch for coverage.           ║
+  ║                                                          ║
+  ╚══════════════════════════════════════════════════════════╝
+*/
+import { describe, it, expect } from 'vitest';
+import { streamMerge } from '../core/lm/mergePolicy';
+
+const mockAdapter = {
+  async *stream() {
+    // Emit tokens ending on boundary to trigger emission branch
+    yield 'hello';
+    yield ' ';
+    yield 'world';
+    yield '.';
+  },
+} as any;
+
+describe('mergePolicy', () => {
+  it('emits diffs on boundary chars', async () => {
+    const text = 'foo bar baz';
+    const band = { start: 0, end: 3 };
+    const caret = 99;
+    const events: any[] = [];
+    for await (const ev of streamMerge({ adapter: mockAdapter, text, caret, band })) {
+      events.push(ev);
+    }
+    // At least one diff and final done
+    expect(events.some((e) => e.type === 'diff')).toBe(true);
+    expect(events.at(-1)?.type).toBe('done');
+  });
+});
+
 /*╔══════════════════════════════════════════════════════════════╗
   ║  ░  L M   M E R G E   P O L I C Y   ( T E S T S )  ░░░░░░░░  ║
   ║                                                              ║
@@ -8,9 +43,6 @@
   • WHY  ▸ FT-232 / FT-232A correctness
   • HOW  ▸ Mock LMAdapter yields chunks; assert emitted diffs
 */
-
-import { describe, it, expect } from 'vitest';
-import { streamMerge } from '../core/lm/mergePolicy';
 
 function makeAdapter(chunks: string[]) {
   return {

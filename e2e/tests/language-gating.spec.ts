@@ -15,6 +15,7 @@ test('non-English text stays rules-only', async ({ page }) => {
   await ta.fill('mañana será mejor 你好');
   await page.waitForTimeout(1200);
   // Sanity: editor contains text; process log has entries but no APPLY burst expected from Context/Tone
+  await page.getByTestId('workbench-tab-logs').click();
   await expect(page.getByTestId('process-log')).toContainText(/STATUS|SNAP|ACTIVE_REGION/);
 });
 

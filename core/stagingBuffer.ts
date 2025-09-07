@@ -76,6 +76,14 @@ export class StagingBuffer {
     if (!item) return null;
     item.score = score;
     item.state = decision;
+    console.debug('[StagingBuffer] Updated proposal:', { 
+      id, 
+      text: item.text, 
+      score: score.combined, 
+      decision,
+      start: item.start,
+      end: item.end
+    });
     return item;
   }
 

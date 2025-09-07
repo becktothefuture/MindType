@@ -29,6 +29,7 @@ test.describe('Web Demo: Logs and Stage Previews', () => {
     const editor = page.getByPlaceholder('Type here...');
     await editor.click();
     await editor.type(' hello');
+    await page.getByTestId('workbench-tab-logs').click();
     await expect(page.getByTestId('process-log')).toContainText(/INGEST|SNAP|ACTIVE_REGION|STATUS/);
   });
 
@@ -42,7 +43,8 @@ test.describe('Web Demo: Logs and Stage Previews', () => {
   });
 
   test('context window preview is present', async ({ page }) => {
-    const textarea = page.locator('textarea[placeholder="(context window)"]');
+    await page.getByTestId('workbench-tab-presets').click();
+    const textarea = page.getByTestId('context-window');
     await expect(textarea).toBeVisible();
   });
 

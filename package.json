@@ -16,7 +16,8 @@
     "prepare": "husky",
     "setup:local": "node scripts/setup-local-assets.cjs",
     "doc:sync": "node scripts/doc2code.cjs sync",
-    "doc:check": "node scripts/doc2code.cjs check"
+    "doc:check": "node scripts/doc2code.cjs check",
+    "copy:wasm": "mkdir -p \"web-demo/public/wasm\" && cp -R \"node_modules/.pnpm/onnxruntime-web@*/node_modules/onnxruntime-web/dist/\"* \"web-demo/public/wasm/\" 2>/dev/null || echo 'WASM copy failed; using CDN fallback'"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,md,css,scss,json,mdx}": "prettier --write",

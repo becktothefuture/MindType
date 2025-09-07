@@ -23,6 +23,7 @@ test.describe('Security/IME gating', () => {
       const ta = document.querySelector('textarea.editor-textarea')!;
       ta.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true }));
     });
+    await page.getByTestId('workbench-tab-logs').click();
     await expect(page.getByTestId('process-log')).toContainText(/STATUS|SNAP/);
   });
 });

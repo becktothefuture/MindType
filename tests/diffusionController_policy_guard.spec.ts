@@ -11,6 +11,8 @@ const highlightCalls: Array<{ start: number; end: number; text?: string }> = [];
 
 vi.mock('../ui/highlighter', () => ({
   emitActiveRegion: () => {},
+}));
+vi.mock('../ui/swapRenderer', () => ({
   renderHighlight: (r: { start: number; end: number; text?: string }) => {
     highlightCalls.push({ start: r.start, end: r.end, text: r.text });
   },
@@ -39,5 +41,19 @@ describe('DiffusionController policy guard', () => {
     ctrl.update(text, text.length);
     await ctrl.catchUp();
     expect(highlightCalls.length).toBe(0);
+  });
+
+  it('emits highlight when applyExternal applies a diff', async () => {
+    const { createDiffusionController } = await import('../core/diffusionController');
+    const ctrl = createDiffusionController();
+    const initial = 'abc def';
+    ctrl.update(initial, initial.length);
+    const ok = (ctrl as unknown as { applyExternal: (d: { start: number; end: number; text: string }) => boolean }).applyExternal({ start: 0, end: 3, text: 'xyz' });
+    expect(ok).toBe(true);
+    const last = highlightCalls[highlightCalls.length - 1];
+    expect(last).toBeTruthy();
+    expect(last.start).toBe(0);
+    expect(last.end).toBe(3);
+    expect(last.text).toBe('xyz');
   });
 });

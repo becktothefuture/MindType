@@ -34,6 +34,7 @@ test.describe('Fuzzy typing – corrections', () => {
     await ta.type(FUZZY_SENTENCE, { delay: 10 });
 
     // Expect logs to show ingestion and snapshots at least once
+    await page.getByTestId('workbench-tab-logs').click();
     await expect(page.getByTestId('process-log')).toContainText(/INGEST|SNAP|ACTIVE_REGION/);
 
     // Active region label should appear

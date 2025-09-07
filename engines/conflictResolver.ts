@@ -14,7 +14,7 @@
   • HOW  ▸ Sort by precedence, prefer longer spans, drop overlaps
 */
 
-export type ProposalSource = 'noise' | 'context' | 'tone';
+export type ProposalSource = 'noise' | 'lm' | 'context' | 'tone';
 
 export interface Proposal {
   start: number;
@@ -29,7 +29,7 @@ export interface ResolvedProposal {
   text: string;
 }
 
-const DEFAULT_PRECEDENCE: ProposalSource[] = ['noise', 'context', 'tone'];
+const DEFAULT_PRECEDENCE: ProposalSource[] = ['noise', 'lm', 'context', 'tone'];
 
 function overlaps(
   a: { start: number; end: number },

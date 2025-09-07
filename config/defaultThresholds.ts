@@ -22,6 +22,7 @@ export const MAX_SWEEP_WINDOW = 80;
 let typingTickMs = 75;
 let minValidationWords = 5;
 let maxValidationWords = 5;
+let confidenceSensitivity = 1.0; // multiplier for dynamic thresholds
 
 // Confidence thresholds for v0.4 pipeline
 type ConfidenceThresholds = {
@@ -74,14 +75,13 @@ export function setValidationBandWords(minWords: number, maxWords: number): void
   maxValidationWords = Math.max(min, max);
 }
 
-// Confidence sensitivity (multiplier for dynamic threshold adjustments)
-let confidenceSensitivity = 1; // 1 = baseline; [0.5, 2] typical safe range
-
 export function getConfidenceSensitivity(): number {
   return confidenceSensitivity;
 }
 
 export function setConfidenceSensitivity(value: number): void {
-  const clamped = Math.max(0.25, Math.min(4, Number.isFinite(value) ? value : 1));
-  confidenceSensitivity = clamped;
+  const v = Number(value);
+  if (!Number.isFinite(v)) return;
+  // Clamp to a reasonable range; demo may set ≥1.6 temporarily
+  confidenceSensitivity = Math.max(0.1, Math.min(5, v));
 }

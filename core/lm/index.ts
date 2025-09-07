@@ -12,6 +12,7 @@
 export type { LMAdapter, LMCapabilities, LMInitOptions, LMStreamParams } from './types';
 export { createDefaultLMAdapter } from './factory';
 export { createMockLMAdapter } from './mockAdapter';
+export { createMockStreamLMAdapter } from './mockStreamAdapter';
 export { createTransformersAdapter } from './transformersClient';
 export { createQwenTokenStreamer } from './transformersRunner';
 export { streamMerge } from './mergePolicy';

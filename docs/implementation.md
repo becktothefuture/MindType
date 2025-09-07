@@ -45,11 +45,11 @@
 >   - Add tapestry datastructure, confidence gating, and undo buckets
 >   - Workerized Transformers with memory guard
 >   - Update acceptance scenarios to cover rollback and caret‑entry guard
->   - **Pipeline Integration:** `index.ts` wiring TODO; web demo uses WASM not TS pipeline
+>   - **Pipeline Integration:** TS pipeline wired in `index.ts`; web demo uses the TS streaming pipeline (FT‑315)
 >   - **Contextual Rules:** Only simple word substitutions; need transpositions, punctuation, capitalization
->   - **Local LM:** No on-device model integration yet for semantic/grammatical corrections
+>   - **Local LM:** On‑device streaming present; prompt shaping not yet wired through adapter (see FT‑231C2)
 >   - **Visual Feedback:** `emitActiveRegion()`/highlight are basic; design polish pending
->   - **Demo Integration:** Web demo needs connection to TS pipeline for live testing
+>   - **Demo Integration:** Web demo connected to TS pipeline for live testing (FT‑315)
 
 > **How Cursor uses this file**
 >
@@ -378,7 +378,15 @@ Task checklist template (copy into PR description):
        **AC:** Stream tokens into the active region only; merge with rule-based fixes; deterministic precedence (rules > LM on structural conflicts; LM > rules on semantic-only with confidence); cancel on input; rollback on conflicts; extensive caret safety tests; sentence-aware region growth with confidence gating.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
-       **Source:** REQ-STREAMED-DIFFUSION + LM quality
+       **Source:** REQ-STREAMED-DIFFUSION + LM quality  
+       **Notes:** Policy implemented but LM proposal collection was missing from sweepScheduler. Added in latest update along with diagnostic mode.
+
+- [x] (P1) [FT-232C] Wire LM proposal collection in sweep scheduler  
+       **AC:** Call getLMAdapter()?.stream() during pause sweeps; collect LM proposals with confidence scoring; add to collected array for conflict resolution; ensure async generator cleanup.  
+       **Owner:** @alex  
+       **DependsOn:** FT-232  
+       **Source:** Core integration requirement  
+       **Notes:** Critical missing piece - implemented 2025-01-09. Without this, LM adapter was set but never called.
 
 - [ ] (P1) [FT-231H] Near-field embedding cache  
        **AC:** Cache embeddings/context features for the active region to reduce recomputation; invalidate on edits crossing cache; tests assert cache hits/misses and correctness.  
@@ -519,6 +527,38 @@ Task checklist template (copy into PR description):
          **Status:** In progress — currently active-region/highlight fire, but demo does not show the actual replacement of the text after correcting it.  
          **Notes:** Investigate event timing/caret-safety guard and Safari segmentation fallback interactions.
 
+### LM Testing Lab (Two‑Pass Stream: Context → Tone) — New
+
+- [ ] (P1) [LM‑LAB‑SPEC] Author JSONL stream SPEC and examples  
+       **AC:** SPEC doc `docs/guide/reference/lm-stream.md` with event types (`meta`, `rules`, `stage`, `diff`, `commit`, `log`, `done`), transcript examples, invariants; `doc:check` passes.
+       **Owner:** @alex  
+       **DependsOn:** FT-231A, FT-232  
+       **Source:** CONTRACT-LM-STREAM
+
+- [ ] (P1) [LM‑LAB‑TYPES] Add LM stream event types + mock adapter  
+       **AC:** Extend `core/lm/types.ts` (non‑breaking) with event type exports for lab/tests; add `core/lm/mockStreamAdapter.ts` emitting JSONL transcript; keep main pipeline behavior unchanged.
+       **Owner:** @alex  
+       **DependsOn:** LM‑LAB‑SPEC  
+       **Modules:** core/lm/types.ts, core/lm/mockStreamAdapter.ts
+
+- [ ] (P1) [LM‑LAB‑DEMO] Build LM Lab web demo route with rules panel + stream monitor  
+       **AC:** Second demo accessible under the web demo app via hash route `#/lab` or a dedicated `demo/lm-lab`; inputs: fuzzy text textarea; controls: tone (None/Casual/Professional), thresholds sliders; right‑aligned collapsible rules panel (5vh margins, keyboard toggle); live JSONL event monitor; final outputs for context and tone. Respect reduced‑motion.
+       **Owner:** @alex  
+       **DependsOn:** LM‑LAB‑TYPES  
+       **Modules:** web-demo/src/lab/**/*, web-demo/src/App.tsx (router stub)
+
+- [ ] (P1) [LM‑LAB‑UNIT] Unit tests for two‑pass LM stream application  
+       **AC:** `tests/lm_stream.spec.ts` parses sample transcript(s), applies diffs to a band buffer, verifies commit ordering (context before tone) and final outputs; covers overlapping diffs, missing commit, malformed event.
+       **Owner:** @alex  
+       **DependsOn:** LM‑LAB‑TYPES  
+       **Modules:** tests/lm_stream.spec.ts
+
+- [ ] (P1) [LM‑LAB‑E2E] Playwright e2e for LM Lab  
+       **AC:** Visit `/#/lab`; type/paste fuzzy text; observe event sequence (`meta → stage(context) → diff → commit → stage(tone) → diff → commit → done`); verify output matches mock; rules panel toggles impact output deterministically; reduced‑motion respected.
+       **Owner:** @alex  
+       **DependsOn:** LM‑LAB‑DEMO  
+       **Modules:** e2e/tests/lm_lab.spec.ts, e2e/playwright.config.ts
+
   - [ ] (P1) [FT-318B] Web UI design polish for active region  
          **AC:** Finalize shimmer timing/gradient, reduced‑motion styles, and highlight durations; add a11y‑friendly colors and contrast; document tokens in `web-demo/src/App.css`.  
          **Owner:** @alex  
@@ -573,9 +613,9 @@ Task checklist template (copy into PR description):
 - [ ] Rollback on conflict: revert last LM merge if caret enters active region
 - [ ] Caret/Unicode safety tests: surrogate pairs, zero‑width chars
 
-### [FT-234] (Removed) Integrate LM adapter into `DiffusionController`
+### [FT-234] (Updated) Integrate LM adapter into `DiffusionController`
 
-- Status: Removed in v0.2 — LM orchestration lives in Rust core. TS controller remains rules‑only and emits UI events.
+- Status: Updated — TS controller integrates LM streaming via `streamMerge()` during `catchUp` (see REQ‑STREAMED‑DIFFUSION). Rust orchestration remains a future path; TS path is authoritative for the demo.
 
 ### [FT-235] Host injector abstraction
 

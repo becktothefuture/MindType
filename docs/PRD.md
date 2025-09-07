@@ -47,7 +47,7 @@ Mind::Type is a quiet, system‑wide typing utility that converts noisy input in
   active IME composition.
 - REQ-STREAMED-DIFFUSION: Corrections MUST stream word‑by‑word behind the caret during typing; on pause (~500 ms), diffusion MUST catch up until the active region reaches the caret.
 - REQ-ACTIVE-REGION: Processing MUST be limited to an active region behind the caret (typically 3–8 words) as the only editable span. The UI is not required to render this band.
-- REQ-VISUAL-SWAP: The UI MUST use mechanical letter‑swap only for applied corrections, with an optional braille‑like marker ('⠿') at swap sites. No underlines/highlights. Reduced‑motion MUST perform instant swaps. Announce once per batch via the live region when enabled.
+- REQ-VISUAL-SWAP: The UI MUST use mechanical letter‑swap only for applied corrections, with an optional braille‑like marker ('⠿') at swap sites. No underlines/highlights for applied edits. A subtle active‑region overlay for debugging/demo is permissible, provided it does not alter applied‑edit visuals. Reduced‑motion MUST perform instant swaps. Announce once per batch via the live region when enabled.
 - REQ-LOCAL-LM-INTEGRATION: The system MUST support on-device language model integration for semantic and grammatical corrections; MUST fallback gracefully to rule-based corrections when LM unavailable; MUST maintain <150MB typical memory footprint including model. Target initial integration: Transformers.js with Qwen2.5‑0.5B‑Instruct (q4, WebGPU) for text‑centric quality.
 - REQ-CONTEXTUAL-CORRECTIONS: Beyond word substitutions, the engine MUST handle transpositions, punctuation spacing, capitalization, and semantic coherence using broader context while maintaining caret safety.
 

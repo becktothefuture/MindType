@@ -1,0 +1,281 @@
+graph LR
+    %% ========================================
+    %% TEXT INPUT/OUTPUT LOOP (Top - Critical Flow)
+    %% ========================================
+    subgraph TEXT_LOOP ["📝 **TEXT INPUT/OUTPUT LOOP**<br/>Where text gets read and written"]
+        direction TB
+        
+        subgraph TEXT_INPUT ["**TEXT READING** (1-3)"]
+            TEXT_FIELD[("**① Text Field**<br/>Example: 'helloo thr weathfr'<br/>Caret at position 17<br/>User actively typing")]
+            DOM_EVENTS["**② Event Capture**<br/>handleTextChange()<br/>Extract: text, caret, timestamp<br/>Every keystroke captured"]
+            PIPELINE_INGEST["**③ Pipeline Start**<br/>pipeline.ingest()<br/>Creates TypingEvent<br/>Triggers processing"]
+        end
+        
+        subgraph TEXT_OUTPUT ["**TEXT WRITING** (12-14)"]
+            CORRECTIONS_READY["**⑫ Corrections Ready**<br/>High-confidence edits<br/>Passed quality gates<br/>Ready to apply"]
+            REPLACE_RANGE["**⑬ Atomic Update**<br/>replaceRange()<br/>UTF-16 safe<br/>Caret preserved"]
+            UPDATED_FIELD[("**⑭ Updated Field**<br/>Result: 'Hello, the weather'<br/>Caret position preserved<br/>User sees corrections")]
+        end
+        
+        TEXT_FIELD -->|"**Keystroke**<br/>Immediate capture"| DOM_EVENTS
+        DOM_EVENTS -->|"**Extract Data**<br/>text, caret, timestamp"| PIPELINE_INGEST
+        CORRECTIONS_READY -->|"**Apply Edits**<br/>Score ≥ 0.90"| REPLACE_RANGE
+        REPLACE_RANGE -->|"**Atomic Update**<br/>Caret preserved"| UPDATED_FIELD
+        UPDATED_FIELD -.->|"**Loop**<br/>Continuous cycle"| TEXT_FIELD
+    end
+    
+    %% ========================================
+    %% PLATFORM LAYER
+    %% ========================================
+    subgraph PLATFORM ["🌐 **PLATFORM LAYER** (4-5)"]
+        direction TB
+        
+        WEB["**④ Web Platform**<br/>web-demo/src/App.tsx<br/>React + TypeScript + Vite<br/>Direct pipeline.ingest() calls"]
+        MAC["**⑤ macOS Platform**<br/>Swift + AX API + FFI<br/>NSStatusItem menu bar app<br/>*Needs creation*"]
+        
+        NORMALIZE["**Platform Bridge**<br/>Normalizes all inputs:<br/>{text, caret, atMs}<br/>Cross-platform compatibility"]
+    end
+    
+    %% ========================================
+    %% CORE PIPELINE ENGINE
+    %% ========================================
+    subgraph CORE ["⚡ **CORE PIPELINE ENGINE** (6-9)"]
+        direction TB
+        
+        ENTRY["**⑥ System Entry**<br/>index.ts boot() function<br/>Creates all components<br/>Wires monitor→scheduler→diffusion"]
+        
+        subgraph MONITORING ["**INPUT MONITORING** (7)"]
+            TM["**TypingMonitor**<br/>core/typingMonitor.ts<br/>Emits TypingEvent stream<br/>Manages event listeners"]
+            SEC["**SecurityContext**<br/>core/security.ts<br/>Detects password/IME states<br/>Blocks unsafe operations"]
+        end
+        
+        SS["**⑧ SweepScheduler**<br/>core/sweepScheduler.ts<br/>Pause detection (300ms)<br/>Triggers engine execution<br/>Controls tickOnce() intervals"]
+        
+        subgraph DIFFUSION ["**DIFFUSION CONTROL** (9)"]
+            DC["**DiffusionController**<br/>core/diffusionController.ts<br/>State: {text, caret, frontier}<br/>Unicode: Intl.Segmenter"]
+            ARP["**ActiveRegionPolicy**<br/>core/activeRegionPolicy.ts<br/>Sentence window: N∈[2,5] to left; ends at caret<br/>Ranges: Render vs Context"]
+            REGION_VIZ["**Visual:**<br/>[████████░░░░░░] caret<br/>■ Processing zone<br/>□ Safe (ahead of cursor)"]
+        end
+    end
+    
+    %% ========================================
+    %% THREE-STAGE TRANSFORMER PIPELINE
+    %% ========================================
+    subgraph TRANSFORMERS ["🔧 **THREE-STAGE PIPELINE** (10a-c)"]
+        direction LR
+        
+        subgraph STAGE1 ["**🧹 STAGE 1: NOISE**<br/>Most‑likely intended words<br/>Priors: keyboard proximity, word frequency<br/>NO grammar/punctuation"]
+            T1["**Noise Transformer**<br/>engines/noiseTransformer.ts<br/>Trigger: Word boundaries<br/>Timing: Immediate (< 5ms)"]
+            T1_RULES["**Rules:**<br/>• Keyboard-proximity priors<br/>• Damerau–Levenshtein correction<br/>• Letter transposition/repeats<br/>• Basic spacing cleanup"]
+        end
+        
+        subgraph STAGE2 ["**📚 STAGE 2: CONTEXT**<br/>Window: current sentence ±2<br/>Weights: S±1=1.0, S±2=0.5<br/>Never edit at/after caret"]
+            T2["**Context Transformer**<br/>engines/contextTransformer.ts<br/>Trigger: Pause (500ms)<br/>Timing: LM inference (~30ms)"]
+            T2_EXAMPLES["**Corrections:**<br/>• Grammar, syntax, semantics<br/>• Punctuation, capitalization<br/>• Cross-sentence coherence"]
+        end
+        
+        subgraph STAGE3 ["**🎨 STAGE 3: TONE**<br/>Options: None, Casual, Professional<br/>May change wording/grammar/punctuation<br/>Never edit at/after caret<br/>Scope: last N sentences (CPU:10, higher:20)"]
+            T3["**Tone Transformer**<br/>engines/toneTransformer.ts<br/>Trigger: After Context<br/>Timing: Analysis (~50ms)"]
+            T3_POLISH["**Features:**<br/>• Baseline tone detection<br/>• Minimal‑diff rewrites<br/>• Document consistency"]
+            T3_TOGGLE["**Toggle Control**<br/>Default: ON<br/>OFF mid‑process:<br/>finish in‑flight, stop new"]
+        end
+        
+        T1 -->|"**Clean Words**<br/>Correctly spelled<br/>Ready for context"| T2
+        T2 -->|"**Polished Text**<br/>Grammar complete<br/>Ready for tone"| T3
+        T3_TOGGLE -.->|"**Toggle**<br/>ON/OFF control"| T3
+    end
+    
+    %% ========================================
+    %% TONE CONTROL SUBSYSTEM
+    %% ========================================
+    subgraph TONE_CONTROL ["🎨 **TONE CONTROL SUBSYSTEM**"]
+        direction TB
+        
+        TONE_TOGGLE["**Toggle Control**<br/>Default: ON<br/>User: Enable/Disable<br/>OFF mid‑process: finish in‑flight"]
+        TONE_OPTIONS["**Tone Selection**<br/>None (pass‑through)<br/>Casual, Professional<br/>Scope: last N sentences"]
+        TONE_DETECTOR["**Tone Detector**<br/>LM classifier<br/>Baseline tone vector<br/>Document assessment"]
+        TONE_ANALYSIS["**Tone Analysis**<br/>Plan minimal‑diff adjustments<br/>τ_tone (0.85) ∧ τ_commit (0.90)"]
+        
+        TONE_TOGGLE -->|"**Control**"| TONE_OPTIONS
+        TONE_OPTIONS -->|"**Parameters**"| TONE_DETECTOR
+        TONE_DETECTOR -->|"**Baseline**"| TONE_ANALYSIS
+        TONE_ANALYSIS -->|"**Adjustments**"| T3
+    end
+    
+    %% ========================================
+    %% LANGUAGE MODEL SUBSYSTEM
+    %% ========================================
+    subgraph LM ["🧠 **LANGUAGE MODEL SUBSYSTEM** (11)"]
+        direction TB
+        
+        LM_FACTORY["**LM Factory**<br/>core/lm/factory.ts<br/>Implemented<br/>createDefaultLMAdapter()<br/>Device detection + fallback"]
+        LM_CLIENT["**TransformersClient**<br/>core/lm/transformersClient.ts<br/>Single-flight + abort<br/>Device-tier adaptive cooldown<br/>Tracks runs + stale drops"]
+        LM_RUNNER["**TransformersRunner**<br/>core/lm/transformersRunner.ts<br/>Qwen2.5-0.5B-Instruct<br/>True token-by-token streaming<br/>Singleton pattern"]
+        LM_WORKER["**LM Worker**<br/>web-demo/src/worker/lmWorker.ts<br/>Module Worker (browser)<br/>Streams tokens; aborts stale"]
+        
+        subgraph LM_TIERS ["**Device Tiers**<br/>Tone analysis scope: N sentences<br/>(CPU: 10, WebGPU/WASM: 20)"]
+            WEBGPU["**WebGPU**<br/>48 tokens max<br/>160ms cooldown<br/>~15ms latency"]
+            WASM["**WASM**<br/>24 tokens max<br/>240ms cooldown<br/>~30ms latency"]
+            CPU["**CPU**<br/>16 tokens max<br/>400ms cooldown<br/>~100ms latency"]
+        end
+        
+        LM_FACTORY -->|"**Creates (node/tests)**"| LM_CLIENT
+        LM_CLIENT -->|"**Manages**"| LM_RUNNER
+        LM_FACTORY -->|"**Creates (browser)**"| LM_WORKER
+        LM_WORKER -->|"**Bridges**"| LM_RUNNER
+    end
+    
+    %% ========================================
+    %% CONFIDENCE & STAGING SYSTEM
+    %% ========================================
+    subgraph CONFIDENCE ["⚖️ **CONFIDENCE & STAGING** (12)"]
+        direction TB
+        
+        CG["**Confidence Gate**<br/>core/confidenceGate.ts<br/>Implemented<br/>Mathematical scoring<br/>All transformer proposals<br/>Includes τ_tone gating"]
+        CG_MATH["**Scoring Algorithm:**<br/>• Input fidelity (30%)<br/>• Transform quality (40%)<br/>• Context coherence (20%)<br/>• Temporal decay (10%)"]
+        
+        SB["**Staging Buffer**<br/>core/stagingBuffer.ts<br/>Implemented<br/>Proposal state machine<br/>Cleanup stale proposals<br/>Caret movement triggers"]
+        SB_STATES["**State Machine:**<br/>🟡 HOLD → Waiting<br/>🟢 COMMIT → Apply<br/>🔴 DISCARD → Reject<br/>🔄 ROLLBACK → Revert"]
+        
+        THRESHOLDS["**Decision Thresholds:**<br/>τ_input = 0.65 (try Context)<br/>τ_commit = 0.90 (apply)<br/>τ_tone = 0.85 (Tone)<br/>τ_discard = 0.30 (discard)<br/>Tone: no rollback on caret move"]
+        
+        CG -->|"**Score [0,1]**"| SB
+    end
+    
+    %% ========================================
+    %% VALIDATION & MERGE
+    %% ========================================
+    subgraph VALIDATION ["🧩 **VALIDATION & MERGE** (13)"]
+        direction TB
+        
+        TAP["**Active Region Tracker**<br/>core/tapestry.ts<br/>Implemented<br/>Track validated spans<br/>{original, corrected, confidence}<br/>Prevent re-processing"]
+        TAP_DATA["**Capabilities:**<br/>• Span tracking/merging<br/>• Confidence score storage<br/>• Applied timestamps<br/>• Re-processing prevention<br/>• Rollback state management"]
+        
+        DMG["**Diff/Merge Gate**<br/>utils/diff.ts<br/>replaceRange() atomic ops<br/>Comprehensive caret protection<br/>All text changes go through here"]
+        DMG_SAFETY["**Safety Guarantees:**<br/>• Never edits at/after caret<br/>• UTF-16 surrogate pair safe<br/>• Atomic all-or-nothing<br/>• Preserves cursor position<br/>• Exception-safe rollback"]
+        
+        UNDO["**Undo Isolation**<br/>core/undoIsolation.ts<br/>Important UX<br/>Separate system/user undo<br/>100-200ms time windows<br/>Internal rollback capability"]
+        
+        TAP -->|"**Span Data**"| DMG
+        DMG -->|"**System Edits**"| UNDO
+    end
+    
+    %% ========================================
+    %% UI FEEDBACK SYSTEM
+    %% ========================================
+    subgraph UI_FEEDBACK ["🎨 **UI FEEDBACK SYSTEM** (14)"]
+        direction LR
+        
+        UI_HIGH["**UI Highlighter**<br/>ui/highlighter.ts<br/>emitActiveRegion() events<br/>Called from DiffusionController<br/>Subtle region highlighting"]
+        UI_SWAP["**SwapRenderer**<br/>ui/swapRenderer.ts<br/>Needs polish<br/>Mechanical letter swap<br/>Target: Braille markers"]
+        UI_LIVE["**LiveRegion**<br/>ui/liveRegion.ts<br/>WCAG 2.2 AA compliant<br/>Screen reader announcements<br/>'text updated behind cursor'"]
+        
+        UI_EVENTS["**Event Flow:**<br/>• mindtype:activeRegion<br/>• mindtype:highlight<br/>• Screen reader announcements<br/>• Reduced motion detection<br/>• Cross-browser compatibility"]
+    end
+    
+    %% ========================================
+    %% CONTINUOUS LOOP EXPLANATION
+    %% ========================================
+    subgraph LOOP_DETAIL ["🔄 **TYPING LOOP EXAMPLE**"]
+        direction TB
+        
+        LOOP_TITLE["**Typing 'helloo thr'** - 12 Pipeline Runs"]
+        
+        RUNS["**Pipeline Runs:**<br/>1-6: 'helloo' → Building, no changes<br/>7: ' ' → 🧹 'helloo' → 'hello'<br/>8-10: 'thr' → Building new word<br/>11: ' ' → 🧹 'thr' → 'the'<br/>12: Pause 500ms → 📚 Grammar + style<br/>13: Document analysis → 🎨 Tone check<br/>**Result:** 'hello the' → 'Hello, the'"]
+        
+        LOOP_PERFORMANCE["**Performance:**<br/>• 90%+ runs: No changes<br/>• Only boundaries trigger fixes<br/>• Validated text skipped<br/>• 60fps UI throttling"]
+    end
+    
+    %% ========================================
+    %% PRIMARY DATA FLOW (Left to Right)
+    %% ========================================
+    
+    %% ========================================
+    %% PRIMARY DATA FLOW CONNECTIONS (Left to Right)
+    %% ========================================
+    
+    %% Text Input Flow (Nodes 1-3 → 6)
+    PIPELINE_INGEST -->|"**Typing Event**<br/>TypingEvent {text, caret, atMs}"| ENTRY
+    
+    %% Platform Integration (Nodes 4-5 → 6)
+    WEB -->|"**Direct Call**<br/>handleTextChange() in App.tsx"| ENTRY
+    MAC -->|"**FFI Bridge**<br/>Swift AX API → Rust core"| ENTRY
+    
+    %% Core Pipeline Flow (Nodes 6-9)
+    ENTRY -->|"**Event Distribution**<br/>Creates monitor + scheduler"| TM
+    ENTRY -->|"**Security Context**<br/>Injects security checks"| SEC
+    TM -->|"**Debounced Stream**<br/>Filtered keystroke events"| SS
+    SEC -->|"**Security Signals**<br/>Blocks unsafe operations"| SS
+    
+    %% Scheduling to Diffusion (Nodes 8-9)
+    SS -->|"**Processing Trigger**<br/>Word boundary detected"| DC
+    SS -->|"**Region Policy**<br/>3-8 word window config"| ARP
+    DC -->|"**Bounded Processing**<br/>Active region: [████░░░░] caret"| T1
+    ARP -->|"**Safety Constraints**<br/>Caret-safe boundaries"| T1
+    
+    %% LM Integration (Stage 2 only - Node 10b → 11)
+    T2 -->|"**Context Request**<br/>Sentence for LM analysis"| LM_FACTORY
+    LM_RUNNER -->|"**Token Stream**<br/>Incremental LM output"| T2
+    
+    %% All Transformers to Confidence (Nodes 10a-c → 12a)
+    T1 -->|"**Noise Proposals**<br/>Typo corrections"| CG
+    T2 -->|"**Context Proposals**<br/>Grammar + style fixes"| CG
+    T3 -->|"**Tone Proposals**<br/>Tone consistency"| CG
+    
+    %% Staging to Validation (Node 12b → 13a)
+    SB -->|"**Approved Edits**<br/>Score ≥ τ_commit (0.90)"| TAP
+    
+    %% Merge to UI (Node 13b → 14a-c)
+    DMG -->|"**Highlight Event**<br/>mindtype:activeRegion"| UI_HIGH
+    DMG -->|"**Swap Event**<br/>mindtype:highlight"| UI_SWAP
+    DMG -->|"**Accessibility**<br/>Screen reader announcement"| UI_LIVE
+    
+    %% UI to Final Output (Node 14 → 12-14)
+    UI_SWAP -->|"**Text Application**<br/>DOM manipulation"| CORRECTIONS_READY
+    
+    %% ========================================
+    %% FEEDBACK LOOPS (Dotted - Secondary Flow)
+    %% ========================================
+    
+    %% Rollback Paths
+    UPDATED_FIELD -.->|"**Caret Moved**<br/>Trigger rollback"| SB
+    TAP -.->|"**Rollback Data**"| SB
+    UNDO -.->|"**System Undo**"| SB
+    
+    %% Region Updates
+    ARP -.->|"**Region Update**"| DC
+    
+    %% ========================================
+    %% VISUAL STYLING
+    %% ========================================
+    
+    %% Implementation Status Colors
+    classDef ready fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    classDef partial fill:#ffecb3,stroke:#f57c00,stroke-width:2px
+    classDef missing fill:#ffcdd2,stroke:#d32f2f,stroke-width:2px
+    
+    %% Layer Colors (Gestalt Grouping)
+    classDef textLoop fill:#e8f5e8,stroke:#2e7d2e,stroke-width:3px
+    classDef platform fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef core fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef transformers fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef lm fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    classDef confidence fill:#fff8e1,stroke:#f57f17,stroke-width:2px
+    classDef validation fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    classDef ui fill:#e8eaf6,stroke:#3f51b5,stroke-width:2px
+    classDef explanation fill:#f1f8e9,stroke:#558b2f,stroke-width:2px
+    
+    %% Apply Layer Styles
+    class TEXT_LOOP,TEXT_FIELD,DOM_EVENTS,PIPELINE_INGEST,CORRECTIONS_READY,REPLACE_RANGE,UPDATED_FIELD textLoop
+    class PLATFORM,WEB,NORMALIZE platform
+    class CORE,ENTRY,MONITORING,TM,SEC,SS,DIFFUSION,DC,ARP,REGION_VIZ core
+    class TRANSFORMERS,STAGE1,STAGE2,STAGE3,T1,T2,T3,T1_RULES,T2_EXAMPLES,T3_POLISH transformers
+    class LM,LM_FACTORY,LM_CLIENT,LM_RUNNER,LM_TIERS,WEBGPU,WASM,CPU lm
+    class CONFIDENCE,CG,CG_MATH,SB,SB_STATES,THRESHOLDS confidence
+    class VALIDATION,TAP,TAP_DATA,DMG,DMG_SAFETY,UNDO validation
+    class UI_FEEDBACK,UI_HIGH,UI_SWAP,UI_LIVE,UI_EVENTS ui
+    class LOOP_DETAIL,LOOP_TITLE,RUNS,LOOP_PERFORMANCE explanation
+    
+    %% Apply Implementation Status (v0.4 end state)
+    class ENTRY,TM,SEC,SS,DC,ARP,T1,T2,T3,CG,SB,LM_CLIENT,LM_RUNNER,DMG,UI_HIGH,UI_LIVE,WEB,TAP ready
+    class UI_SWAP,LM_FACTORY,UNDO,MAC,TONE_TOGGLE,TONE_OPTIONS,TONE_ANALYSIS partial

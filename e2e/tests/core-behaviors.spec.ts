@@ -36,6 +36,8 @@ test.describe('Core behaviors', () => {
     await ta.click();
     await ta.type('hi');
     await page.waitForTimeout(800);
+    // Switch to logs tab to see process log
+    await page.getByTestId('workbench-tab-logs').click();
     await expect(page.getByTestId('process-log')).toContainText(/SHORT_PAUSE|LONG_PAUSE/);
   });
 
@@ -59,7 +61,9 @@ test.describe('Core behaviors', () => {
     await ta.click();
     await ta.type('abc');
     await ta.press('ArrowLeft');
-    await expect(page.locator('textarea[placeholder="(context window)"]')).toBeVisible();
+    // Switch to presets tab to see context window
+    await page.getByTestId('workbench-tab-presets').click();
+    await expect(page.getByTestId('context-window')).toBeVisible();
   });
 
   test('process log stays bounded', async ({ page }) => {
@@ -68,8 +72,10 @@ test.describe('Core behaviors', () => {
     for (let i = 0; i < 120; i++) {
       await ta.type('x');
     }
+    // Switch to logs tab to see process log
+    await page.getByTestId('workbench-tab-logs').click();
     const text = await page.getByTestId('process-log').innerText();
-    // We only render last ~8 lines; ensure it's not enormous
+    // We only render last ~12 lines; ensure it's not enormous
     expect(text.length).toBeLessThan(4000);
   });
 });

@@ -19,10 +19,10 @@ import "./App.css";
 import { SCENARIOS } from "./scenarios";
 import { replaceRange } from "../../utils/diff";
 import { boot } from "../../index";
-import { createMockLMAdapter } from "../../core/lm/mockAdapter";
-import { createDefaultLMAdapter } from "../../core/lm/factory";
+import { createWorkerLMAdapter } from "../../core/lm/workerAdapter";
 import { createLiveRegion, type LiveRegion } from "../../ui/liveRegion";
 import { setSwapConfig, emitSwap } from "../../ui/swapRenderer";
+import { setLoggerConfig } from "../../core/logger";
 import {
   getTypingTickMs,
   getMinValidationWords,
@@ -74,14 +74,17 @@ function App() {
   const [toneEnabled, setToneEnabled] = useState<boolean>(false);
   const [toneTarget, setToneTarget] = useState<'None' | 'Casual' | 'Professional'>('None');
   const [tauInput, setTauInput] = useState<number>(getConfidenceThresholds().τ_input);
-  const [tauCommit, setTauCommit] = useState<number>(getConfidenceThresholds().τ_commit);
+  const [tauCommit, setTauCommit] = useState<number>(Math.min(getConfidenceThresholds().τ_commit, 0.8));
   const [tauTone] = useState<number>(getConfidenceThresholds().τ_tone);
-  const [sensitivity, setSensitivity] = useState<number>(getConfidenceSensitivity());
+  const [sensitivity, setSensitivity] = useState<number>(Math.max(getConfidenceSensitivity(), 1.6));
   const [showMarkers, setShowMarkers] = useState<boolean>(false);
   const [caretState, setCaretState] = useState<CaretSnapshot | null>(null);
   const [eps, setEps] = useState<number>(0);
   const [stats, setStats] = useState<any>(null);
   const [lmDebug, setLmDebug] = useState<LMDebugInfo | undefined>(undefined);
+  // Diagnostics
+  const [ignoreGating, setIgnoreGating] = useState<boolean>(true);
+  const [diagnosticMode, setDiagnosticMode] = useState<boolean>(false);
   // Stage preview buffers
   const [previewBuffer, setPreviewBuffer] = useState<string>("");
   const [previewNoise, setPreviewNoise] = useState<string>("");
@@ -91,6 +94,12 @@ function App() {
   // Process log (bounded)
   const [logs, setLogs] = useState<Array<{ ts: number; type: string; msg: string }>>([]);
   const lastIngestRef = useRef<number>(0);
+  
+  // Workbench state (integrated into main grid)
+  const [activeWorkbenchTab, setActiveWorkbenchTab] = useState<'metrics' | 'logs' | 'lm' | 'presets'>('metrics');
+  const [lmMetrics, setLmMetrics] = useState<Array<{timestamp: number, latency: number, tokens: number, backend: string}>>([]);
+  const [sentencesPerSide, setSentencesPerSide] = useState(3);
+  const [deterministicMode, setDeterministicMode] = useState(false);
 
   function pushLog(type: string, msg: string) {
     const entry = { ts: Date.now(), type, msg };
@@ -130,36 +139,84 @@ function App() {
     console.debug('[Demo] ingest', { caret: newCaret, textLen: newText.length });
     pushLog('INGEST', `caret=${newCaret} len=${newText.length}`);
     pipeline.ingest(newText, newCaret, Date.now());
+    
+    // Diagnostic mode: emit fake corrections after a delay
+    if (diagnosticMode && newText.length > 0) {
+      setTimeout(() => {
+        // Find a simple typo pattern
+        const typoMatch = newText.match(/\b(teh|waht|nto|brwon)\b/i);
+        if (typoMatch) {
+          const start = typoMatch.index!;
+          const end = start + typoMatch[0].length;
+          const corrections: Record<string, string> = {
+            'teh': 'the', 'Teh': 'The',
+            'waht': 'what', 'Waht': 'What',
+            'nto': 'not', 'Nto': 'Not',
+            'brwon': 'brown', 'Brwon': 'Brown'
+          };
+          const corrected = corrections[typoMatch[0]] || typoMatch[0];
+          console.log('[DIAGNOSTIC] Emitting fake correction:', { start, end, corrected });
+          pushLog('DIAGNOSTIC', `fake correction: ${typoMatch[0]} → ${corrected}`);
+          window.dispatchEvent(new CustomEvent('mindtype:mechanicalSwap', {
+            detail: { start, end, corrected }
+          }));
+        }
+      }, 800);
+    }
   }
 
-  // LM adapter toggle
+  // LM adapter toggle (worker-backed adapter by default; UI stays thin)
   useEffect(() => {
-    if (lmEnabled) {
+    if (lmEnabled && !deterministicMode) {
       try {
-        const realAdapter = createDefaultLMAdapter({ localOnly: false });
-        pipeline.setLMAdapter(realAdapter);
-        console.log('[Demo] LM adapter enabled (real, remote allowed)');
-        pushLog('LM', 'enabled: real (remote)');
+        const adapter = createWorkerLMAdapter(() => new Worker(new URL('./worker/lmWorker.ts', import.meta.url), { type: 'module' }));
+        pipeline.setLMAdapter(adapter as any);
+        pushLog('LM', 'enabled: worker');
       } catch (error) {
-        console.warn('[Demo] LM enable failed, falling back to mock:', error);
-        pushLog('LM', 'fallback: mock');
-        pipeline.setLMAdapter(createMockLMAdapter() as unknown as any);
+        console.warn('[Demo] LM enable failed:', error);
+        pushLog('LM', 'error: worker init failed');
       }
     } else {
       pipeline.setLMAdapter({
         // Avoid no-empty lint: yield a harmless empty string
         stream: async function* () { console.debug('[Demo] LM noop stream active'); yield ""; }
       });
-      pushLog('LM', 'disabled');
+      pushLog('LM', deterministicMode ? 'disabled: deterministic mode' : 'disabled');
     }
-  }, [lmEnabled, pipeline]);
+  }, [lmEnabled, deterministicMode, pipeline]);
 
   // Apply settings
   useEffect(() => { pipeline.setToneEnabled(toneEnabled); }, [toneEnabled, pipeline]);
   useEffect(() => { pipeline.setToneTarget(toneTarget); }, [toneTarget, pipeline]);
-  useEffect(() => { setConfidenceThresholds({ τ_input: tauInput, τ_commit: tauCommit, τ_tone: tauTone }); }, [tauInput, tauCommit, tauTone]);
+  useEffect(() => {
+    setConfidenceThresholds({ τ_input: tauInput, τ_commit: tauCommit, τ_tone: tauTone });
+    try { localStorage.setItem('mt_tauCommit', String(tauCommit)); } catch {}
+  }, [tauInput, tauCommit, tauTone]);
   useEffect(() => { setSwapConfig({ showMarker: showMarkers }); }, [showMarkers]);
-  useEffect(() => { setConfidenceSensitivity(sensitivity); }, [sensitivity]);
+  useEffect(() => {
+    setConfidenceSensitivity(sensitivity);
+    try { localStorage.setItem('mt_sensitivity', String(sensitivity)); } catch {}
+  }, [sensitivity]);
+  
+  // Enable logger in demo for visibility (temporary)
+  useEffect(() => {
+    try { setLoggerConfig({ enabled: true, level: 'info' }); } catch {}
+  }, []);
+
+  // Persist workbench tab state
+  useEffect(() => {
+    try { localStorage.setItem('mt_workbench_tab', activeWorkbenchTab); } catch {}
+  }, [activeWorkbenchTab]);
+  
+  // Load persisted workbench state
+  useEffect(() => {
+    try {
+      const tab = localStorage.getItem('mt_workbench_tab') as typeof activeWorkbenchTab;
+      if (tab && ['metrics', 'logs', 'lm', 'presets'].includes(tab)) {
+        setActiveWorkbenchTab(tab);
+      }
+    } catch {}
+  }, []);
 
   // Debug info collection
   useEffect(() => {
@@ -180,12 +237,46 @@ function App() {
           lastChunks: (globalThis as any).__mtLastLMChunks || [],
         });
       } catch {}
-    }, 250);
-    return () => {
-      delete (window as any).mt;
-      window.clearInterval(id);
-    };
+      
+        // Collect stage previews
+        try {
+          const previews = (globalThis as any).__mtStagePreview;
+          console.log('[Demo] Stage previews:', previews);
+          if (previews) {
+            if (previews.noise) {
+              console.log('[Demo] Setting noise preview:', previews.noise);
+              setPreviewNoise(previews.noise);
+            }
+            if (previews.context) {
+              console.log('[Demo] Setting context preview:', previews.context);
+              setPreviewContext(previews.context);
+            }
+            if (previews.tone) {
+              console.log('[Demo] Setting tone preview:', previews.tone);
+              setPreviewTone(previews.tone);
+            }
+            if (previews.buffer) {
+              setPreviewBuffer(previews.buffer);
+            }
+          }
+        } catch {}
+    }, 800);
+    return () => window.clearInterval(id);
   }, [pipeline]);
+
+  // Gating status banner
+  const [pausedBySelectionOrBlur, setPausedBySelectionOrBlur] = useState(false);
+  useEffect(() => {
+    function onStatus(ev: any) {
+      try {
+        const statuses = ev?.detail?.statuses || {};
+        const paused = Boolean(statuses?.SELECTION_ACTIVE || statuses?.BLUR);
+        setPausedBySelectionOrBlur(paused);
+      } catch {}
+    }
+    window.addEventListener('mindtype:status', onStatus as any);
+    return () => window.removeEventListener('mindtype:status', onStatus as any);
+  }, []);
 
   // Scenario step-through
   useEffect(() => {
@@ -199,6 +290,13 @@ function App() {
 
   // Pipeline lifecycle
   useEffect(() => {
+    // Load persisted defaults once at mount
+    try {
+      const savedTau = Number(localStorage.getItem('mt_tauCommit'));
+      if (Number.isFinite(savedTau) && savedTau > 0 && savedTau <= 0.98) setTauCommit(savedTau);
+      const savedSens = Number(localStorage.getItem('mt_sensitivity'));
+      if (Number.isFinite(savedSens) && savedSens >= 1) setSensitivity(savedSens);
+    } catch {}
     pipeline.start();
     liveRegionRef.current = createLiveRegion();
     
@@ -210,6 +308,32 @@ function App() {
       setBandRange({ start, end });
     };
     
+    const applyFromEvent = (start: number, end: number, corrected?: string) => {
+      try {
+        let caret = caretRef.current;
+        if (ignoreGating) {
+          // Diagnostic: avoid caret-crossing rejection by moving caret behind end for the replace operation
+          caret = Math.max(caret, end);
+        }
+        const updated = corrected != null ? replaceRange(text, start, end, corrected, caret) : text;
+        if (corrected != null) {
+          console.debug('[Apply] swap', { start, end, corrected, beforeLen: text.length, afterLen: updated.length });
+          pushLog('APPLY', `len=${text.length}->${updated.length}`);
+          setText(updated);
+          pipeline.ingest(updated, caret);
+          requestAnimationFrame(() => {
+            const ta = textareaRef.current;
+            if (ta) {
+              if (ignoreGating && document.activeElement !== ta) try { ta.focus(); } catch {}
+              ta.setSelectionRange(caretRef.current, caretRef.current);
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to apply correction:', err);
+      }
+    };
+
     const onHighlight = (e: Event) => {
       const { start, end } = (e as CustomEvent).detail;
       console.debug('[Event] mindtype:highlight', { start, end });
@@ -217,24 +341,17 @@ function App() {
       pushLog('HIGHLIGHT', `range=[${start},${end}] dt=${dt}ms`);
       setLastHighlight({ start, end });
       setTimeout(() => setLastHighlight(null), 2000);
-      
-      try {
-        const caret = caretRef.current;
-        const { text: corrected } = (e as CustomEvent).detail;
-        const updated = replaceRange(text, start, end, corrected, caret);
-        console.debug('[Apply] swap', { start, end, corrected, beforeLen: text.length, afterLen: updated.length });
-        pushLog('APPLY', `len=${text.length}->${updated.length}`);
-        setText(updated);
-        pipeline.ingest(updated, caret);
-        // Emit mechanical swap for UI/announcements
-        try { emitSwap({ start, end, text: corrected }); } catch {}
-        requestAnimationFrame(() => {
-          const ta = textareaRef.current;
-          if (ta) ta.setSelectionRange(caret, caret);
-        });
-      } catch (err) {
-        console.warn('Failed to apply correction:', err);
-      }
+      const { text: corrected } = (e as CustomEvent).detail;
+      // Emit mechanical swap for UI/announcements
+      try { emitSwap({ start, end, text: corrected }); } catch {}
+      applyFromEvent(start, end, corrected);
+    };
+
+    const onMechanicalSwap = (e: Event) => {
+      const { start, end, text: corrected } = (e as CustomEvent).detail as { start: number; end: number; text: string };
+      console.debug('[Event] mindtype:mechanicalSwap', { start, end });
+      pushLog('MECH_SWAP', `range=[${start},${end}]`);
+      applyFromEvent(start, end, corrected);
     };
 
     const onCaretSnapshot = (e: CustomEvent) => {
@@ -257,10 +374,15 @@ function App() {
     const onStatus = (e: CustomEvent) => {
       const { statuses } = e.detail || {};
       if (statuses) pushLog('STATUS', Object.keys(statuses).filter((k) => statuses[k]).join(','));
+      try {
+        const blocked = statuses?.SELECTION_ACTIVE || statuses?.BLUR;
+        setBlockedBanner(blocked ? 'Corrections paused: selection/blur' : '');
+      } catch {}
     };
 
     window.addEventListener('mindtype:activeRegion', onActiveRegion as EventListener);
     window.addEventListener('mindtype:highlight', onHighlight as EventListener);
+    window.addEventListener('mindtype:mechanicalSwap', onMechanicalSwap as EventListener);
     window.addEventListener('mindtype:caretSnapshot', onCaretSnapshot as EventListener);
     window.addEventListener('mindtype:caretSnapshots', onCaretSnapshot as EventListener);
     window.addEventListener('mindtype:caretStats', onCaretStats as EventListener);
@@ -269,6 +391,7 @@ function App() {
     return () => {
       window.removeEventListener('mindtype:activeRegion', onActiveRegion as EventListener);
       window.removeEventListener('mindtype:highlight', onHighlight as EventListener);
+      window.removeEventListener('mindtype:mechanicalSwap', onMechanicalSwap as EventListener);
       window.removeEventListener('mindtype:caretSnapshot', onCaretSnapshot as EventListener);
       window.removeEventListener('mindtype:caretSnapshots', onCaretSnapshot as EventListener);
       window.removeEventListener('mindtype:caretStats', onCaretStats as EventListener);
@@ -324,8 +447,20 @@ function App() {
     } catch {}
   }, [text, bandRange, toneEnabled, toneTarget]);
 
+  const [blockedBanner, setBlockedBanner] = useState<string>('');
+
   return (
-    <div style={{ 
+    <div className="App">
+      {pausedBySelectionOrBlur && (
+        <div role="status" aria-live="polite" style={{
+          position: 'fixed', top: '1rem', right: '1rem', zIndex: 1000,
+          background: 'rgba(20,20,20,0.85)', color: '#fff', padding: '0.5rem 0.75rem',
+          borderRadius: 6, fontSize: 12
+        }}>
+          Corrections paused: selection/blur
+        </div>
+      )}
+      <div style={{ 
       height: '100vh', 
       padding: '8px', 
       background: '#0b0f12',
@@ -690,7 +825,7 @@ function App() {
           </div>
         </div>
 
-        {/* LOGS/METRICS + CONTEXT WINDOW - 4x1 */}
+        {/* WORKBENCH TABS + CONTENT - 4x1 */}
         <div style={{ 
           gridColumn: '1 / 5', 
           gridRow: '4 / 5',
@@ -699,33 +834,136 @@ function App() {
           borderRadius: '8px',
           padding: '8px',
           display: 'flex',
-          flexDirection: 'column',
-          gap: '6px'
+          flexDirection: 'column'
         }}>
-          <h4 style={{ margin: '0 0 6px 0', fontSize: '0.8em', textAlign: 'center' }}>📈 Metrics</h4>
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-around', fontSize: '0.7em', fontFamily: 'monospace' }}>
-            {stats && (
-              <>
-                <span>Avg Δt: {stats.avg_inter_key_ms ? Math.round(stats.avg_inter_key_ms) : 0}ms</span>
-                <span>Burst: {stats.burst_len_current ?? 0}/{stats.burst_len_max ?? 0}</span>
-                <span>Del: {stats.deletes_seen ?? 0}</span>
-                <span>Paste: {stats.pastes ?? 0}</span>
-                <span>Jump: {stats.caret_jumps ?? 0}</span>
-              </>
-            )}
+          {/* Tab Navigation */}
+          <div style={{ 
+            display: 'flex', 
+            marginBottom: '8px',
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            paddingBottom: '6px'
+          }}>
+            {(['metrics', 'logs', 'lm', 'presets'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveWorkbenchTab(tab)}
+                style={{
+                  flex: 1,
+                  padding: '4px 8px',
+                  background: activeWorkbenchTab === tab ? 'rgba(0,200,120,0.15)' : 'transparent',
+                  border: 'none',
+                  color: activeWorkbenchTab === tab ? '#0c8' : '#aaa',
+                  fontSize: '0.7em',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+                data-testid={`workbench-tab-${tab}`}
+              >
+                {tab === 'metrics' && '📊 Metrics'}
+                {tab === 'logs' && '📋 Logs'} 
+                {tab === 'lm' && '🧠 LM'}
+                {tab === 'presets' && '✨ Presets'}
+              </button>
+            ))}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <label style={{ textAlign: 'left', opacity: 0.8, fontSize: '0.75em' }}>Context window</label>
-            <textarea data-testid="context-window" readOnly value={contextWindowPreview} placeholder="(context window)" style={{ width: '100%', height: 44, background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none', fontSize: '0.75em' }} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minHeight: 90 }}>
-            <label style={{ textAlign: 'left', opacity: 0.8, fontSize: '0.75em' }}>Process Log</label>
-            <div data-testid="process-log" style={{ height: 90, overflow: 'auto', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 4, padding: 4, textAlign: 'left', fontSize: '0.72em', fontFamily: 'monospace' }}>
-              {logs.slice(-8).map((l, i) => (
-                <div key={`${l.ts}-${i}`}>[{new Date(l.ts).toLocaleTimeString()}] {l.type}: {l.msg}</div>
-              ))}
+
+          {/* Tab Content */}
+          {activeWorkbenchTab === 'metrics' && (
+            <div>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-around', fontSize: '0.7em', fontFamily: 'monospace', marginBottom: '8px' }}>
+                {stats && (
+                  <>
+                    <span>Avg Δt: {stats.avg_inter_key_ms ? Math.round(stats.avg_inter_key_ms) : 0}ms</span>
+                    <span>Burst: {stats.burst_len_current ?? 0}/{stats.burst_len_max ?? 0}</span>
+                    <span>Del: {stats.deletes_seen ?? 0}</span>
+                    <span>Paste: {stats.pastes ?? 0}</span>
+                    <span>Jump: {stats.caret_jumps ?? 0}</span>
+                  </>
+                )}
+              </div>
+              <div style={{ fontSize: '0.7em', color: '#ddd' }}>
+                <div>LM runs: {lmMetrics.length} | Avg latency: {lmMetrics.length ? Math.round(lmMetrics.reduce((a, m) => a + m.latency, 0) / lmMetrics.length) : 0}ms</div>
+                <button
+                  onClick={() => {
+                    const data = {
+                      session: Date.now(),
+                      metrics: lmMetrics,
+                      logs: logs.slice(-50),
+                      text: text,
+                      settings: { lmEnabled, toneEnabled, toneTarget, deterministicMode }
+                    };
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `mindtype-session-${new Date().toISOString().slice(0, 16).replace(/:/g, '-')}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  style={{
+                    marginTop: '6px',
+                    padding: '4px 8px',
+                    background: 'rgba(0,200,120,0.1)',
+                    border: '1px solid rgba(0,200,120,0.3)',
+                    borderRadius: '4px',
+                    color: '#0c8',
+                    fontSize: '0.7em',
+                    cursor: 'pointer'
+                  }}
+                  data-testid="export-session"
+                >
+                  📥 Export
+                </button>
+              </div>
             </div>
-          </div>
+          )}
+
+          {activeWorkbenchTab === 'logs' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <label style={{ textAlign: 'left', opacity: 0.8, fontSize: '0.75em' }}>Process Log</label>
+              <div data-testid="process-log" style={{ height: 120, overflow: 'auto', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 4, padding: 4, textAlign: 'left', fontSize: '0.72em', fontFamily: 'monospace' }}>
+                {logs.slice(-12).map((l, i) => (
+                  <div key={`${l.ts}-${i}`}>[{new Date(l.ts).toLocaleTimeString()}] {l.type}: {l.msg}</div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeWorkbenchTab === 'lm' && (
+            <div>
+              <div style={{ fontSize: '0.7em', color: '#ddd', marginBottom: '8px' }}>
+                <div>Backend: {lmDebug?.backend || 'unknown'}</div>
+                <div>Tokens: {lmDebug?.lastChunks?.join('').length || 0}</div>
+                <div>Last latency: {lmMetrics[lmMetrics.length - 1]?.latency || 0}ms</div>
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7em', color: '#ddd' }}>
+                <input
+                  type="checkbox"
+                  checked={deterministicMode}
+                  onChange={(e) => setDeterministicMode(e.target.checked)}
+                  data-testid="deterministic-mode"
+                />
+                Deterministic (rules-only)
+              </label>
+              <div style={{ fontSize: '0.6em', opacity: 0.7, marginTop: '4px' }}>
+                Disables LM for reproducible testing
+              </div>
+            </div>
+          )}
+
+          {activeWorkbenchTab === 'presets' && (
+            <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <button onClick={() => setText('helloo thr weathfr has beenb hood')} style={{ padding: '6px', background: 'rgba(0,200,120,0.1)', border: '1px solid rgba(0,200,120,0.3)', borderRadius: '4px', color: '#0c8', fontSize: '0.7em' }}>Typos</button>
+                <button onClick={() => setText('I has went to the store.')} style={{ padding: '6px', background: 'rgba(0,200,120,0.1)', border: '1px solid rgba(0,200,120,0.3)', borderRadius: '4px', color: '#0c8', fontSize: '0.7em' }}>Grammar</button>
+                <button onClick={() => setText("We can't ship this, it's kinda bad.")} style={{ padding: '6px', background: 'rgba(0,200,120,0.1)', border: '1px solid rgba(0,200,120,0.3)', borderRadius: '4px', color: '#0c8', fontSize: '0.7em' }}>Tone</button>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: '8px' }}>
+                <label style={{ textAlign: 'left', opacity: 0.8, fontSize: '0.75em' }}>Context window</label>
+                <textarea data-testid="context-window" readOnly value={contextWindowPreview} placeholder="(context window)" style={{ width: '100%', height: 44, background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none', fontSize: '0.75em' }} />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* STAGE PREVIEWS - 3x1 */}
@@ -815,8 +1053,206 @@ function App() {
           }} style={{ fontSize: '0.7em', padding: '4px 8px' }}>
             🎯 Demo Text
           </button>
+          <label style={{ fontSize: '0.7em', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <input
+              type="checkbox"
+              checked={diagnosticMode}
+              onChange={(e) => setDiagnosticMode(e.target.checked)}
+            />
+            🔧 Diagnostic
+          </label>
+          <label style={{ fontSize: '0.7em', display: 'flex', alignItems: 'center', gap: '4px' }} title="Ignore selection/blur gating (unsafe)">
+            <input
+              type="checkbox"
+              checked={ignoreGating}
+              onChange={(e) => setIgnoreGating(e.target.checked)}
+              data-testid="toggle-ignore-gating"
+            />
+            🚫 Ignore gating (unsafe)
+          </label>
         </div>
       </div>
+
+      {/* Workbench Panel - REMOVED: Integrated into main grid */}
+      {false && workbenchOpen && (
+        <aside 
+          data-testid="workbench-panel"
+          style={{
+            position: 'fixed',
+            top: '5vh',
+            right: '5vh',
+            width: '400px',
+            height: '85vh',
+            background: 'rgba(15, 20, 30, 0.95)',
+            border: '2px solid rgba(0, 200, 120, 0.3)',
+            borderRadius: '12px',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            zIndex: 1000,
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          <div style={{ 
+            display: 'flex', 
+            borderBottom: '1px solid rgba(255,255,255,0.1)', 
+            padding: '8px'
+          }}>
+            {(['live', 'lm', 'logs', 'metrics', 'presets'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveWorkbenchTab(tab)}
+                style={{
+                  flex: 1,
+                  padding: '6px 4px',
+                  background: activeWorkbenchTab === tab ? 'rgba(0,200,120,0.2)' : 'transparent',
+                  border: 'none',
+                  color: activeWorkbenchTab === tab ? '#0c8' : '#aaa',
+                  fontSize: '0.7em',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                {tab === 'live' && '▶️ Live'}
+                {tab === 'lm' && '🧠 LM'}
+                {tab === 'logs' && '📋 Logs'}
+                {tab === 'metrics' && '📊 Metrics'}
+                {tab === 'presets' && '✨ Presets'}
+              </button>
+            ))}
+            <button
+              onClick={() => setWorkbenchOpen(false)}
+              style={{
+                marginLeft: '8px',
+                background: 'transparent',
+                border: 'none',
+                color: '#666',
+                cursor: 'pointer',
+                fontSize: '0.8em'
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          
+          <div style={{ flex: 1, overflow: 'auto', padding: '12px' }}>
+            {activeWorkbenchTab === 'live' && (
+              <div>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9em', color: '#0c8' }}>Stage Previews</h4>
+                <div style={{ display: 'grid', gridTemplateRows: 'repeat(4, 1fr)', gap: '8px', height: '300px' }}>
+                  <div>
+                    <label style={{ fontSize: '0.7em', opacity: 0.8 }}>Buffer</label>
+                    <textarea data-testid="workbench-preview-buffer" readOnly value={previewBuffer} style={{ width: '100%', height: '60px', background: 'rgba(0,0,0,0.3)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none', fontSize: '0.7em' }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.7em', opacity: 0.8 }}>After Noise</label>
+                    <textarea data-testid="workbench-preview-noise" readOnly value={previewNoise} style={{ width: '100%', height: '60px', background: 'rgba(0,0,0,0.3)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none', fontSize: '0.7em' }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.7em', opacity: 0.8 }}>After Context</label>
+                    <textarea data-testid="workbench-preview-context" readOnly value={previewContext} style={{ width: '100%', height: '60px', background: 'rgba(0,0,0,0.3)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none', fontSize: '0.7em' }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.7em', opacity: 0.8 }}>After Tone</label>
+                    <textarea data-testid="workbench-preview-tone" readOnly value={previewTone} style={{ width: '100%', height: '60px', background: 'rgba(0,0,0,0.3)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none', fontSize: '0.7em' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {activeWorkbenchTab === 'lm' && (
+              <div>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9em', color: '#0c8' }}>LM Status</h4>
+                <div style={{ fontSize: '0.8em', color: '#ddd', marginBottom: '12px' }}>
+                  <div>Backend: {lmDebug?.backend || 'unknown'}</div>
+                  <div>Tokens: {lmDebug?.lastChunks?.join('').length || 0}</div>
+                  <div>Last latency: {lmMetrics[lmMetrics.length - 1]?.latency || 0}ms</div>
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8em', color: '#ddd' }}>
+                  <input
+                    type="checkbox"
+                    checked={deterministicMode}
+                    onChange={(e) => setDeterministicMode(e.target.checked)}
+                    data-testid="deterministic-mode"
+                  />
+                  Deterministic mode (rules-only)
+                </label>
+                <div style={{ fontSize: '0.7em', opacity: 0.7, marginTop: '4px' }}>
+                  Disables LM for reproducible testing
+                </div>
+              </div>
+            )}
+            
+            {activeWorkbenchTab === 'logs' && (
+              <div>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9em', color: '#0c8' }}>Process Logs</h4>
+                <div style={{ maxHeight: '400px', overflow: 'auto', fontSize: '0.7em', fontFamily: 'monospace' }}>
+                  {logs.slice(-50).map((log, i) => (
+                    <div key={i} style={{ marginBottom: '2px', color: '#ddd' }}>
+                      [{new Date(log.ts).toLocaleTimeString()}] {log.type}: {log.msg}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {activeWorkbenchTab === 'metrics' && (
+              <div>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9em', color: '#0c8' }}>Performance Metrics</h4>
+                <div style={{ fontSize: '0.8em', color: '#ddd', marginBottom: '12px' }}>
+                  <div>Total LM runs: {lmMetrics.length}</div>
+                  <div>Avg latency: {lmMetrics.length ? Math.round(lmMetrics.reduce((a, m) => a + m.latency, 0) / lmMetrics.length) : 0}ms</div>
+                  <div>Total tokens: {lmMetrics.reduce((a, m) => a + m.tokens, 0)}</div>
+                </div>
+                <button
+                  onClick={() => {
+                    const data = {
+                      session: Date.now(),
+                      metrics: lmMetrics,
+                      logs: logs.slice(-100),
+                      text: text,
+                      settings: { lmEnabled, toneEnabled, toneTarget, deterministicMode }
+                    };
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `mindtype-session-${new Date().toISOString().slice(0, 16).replace(/:/g, '-')}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  style={{
+                    padding: '8px 12px',
+                    background: 'rgba(0,200,120,0.2)',
+                    border: '1px solid rgba(0,200,120,0.4)',
+                    borderRadius: '4px',
+                    color: '#0c8',
+                    fontSize: '0.8em',
+                    cursor: 'pointer'
+                  }}
+                  data-testid="export-session"
+                >
+                  📥 Export Session
+                </button>
+              </div>
+            )}
+            
+            {activeWorkbenchTab === 'presets' && (
+              <div>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9em', color: '#0c8' }}>Test Presets</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <button onClick={() => setText('helloo thr weathfr has beenb hood')} style={{ padding: '8px', background: 'rgba(0,200,120,0.1)', border: '1px solid rgba(0,200,120,0.3)', borderRadius: '4px', color: '#0c8' }}>Typos</button>
+                  <button onClick={() => setText('I has went to the store.')} style={{ padding: '8px', background: 'rgba(0,200,120,0.1)', border: '1px solid rgba(0,200,120,0.3)', borderRadius: '4px', color: '#0c8' }}>Grammar</button>
+                  <button onClick={() => setText("We can't ship this, it's kinda bad.")} style={{ padding: '8px', background: 'rgba(0,200,120,0.1)', border: '1px solid rgba(0,200,120,0.3)', borderRadius: '4px', color: '#0c8' }}>Tone</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </aside>
+      )}
+
+      {/* Workbench Toggle - REMOVED: Integrated into main grid */}
+    </div>
     </div>
   );
 }

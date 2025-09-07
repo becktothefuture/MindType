@@ -24,6 +24,7 @@ test('swap announcements batched', async ({ page }) => {
   await page.waitForTimeout(1200);
   // Accept either a batched announcement or an APPLY log (transition period)
   const hasAnnouncement = events.length >= 1 && events[0]?.message === 'text updated behind cursor';
+  await page.getByTestId('workbench-tab-logs').click();
   const logs = await page.getByTestId('process-log').innerText();
   const hasApply = /APPLY/.test(logs);
   const previewNoise = await page.getByTestId('preview-noise').inputValue();
