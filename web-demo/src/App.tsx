@@ -131,6 +131,8 @@ function App() {
   useEffect(() => {
     if (!lmContextManagerRef.current) {
       lmContextManagerRef.current = createLMContextManager();
+      // Make context manager available globally for sweep scheduler
+      (globalThis as any).__mtContextManager = lmContextManagerRef.current;
     }
   }, []);
 

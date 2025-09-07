@@ -176,8 +176,14 @@ export function createSweepScheduler(
       const st = diffusion.getState();
       const lang = detectLanguage(st.text);
       if (lang === 'en') {
-        // Context stage
-        const ctx = contextTransform({ text: st.text, caret: st.caret });
+        // Context stage (with LM integration)
+        const lmAdapter = getLMAdapter?.();
+        const ctx = await contextTransform(
+          { text: st.text, caret: st.caret }, 
+          lmAdapter,
+          // Get context manager from global if available
+          (globalThis as any).__mtContextManager
+        );
         let contextPreview = st.text;
         for (const p of ctx.proposals) {
           collected.push({ ...p, source: 'context' });
