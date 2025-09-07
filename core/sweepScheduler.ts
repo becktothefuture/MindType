@@ -220,73 +220,9 @@ export function createSweepScheduler(
           };
         } catch {}
 
-        // LM stage (if adapter available)
-        const lmAdapter = getLMAdapter?.();
-        log.debug('LM stage check', { hasAdapter: !!lmAdapter, hasGetLMAdapter: !!getLMAdapter });
-        if (lmAdapter) {
-          try {
-            log.info('LM stage starting', { caret: st.caret, textLen: st.text.length });
-            const policy = diffusion.getActiveRegionPolicy?.() || {
-              computeContextRange: () => ({ start: Math.max(0, st.caret - 100), end: st.caret })
-            };
-            const contextRange = policy.computeContextRange(st);
-            const contextSpan = st.text.slice(contextRange.start, contextRange.end);
-            
-            log.debug('LM context', { contextRange, contextSpan });
-            
-            // Stream LM proposals (contract: pass LMStreamParams)
-            let accumulated = '';
-            let chunkCount = 0;
-            for await (const chunk of lmAdapter.stream({
-              text: st.text,
-              caret: st.caret,
-              band: { start: contextRange.start, end: contextRange.end },
-              settings: { maxNewTokens: Math.min(32, contextSpan.length * 2) }
-            })) {
-              accumulated += chunk;
-              chunkCount++;
-              log.debug('LM chunk', { chunk, chunkCount });
-            }
-            
-            log.info('LM stream complete', { accumulated, chunkCount });
-            
-            // Parse LM output and create proposals
-            const cleaned = accumulated.trim().replace(/^"|"$/g, '');
-            if (cleaned && cleaned !== contextSpan) {
-              log.info('LM proposal created', { original: contextSpan, corrected: cleaned });
-              // Simple full-span replacement for now
-              collected.push({
-                start: contextRange.start,
-                end: contextRange.end,
-                text: cleaned,
-                source: 'lm'
-              });
-              
-              // Score the LM proposal
-              const inputs: ConfidenceInputs = {
-                inputFidelity: computeInputFidelity(contextSpan),
-                transformationQuality: 0.85, // LM corrections generally high quality
-                contextCoherence: 0.9,
-                temporalDecay: 1,
-              };
-              const score = computeConfidence(inputs);
-              const dyn = computeDynamicThresholds({
-                caret: st.caret,
-                start: contextRange.start,
-                end: contextRange.end,
-                editType: 'lm',
-              });
-              const decision = applyThresholds(score, dyn);
-              sb.updateScore(`lm-${contextRange.start}-${contextRange.end}`, score, decision);
-            } else {
-              log.debug('LM no correction needed', { original: contextSpan, cleaned });
-            }
-          } catch (err) {
-            log.warn('LM proposal collection failed', { err: (err as Error).message });
-          }
-        } else {
-          log.debug('LM stage skipped - no adapter');
-        }
+        // LM processing is now integrated into the context transformer above
+        // const lmAdapter = getLMAdapter?.(); // Removed - duplicate declaration
+        // LM processing is now handled within the context transformer
 
         // Tone stage (optional)
         if (opts.toneEnabled && opts.toneTarget !== 'None') {
