@@ -17,19 +17,25 @@
 -->
 
 - TypingMonitor (`core/typingMonitor.ts`): emits keystream events.
-- SweepScheduler (`core/sweepScheduler.ts`): orchestrates passes, integrates LM adapter with context transformer.
-- **LMContextManager (`core/lm/contextManager.ts`)**: manages dual-context system with wide context (full document) and close context (2-5 sentences around caret). Handles click-to-activate initialization and proposal validation.
-  - REQ-LM-CONTEXT, REQ-LM-VALIDATION
-- **WorkerAdapter (`core/lm/workerAdapter.ts`)**: Web Worker integration for LM processing, handles streaming responses and error recovery.
-  - REQ-LM-PERFORMANCE, REQ-LM-RELIABILITY
+- SweepScheduler (`core/sweepScheduler.ts`): orchestrates passes.
 - Noise Transformer (`engines/noiseTransformer.ts`): proposes minimal, caret‑safe diffs.
   - REQ-TIDY-SWEEP, REQ-IME-CARETSAFE
-- **Context Transformer (`engines/contextTransformer.ts`)**: enhanced with LM integration, uses dual-context for semantic corrections with validation.
-  - REQ-LM-INTEGRATION, REQ-CONTEXT-VALIDATION
-- Tone Transformer (`engines/toneTransformer.ts`): stylistic adjustments using LM.
 - BackfillConsistency (`engines/backfillConsistency.ts`): stable‑zone passes.
 - Diff (`utils/diff.ts`): replaceRange with caret safety. REQ-IME-CARETSAFE
 - DiffusionController (`core/diffusionController.ts`): advances a frontier, requests word‑bounded diffs, updates the active region, catches up on pause.
 - Highlighter (`ui/highlighter.ts`): active region (3–8 words behind caret) with subtle shimmer and reduced‑motion fallback; draws‑in corrections smoothly.
   - REQ-A11Y-MOTION
-- GroupUndo (`ui/groupUndo.ts`): optional grouping of host‑applied diffs. Active region (formerly "tapestry")/LM evolutions are excluded; they must preserve native undo behavior.
+- GroupUndo (`ui/groupUndo.ts`): optional grouping of host‑applied diffs. Active region (formerly “tapestry”)/LM evolutions are excluded; they must preserve native undo behavior.
+
+### LM & Context (v0.4)
+
+- ContextTransformer (`engines/contextTransformer.ts`):
+  - Selects band behind caret; builds prompt; orchestrates LM usage; merges within band only.
+  - Integrates with `LMContextManager` and `LMAdapter` (Worker‑backed) for streaming.
+- LMContextManager (`core/lm/contextManager.ts`):
+  - Computes dual context windows: Close (2–5 sentences around caret; active excluded) and Wide (document‑level awareness for validation).
+  - Validates proposals against Wide context before commit.
+- LM Worker Adapter (`core/lm/workerAdapter.ts`):
+  - Manages Web Worker lifecycle, timeouts, and error propagation.
+- Transformers Runner (`core/lm/transformersRunner.ts`):
+  - Configures ONNX Runtime Web wasmPaths (CDN by default; `/wasm/` local fallback).

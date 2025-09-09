@@ -38,7 +38,7 @@ types:
       ] as const;
 modules:
   - contracts/animTokens.ts
-  - demo/band-swap/main.js
+  - web-demo/public/demo/band-swap/main.js
 invariants:
   - Preserve layout: no per-char DOM mutations; overlay only
   - Reduced-motion: static band highlight, no rAF

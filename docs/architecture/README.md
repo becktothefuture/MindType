@@ -9,31 +9,33 @@ Cross‑links:
 - Guides (reference contracts): `../guide/reference/`
 - QA acceptance: `../qa/acceptance/`
 
-## High-Level Pipeline
+## High-Level Pipeline (v0.4)
 
 1. **Keystroke Handling** – Every printable key resets the pause timer and advances a typing tick (~60–90 ms cadence) for streamed diffusion.
-2. **Click-to-Activate LM** – User focus/click initializes the dual-context LM system with wide context (full document) and close context (2-5 sentences around caret).
-3. **Fragment Extraction** – The active fragment is the sentence behind the caret within 250 characters (± context). Diffusion operates within a trailing band of ~3–8 words.
-4. **Dual-Context LM Processing** – The LMContextManager maintains both wide context (global document awareness) and close context (focused sentence-level corrections). Context validation ensures proposal coherence.
-5. **LM/Rules Correction** – Word‑sized chunks are validated and corrected in the trailing band while typing continues. On‑device language models (Transformers.js + Qwen2.5‑0.5B‑Instruct, q4, WebGPU) handle semantic corrections with graceful fallback to rule‑based fixes.
-6. **Incremental Diff and Merge** – Patches are caret‑safe and word‑bounded. During typing, a frontier advances toward the caret; on pause (~500 ms), diffusion catches up.
-7. **Injection** – Apply in place, preserving formatting, undo grouping, and cursor position. Visuals: subtle shimmer band; reduced‑motion fallback.
+2. **Fragment Extraction** – The active fragment is the sentence behind the caret within 250 characters (± context). Diffusion operates within a trailing band of ~3–8 words.
+3. **Dual‑Context LM/Rules Correction** – A sentence‑based, dual‑context strategy drives semantic fixes:
+   - Close Context: 2–5 sentences surrounding the caret (active sentence excluded, prefix up to the caret included).
+   - Wide Context: whole‑document summary for coherence checks and validation.
+   On‑device language models (Transformers.js + Qwen2.5‑0.5B‑Instruct, q4, WebGPU/WASM) run in a Web Worker via a core‑owned adapter, with graceful fallback to rule‑based fixes.
+4. **Incremental Diff and Merge** – Patches are caret‑safe and word‑bounded. During typing, a frontier advances toward the caret; on pause (~500 ms), diffusion catches up.
+5. **Injection** – Apply in place, preserving formatting, undo grouping, and cursor position. Visuals: subtle shimmer band; reduced‑motion fallback.
 
 ```
-User Focus → [LMContextManager] → Dual-Context Init
-                    ↓
 key press → [PauseTimer] → idle
-           ↓                    ↘
-    [FragmentExtractor]   [Abort stream if new key]
-           ↓                    ↘
-   [ContextTransformer] → LM + Context Validation → [MergeEngine] → patches → [Injector]
-           ↑
-   [LMContextManager] → Wide Context + Close Context
+           ↓                          ↘
+  [FragmentExtractor]           [Abort stream if new key]
+           ↓                          ↘
+ [ContextTransformer]
+     │  (band select + prompt)
+     ▼
+ [LM Context Manager] ── builds { close, wide } windows →
+     ▼
+ [LM Worker (Transformers.js)] → token stream → [MergeEngine] → patches → [Injector]
 ```
 
 The arrows illustrate how a typing pause triggers the fragment extractor. Streaming can be aborted if a new key arrives mid-flight. This diagram mirrors both the browser and macOS implementations.
 
-This pipeline is **implemented in Rust** (`crates/core-rs`) and surfaced to each platform via generated bindings. A small TypeScript `DiffusionController` orchestrates streaming ticks and visuals while delegating heavy lifting to the core. For browser demos, a TypeScript‑first pipeline is used immediately, with Rust WASM integrated as it lands:
+This pipeline is **implemented in Rust** (`crates/core-rs`) and surfaced to each platform via generated bindings. A small TypeScript `DiffusionController` orchestrates streaming ticks and visuals while delegating heavy lifting to the core. In v0.4, LM orchestration is core‑owned inside the Context stage and runs in a Web Worker on the web. For browser demos, a TypeScript‑first pipeline is used immediately, with Rust WASM integrated as it lands:
 
 - **Web** → TypeScript streaming pipeline now; WebAssembly package `@mindtype/core` to augment as Rust components land.
 - **macOS** → Static library `libmindtype.a` + Swift module created with `cbindgen`.
@@ -56,11 +58,58 @@ A `module.modulemap` and C header expose the same API to Swift/Obj-C. Build scri
 
 ### web-demo
 
-React components wrap the core logic and provide a simple typing playground. It demonstrates streaming corrections in real time and captures emails for the beta list.
+React components wrap the core logic and provide a simple typing playground. It demonstrates streaming corrections in real time and exposes a Workbench for logs/metrics. The LM runs in a module Worker; ONNX Runtime Web assets are served via CDN by default, with optional local `/wasm/` fallback.
 
 ### mac/
 
 Native macOS layer written in Swift/SwiftUI. It links to the **same Rust core** via FFI; no re-implementation required.
+## System Map & Contracts (authoritative)
+
+The following contracts define how parts communicate efficiently. See linked guides in `docs/guide/reference/**` for detailed specs.
+
+1) Input monitor → Scheduler
+- Event: `{ text: string; caret: number; atMs: number }`
+- Cadence: typing tick ~60–90 ms; pause ≥ SHORT_PAUSE_MS (300 ms)
+- Abort rule: any new input cancels pending LM work
+
+2) Scheduler → DiffusionController
+- Methods: `update({text, caret})`, `tickOnce()`, `catchUp()`
+- Invariants: never edits at/after caret; render range throttled to 16 ms
+
+3) DiffusionController → Transformers (Noise/Context/Tone)
+- Noise: synchronous `noiseTransform({text, caret}) → {diff|null}`
+- Context: async `contextTransform({text, caret}, lmAdapter, contextManager) → {proposals[]}`
+- Tone: planned `toneTransform({text, caret, target}) → {proposals[]}`
+- All proposals must be strictly within active region and ≤ caret
+
+4) LMContextManager (dual-context)
+- API: `initialize`, `updateWideContext`, `updateCloseContext`, `getContextWindow`, `validateProposal`
+- Window policy: close = ±N sentences around caret (N∈[2,5]); wide = full document snapshot with token estimate
+- Validation: length ratio ≤ 3×; contextual ratio > 0.1; plain-text only
+
+5) LMAdapter (streaming)
+- API: `init() → LMCapabilities`, `stream({text, caret, band, settings}) → AsyncIterable<string>`, optional `abort()` and `getStats()`
+- Device tiers: WebGPU → WASM → CPU; token caps and cooldowns per tier
+- Output discipline: plain text; sanitized; band‑bounded
+
+6) Merge Policy & Confidence/Staging
+- Confidence: compute 4‑dimensional score; thresholds τ_input, τ_commit, τ_tone, τ_discard
+- StagingBuffer states: HOLD → COMMIT → DISCARD; ROLLBACK on caret entry
+- Apply order: rules > LM on structural conflicts; LM > rules on semantics
+
+7) Injector & UI feedback
+- Apply diff via `replaceRange` (UTF‑16 safe; never crosses caret)
+- Events: `mindtype:activeRegion`, `mindtype:highlight`; a11y live region announcements; reduced‑motion → instant swaps
+
+8) Safety & privacy gates (always on)
+- Secure fields and IME composition block transforms
+- Local‑first by default; remote only with explicit opt‑in
+
+Cross‑references:
+- Contracts: `guide/reference/{band-policy.md,lm-behavior.md,injector.md,three-stage-pipeline.md,confidence-system.md}`
+- Types: `core/lm/types.ts`, `core/lm/contextManager.ts`
+- Policies: `config/defaultThresholds.ts`
+
 
 ## Rationale
 
@@ -76,6 +125,13 @@ Further details on specific components can be found in the accompanying document
 2. Finish FFI bindings in the mac app and verify parity with the Playwright / XCUITest suite.
 3. Run performance tuning and finalise Core ML model conversion.
 
-This overview aims to answer **why** each component exists before diving into code. The shared pipeline enforces consistent behaviour, while individual modules stay small enough to be unit tested in isolation. Developers should be able to run the core on its own (node-based tests) or through the demo/mac front-ends without rewriting logic.
+This overview aims to answer **why** each component exists before diving into code. The shared pipeline enforces consistent behaviour, while individual modules stay small enough to be unit tested in isolation. Developers should be able to run the core on its own (node-based tests) or through the demo/mac front‑ends without rewriting logic.
 
-The additional documents referenced in the main spec – including [web_demo_details.md](web_demo_details.md) and [mac_app_details.md](mac_app_details.md) – provide step-by-step guidance on implementation choices.
+The additional documents referenced in the main spec – including [web_demo_details.md](web_demo_details.md) and [mac_app_details.md](mac_app_details.md) – provide step‑by‑step guidance on implementation choices.
+
+### References (v0.4 LM components)
+
+- `engines/contextTransformer.ts` – LM orchestration lives here (band selection, prompting, merge gating)
+- `core/lm/contextManager.ts` – Dual‑context (close + wide) window management
+- `core/lm/workerAdapter.ts` – Robust Worker adapter (timeouts, error propagation)
+- `core/lm/transformersRunner.ts` – ONNX Runtime Web configuration (CDN/local wasmPaths)

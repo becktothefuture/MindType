@@ -4,9 +4,9 @@
 | -------------------- | ----------------------------------------------------- |
 | `config/`            | Global thresholds/tunables                            |
 | `core/`              | Orchestration (typing monitor, scheduler)             |
-| `engines/`           | Noise, Context, Tone transformers (rules + LM)        |
+| `engines/`           | Noise, Context (implemented), Tone (partial)          |
 | `utils/`             | Pure helpers (diff/caret safety)                      |
-| `ui/`                | Swap renderer (mechanical), SR cues, undo grouping    |
+| `ui/`                | Swap renderer, highlighter, live region (a11y)        |
 | `tests/`             | Unit tests for TS core/engines/utils                  |
 | `tests/performance/` | Performance benchmarks and device tier tests          |
 | `crates/core-rs/`    | Rust core (compiled to WASM for the web)              |
@@ -19,4 +19,5 @@
 
 Notes:
 
-- The previous path `platform/web_demo/` is deprecated; the demo lives in `web-demo/` now.
+- The demo lives in `web-demo/`.
+- The older term `tapestry` is now `active region`; see `core/activeRegion.ts`.

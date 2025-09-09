@@ -10,6 +10,8 @@ const LM_AVAILABLE = ['true', 'remote', 'local'].includes(String(process.env.MT_
 
 test.skip(!LM_AVAILABLE, 'LM not available in CI');
 
+// SCEN-LM-LAB-002: CONTRACT-LM-STREAM acceptance
+
 test('LM Lab produces two-pass outputs', async ({ page }) => {
   await page.goto('/#/lab');
   // Ensure tone is Professional to get the expected tone prefix

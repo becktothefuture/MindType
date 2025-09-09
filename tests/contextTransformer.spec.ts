@@ -11,47 +11,47 @@ describe('contextTransformer', () => {
     expect(w.previousSentences.join('')).toContain('A.');
   });
 
-  it('produces caret-safe proposals only', () => {
+  it('produces caret-safe proposals only', async () => {
     const text = 'i am here';
     const caret = text.length; // end
-    const r = contextTransform({ text, caret });
+    const r = await contextTransform({ text, caret });
     for (const p of r.proposals) {
       expect(p.end).toBeLessThanOrEqual(caret);
     }
   });
 
-  it('normalizes punctuation in current sentence', () => {
+  it('normalizes punctuation in current sentence', async () => {
     const text = 'word ,next';
     const caret = text.length;
-    const r = contextTransform({ text, caret });
+    const r = await contextTransform({ text, caret });
     const joined = r.proposals.map((p) => p.text).join(' ');
     expect(joined.includes(', ')).toBe(true);
   });
 
-  it('capitalizes sentence starts and standalone i', () => {
+  it('capitalizes sentence starts and standalone i', async () => {
     const text = 'hello. world and i agree';
     const caret = text.length;
-    const r = contextTransform({ text, caret });
-    const merged = r.proposals.map((p) => p.text).join(' ');
+    const r = await contextTransform({ text, caret });
+    const merged = r.proposals.map((p: any) => p.text).join(' ');
     expect(/Hello\./.test(merged) || /World/.test(merged) || / I /.test(merged)).toBe(
       true,
     );
   });
 
-  it('yields proposals on missing punctuation/capitalization', () => {
+  it('yields proposals on missing punctuation/capitalization', async () => {
     const text = 'this is fine';
     const caret = text.length;
-    const r = contextTransform({ text, caret });
+    const r = await contextTransform({ text, caret });
     // Likely to add capitalization and period
     if (r.proposals.length) {
       expect(r.proposals[0].text).toMatch(/[A-Z].*\.$/);
     }
   });
 
-  it('holds when input fidelity is extremely low', () => {
+  it('holds when input fidelity is extremely low', async () => {
     const text = '!!!! ####';
     const caret = text.length;
-    const r = contextTransform({ text, caret });
+    const r = await contextTransform({ text, caret });
     expect(r.proposals.length).toBe(0);
   });
 });

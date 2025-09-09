@@ -268,7 +268,7 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-211, FT-212, FT-214, FT-216  
        **Source:** Manifesto → Safety guarantees
 
-### Active Region (formerly “Tapestry”), Confidence, and Undo Safety Net (P1)
+### Active Region (formerly "Tapestry"), Confidence, and Undo Safety Net (P1)
 
 - [x] (P1) [FT-240] Implement active-region data structure  
        **AC:** Represent validated/unvalidated spans and animated region; spans store `{original, corrected, confidence, appliedAt}`; APIs to merge, split, and query near-field; unit tests cover edge cases and Unicode boundaries.  
@@ -417,7 +417,7 @@ Task checklist template (copy into PR description):
        **AC:** Verify and document that no user text is persisted anywhere (memory, logs, storage); add tests/linters to prevent accidental persistence; document guarantees in PRD and README.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
-       **Source:** Pitch → “doesn’t save your data”
+       **Source:** Pitch → "doesn't save your data"
 
 - [ ] (P1) [FT-234B] Encrypted remote channel opt‑in  
        **AC:** Gate any remote model usage behind explicit per‑session opt‑in; use TLS + content encryption when applicable; surface session indicator; tests verify default local‑only and opt‑in reset on restart.  
@@ -521,7 +521,7 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-315  
        **Source:** Request for a tester page
   - [ ] (P1) [FT-318A] Demo applies corrections into textarea (cross‑browser)  
-         **AC:** On `mindtype:highlight` with `{start,end,text}`, apply via `replaceRange` to the textarea; preserve caret; visible replacement in Safari/WebKit and Chromium; add Playwright e2e covering “Hello teh → Hello the”.  
+         **AC:** On `mindtype:highlight` with `{start,end,text}`, apply via `replaceRange` to the textarea; preserve caret; visible replacement in Safari/WebKit and Chromium; add Playwright e2e covering "Hello teh → Hello the".  
          **Owner:** @alex  
          **DependsOn:** FT-318, FT-210  
          **Status:** In progress — currently active-region/highlight fire, but demo does not show the actual replacement of the text after correcting it.  
@@ -749,7 +749,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
        **AC:** Outline JNI/NDK strategy to consume Rust core; define minimal API and IME interaction notes; document privacy constraints and secure‑field handling; no implementation required in v0.2.  
        **Owner:** @alex  
        **DependsOn:** FT-501  
-       **Source:** Pitch → “computer, tablet, and phone”
+       **Source:** Pitch → "computer, tablet, and phone"
 
 - [ ] (P2) [FT-504] Performance benches and fuzzing  
        **AC:** criterion.rs benches for hot paths; cargo-fuzz targets for FFI and text processing; CI executes benches on representative hardware; docs link to results.  
@@ -842,7 +842,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   dependsOn: [FT-302, FT-304, FT-305, FT-306]
   acceptance:
     - Marker glyph (default '⠿') at swap sites; reduced-motion = instant
-    - SR announcement “text updated behind cursor” once per batch
+    - SR announcement "text updated behind cursor" once per batch
   output: ui/swapRenderer.ts, tests/ui/swapRenderer.spec.ts
 
 - id: FT-308
@@ -860,7 +860,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   priority: P1
   dependsOn: [FT-301, FT-302, FT-303, FT-307]
   acceptance:
-    - Unit + integration pass; Playwright e2e: “Hello teh”→“Hello the”
+    - Unit + integration pass; Playwright e2e: "Hello teh"→"Hello the"
     - Abort+rollback when caret enters band mid-merge
   output: tests/{unit,integration,e2e}/**, playwright config
 
@@ -897,7 +897,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
 
 > Beginner-friendly summary
 >
-> We are upgrading from a single-stage “tidy sweep” into a 3-stage pipeline: Noise → Context → Tone. We’ll also add a confidence-scoring system and a staging buffer so only high-quality edits are applied. Finally, we add English-only gating and tone controls in the demo.
+> We are upgrading from a single-stage "tidy sweep" into a 3-stage pipeline: Noise → Context → Tone. We'll also add a confidence-scoring system and a staging buffer so only high-quality edits are applied. Finally, we add English-only gating and tone controls in the demo.
 
 ```yaml
 - id: FT-401
@@ -997,6 +997,191 @@ All docs follow house comment header style; stubs will be filled as tasks land.
     - Rename "Neutral" → "None (pass-through)" throughout codebase
     - Update all test fixtures and documentation
   output: Updated tests/**, docs/**, web-demo/**
+```
+
+## Stage 6A — LM to First Typing Demo (P1) — Immediate Task Map
+
+```yaml
+- id: LM-FLOW-001
+  title: Ensure LM corrections flow in main pipeline
+  priority: P1
+  dependsOn: [FT-232, FT-232C]
+  acceptance:
+    - contextTransform always receives active LMAdapter + LMContextManager
+    - Band selection yields non-empty span strictly behind caret
+    - "LM runs" counter > 0 during live typing in demo
+    - Visible corrections appear in demo without breaking caret safety
+  output: engines/contextTransformer.ts, core/sweepScheduler.ts, core/lm/contextManager.ts, core/lm/types.ts
+
+- id: OBS-LOG-001
+  title: Targeted LM diagnostics and counters
+  priority: P1
+  dependsOn: [LM-FLOW-001]
+  acceptance:
+    - Logs: "ContextTransformer: LM start/end, chunk_count, final_merge"
+    - Gauge(s): total_lm_runs, aborted_runs, stale_drops
+    - Workbench LM tab shows these metrics
+  output: engines/contextTransformer.ts (logs), web-demo/src/App.tsx (metrics render)
+
+- id: UX-STREAM-001
+  title: Stabilize streaming UX (abort, throttling, quiet logs)
+  priority: P1
+  dependsOn: [LM-FLOW-001]
+  acceptance:
+    - Abort-on-typing works consistently (no stale merges)
+    - Token application throttled to word boundaries
+    - Console noise reduced; debug behind flag
+  output: core/lm/workerAdapter.ts, core/lm/transformersRunner.ts, engines/contextTransformer.ts
+
+- id: TEST-UNIT-001
+  title: Unit: worker adapter timeout/abort/error
+  priority: P1
+  dependsOn: [UX-STREAM-001]
+  acceptance:
+    - Tests cover: timeout triggers cleanup; abort cancels in-flight; error propagates to host
+  output: tests/resilientAdapter.spec.ts, tests/workerAdapter.spec.ts
+
+- id: TEST-UNIT-002
+  title: Unit: transformers runner wasmPaths config
+  priority: P1
+  dependsOn: []
+  acceptance:
+    - CDN path used when localOnly=false; /wasm/ used when localOnly=true
+    - Mocks verify correct assignment to env.backends.onnx.wasm.wasmPaths
+  output: tests/transformersRunner.spec.ts
+
+- id: TEST-E2E-001
+  title: E2E: LM correctness golden cases
+  priority: P1
+  dependsOn: [LM-FLOW-001]
+  acceptance:
+    - 6 cases (typos, transpositions, missing letters, tense/word-choice, spacing, OCR-ish)
+    - Pass locally and on CI when MT_LM_AVAILABLE is set
+  output: e2e/tests/lm-correctness.spec.ts
+
+- id: TEST-E2E-002
+  title: E2E: Abort mid-stream reliability
+  priority: P1
+  dependsOn: [UX-STREAM-001]
+  acceptance:
+    - New keystroke cancels stream; no stale merges
+  output: e2e/tests/lm-abort.spec.ts
+
+- id: TEST-E2E-003
+  title: E2E: Responsiveness under slow WASM
+  priority: P1
+  dependsOn: []
+  acceptance:
+    - Simulated slow runner still keeps UI responsive; merges occur only on pause
+  output: e2e/tests/lm-responsiveness.spec.ts
+
+- id: WB-001
+  title: Workbench metrics & backend label
+  priority: P2
+  dependsOn: [OBS-LOG-001]
+  acceptance:
+    - Per-stage latency (context/tone), backend label (WebGPU/WASM/CPU)
+  output: web-demo/src/App.tsx, web-demo/src/workbench/*
+
+- id: WB-002
+  title: Deterministic mode toggle
+  priority: P2
+  dependsOn: []
+  acceptance:
+    - Toggle forces rules-only path; LM controls greyed out; tests assert deterministic outputs
+  output: web-demo/src/App.tsx, engines/contextTransformer.ts
+
+- id: WB-003
+  title: Export session (JSONL + metrics)
+  priority: P2
+  dependsOn: [OBS-LOG-001]
+  acceptance:
+    - Download JSONL of events and a small metrics JSON; import tested
+  output: web-demo/src/workbench/export.ts
+
+- id: MODEL-001
+  title: Prompt-tune using fuzzy dataset (no model training)
+  priority: P1
+  dependsOn: [LM-FLOW-001]
+  acceptance:
+    - Prompt template refined to allow minimal grammatical fixes incl. tense/word-choice
+    - Evaluation on datasets/fuzzy_text_en.jsonl shows measurable lift
+  output: core/lm/policy.ts, docs/guide/reference/lm.md (prompt)
+
+- id: MODEL-002
+  title: Expand dataset categories for real-world noise
+  priority: P2
+  dependsOn: []
+  acceptance:
+    - Add ≥6 new categories (OCR ligatures, confusables, locale numbers, units/currency, URL/email spacing, quotes/parentheses)
+  output: datasets/fuzzy_text_en.jsonl, docs/guide/how-to/fuzzy-text-dataset.md
+
+- id: CONTEXT-APPLY-001
+  title: Apply LM in Context for live typing (not only Lab)
+  priority: P1
+  dependsOn: [LM-FLOW-001]
+  acceptance:
+    - "LM runs > 0" during typing
+    - Demo visibly improves sample sentences behind caret
+  output: engines/contextTransformer.ts, core/sweepScheduler.ts
+
+- id: PROMPT-MERGE-001
+  title: Prompt & merge guardrails for fuzzy text
+  priority: P1
+  dependsOn: [MODEL-001]
+  acceptance:
+    - Reject off-band / too-long outputs; clamp by char/token; allow small rewording within band
+    - Unit tests for guardrails; e2e golden cases remain stable
+  output: core/lm/policy.ts, engines/contextTransformer.ts, tests/contextTransformer.spec.ts
+
+- id: DEVICE-001
+  title: Device-tier tuning for responsiveness
+  priority: P2
+  dependsOn: []
+  acceptance:
+    - Lower token caps and longer cooldowns on WASM/CPU; no UI jank in slow path tests
+  output: core/lm/deviceTiers.ts, tests/performance/benchmarks.spec.ts
+
+- id: DATA-LOOP-001
+  title: Quality data loop with evaluation report
+  priority: P2
+  dependsOn: [MODEL-001]
+  acceptance:
+    - Scripted evaluation on fuzzy dataset; report with per-category accuracy and examples
+  output: scripts/eval-fuzzy.cjs, reports/fuzzy_eval.json
+
+- id: TEST-TRUST-001
+  title: 6 fuzzy "golden" cases pass locally and in CI
+  priority: P1
+  dependsOn: [TEST-E2E-001]
+  acceptance:
+    - CI job with MT_LM_AVAILABLE passes all 6 cases reliably
+  output: e2e/tests/lm-correctness.spec.ts, e2e/README.md
+
+- id: DIAG-001
+  title: Focused diagnostics and 6 example checks (manual run)
+  priority: P1
+  dependsOn: [OBS-LOG-001]
+  acceptance:
+    - Run 6 example inputs in Lab + main demo; logs show LM start→chunks→merge with nonzero counters
+  output: Console captures in docs/guide/reference/workbench.md (appendix)
+
+- id: DIAG-002
+  title: Wire LM path until counters show LM runs > 0 consistently
+  priority: P1
+  dependsOn: [LM-FLOW-001]
+  acceptance:
+    - Repeated manual runs produce LM runs > 0 and visible improvements
+  output: engines/contextTransformer.ts, core/sweepScheduler.ts (final wiring)
+
+- id: FINAL-001
+  title: Final sweep checklist for first typing demo
+  priority: P1
+  dependsOn: [CONTEXT-APPLY-001, TEST-TRUST-001]
+  acceptance:
+    - Typing example "this sjummer i berbng to the beacj" improves materially behind caret
+    - All gates green; docs updated with before/after; workbench metrics captured
+  output: web-demo (verified), docs/guide/reference/workbench.md (demo notes)
 ```
 
 ## Stage 7 — v0.4 Polish & Optimization (P2)

@@ -34,6 +34,7 @@
 ### Directory conventions
 
 - `docs/` root reflects v0.4. Prior versions remain discoverable via archive branch.
+- Demo lives at `web-demo/` (not `platform/web_demo/`). Update any older links accordingly.
 
 ### Cursor workflow notes
 

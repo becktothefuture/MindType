@@ -34,6 +34,7 @@ function applyTranscript(text: string, band: { start: number; end: number }, lin
 
 describe('LM mock JSONL stream', () => {
   it('produces context then tone with expected outputs', async () => {
+    // SCEN-LM-STREAM-001: CONTRACT-LM-STREAM acceptance
     const adapter = createMockStreamLMAdapter();
     const text = 'The teh brwon fox';
     const band = { start: 4, end: text.length };

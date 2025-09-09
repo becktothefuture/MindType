@@ -24,13 +24,13 @@ This document defines a minimal JSON Lines (JSONL) streaming protocol for a two�
 
 - meta: session/model metadata
 - rules: parameters the LM should honor (band, thresholds, tone target)
-- stage: indicates stage transitions (`context` or `tone`) with `start`/`end`
-- diff: in‑band replacement for a span `{start,end}` in band‑local coordinates
+- stage: indicates stage transitions (context or tone) with start/end
+- diff: in‑band replacement for a span {start,end} in band‑local coordinates
 - commit: finalizes the stage with full band text (and optional confidence)
 - log: optional debug or rationale info
 - done: end of the transcript
 
-All events are newline‑delimited JSON objects. Consumers may update UI incrementally on `diff` and reset internal buffers on `commit`.
+All events are newline‑delimited JSON objects. Consumers may update UI incrementally on diff and reset internal buffers on commit.
 
 ### JSON Schema (informal)
 
@@ -59,7 +59,7 @@ All events are newline‑delimited JSON objects. Consumers may update UI increme
 
 ### Example Transcript
 
-```json
+```jsonl
 {"type":"meta","session":"s-123","model":"qwen2.5-0.5B","version":"0.4"}
 {"type":"rules","band":{"start":120,"end":160},"confidence":{"tau_input":0.6,"tau_commit":0.8,"tau_tone":0.7},"toneTarget":"Professional"}
 {"type":"stage","id":"context","state":"start"}
@@ -73,14 +73,14 @@ All events are newline‑delimited JSON objects. Consumers may update UI increme
 
 ### Application Semantics
 
-- Diffs apply to a working band buffer. Convert band‑local `span` to absolute by offsetting `band.start` when applying to the host document.
+- Diffs apply to a working band buffer. Convert band‑local span to absolute by offsetting band.start when applying to the host document.
 - UI should throttle render updates to sensible word/punctuation boundaries for performance.
-- `commit` replaces the entire band buffer with the provided `text` and resets transient `diff` state for the next stage.
+- commit replaces the entire band buffer with the provided text and resets transient diff state for the next stage.
 
 ### Error Handling
 
-- Events may be ignored if malformed. A `commit` without prior `diff` is valid and replaces the band content.
-- Overlapping diffs are last‑write‑wins within the stage. Stages are sequential: `tone` operates on the committed `context` output.
+- Events may be ignored if malformed. A commit without prior diff is valid and replaces the band content.
+- Overlapping diffs are last‑write‑wins within the stage. Stages are sequential: tone operates on the committed context output.
 
 <!-- SPEC:CONTRACT
 id: CONTRACT-LM-STREAM
@@ -94,8 +94,8 @@ acceptance:
   - tests/lm_stream.spec.ts#SCEN-LM-STREAM-001
   - e2e/tests/lm_lab.spec.ts#SCEN-LM-LAB-002
 invariants:
-  - Events are JSON objects per line with required `type`
-  - `tone` stage runs only after `context` commit
+  - Events are JSON objects per line with required type
+  - Tone stage runs only after context commit
 -->
 
 

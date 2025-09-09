@@ -276,6 +276,12 @@ graph LR
     class UI_FEEDBACK,UI_HIGH,UI_SWAP,UI_LIVE,UI_EVENTS ui
     class LOOP_DETAIL,LOOP_TITLE,RUNS,LOOP_PERFORMANCE explanation
     
-    %% Apply Implementation Status (v0.4 end state)
-    class ENTRY,TM,SEC,SS,DC,ARP,T1,T2,T3,CG,SB,LM_CLIENT,LM_RUNNER,DMG,UI_HIGH,UI_LIVE,WEB,TAP ready
-    class UI_SWAP,LM_FACTORY,UNDO,MAC,TONE_TOGGLE,TONE_OPTIONS,TONE_ANALYSIS partial
+    %% Apply Implementation Status (v0.4 current state)
+    %% Ready: core pipeline, noise, LM client/runner, merge, a11y UI, web platform, active region
+    class ENTRY,TM,SEC,SS,DC,ARP,T1,LM_CLIENT,LM_RUNNER,DMG,UI_HIGH,UI_LIVE,WEB,TAP ready
+    %% Partial: Context/Tone transformers, confidence gate, staging buffer, UI swap, tone controls
+    class T2,T3,CG,SB,UI_SWAP,TONE_TOGGLE,TONE_OPTIONS,TONE_ANALYSIS partial
+    %% Ready: LM factory now complete; Undo isolation implemented and wired
+    class LM_FACTORY,UNDO ready
+    %% Missing: macOS bindings not yet implemented
+    class MAC missing

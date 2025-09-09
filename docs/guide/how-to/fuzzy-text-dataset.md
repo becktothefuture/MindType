@@ -113,4 +113,33 @@ Tips:
 - Include `noop` cases to discourage gratuitous edits.
 - Ensure English‑only; avoid double quotes in fields unless escaped.
 
+### Full‑sentence denoising as Span
+
+Many training cases are full‑sentence denoising where the entire noisy sentence is the Span. In these, `ctx_before` and `ctx_after` can be empty strings, `span_in` contains the noisy sentence, and `span_out` contains the cleaned sentence.
+
+JSONL example lines:
+
+```json
+{"language":"en","ctx_before":"","span_in":",y name is a,lex what ia youe bname?","ctx_after":"","span_out":"My name is Alex, what is your name?","tags":["denoise_full","mixed"]}
+{"language":"en","ctx_before":"","span_in":"mi   emial  is  nme @ exa mple . com","ctx_after":"","span_out":"My email is name@example.com","tags":["denoise_full","email","spacing"]}
+```
+
+How training uses this file (Qwen SFT):
+- We split JSONL into `train.jsonl` and `eval.jsonl`.
+- For each example, we construct a chat text using the guide’s `format_example(ex)` where the User message embeds `ctx_before`, `span_in`, and `ctx_after`; the Assistant target is exactly `span_out` (Span‑only).
+- Full‑sentence denoising works naturally because the Span is the entire sentence, and the model learns to return only the cleaned Span.
+
+Evaluation reminder:
+- Use exact‑match on `span_out` and track Levenshtein distance to measure denoising quality.
+- Keep contexts short or empty to focus the model on denoising the Span.
+
+### Rules for Denoising Examples
+
+- No semantic changes: do not alter meaning or substitute different words.
+- Keystroke/noise only: fix typos, spacing, quotes/parentheses, dashes, OCR/confusables, zero‑width/BOM, ligatures, units/currency formatting, URL/email spacing, and casing.
+- Full‑sentence denoise is allowed when the Span is the entire sentence (contexts empty).
+- Assistant output must be exactly the cleaned Span; no extra words or explanations.
+
+
+
 

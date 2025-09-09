@@ -1,12 +1,18 @@
 /*╔══════════════════════════════════════════════════════════╗
-  ║  ░  L M   L A B  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
-  ║                                                          ║
-  ║   Simple LM stream lab (context → tone) with rules UI.   ║
-  ║                                                          ║
+  ║  ░  LMLAB.TSX  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ Send fuzzy text to mock stream; view JSONL + results
-  • WHY  ▸ Inspect stages, diffs, commits; tune thresholds/tone
-  • HOW  ▸ Uses createMockStreamLMAdapter and applies events
+  • WHAT ▸ JSONL LM stream protocol (context → tone)
+  • WHY  ▸ CONTRACT-LM-STREAM
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 import { useEffect, useMemo, useRef, useState } from 'react';

@@ -75,9 +75,9 @@
     "kind": "REQ",
     "title": "Band-swap noise-cluster animation demo",
     "modules": [
-      "demo/band-swap/index.html",
-      "demo/band-swap/main.js",
-      "demo/band-swap/styles.css",
+      "web-demo/public/demo/band-swap/index.html",
+      "web-demo/public/demo/band-swap/main.js",
+      "web-demo/public/demo/band-swap/styles.css",
       "contracts/animTokens.ts"
     ],
     "acceptance": [
@@ -204,7 +204,7 @@
     "title": "Band-swap animation tokens",
     "modules": [
       "contracts/animTokens.ts",
-      "demo/band-swap/main.js"
+      "web-demo/public/demo/band-swap/main.js"
     ],
     "acceptance": [],
     "tests": [],
@@ -263,5 +263,25 @@
       }
     ],
     "source": "docs/guide/reference/lm-behavior.md"
+  },
+  "CONTRACT-LM-STREAM": {
+    "kind": "CONTRACT",
+    "title": "JSONL LM stream protocol (context → tone)",
+    "modules": [
+      "core/lm/types.ts",
+      "core/lm/mockStreamAdapter.ts",
+      "web-demo/src/lab/LMLab.tsx"
+    ],
+    "acceptance": [
+      "tests/lm_stream.spec.ts#SCEN-LM-STREAM-001",
+      "e2e/tests/lm_lab.spec.ts#SCEN-LM-LAB-002"
+    ],
+    "tests": [],
+    "invariants": [
+      "Events are JSON objects per line with required type",
+      "Tone stage runs only after context commit"
+    ],
+    "types": [],
+    "source": "docs/guide/reference/lm-stream.md"
   }
 }

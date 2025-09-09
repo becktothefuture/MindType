@@ -173,20 +173,38 @@ export async function contextTransform(
       // Generate LM prompt with wide context awareness
       const { selectSpanAndPrompt, postProcessLMOutput } = await import('../core/lm/policy');
       const selection = selectSpanAndPrompt(text, caret);
-      
-      if (selection.band && selection.prompt) {
+      // Use original selection band for LM prompting (may extend past caret to a word boundary)
+      const lmBand = selection.band;
+      // Create a caret-safe band for proposal application
+      const bandClamped = selection.band
+        ? { start: selection.band.start, end: Math.min(selection.band.end, caret) }
+        : null;
+      const validBand = !!lmBand && !!bandClamped && bandClamped.start < bandClamped.end;
+
+      if (validBand && selection.prompt && lmBand) {
+        const band = bandClamped as { start: number; end: number };
+        // Init LM stats container
+        const g: any = globalThis as any;
+        g.__mtLmStats = g.__mtLmStats || { runs: 0, aborted: 0, merges: 0, chunksLast: 0 };
+        g.__mtLmStats.runs += 1;
+        let chunkCount = 0;
+        const startedAt = Date.now();
+
+        console.log('[ContextTransformer] LM start', { caret, bandStart: band.start, bandEnd: band.end });
         console.log('[ContextTransformer] LM processing with dual-context:', {
           wideTokens: contextWindow.wide.tokenCount,
           closeLength: closeText.length,
-          bandSize: selection.band.end - selection.band.start
+          bandSize: band.end - band.start
         });
 
         // Stream LM response
         let lmOutput = '';
+        // Expose last chunks for the workbench LM panel
+        (globalThis as any).__mtLastLMChunks = [] as string[];
         for await (const chunk of lmAdapter.stream({
           text,
           caret,
-          band: selection.band,
+          band: lmBand, // prompt with full band (may include a few post-caret chars)
           settings: { 
             prompt: selection.prompt, 
             maxNewTokens: selection.maxNewTokens,
@@ -195,6 +213,12 @@ export async function contextTransform(
           }
         })) {
           lmOutput += chunk;
+          try {
+            const arr = (globalThis as any).__mtLastLMChunks as string[];
+            arr.push(String(chunk));
+            if (arr.length > 20) arr.shift();
+          } catch {}
+          chunkCount += 1;
         }
 
         const cleanedOutput = postProcessLMOutput(lmOutput.trim(), selection.span?.length || 0);
@@ -206,14 +230,26 @@ export async function contextTransform(
             proposal: cleanedOutput.slice(0, 30)
           });
           
-          proposals.push({
-            start: selection.band.start,
-            end: selection.band.end,
-            text: cleanedOutput
-          });
+          // Apply only the pre-caret portion to preserve caret safety
+          const preCaretLen = Math.min(selection.span.length, band.end - band.start);
+          const preCaretText = cleanedOutput.slice(0, preCaretLen);
+          proposals.push({ start: band.start, end: band.end, text: preCaretText });
+          // Record stats and final merge log
+          g.__mtLmStats.chunksLast = chunkCount;
+          g.__mtLmStats.merges = (g.__mtLmStats.merges || 0) + 1;
+          console.log('[ContextTransformer] LM final merge', { chunkCount, band: selection.band });
         } else {
           console.log('[ContextTransformer] LM proposal rejected by validation');
         }
+        console.log('[ContextTransformer] LM end', { chunkCount });
+        try {
+          g.__mtLmMetrics = g.__mtLmMetrics || [];
+          const latency = Math.max(0, Date.now() - startedAt);
+          const tokens = (g.__mtLastLMChunks && Array.isArray(g.__mtLastLMChunks)) ? (g.__mtLastLMChunks as string[]).join('').length : chunkCount;
+          g.__mtLmMetrics.push({ timestamp: Date.now(), latency, tokens, backend: 'unknown' });
+          // Keep last 100 entries to bound memory
+          if (g.__mtLmMetrics.length > 100) g.__mtLmMetrics.splice(0, g.__mtLmMetrics.length - 100);
+        } catch {}
       }
     } catch (error) {
       console.warn('[ContextTransformer] LM processing failed:', error);

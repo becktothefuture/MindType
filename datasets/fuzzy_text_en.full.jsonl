@@ -56,6 +56,41 @@
 {"language":"en","ctx_before":"She","span_in":" cant","ctx_after":" swim.","span_out":"can't","tags":["spacing","apostrophe"]}
 {"language":"en","ctx_before":"We need","span_in":"re write","ctx_after":" this.","span_out":"rewrite","tags":["split_words"]}
 {"language":"en","ctx_before":"They","span_in":" any one","ctx_after":" can join.","span_out":"anyone","tags":["split_words"]}
+{"language":"en","ctx_before":"They left","span_in":"there","ctx_after":" books here.","span_out":"their","tags":["homophone"]}
+{"language":"en","ctx_before":"I like","span_in":"to","ctx_after":" go too.","span_out":"to","tags":["homophone","noop"]}
+{"language":"en","ctx_before":"She said","span_in":"your","ctx_after":" welcome.","span_out":"you're","tags":["homophone","apostrophe"]}
+{"language":"en","ctx_before":"We were","span_in":"to","ctx_after":" busy.","span_out":"too","tags":["homophone"]}
+{"language":"en","ctx_before":"It was","span_in":"quiet","ctx_after":" loud outside.","span_out":"quite","tags":["homophone"]}
+{"language":"en","ctx_before":"They went","span_in":"their","ctx_after":" going now.","span_out":"they're","tags":["homophone","apostrophe"]}
+{"language":"en","ctx_before":"I saw","span_in":"its","ctx_after":" bright.","span_out":"it's","tags":["homophone","apostrophe"]}
+{"language":"en","ctx_before":"We kept","span_in":"principle","ctx_after":" in mind.","span_out":"principal","tags":["homophone"]}
+{"language":"en","ctx_before":"He","span_in":"accept","ctx_after":" the offer.","span_out":"accepts","tags":["agreement","subject_verb"]}
+{"language":"en","ctx_before":"They","span_in":"was","ctx_after":" ready.","span_out":"were","tags":["agreement","tense"]}
+{"language":"en","ctx_before":"She","span_in":"dont","ctx_after":" know.","span_out":"doesn't","tags":["agreement","apostrophe"]}
+{"language":"en","ctx_before":"The group","span_in":"are","ctx_after":" meeting now.","span_out":"is","tags":["agreement","subject_verb"]}
+{"language":"en","ctx_before":"Each of them","span_in":"are","ctx_after":" here.","span_out":"is","tags":["agreement"]}
+{"language":"en","ctx_before":"He","span_in":"have","ctx_after":" finished.","span_out":"has","tags":["agreement"]}
+{"language":"en","ctx_before":"They","span_in":"does","ctx_after":" not agree.","span_out":"do","tags":["agreement"]}
+{"language":"en","ctx_before":"Neither option","span_in":"are","ctx_after":" ideal.","span_out":"is","tags":["agreement"]}
+{"language":"en","ctx_before":"The data","span_in":"were","ctx_after":" updated.","span_out":"was","tags":["agreement"]}
+{"language":"en","ctx_before":"Yesterday I","span_in":"go","ctx_after":" to town.","span_out":"went","tags":["tense"]}
+{"language":"en","ctx_before":"By then she","span_in":"leave","ctx_after":" the office.","span_out":"left","tags":["tense"]}
+{"language":"en","ctx_before":"I","span_in":"seen","ctx_after":" the email.","span_out":"saw","tags":["tense"]}
+{"language":"en","ctx_before":"He","span_in":"done","ctx_after":" the work.","span_out":"did","tags":["tense"]}
+{"language":"en","ctx_before":"They","span_in":"was","ctx_after":" arriving.","span_out":"were","tags":["tense","agreement"]}
+{"language":"en","ctx_before":"She","span_in":"eat","ctx_after":" already.","span_out":"ate","tags":["tense"]}
+{"language":"en","ctx_before":"We","span_in":"write","ctx_after":" it yesterday.","span_out":"wrote","tags":["tense"]}
+{"language":"en","ctx_before":"I","span_in":"forget","ctx_after":" earlier.","span_out":"forgot","tags":["tense"]}
+{"language":"en","ctx_before":"He","span_in":"has went","ctx_after":" home.","span_out":"has gone","tags":["tense"]}
+{"language":"en","ctx_before":"They","span_in":"had ate","ctx_after":" already.","span_out":"had eaten","tags":["tense"]}
+{"language":"en","ctx_before":"She bought","span_in":"an umbrella","ctx_after":" for later.","span_out":"an umbrella","tags":["article","noop"]}
+{"language":"en","ctx_before":"He is","span_in":"a honest","ctx_after":" person.","span_out":"an honest","tags":["article"]}
+{"language":"en","ctx_before":"They saw","span_in":"an university","ctx_after":" campus.","span_out":"a university","tags":["article"]}
+{"language":"en","ctx_before":"This is","span_in":"a hour","ctx_after":" away.","span_out":"an hour","tags":["article"]}
+{"language":"en","ctx_before":"She needs","span_in":"an unique","ctx_after":" idea.","span_out":"a unique","tags":["article"]}
+{"language":"en","ctx_before":"It was","span_in":"a unusual","ctx_after":" event.","span_out":"an unusual","tags":["article"]}
+{"language":"en","ctx_before":"We have","span_in":"an one-time","ctx_after":" code.","span_out":"a one-time","tags":["article","hyphenation"]}
+{"language":"en","ctx_before":"They brought","span_in":"a apple","ctx_after":" pie.","span_out":"an apple","tags":["article"]}
 {"language":"en","ctx_before":"He said","span_in":"dont","ctx_after":" worry.","span_out":"don't","tags":["apostrophe"]}
 {"language":"en","ctx_before":"She","span_in":"cant","ctx_after":" attend.","span_out":"can't","tags":["apostrophe"]}
 {"language":"en","ctx_before":"We","span_in":"shouldnt","ctx_after":" go.","span_out":"shouldn't","tags":["apostrophe"]}
@@ -147,6 +182,16 @@
 {"language":"en","ctx_before":"Range","span_in":"10 - 12","ctx_after":" pages.","span_out":"10–12","tags":["dash","number_format"]}
 {"language":"en","ctx_before":"Price is","span_in":"1.000,50","ctx_after":" EUR.","span_out":"1,000.50","tags":["locale_number"]}
 {"language":"en","ctx_before":"Send an","span_in":"e-mail","ctx_after":" later.","span_out":"email","tags":["hyphenation","spelling"]}
+{"language":"en","ctx_before":"Please","span_in":"login","ctx_after":" to continue.","span_out":"log in","tags":["word_choice"]}
+{"language":"en","ctx_before":"We will","span_in":"setup","ctx_after":" the device.","span_out":"set up","tags":["word_choice"]}
+{"language":"en","ctx_before":"We meet","span_in":"everyday","ctx_after":" at 9.","span_out":"every day","tags":["word_choice"]}
+{"language":"en","ctx_before":"I","span_in":"loose","ctx_after":" keys often.","span_out":"lose","tags":["word_choice"]}
+{"language":"en","ctx_before":"This will","span_in":"affect","ctx_after":" results.","span_out":"affect","tags":["word_choice","noop"]}
+{"language":"en","ctx_before":"It costs","span_in":"less then","ctx_after":" before.","span_out":"less than","tags":["word_choice"]}
+{"language":"en","ctx_before":"We","span_in":"except","ctx_after":" the terms.","span_out":"accept","tags":["word_choice"]}
+{"language":"en","ctx_before":"That was a","span_in":"compliment","ctx_after":" to the dish.","span_out":"complement","tags":["word_choice"]}
+{"language":"en","ctx_before":"She bought","span_in":"stationary","ctx_after":" for art.","span_out":"stationery","tags":["word_choice"]}
+{"language":"en","ctx_before":"He","span_in":"lead","ctx_after":" the team.","span_out":"led","tags":["word_choice","tense"]}
 {"language":"en","ctx_before":"Attach the","span_in":" ( text ) ","ctx_after":" here.","span_out":" (text) ","tags":["parentheses_spacing","spacing"]}
 {"language":"en","ctx_before":"He said,","span_in":"“hello\"","ctx_after":" softly.","span_out":"\"hello\"","tags":["quote_marks","mismatch"]}
 {"language":"en","ctx_before":"Use","span_in":"and / or","ctx_after":" if needed.","span_out":"and/or","tags":["slash_spacing","spacing"]}
@@ -169,6 +214,21 @@
 {"language":"en","ctx_before":"They noted","span_in":"moreover","ctx_after":" it helps.","span_out":"moreover,","tags":["comma_splice","missing_punctuation"]}
 {"language":"en","ctx_before":"He added","span_in":"furthermore","ctx_after":" we can.","span_out":"furthermore,","tags":["comma_splice","missing_punctuation"]}
 {"language":"en","ctx_before":"She","span_in":"was","ctx_after":" happy.","span_out":"was","tags":["noop"]}
+{"language":"en","ctx_before":"They","span_in":"is","ctx_after":" excited.","span_out":"are","tags":["subject_verb","agreement"]}
+{"language":"en","ctx_before":"The team","span_in":"are","ctx_after":" winning.","span_out":"is","tags":["subject_verb","agreement"]}
+{"language":"en","ctx_before":"My friends","span_in":"is","ctx_after":" here.","span_out":"are","tags":["subject_verb","agreement"]}
+{"language":"en","ctx_before":"She","span_in":"were","ctx_after":" ready.","span_out":"was","tags":["subject_verb","agreement"]}
+{"language":"en","ctx_before":"They","span_in":"is","ctx_after":" planning.","span_out":"are","tags":["subject_verb","agreement"]}
+{"language":"en","ctx_before":"Each person","span_in":"have","ctx_after":" a role.","span_out":"has","tags":["subject_verb","agreement"]}
+{"language":"en","ctx_before":"The data","span_in":"are","ctx_after":" clear.","span_out":"is","tags":["subject_verb","agreement"]}
+{"language":"en","ctx_before":"It depends","span_in":"in","ctx_after":" you.","span_out":"on","tags":["preposition"]}
+{"language":"en","ctx_before":"We arrived","span_in":"to","ctx_after":" the station.","span_out":"at","tags":["preposition"]}
+{"language":"en","ctx_before":"He insisted","span_in":"in","ctx_after":" leaving.","span_out":"on","tags":["preposition"]}
+{"language":"en","ctx_before":"She is good","span_in":"in","ctx_after":" math.","span_out":"at","tags":["preposition"]}
+{"language":"en","ctx_before":"I am interested","span_in":"on","ctx_after":" this.","span_out":"in","tags":["preposition"]}
+{"language":"en","ctx_before":"It depends","span_in":"of","ctx_after":" context.","span_out":"on","tags":["preposition"]}
+{"language":"en","ctx_before":"He differs","span_in":"with","ctx_after":" her.","span_out":"from","tags":["preposition"]}
+{"language":"en","ctx_before":"She is similar","span_in":"with","ctx_after":" him.","span_out":"to","tags":["preposition"]}
 {"language":"en","ctx_before":"I bought an","span_in":"iphone","ctx_after":" case.","span_out":"iPhone","tags":["spelling_brand","capitalization"]}
 {"language":"en","ctx_before":"Watch on","span_in":"youtube","ctx_after":" later.","span_out":"YouTube","tags":["spelling_brand","capitalization"]}
 {"language":"en","ctx_before":"Search with","span_in":"google","ctx_after":" today.","span_out":"Google","tags":["spelling_brand","capitalization"]}
@@ -177,6 +237,18 @@
 {"language":"en","ctx_before":"He posted on","span_in":"x","ctx_after":" last night.","span_out":"X","tags":["spelling_brand","capitalization"]}
 {"language":"en","ctx_before":"We used","span_in":"github","ctx_after":" today.","span_out":"GitHub","tags":["spelling_brand","capitalization"]}
 {"language":"en","ctx_before":"She updated","span_in":"slack","ctx_after":" quickly.","span_out":"Slack","tags":["spelling_brand","capitalization"]}
+{"language":"en","ctx_before":"Use the","span_in":"colour","ctx_after":" picker.","span_out":"color","tags":["uk_us"]}
+{"language":"en","ctx_before":"We like","span_in":"favourite","ctx_after":" songs.","span_out":"favorite","tags":["uk_us"]}
+{"language":"en","ctx_before":"They will","span_in":"organise","ctx_after":" the event.","span_out":"organize","tags":["uk_us"]}
+{"language":"en","ctx_before":"He wrote","span_in":"behaviour","ctx_after":" notes.","span_out":"behavior","tags":["uk_us"]}
+{"language":"en","ctx_before":"She lives","span_in":"in the centre","ctx_after":" of town.","span_out":"in the center","tags":["uk_us"]}
+{"language":"en","ctx_before":"We walked on the","span_in":"pavement","ctx_after":" today.","span_out":"sidewalk","tags":["uk_us"]}
+{"language":"en","ctx_before":"He bought","span_in":"a litre","ctx_after":" of milk.","span_out":"a liter","tags":["uk_us"]}
+{"language":"en","ctx_before":"Add","span_in":"programme","ctx_after":" details.","span_out":"program","tags":["uk_us"]}
+{"language":"en","ctx_before":"They prefer","span_in":"theatre","ctx_after":" shows.","span_out":"theater","tags":["uk_us"]}
+{"language":"en","ctx_before":"She wore","span_in":"jewellery","ctx_after":" today.","span_out":"jewelry","tags":["uk_us"]}
+{"language":"en","ctx_before":"We need","span_in":"tyre","ctx_after":" replacement.","span_out":"tire","tags":["uk_us"]}
+{"language":"en","ctx_before":"He sent","span_in":"a cheque","ctx_after":" today.","span_out":"a check","tags":["uk_us"]}
 {"language":"en","ctx_before":"She said","span_in":"okay","ctx_after":" to all.","span_out":"okay","tags":["noop"]}
 {"language":"en","ctx_before":"I will","span_in":"help","ctx_after":" you.","span_out":"help","tags":["noop"]}
 {"language":"en","ctx_before":"They are","span_in":"ready","ctx_after":" now.","span_out":"ready","tags":["noop"]}
@@ -207,6 +279,8 @@
 {"language":"en","ctx_before":"We printed","span_in":"the  the","ctx_after":" title.","span_out":"the","tags":["duplication","spacing"]}
 {"language":"en","ctx_before":"Card says","span_in":"visa\u200b","ctx_after":" accepted.","span_out":"Visa","tags":["zero_width","capitalization","confusable"]}
 {"language":"en","ctx_before":"Catalog","span_in":"faceade","ctx_after":" stone.","span_out":"façade","tags":["diacritic","confusable"]}
+{"language":"en","ctx_before":"Form","span_in":" sign  up","ctx_after":" now.","span_out":"sign up","tags":["spacing","word_choice"]}
+{"language":"en","ctx_before":"Prompt","span_in":" log-in","ctx_after":" first.","span_out":"log in","tags":["hyphenation","word_choice"]}
 {"language":"en","ctx_before":"Message","span_in":"dont ’  t","ctx_after":" panic.","span_out":"don't","tags":["apostrophe","spacing","quote_marks"]}
 {"language":"en","ctx_before":"Sheet","span_in":" 100  % ","ctx_after":" cotton.","span_out":"100%","tags":["spacing","units"]}
 {"language":"en","ctx_before":"Rule","span_in":"and  /  or","ctx_after":" both.","span_out":"and/or","tags":["slash_spacing","spacing"]}
@@ -233,6 +307,7 @@
 {"language":"en","ctx_before":"","span_in":"send   $  20  now ","ctx_after":"","span_out":"Send $20 now","tags":["denoise_full","currency","spacing","capitalization"]}
 {"language":"en","ctx_before":"","span_in":"temp  is  21C  rn","ctx_after":"","span_out":"Temperature is 21 °C right now","tags":["denoise_full","units","spacing","sms"]}
 {"language":"en","ctx_before":"","span_in":"ok..  see  u  @  cafe  @  2 ","ctx_after":"","span_out":"OK... see you at the cafe at 2","tags":["denoise_full","ellipsis","spacing","sms"]}
+{"language":"en","ctx_before":"","span_in":"plz  snd  the  doc  asap","ctx_after":"","span_out":"Please send the document ASAP","tags":["denoise_full","sms","spacing","word_choice"]}
 {"language":"en","ctx_before":"","span_in":"she  said  \"hi\" ,,, then   left","ctx_after":"","span_out":"She said \"hi\" then left","tags":["denoise_full","punctuation","spacing","capitalization"]}
 {"language":"en","ctx_before":"","span_in":"wel come  t0  the  tea m","ctx_after":"","span_out":"Welcome to the team","tags":["denoise_full","ocr_noise","spacing","capitalization"]}
 {"language":"en","ctx_before":"","span_in":"c0n grat s!!","ctx_after":"","span_out":"Congrats!","tags":["denoise_full","ocr_noise","spacing","capitalization"]}
@@ -245,6 +320,8 @@
 {"language":"en","ctx_before":"","span_in":"we  ' ll   do   it 2moro","ctx_after":"","span_out":"We'll do it tomorrow","tags":["denoise_full","sms","apostrophe","spacing"]}
 {"language":"en","ctx_before":"","span_in":"order  #  12  34   conf irm ed","ctx_after":"","span_out":"Order #1234 confirmed","tags":["denoise_full","spacing","capitalization"]}
 {"language":"en","ctx_before":"","span_in":" u pdate  ava il able  now ","ctx_after":"","span_out":"Update available now","tags":["denoise_full","spacing","split_words","capitalization"]}
+{"language":"en","ctx_before":"","span_in":"pls   res tart   the   dev ice","ctx_after":"","span_out":"Please restart the device","tags":["denoise_full","spacing","split_words","word_choice"]}
+{"language":"en","ctx_before":"","span_in":"re  -  log in   &   try  aga in","ctx_after":"","span_out":"Re-login and try again","tags":["denoise_full","hyphenation","spacing","word_choice"]}
 {"language":"en","ctx_before":"","span_in":" we  ' re   @  the  café  rn ","ctx_after":"","span_out":"We're at the café right now","tags":["denoise_full","apostrophe","diacritic","sms","spacing"]}
 {"language":"en","ctx_before":"","span_in":" he l p  cen ter  →   set tings ","ctx_after":"","span_out":"Help Center → Settings","tags":["denoise_full","spacing","capitalization"]}
 {"language":"en","ctx_before":"","span_in":"  the  lord  of  the  rings  ( book )  ","ctx_after":"","span_out":"The Lord of the Rings (book)","tags":["denoise_full","title_case","spacing","parentheses_spacing"]}

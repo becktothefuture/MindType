@@ -10,8 +10,8 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ LMAdapter streaming contract
-  • WHY  ▸ CONTRACT-LM-ADAPTER
+  • WHAT ▸ LMAdapter streaming contract; JSONL LM stream protocol (context → tone)
+  • WHY  ▸ CONTRACT-LM-ADAPTER, CONTRACT-LM-STREAM
   • HOW  ▸ See linked contracts and guides in docs
 */
 

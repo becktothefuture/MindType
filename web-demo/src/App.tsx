@@ -301,6 +301,14 @@ function App() {
             }
           }
         } catch {}
+
+        // Pull LM metrics from global collector
+        try {
+          const metrics = (globalThis as any).__mtLmMetrics as Array<{ timestamp: number; latency: number; tokens: number; backend: string }> | undefined;
+          if (Array.isArray(metrics)) {
+            setLmMetrics(metrics.slice(-50));
+          }
+        } catch {}
     }, 800);
     return () => window.clearInterval(id);
   }, [pipeline]);

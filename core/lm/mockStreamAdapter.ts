@@ -1,12 +1,18 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  M O C K   L M   S T R E A M   A D A P T E R  ░░░░░░░░░░  ║
-  ║                                                              ║
-  ║   Emits JSONL events for LM Lab (context → tone).            ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Deterministic two‑pass JSONL stream for demos/tests
-  • WHY  ▸ Lab visibility and repeatability, no remote dependencies
-  • HOW  ▸ Generates meta/rules/stage/diff/commit/done events
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  MOCKSTREAMADAPTER  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ JSONL LM stream protocol (context → tone)
+  • WHY  ▸ CONTRACT-LM-STREAM
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 import type { LMAdapter, LMCapabilities, LMStreamEvent, LMStreamParams } from './types';

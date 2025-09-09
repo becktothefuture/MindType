@@ -28,7 +28,7 @@
 - **Keystrokes → Events**: `TypingMonitor` emits `{ text, caret, atMs }`. See `core/typingMonitor.ts`.
 - **Scheduler**: `SweepScheduler` paces streaming ticks (~60–90 ms) and catch‑up after ~500 ms idle. See `core/sweepScheduler.ts`.
 - **Diffusion**: `DiffusionController` moves a frontier toward the caret, validating word‑by‑word in a trailing band (3–8 words). See `core/diffusionController.ts` and `docs/guide/reference/band-policy.md`.
-- **Engines**: Rules (`engines/noiseTransformer.ts`) and LM stream. Rules fix structure (typos, spaces). LM fixes semantics. See `docs/guide/reference/lm.md`.
+- **Engines**: Rules (`engines/noiseTransformer.ts`) and LM stream. Rules fix structure (typos, spaces). LM fixes semantics via the Context transformer (`engines/contextTransformer.ts`) with dual-context windows; Tone transformer (`engines/toneTransformer.ts`) is in progress. See `docs/guide/reference/lm.md`.
 - **Merge**: Apply tiny diffs, never at/after the caret; Unicode‑safe. TS: `utils/diff.ts`. Rust: `docs/guide/reference/rust-merge.md` (target).
 - **Host Injection**: Web updates a textarea; macOS uses Accessibility APIs. Contract in `docs/guide/reference/injector.md`.
 
@@ -228,7 +228,7 @@ export function emitActiveRegion(_range: { start: number; end: number }) {
 ## Tuning playbook (what to tweak first)
 
 - **Typing tick (ms)**: 60–90 ms feels lively; 120 ms for reduced‑motion.
-- **Band size**: start 3–8 words; enlarge only if LM is highly precise.
+- **Band size**: start 3–8 words; enlarge only if LM is highly precise. The older term “tapestry” is now “active region”.
 - **Cooldown**: 300–500 ms after a merge to avoid spam.
 
 ## How we know it works (tests you can trust)

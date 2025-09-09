@@ -17,7 +17,10 @@
 
 **✅ ACHIEVED:**
 - Sentence-based context window (2-5 sentences, configurable)
-- Worker-based LM integration with CDN/local asset fallback
+- Context transformer landed with dual-context support; wired via scheduler
+- Worker-based LM integration with local-first policy and graceful fallback
+- Staging buffer and confidence gate scaffolds implemented; wiring in progress
+- Undo isolation implemented and used by `DiffusionController`
 - Comprehensive testing platform with integrated workbench
 - Professional documentation with single sources of truth
 - Cross-browser E2E validation (42+ tests passing)
@@ -34,7 +37,7 @@
 ## 🚀 Phase 1: LM Reliability & Performance (Immediate - 2 weeks)
 
 ### 🎯 **Priority 1A: LM Streaming Stability**
-**Problem:** LM outputs currently empty in some test environments
+**Problem:** Intermittent empty LM outputs observed in some environments
 **Solution:** 
 - Investigate worker message passing reliability
 - Add LM warmup sequence and backend detection logging

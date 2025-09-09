@@ -76,18 +76,19 @@ function ensureWorker(): Worker {
       const onMessage = (ev: MessageEvent<WorkerMessage>) => {
         const msg = ev.data;
         if (!msg) return;
-        console.log('[WorkerAdapter] Message received:', { type: msg.type, requestId: msg.requestId });
-        if (msg.type === 'chunk' && msg.requestId === requestId) {
+        const rid = (msg as any)?.requestId;
+        console.log('[WorkerAdapter] Message received:', { type: msg.type, requestId: rid });
+        if (msg.type === 'chunk' && rid === requestId) {
           if (!aborted) {
             console.log('[WorkerAdapter] Processing chunk:', msg.text.slice(0, 20));
             push(msg.text);
           } else {
             console.log('[WorkerAdapter] Chunk ignored (aborted)');
           }
-        } else if (msg.type === 'done' && msg.requestId === requestId) {
+        } else if (msg.type === 'done' && rid === requestId) {
           console.log('[WorkerAdapter] Stream completed');
           close();
-        } else if (msg.type === 'error' && (!msg.requestId || msg.requestId === requestId)) {
+        } else if (msg.type === 'error' && (!rid || rid === requestId)) {
           console.error('[WorkerAdapter] Stream error:', msg.message);
           // Surface error to UI by throwing
           throw new Error(`LM Worker Error: ${msg.message}`);

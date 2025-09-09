@@ -185,9 +185,9 @@ id: REQ-BAND-SWAP
 title: Band-swap noise-cluster animation demo
 status: active
 modules:
-  - demo/band-swap/index.html
-  - demo/band-swap/main.js
-  - demo/band-swap/styles.css
+  - web-demo/public/demo/band-swap/index.html
+  - web-demo/public/demo/band-swap/main.js
+  - web-demo/public/demo/band-swap/styles.css
   - contracts/animTokens.ts
 acceptance:
   - docs/qa/acceptance/mechanical_swap.feature#SCEN-BAND-SWAP-001
