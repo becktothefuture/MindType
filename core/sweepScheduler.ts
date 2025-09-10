@@ -163,9 +163,10 @@ export function createSweepScheduler(
       collected.push({ ...noise.diff, source: 'noise' });
       // Emit stage preview
       try {
-        const preview = lastEvent.text.slice(0, noise.diff.start) + 
-                       noise.diff.text + 
-                       lastEvent.text.slice(noise.diff.end);
+        const preview =
+          lastEvent.text.slice(0, noise.diff.start) +
+          noise.diff.text +
+          lastEvent.text.slice(noise.diff.end);
         (globalThis as any).__mtStagePreview = { noise: preview };
       } catch {}
     }
@@ -179,17 +180,18 @@ export function createSweepScheduler(
         // Context stage (with LM integration)
         const lmAdapter = getLMAdapter?.();
         const ctx = await contextTransform(
-          { text: st.text, caret: st.caret }, 
-          lmAdapter,
+          { text: st.text, caret: st.caret },
+          lmAdapter ?? undefined,
           // Get context manager from global if available
-          (globalThis as any).__mtContextManager
+          (globalThis as any).__mtContextManager,
         );
         let contextPreview = st.text;
         for (const p of ctx.proposals) {
           collected.push({ ...p, source: 'context' });
           // Build preview with this proposal applied
           try {
-            contextPreview = contextPreview.slice(0, p.start) + p.text + contextPreview.slice(p.end);
+            contextPreview =
+              contextPreview.slice(0, p.start) + p.text + contextPreview.slice(p.end);
           } catch {}
           const sample = st.text.slice(
             Math.max(0, p.start - 80),
@@ -216,7 +218,7 @@ export function createSweepScheduler(
           (globalThis as any).__mtStagePreview = {
             ...(globalThis as any).__mtStagePreview,
             buffer: st.text.slice(Math.max(0, st.caret - 48), st.caret),
-            context: contextPreview
+            context: contextPreview,
           };
         } catch {}
 
@@ -272,7 +274,8 @@ export function createSweepScheduler(
             sb.updateScore(`tone-${p.start}-${p.end}`, score, decision);
             // Defer actual application until conflicts are resolved below
             try {
-              tonePreview = tonePreview.slice(0, p.start) + p.text + tonePreview.slice(p.end);
+              tonePreview =
+                tonePreview.slice(0, p.start) + p.text + tonePreview.slice(p.end);
             } catch {}
           }
           try {

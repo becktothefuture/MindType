@@ -917,9 +917,6 @@ function App() {
             })}
           </div>
         </div>
-
-          </div>
-        </div>
         
         {/* BOTTOM PANEL - All exposed functionality */}
         <div style={{ 

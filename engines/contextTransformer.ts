@@ -23,6 +23,7 @@ import {
   computeDynamicThresholds,
 } from '../core/confidenceGate';
 import type { LMContextManager } from '../core/lm/contextManager';
+import type { LMAdapter } from '../core/lm/types';
 
 export interface ContextWindow {
   currentSentence: string;
@@ -114,7 +115,7 @@ function deterministicRepairs(span: string): { span: string; changed: boolean } 
 
 export async function contextTransform(
   input: TransformInput,
-  lmAdapter?: unknown,
+  lmAdapter?: LMAdapter,
   contextManager?: LMContextManager,
 ): Promise<TransformResult> {
   const { text, caret } = input;
