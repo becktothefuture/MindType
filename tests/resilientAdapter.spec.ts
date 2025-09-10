@@ -22,7 +22,8 @@ describe('createResilientLMAdapter', () => {
     const ra = createResilientLMAdapter(primary, fallback, 200);
 
     const out: string[] = [];
-    for await (const c of ra.stream({ text: 'p', caret: 1, band: { start: 0, end: 1 } })) out.push(c);
+    for await (const c of ra.stream({ text: 'p', caret: 1, band: { start: 0, end: 1 } }))
+      out.push(c);
     expect(out.join('')).toBe('AB');
   });
 
@@ -32,9 +33,8 @@ describe('createResilientLMAdapter', () => {
     const ra = createResilientLMAdapter(primary, fallback, 100);
 
     const out: string[] = [];
-    for await (const c of ra.stream({ text: 'p', caret: 1, band: { start: 0, end: 1 } })) out.push(c);
+    for await (const c of ra.stream({ text: 'p', caret: 1, band: { start: 0, end: 1 } }))
+      out.push(c);
     expect(out.join('')).toBe('XY');
   });
 });
-
-

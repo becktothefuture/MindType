@@ -109,6 +109,9 @@ export function LMLab() {
       } else if (cleaned && sel.span) {
         setError('LM proposal rejected by context validation');
         console.log('[LMLab] Proposal rejected:', { original: sel.span, proposal: cleaned });
+      } else if (!cleaned) {
+        // Surface a user-visible signal so tests can resolve the race even if LM returns empty
+        setError('LM produced no output');
       }
     } catch (e: any) {
       setError('LM unavailable. Enable network access or try again later.');

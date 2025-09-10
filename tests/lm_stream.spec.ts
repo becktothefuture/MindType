@@ -12,18 +12,29 @@
 import { describe, it, expect } from 'vitest';
 import { createMockStreamLMAdapter } from '../core/lm/mockStreamAdapter';
 
-function applyTranscript(text: string, band: { start: number; end: number }, lines: string[]) {
+function applyTranscript(
+  text: string,
+  band: { start: number; end: number },
+  lines: string[],
+) {
   let ctx = text.slice(band.start, band.end);
   let tone = '';
   for (const line of lines) {
-    let ev: any; try { ev = JSON.parse(line); } catch { continue; }
+    let ev: any;
+    try {
+      ev = JSON.parse(line);
+    } catch {
+      continue;
+    }
     if (ev.type === 'diff' && ev.stage === 'context') {
-      const ls = ev.span.start; const le = ev.span.end;
+      const ls = ev.span.start;
+      const le = ev.span.end;
       ctx = ctx.slice(0, ls) + ev.text + ctx.slice(le);
     } else if (ev.type === 'commit' && ev.stage === 'context') {
       ctx = ev.text;
     } else if (ev.type === 'diff' && ev.stage === 'tone') {
-      const ls = ev.span.start; const le = ev.span.end;
+      const ls = ev.span.start;
+      const le = ev.span.end;
       tone = (tone || ctx).slice(0, ls) + ev.text + (tone || ctx).slice(le);
     } else if (ev.type === 'commit' && ev.stage === 'tone') {
       tone = ev.text;
@@ -40,7 +51,12 @@ describe('LM mock JSONL stream', () => {
     const band = { start: 4, end: text.length };
 
     const lines: string[] = [];
-    for await (const line of adapter.stream({ text, caret: band.end + 1, band, settings: { toneTarget: 'Professional' } })) {
+    for await (const line of adapter.stream({
+      text,
+      caret: band.end + 1,
+      band,
+      settings: { toneTarget: 'Professional' },
+    })) {
       lines.push(line.trim());
     }
     const { contextOut, toneOut } = applyTranscript(text, band, lines);
@@ -48,5 +64,3 @@ describe('LM mock JSONL stream', () => {
     expect(toneOut.startsWith('Consequently,')).toBe(true);
   });
 });
-
-

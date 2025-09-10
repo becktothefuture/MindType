@@ -17,11 +17,11 @@ describe('WorkerAdapter (interface)', () => {
       postMessage: vi.fn(),
       terminate: vi.fn(),
       addEventListener: vi.fn(),
-      removeEventListener: vi.fn()
+      removeEventListener: vi.fn(),
     } as unknown as Worker;
 
     const makeWorker = () => mockWorker;
-    
+
     // Dynamic import to avoid issues in Node.js
     const createAdapter = () => {
       try {

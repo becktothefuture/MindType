@@ -24,7 +24,13 @@ let state = { text: '', caret: 0, frontier: 0 } as any;
 const getState = () => state;
 
 vi.mock('../core/diffusionController', () => ({
-  createDiffusionController: () => ({ update, tickOnce, catchUp, getState, applyExternal: vi.fn() }),
+  createDiffusionController: () => ({
+    update,
+    tickOnce,
+    catchUp,
+    getState,
+    applyExternal: vi.fn(),
+  }),
 }));
 
 const ctxProposals = [{ start: 0, end: 3, text: 'The' }];
@@ -37,7 +43,9 @@ vi.mock('../engines/toneTransformer', () => ({
 }));
 
 vi.mock('../core/confidenceGate', async () => {
-  const actual = await vi.importActual<typeof import('../core/confidenceGate')>('../core/confidenceGate');
+  const actual = await vi.importActual<typeof import('../core/confidenceGate')>(
+    '../core/confidenceGate',
+  );
   return {
     ...actual,
     computeDynamicThresholds: (args: any) => {
@@ -86,5 +94,3 @@ describe.skip('scheduler uses dynamic thresholds', () => {
     expect(typeof (globalThis as any).__dynArgs.caret).toBe('number');
   });
 });
-
-

@@ -48,23 +48,29 @@ export function createLMContextManager(): LMContextManager {
     return Math.ceil(text.length / 4);
   }
 
-  function extractSentenceContext(text: string, caretPosition: number): {
+  function extractSentenceContext(
+    text: string,
+    caretPosition: number,
+  ): {
     text: string;
     start: number;
     end: number;
     sentences: number;
   } {
     const sentencesPerSide = getSentenceContextPerSide();
-    
+
     // Use Intl.Segmenter for proper sentence boundaries
     const segmenter = new Intl.Segmenter('en', { granularity: 'sentence' });
     const segments = Array.from(segmenter.segment(text));
-    
+
     // Find the sentence containing the caret
     let caretSentenceIndex = -1;
     for (let i = 0; i < segments.length; i++) {
       const segment = segments[i];
-      if (caretPosition >= segment.index && caretPosition <= segment.index + segment.segment.length) {
+      if (
+        caretPosition >= segment.index &&
+        caretPosition <= segment.index + segment.segment.length
+      ) {
         caretSentenceIndex = i;
         break;
       }
@@ -78,23 +84,26 @@ export function createLMContextManager(): LMContextManager {
         text: text.slice(start, end),
         start,
         end,
-        sentences: 0
+        sentences: 0,
       };
     }
 
     // Extract sentences around the caret sentence
     const startSentence = Math.max(0, caretSentenceIndex - sentencesPerSide);
-    const endSentence = Math.min(segments.length - 1, caretSentenceIndex + sentencesPerSide);
-    
+    const endSentence = Math.min(
+      segments.length - 1,
+      caretSentenceIndex + sentencesPerSide,
+    );
+
     const startIndex = segments[startSentence].index;
     const endSegment = segments[endSentence];
     const endIndex = endSegment.index + endSegment.segment.length;
-    
+
     return {
       text: text.slice(startIndex, endIndex),
       start: startIndex,
       end: endIndex,
-      sentences: endSentence - startSentence + 1
+      sentences: endSentence - startSentence + 1,
     };
   }
 
@@ -103,45 +112,45 @@ export function createLMContextManager(): LMContextManager {
       log.info('[ContextManager] Initializing with full document', {
         textLength: fullText.length,
         caretPosition,
-        estimatedTokens: estimateTokenCount(fullText)
+        estimatedTokens: estimateTokenCount(fullText),
       });
 
       const closeContext = extractSentenceContext(fullText, caretPosition);
-      
+
       contextWindow = {
         wide: {
           text: fullText,
           lastUpdated: Date.now(),
-          tokenCount: estimateTokenCount(fullText)
+          tokenCount: estimateTokenCount(fullText),
         },
         close: {
           ...closeContext,
-          caretPosition
-        }
+          caretPosition,
+        },
       };
 
       initialized = true;
       log.info('[ContextManager] Initialization complete', {
         wideTokens: contextWindow.wide.tokenCount,
         closeSentences: contextWindow.close.sentences,
-        closeLength: contextWindow.close.text.length
+        closeLength: contextWindow.close.text.length,
       });
     },
 
     updateWideContext(fullText: string): void {
       if (!contextWindow) return;
-      
+
       // Only update if text has changed significantly
       if (fullText !== contextWindow.wide.text) {
         log.debug('[ContextManager] Updating wide context', {
           oldLength: contextWindow.wide.text.length,
-          newLength: fullText.length
+          newLength: fullText.length,
         });
-        
+
         contextWindow.wide = {
           text: fullText,
           lastUpdated: Date.now(),
-          tokenCount: estimateTokenCount(fullText)
+          tokenCount: estimateTokenCount(fullText),
         };
       }
     },
@@ -150,16 +159,16 @@ export function createLMContextManager(): LMContextManager {
       if (!contextWindow) return;
 
       const closeContext = extractSentenceContext(fullText, caretPosition);
-      
+
       log.debug('[ContextManager] Updating close context', {
         caretPosition,
         sentences: closeContext.sentences,
-        contextLength: closeContext.text.length
+        contextLength: closeContext.text.length,
       });
 
       contextWindow.close = {
         ...closeContext,
-        caretPosition
+        caretPosition,
       };
     },
 
@@ -191,7 +200,7 @@ export function createLMContextManager(): LMContextManager {
       const wideText = contextWindow.wide.text.toLowerCase();
       const proposalWords = proposal.toLowerCase().split(/\s+/);
       const contextWords = wideText.split(/\s+/);
-      
+
       // Check if proposal words are contextually appropriate
       let contextualWords = 0;
       for (const word of proposalWords) {
@@ -199,25 +208,27 @@ export function createLMContextManager(): LMContextManager {
           contextualWords++;
         }
       }
-      
+
       const contextualRatio = contextualWords / Math.max(proposalWords.length, 1);
       const isContextual = contextualRatio > 0.1 || proposalWords.length <= 3;
-      
+
       if (!isContextual) {
-        log.debug('[ContextManager] Proposal rejected: not contextual', { contextualRatio });
+        log.debug('[ContextManager] Proposal rejected: not contextual', {
+          contextualRatio,
+        });
         return false;
       }
 
-      log.debug('[ContextManager] Proposal validated', { 
-        lengthRatio, 
+      log.debug('[ContextManager] Proposal validated', {
+        lengthRatio,
         contextualRatio,
-        proposal: proposal.slice(0, 50) 
+        proposal: proposal.slice(0, 50),
       });
       return true;
     },
 
     isInitialized(): boolean {
       return initialized;
-    }
+    },
   };
 }

@@ -29,7 +29,13 @@ let state = { text: '', caret: 0, frontier: 0 } as any;
 const getState = () => state;
 
 vi.mock('../core/diffusionController', () => ({
-  createDiffusionController: () => ({ update, tickOnce, catchUp, getState, applyExternal: vi.fn() }),
+  createDiffusionController: () => ({
+    update,
+    tickOnce,
+    catchUp,
+    getState,
+    applyExternal: vi.fn(),
+  }),
 }));
 
 import { createTypingMonitor } from '../core/typingMonitor';
@@ -80,5 +86,3 @@ describe('SweepScheduler cadence', () => {
     scheduler.stop();
   });
 });
-
-

@@ -16,7 +16,7 @@ Cross‑links:
 3. **Dual‑Context LM/Rules Correction** – A sentence‑based, dual‑context strategy drives semantic fixes:
    - Close Context: 2–5 sentences surrounding the caret (active sentence excluded, prefix up to the caret included).
    - Wide Context: whole‑document summary for coherence checks and validation.
-   On‑device language models (Transformers.js + Qwen2.5‑0.5B‑Instruct, q4, WebGPU/WASM) run in a Web Worker via a core‑owned adapter, with graceful fallback to rule‑based fixes.
+     On‑device language models (Transformers.js + Qwen2.5‑0.5B‑Instruct, q4, WebGPU/WASM) run in a Web Worker via a core‑owned adapter, with graceful fallback to rule‑based fixes.
 4. **Incremental Diff and Merge** – Patches are caret‑safe and word‑bounded. During typing, a frontier advances toward the caret; on pause (~500 ms), diffusion catches up.
 5. **Injection** – Apply in place, preserving formatting, undo grouping, and cursor position. Visuals: subtle shimmer band; reduced‑motion fallback.
 
@@ -42,6 +42,17 @@ This pipeline is **implemented in Rust** (`crates/core-rs`) and surfaced to each
 
 Maintaining one canonical codebase removes divergence between TypeScript and Swift implementations that were planned in the earlier draft.
 
+## Implementation Phasing (v0.4 → v0.5): TS-first → Rust WASM
+
+- Current (v0.4): TypeScript streaming pipeline runs end-to-end for the web demo (fast iteration, rich tooling).
+- Ready: Rust core is compiled to WASM and staged at `crates/core-rs/bindings/wasm/pkg`.
+- Plan: Progressive handoff of algorithmic components to Rust WASM under a feature flag while keeping the same TS host/orchestrator:
+  - Pause timer, fragment extractor, merge engine → `@mindtype/core` WASM exports
+  - LM orchestration remains workerized; Rust owns scheduling/gating; TS stays the host/injector
+- Feature flag: `USE_WASM_CORE` (default: off) gates the Rust path to enable A/B rollout.
+- Parity & CI: Test suite runs in both modes (TS-only, WASM-enabled) with a golden corpus to ensure behavioral equivalence before flipping the default.
+- Not doing it twice: TS continues to orchestrate UI and apply diffs; Rust replaces inner engines behind stable interfaces (`DiffusionController`, `LMAdapter`, `contextTransform`).
+
 ## Module Breakdown
 
 ### crates/core-rs 🔹
@@ -63,53 +74,63 @@ React components wrap the core logic and provide a simple typing playground. It 
 ### mac/
 
 Native macOS layer written in Swift/SwiftUI. It links to the **same Rust core** via FFI; no re-implementation required.
+
 ## System Map & Contracts (authoritative)
 
 The following contracts define how parts communicate efficiently. See linked guides in `docs/guide/reference/**` for detailed specs.
 
-1) Input monitor → Scheduler
+1. Input monitor → Scheduler
+
 - Event: `{ text: string; caret: number; atMs: number }`
 - Cadence: typing tick ~60–90 ms; pause ≥ SHORT_PAUSE_MS (300 ms)
 - Abort rule: any new input cancels pending LM work
 
-2) Scheduler → DiffusionController
+2. Scheduler → DiffusionController
+
 - Methods: `update({text, caret})`, `tickOnce()`, `catchUp()`
 - Invariants: never edits at/after caret; render range throttled to 16 ms
 
-3) DiffusionController → Transformers (Noise/Context/Tone)
+3. DiffusionController → Transformers (Noise/Context/Tone)
+
 - Noise: synchronous `noiseTransform({text, caret}) → {diff|null}`
+- Denoising API: async `denoise(text: string) → Promise<string>` for comprehensive fuzzy text correction (testing/integration)
 - Context: async `contextTransform({text, caret}, lmAdapter, contextManager) → {proposals[]}`
 - Tone: planned `toneTransform({text, caret, target}) → {proposals[]}`
 - All proposals must be strictly within active region and ≤ caret
 
-4) LMContextManager (dual-context)
+4. LMContextManager (dual-context)
+
 - API: `initialize`, `updateWideContext`, `updateCloseContext`, `getContextWindow`, `validateProposal`
 - Window policy: close = ±N sentences around caret (N∈[2,5]); wide = full document snapshot with token estimate
 - Validation: length ratio ≤ 3×; contextual ratio > 0.1; plain-text only
 
-5) LMAdapter (streaming)
+5. LMAdapter (streaming)
+
 - API: `init() → LMCapabilities`, `stream({text, caret, band, settings}) → AsyncIterable<string>`, optional `abort()` and `getStats()`
 - Device tiers: WebGPU → WASM → CPU; token caps and cooldowns per tier
 - Output discipline: plain text; sanitized; band‑bounded
 
-6) Merge Policy & Confidence/Staging
+6. Merge Policy & Confidence/Staging
+
 - Confidence: compute 4‑dimensional score; thresholds τ_input, τ_commit, τ_tone, τ_discard
 - StagingBuffer states: HOLD → COMMIT → DISCARD; ROLLBACK on caret entry
 - Apply order: rules > LM on structural conflicts; LM > rules on semantics
 
-7) Injector & UI feedback
+7. Injector & UI feedback
+
 - Apply diff via `replaceRange` (UTF‑16 safe; never crosses caret)
 - Events: `mindtype:activeRegion`, `mindtype:highlight`; a11y live region announcements; reduced‑motion → instant swaps
 
-8) Safety & privacy gates (always on)
+8. Safety & privacy gates (always on)
+
 - Secure fields and IME composition block transforms
 - Local‑first by default; remote only with explicit opt‑in
 
 Cross‑references:
+
 - Contracts: `guide/reference/{band-policy.md,lm-behavior.md,injector.md,three-stage-pipeline.md,confidence-system.md}`
 - Types: `core/lm/types.ts`, `core/lm/contextManager.ts`
 - Policies: `config/defaultThresholds.ts`
-
 
 ## Rationale
 

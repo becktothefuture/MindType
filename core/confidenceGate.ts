@@ -16,10 +16,7 @@
 */
 
 import { getConfidenceThresholds } from '../config/defaultThresholds';
-import {
-  getConfidenceSensitivity,
-  MAX_SWEEP_WINDOW,
-} from '../config/defaultThresholds';
+import { getConfidenceSensitivity, MAX_SWEEP_WINDOW } from '../config/defaultThresholds';
 
 export interface ConfidenceInputs {
   inputFidelity: number; // [0,1]
@@ -123,14 +120,19 @@ function clamp01f(x: number): number {
 }
 
 function computeDistanceFromCaret(caret: number, start: number, end: number): number {
-  if (!Number.isFinite(caret) || !Number.isFinite(start) || !Number.isFinite(end)) return 0;
+  if (!Number.isFinite(caret) || !Number.isFinite(start) || !Number.isFinite(end))
+    return 0;
   if (start > end) [start, end] = [end, start];
   if (caret < start) return 0; // proposals at/after caret should not occur; treat as near
   if (caret >= start && caret <= end) return 0; // caret inside proposal → near (rollback upstream)
   return Math.max(0, caret - end);
 }
 
-function computeUndoBoost(count = 0, msAgo = Number.POSITIVE_INFINITY, sensitivity = 1): number {
+function computeUndoBoost(
+  count = 0,
+  msAgo = Number.POSITIVE_INFINITY,
+  sensitivity = 1,
+): number {
   if (!count || !Number.isFinite(msAgo)) return 0;
   const windowMs = 3000;
   if (msAgo > windowMs) return 0;
@@ -142,16 +144,18 @@ function computeUndoBoost(count = 0, msAgo = Number.POSITIVE_INFINITY, sensitivi
 
 export function computeDynamicThresholds(input: DynamicThresholdsInput): Thresholds {
   const base = input.base ?? getConfidenceThresholds();
-  const sensitivity = Number.isFinite(input.sensitivity!) && input.sensitivity! > 0
-    ? input.sensitivity!
-    : getConfidenceSensitivity();
+  const sensitivity =
+    Number.isFinite(input.sensitivity!) && input.sensitivity! > 0
+      ? input.sensitivity!
+      : getConfidenceSensitivity();
 
   const distance = computeDistanceFromCaret(input.caret, input.start, input.end);
   const window = Math.max(1, Math.min(MAX_SWEEP_WINDOW, MAX_SWEEP_WINDOW));
   const nearFactor = 1 - Math.min(1, distance / window); // 1 at caret, → 0 by window
 
   // Edit-type offsets (commit): structural typos are easier; semantic/tone stricter
-  const typeOffsetCommit = input.editType === 'noise' ? -0.05 : input.editType === 'tone' ? 0.03 : 0;
+  const typeOffsetCommit =
+    input.editType === 'noise' ? -0.05 : input.editType === 'tone' ? 0.03 : 0;
   const typeOffsetInput = input.editType === 'noise' ? -0.02 : 0; // small ease for noise
 
   // Near-caret conservatism: increase thresholds near the caret (scaled by sensitivity)
@@ -159,7 +163,11 @@ export function computeDynamicThresholds(input: DynamicThresholdsInput): Thresho
   const nearBoostInput = 0.02 * nearFactor * sensitivity;
 
   // Undo/rollback feedback conservatism applied to commit threshold
-  const undoBoost = computeUndoBoost(input.recentRollbackCount, input.lastRollbackMsAgo ?? Number.POSITIVE_INFINITY, sensitivity);
+  const undoBoost = computeUndoBoost(
+    input.recentRollbackCount,
+    input.lastRollbackMsAgo ?? Number.POSITIVE_INFINITY,
+    sensitivity,
+  );
 
   let τ_input = base.τ_input + nearBoostInput + typeOffsetInput;
   let τ_commit = base.τ_commit + nearBoostCommit + typeOffsetCommit + undoBoost;

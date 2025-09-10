@@ -40,5 +40,3 @@ describe('UndoIsolation API', () => {
     expect(u.peekLastGroupRevertOps()).toEqual([]);
   });
 });
-
-

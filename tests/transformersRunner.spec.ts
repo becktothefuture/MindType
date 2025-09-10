@@ -383,7 +383,9 @@ describe('Qwen token streamer', () => {
     expect(chunks1.join('')).toBe('ready-once');
     expect(chunks2.join('')).toBe('ready-once');
     // exactly one ready log despite two runs
-    const calls = infoSpy.mock.calls.filter((c) => String(c[0]).includes('[lm.runner]') && String(c[0]).includes('[LM] ready'));
+    const calls = infoSpy.mock.calls.filter(
+      (c) => String(c[0]).includes('[lm.runner]') && String(c[0]).includes('[LM] ready'),
+    );
     expect(calls.length).toBe(1);
     infoSpy.mockRestore();
   });

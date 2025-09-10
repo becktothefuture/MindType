@@ -45,9 +45,18 @@ export interface LMAdapter {
 }
 
 // ── LM Lab JSONL stream event types (non‑breaking, for lab/tests) ──────────
-export type LMStreamEventType = 'meta' | 'rules' | 'stage' | 'diff' | 'commit' | 'log' | 'done';
+export type LMStreamEventType =
+  | 'meta'
+  | 'rules'
+  | 'stage'
+  | 'diff'
+  | 'commit'
+  | 'log'
+  | 'done';
 
-export interface LMStreamEventBase { type: LMStreamEventType }
+export interface LMStreamEventBase {
+  type: LMStreamEventType;
+}
 
 export interface LMStreamMetaEvent extends LMStreamEventBase {
   type: 'meta';
@@ -94,7 +103,9 @@ export interface LMStreamLogEvent extends LMStreamEventBase {
   message: string;
 }
 
-export interface LMStreamDoneEvent extends LMStreamEventBase { type: 'done' }
+export interface LMStreamDoneEvent extends LMStreamEventBase {
+  type: 'done';
+}
 
 export type LMStreamEvent =
   | LMStreamMetaEvent

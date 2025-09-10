@@ -19,6 +19,7 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning (pre‑1.0). Dates are in YYYY‑MM‑DD.
+
 ## [0.4.0] - 2025-09-09
 
 ### Added
@@ -48,7 +49,6 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 - Architecture (C1/C2/C3 and Overview) updated to show LM Worker + dual‑context
 - Guides updated: LM reference now includes dual‑context and worker runtime details
 - Root docs index clarified that v0.4 content is consolidated; removed redundant v0.4 files
-
 
 ## [0.0.1-alpha] - 2025-08-08
 

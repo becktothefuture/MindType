@@ -27,7 +27,9 @@ export function createMockStreamLMAdapter(): LMAdapter {
     init(): LMCapabilities {
       return { backend: 'cpu', maxContextTokens: 256 };
     },
-    abort() { aborted = true; },
+    abort() {
+      aborted = true;
+    },
     async *stream(params: LMStreamParams): AsyncIterable<string> {
       aborted = false;
       const { text, band } = params;
@@ -41,8 +43,10 @@ export function createMockStreamLMAdapter(): LMAdapter {
 
       // Tone pass: "Professional" inserts a transitional adverb at start
       function applyTone(s: string, tone: 'None' | 'Casual' | 'Professional'): string {
-        if (tone === 'Professional') return s.replace(/^([a-z])/, (_, c) => 'Consequently, ' + c);
-        if (tone === 'Casual') return s.replace(/^([A-Z])/, (_, c) => 'Hey, ' + c.toLowerCase());
+        if (tone === 'Professional')
+          return s.replace(/^([a-z])/, (_, c) => 'Consequently, ' + c);
+        if (tone === 'Casual')
+          return s.replace(/^([A-Z])/, (_, c) => 'Hey, ' + c.toLowerCase());
         return s;
       }
 
@@ -62,13 +66,33 @@ export function createMockStreamLMAdapter(): LMAdapter {
       // Emit a couple of small diffs (simulate token boundaries)
       const firstTeh = bandText.search(/\bteh\b/i);
       if (firstTeh >= 0) {
-        events.push({ type: 'diff', stage: 'context', band, span: { start: firstTeh, end: firstTeh + 3 }, text: 'the', confidence: 0.72 });
+        events.push({
+          type: 'diff',
+          stage: 'context',
+          band,
+          span: { start: firstTeh, end: firstTeh + 3 },
+          text: 'the',
+          confidence: 0.72,
+        });
       }
       const firstBrwon = bandText.search(/\bbrwon\b/i);
       if (firstBrwon >= 0) {
-        events.push({ type: 'diff', stage: 'context', band, span: { start: firstBrwon, end: firstBrwon + 5 }, text: 'brown', confidence: 0.75 });
+        events.push({
+          type: 'diff',
+          stage: 'context',
+          band,
+          span: { start: firstBrwon, end: firstBrwon + 5 },
+          text: 'brown',
+          confidence: 0.75,
+        });
       }
-      events.push({ type: 'commit', stage: 'context', band, text: ctxFixed, confidence: 0.86 });
+      events.push({
+        type: 'commit',
+        stage: 'context',
+        band,
+        text: ctxFixed,
+        confidence: 0.86,
+      });
 
       // Tone stage
       events.push({ type: 'stage', id: 'tone', state: 'start', tone: toneTarget });
@@ -76,9 +100,22 @@ export function createMockStreamLMAdapter(): LMAdapter {
       // If tone added a prefix, emit as diff of span [0,0] insert
       if (toned !== ctxFixed) {
         const insertText = toned.slice(0, toned.length - ctxFixed.length);
-        events.push({ type: 'diff', stage: 'tone', band, span: { start: 0, end: 0 }, text: insertText });
+        events.push({
+          type: 'diff',
+          stage: 'tone',
+          band,
+          span: { start: 0, end: 0 },
+          text: insertText,
+        });
       }
-      events.push({ type: 'commit', stage: 'tone', band, text: toned, tone: toneTarget, confidence: 0.9 });
+      events.push({
+        type: 'commit',
+        stage: 'tone',
+        band,
+        text: toned,
+        tone: toneTarget,
+        confidence: 0.9,
+      });
       events.push({ type: 'done' });
 
       for (const ev of events) {
@@ -90,5 +127,3 @@ export function createMockStreamLMAdapter(): LMAdapter {
     },
   };
 }
-
-

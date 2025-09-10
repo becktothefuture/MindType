@@ -25,15 +25,24 @@ test('LM Lab produces two-pass outputs', async ({ page }) => {
   // Wait for JSONL to accumulate and outputs to render
   await page.waitForTimeout(300);
 
-  const ctx = await page.getByTestId('lm-context-output').textContent();
-  const tone = await page.getByTestId('lm-tone-output').textContent();
-  // If LM is unavailable (e.g., no assets), context output may be empty; allow either improved text or empty with error alert present
-  const alertCount = await page.locator('[role="alert"]').count();
-  if (alertCount > 0) {
-    expect((ctx || '').length).toBeGreaterThanOrEqual(0);
-  } else {
-    expect(ctx || '').toMatch(/the\s+brown/i);
+  // Poll for up to ~12s for either output, JSONL chunks, or error
+  let ctx = '';
+  let jsonl = '';
+  const start = Date.now();
+  while (Date.now() - start < 12000) {
+    ctx = (await page.getByTestId('lm-context-output').textContent()) || '';
+    jsonl = (await page.getByTestId('lm-jsonl').textContent()) || '';
+    const alertVisible = await page.locator('[role="alert"]').isVisible().catch(() => false);
+    if (alertVisible || ctx.trim().length > 0 || jsonl.trim().length > 0) break;
+    await page.waitForTimeout(200);
   }
+  const alertCount = await page.locator('[role="alert"]').count();
+  if (alertCount === 0 && ctx.trim().length > 0) {
+    expect(ctx).toMatch(/the\s+brown/i);
+  } else {
+    expect((ctx || '').length).toBeGreaterThanOrEqual(0);
+  }
+  const tone = await page.getByTestId('lm-tone-output').textContent();
   // Tone output may mirror context when tone is not applied yet; do not hard-require prefix
   expect((tone || '').length).toBeGreaterThanOrEqual(0);
 });

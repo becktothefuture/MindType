@@ -1,0 +1,37 @@
+## Interface
+
+```
+type Diff = { start: number; end: number; text: string };
+interface Injector {
+  applyDiff(input: { diff: Diff; caret: number }): { nextCaret: number };
+}
+```
+
+## Web Injector
+
+- Update textarea value using `insertText`/value slicing; restore caret.
+- Group as a single undo step.
+
+## macOS Injector
+
+- Use Accessibility insertion APIs where supported.
+- Clipboard fallback (copy corrected span → Cmd‑V) if needed.
+
+## Tests
+
+- Caret stable after injection
+- Single undo step reverts the entire change
+
+See also: `core/diffusionController.ts` and `utils/diff.ts`.
+
+<!-- Alignment: Injector should listen to `mindtype:activeRegion` and `mindtype:highlight`; no references to `validationBand` remain. -->
+
+## Events listened
+
+- `mindtype:activeRegion`
+- `mindtype:mechanicalSwap` (replaces legacy `mindtype:highlight`)
+
+## Undo policy
+
+- Active region (formerly “tapestry”)/LM evolutions must preserve the platform editor's native undo stack.
+- Do not apply `groupUndo` to active‑region/LM merges; grouping (if any) is reserved for simple rule-based engine diffs and remains optional.

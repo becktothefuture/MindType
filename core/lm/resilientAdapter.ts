@@ -45,7 +45,9 @@ export function createResilientLMAdapter(
           }
         })();
 
-        const timeoutPromise = new Promise<void>((resolve) => setTimeout(resolve, timeoutMs));
+        const timeoutPromise = new Promise<void>((resolve) =>
+          setTimeout(resolve, timeoutMs),
+        );
 
         await Promise.race([firstChunkPromise, timeoutPromise]);
 
@@ -63,7 +65,9 @@ export function createResilientLMAdapter(
           yield firstChunk;
         }
         for await (const chunk of {
-          [Symbol.asyncIterator]() { return primaryStream; },
+          [Symbol.asyncIterator]() {
+            return primaryStream;
+          },
         } as AsyncIterable<string>) {
           yield chunk;
         }
@@ -72,5 +76,3 @@ export function createResilientLMAdapter(
     },
   } as LMAdapter;
 }
-
-

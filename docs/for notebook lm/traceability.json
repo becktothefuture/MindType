@@ -1,0 +1,207 @@
+{
+  "REQ-STREAMED-DIFFUSION": {
+    "kind": "REQ",
+    "title": "Streamed diffusion of LM corrections",
+    "modules": ["core/diffusionController.ts", "core/lm/mergePolicy.ts"],
+    "acceptance": ["docs/qa/acceptance/streamed_diffusion.feature#SCEN-DIFFUSION-001"],
+    "tests": [
+      "tests/diffusionController.spec.ts",
+      "tests/diffusionController_lm_branches.spec.ts"
+    ],
+    "invariants": [],
+    "types": [],
+    "source": "docs/PRD.md"
+  },
+  "REQ-IME-CARETSAFE": {
+    "kind": "REQ",
+    "title": "No edits at or after the caret",
+    "modules": ["utils/diff.ts", "core/activeRegionPolicy.ts"],
+    "acceptance": ["docs/qa/acceptance/caret_safety.feature#SCEN-CARETS-001"],
+    "tests": ["tests/diff.spec.ts", "tests/policy.spec.ts"],
+    "invariants": [],
+    "types": [],
+    "source": "docs/PRD.md"
+  },
+  "REQ-A11Y-MOTION": {
+    "kind": "REQ",
+    "title": "Respect reduced-motion; single announcement; mechanical swap",
+    "modules": ["ui/motion.ts", "ui/liveRegion.ts"],
+    "acceptance": ["docs/qa/acceptance/two_word_highlight.feature#SCEN-HILITE-001"],
+    "tests": ["tests/motion.spec.ts", "tests/liveRegion.spec.ts"],
+    "invariants": [],
+    "types": [],
+    "source": "docs/PRD.md"
+  },
+  "REQ-LOCAL-LM-INTEGRATION": {
+    "kind": "REQ",
+    "title": "On-device LM integration with graceful fallback",
+    "modules": ["core/lm/factory.ts", "core/lm/transformersClient.ts"],
+    "acceptance": ["docs/qa/acceptance/local_lm_integration.feature#SCEN-LMLOCAL-001"],
+    "tests": [
+      "tests/transformersClient.spec.ts",
+      "tests/transformersClient_factory.spec.ts"
+    ],
+    "invariants": [],
+    "types": [],
+    "source": "docs/PRD.md"
+  },
+  "REQ-BAND-SWAP": {
+    "kind": "REQ",
+    "title": "Band-swap noise-cluster animation demo",
+    "modules": [
+      "web-demo/public/demo/band-swap/index.html",
+      "web-demo/public/demo/band-swap/main.js",
+      "web-demo/public/demo/band-swap/styles.css",
+      "contracts/animTokens.ts"
+    ],
+    "acceptance": ["docs/qa/acceptance/mechanical_swap.feature#SCEN-BAND-SWAP-001"],
+    "tests": ["e2e/tests/demo-band-swap.spec.ts"],
+    "invariants": [],
+    "types": [],
+    "source": "docs/PRD.md"
+  },
+  "REQ-CONTEXT-TRANSFORMER": {
+    "kind": "REQ",
+    "title": "Context transformer with ±2 sentence look-around",
+    "modules": ["engines/contextTransformer.ts", "core/diffusionController.ts"],
+    "acceptance": ["docs/qa/acceptance/context_transformer.feature#SCEN-CONTEXT-001"],
+    "tests": ["tests/contextTransformer.spec.ts"],
+    "invariants": ["Never edits at/after caret (REQ-IME-CARETSAFE)"],
+    "types": [],
+    "source": "docs/implementation.md"
+  },
+  "REQ-TONE-TRANSFORMER": {
+    "kind": "REQ",
+    "title": "Tone transformer with baseline detection and selectable tone",
+    "modules": ["engines/toneTransformer.ts", "core/diffusionController.ts"],
+    "acceptance": ["docs/qa/acceptance/tone_transformer.feature#SCEN-TONE-001"],
+    "tests": ["tests/toneTransformer.spec.ts"],
+    "invariants": ["Never edits at/after caret (REQ-IME-CARETSAFE)"],
+    "types": [],
+    "source": "docs/implementation.md"
+  },
+  "REQ-CONFIDENCE-GATE": {
+    "kind": "REQ",
+    "title": "Confidence gating across pipeline stages",
+    "modules": [
+      "core/confidenceGate.ts",
+      "core/stagingBuffer.ts",
+      "core/diffusionController.ts"
+    ],
+    "acceptance": ["docs/qa/acceptance/confidence_gate.feature#SCEN-CONFIDENCE-001"],
+    "tests": ["tests/confidenceGate.spec.ts", "tests/stagingBuffer.spec.ts"],
+    "invariants": [],
+    "types": [],
+    "source": "docs/implementation.md"
+  },
+  "REQ-THREE-STAGE-PIPELINE": {
+    "kind": "REQ",
+    "title": "Integrate Noise → Context → Tone pipeline with staging buffer",
+    "modules": ["core/diffusionController.ts", "core/sweepScheduler.ts"],
+    "acceptance": ["docs/qa/acceptance/three_stage_pipeline.feature#SCEN-PIPELINE-001"],
+    "tests": ["tests/integration.spec.ts"],
+    "invariants": [],
+    "types": [],
+    "source": "docs/implementation.md"
+  },
+  "REQ-LANGUAGE-GATING": {
+    "kind": "REQ",
+    "title": "English-only gating for full pipeline (Noise for others)",
+    "modules": [
+      "core/languageDetection.ts",
+      "core/diffusionController.ts",
+      "core/sweepScheduler.ts"
+    ],
+    "acceptance": ["docs/qa/acceptance/language_gating.feature#SCEN-LANG-001"],
+    "tests": ["tests/languageDetection.spec.ts"],
+    "invariants": [],
+    "types": [],
+    "source": "docs/implementation.md"
+  },
+  "REQ-TONE-CONTROLS-UI": {
+    "kind": "REQ",
+    "title": "Web demo tone controls and thresholds",
+    "modules": ["web-demo/src/App.tsx", "web-demo/src/App.css"],
+    "acceptance": ["docs/qa/acceptance/tone_controls_ui.feature#SCEN-TONE-UI-001"],
+    "tests": ["e2e/tests/web-demo-tone-controls.spec.ts"],
+    "invariants": [],
+    "types": [],
+    "source": "docs/implementation.md"
+  },
+  "CONTRACT-BAND-SWAP": {
+    "kind": "CONTRACT",
+    "title": "Band-swap animation tokens",
+    "modules": ["contracts/animTokens.ts", "web-demo/public/demo/band-swap/main.js"],
+    "acceptance": [],
+    "tests": [],
+    "invariants": [
+      {
+        "Preserve layout": "no per-char DOM mutations; overlay only"
+      },
+      {
+        "Reduced-motion": "static band highlight, no rAF"
+      }
+    ],
+    "types": [
+      {
+        "name": "AnimTokens",
+        "ts": "export interface AnimTokens {\n  bandSpeed: number;\n  bandSpread: number;\n  bandMix: number; // 0..100\n  symbolSet: string[];\n  autoplay: boolean;\n  playhead: number; // 0..100\n}\n"
+      },
+      {
+        "name": "DEFAULT_SYMBOLS",
+        "ts": "export const DEFAULT_SYMBOLS = [\n  '\\u2800','\\u2802','\\u2804','\\u2806','\\u2810','\\u2812','\\u2814','\\u2816',\n  '\\u2820','\\u2822','\\u2824','\\u2826','\\u2830','\\u2832','\\u2834','\\u2836',\n] as const;\n"
+      }
+    ],
+    "source": "docs/guide/band-swap.md"
+  },
+  "CONTRACT-ACTIVE-REGION": {
+    "kind": "CONTRACT",
+    "title": "Active region policy (render vs context ranges)",
+    "modules": ["core/activeRegionPolicy.ts"],
+    "acceptance": [],
+    "tests": [],
+    "invariants": [
+      "Context can extend beyond render band but never crosses secure fields",
+      "Render range must not include caret position (REQ-IME-CARETSAFE)"
+    ],
+    "types": [],
+    "source": "docs/guide/reference/active-region-design.md"
+  },
+  "CONTRACT-LM-ADAPTER": {
+    "kind": "CONTRACT",
+    "title": "LMAdapter streaming contract",
+    "modules": ["core/lm/types.ts", "core/lm/factory.ts", "core/activeRegionPolicy.ts"],
+    "acceptance": [],
+    "tests": [],
+    "invariants": [
+      "Never emit a diff that modifies content at/after the caret (REQ-IME-CARETSAFE)"
+    ],
+    "types": [
+      {
+        "name": "LMStreamParams",
+        "ts": "export interface LMStreamParams {\n  text: string;\n  caret: number;\n  band: { start: number; end: number };\n  settings?: Record<string, unknown>;\n}\n"
+      }
+    ],
+    "source": "docs/guide/reference/lm-behavior.md"
+  },
+  "CONTRACT-LM-STREAM": {
+    "kind": "CONTRACT",
+    "title": "JSONL LM stream protocol (context → tone)",
+    "modules": [
+      "core/lm/types.ts",
+      "core/lm/mockStreamAdapter.ts",
+      "web-demo/src/lab/LMLab.tsx"
+    ],
+    "acceptance": [
+      "tests/lm_stream.spec.ts#SCEN-LM-STREAM-001",
+      "e2e/tests/lm_lab.spec.ts#SCEN-LM-LAB-002"
+    ],
+    "tests": [],
+    "invariants": [
+      "Events are JSON objects per line with required type",
+      "Tone stage runs only after context commit"
+    ],
+    "types": [],
+    "source": "docs/guide/reference/lm-stream.md"
+  }
+}

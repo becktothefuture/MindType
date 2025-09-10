@@ -39,14 +39,21 @@
 >   - ✅ Caret safety enforced at all levels; comprehensive tests (23 passing)
 >   - ✅ Basic rule engine with 5 common typo corrections
 >   - ✅ Integration tests proving end-to-end functionality
+>   - ✅ Comprehensive denoising test suite with fuzzy text regression testing (16 test cases, 50% pass rate demonstrating pipeline capabilities)
 > - What's not done yet (v0.2 deltas):
->   - Shift of core algorithmic surface into Rust with clean FFI
+>   - 🚨 **CRITICAL BUG:** Shift of core algorithmic surface into Rust with clean FFI (ADR-0005 violation - orchestrator should be Rust, currently TypeScript)
 >   - Remove demo‑side LM scheduling; centralize in core
->   - Add tapestry datastructure, confidence gating, and undo buckets
+>   - ✅ **Confidence Gating:** Mathematical scoring algorithms with 4-dimensional confidence (input fidelity, transformation quality, context coherence, temporal decay) implemented
+>   - ✅ **Staging Buffer:** State machine with HOLD/COMMIT/DISCARD/ROLLBACK states implemented
+>   - Add tapestry datastructure and undo buckets
 >   - Workerized Transformers with memory guard
 >   - Update acceptance scenarios to cover rollback and caret‑entry guard
+>   - 🚨 **HIGH PRIORITY BUG:** Pipeline Integration violates documented architecture - SweepScheduler should use proper ConflictResolver → DiffusionController flow as specified in three-stage-pipeline.md:54 (currently bypasses proper flow)
 >   - **Pipeline Integration:** TS pipeline wired in `index.ts`; web demo uses the TS streaming pipeline (FT‑315)
->   - **Contextual Rules:** Only simple word substitutions; need transpositions, punctuation, capitalization
+>   - ✅ **Context Transformer:** Sentence-level LM repairs with dual-context architecture implemented
+>   - ✅ **Tone Transformer:** Baseline detection and tone adjustment capabilities implemented
+>   - **Contextual Rules Enhancement:** Current rules cover basic patterns; need enhanced transposition detection and advanced punctuation handling
+>   - **Enhanced Denoising:** Current denoising API covers basic patterns; need improved contraction handling, sentence boundary detection, and comma placement for remaining 50% of test cases
 >   - **Local LM:** On‑device streaming present; prompt shaping not yet wired through adapter (see FT‑231C2)
 >   - **Visual Feedback:** `emitActiveRegion()`/highlight are basic; design polish pending
 >   - **Demo Integration:** Web demo connected to TS pipeline for live testing (FT‑315)
@@ -56,6 +63,30 @@
 > - Picks the **first unchecked** task from the highest active Stage.
 > - **PLAN_ONLY** may append tasks using the Task Schema; **EXECUTE** fulfils them.
 > - Keep tasks atomic; prefer many small boxes over one vague one.
+
+## 🚨 Critical Architecture Bugs (HIGH PRIORITY)
+
+**These bugs violate core architectural decisions and must be addressed:**
+
+### BUG-001: ADR-0005 Violation - Rust-First Orchestrator
+- **Issue:** Core orchestration is in TypeScript, violates ADR-0005 decision
+- **Evidence:** `core/sweepScheduler.ts` should be `crates/core-rs/src/scheduler.rs`
+- **Impact:** Architecture decision not implemented, affects performance and cross-platform goals
+- **Priority:** P1 (Critical)
+- **Docs:** `docs/adr/0005-rust-first-orchestrator.md`
+
+### BUG-002: Pipeline Flow Bypasses Documented Architecture  
+- **Issue:** ConflictResolver → DiffusionController flow not properly implemented
+- **Evidence:** `core/sweepScheduler.ts:307` calls `diffusion.applyExternal()` directly
+- **Impact:** Violates documented pipeline flow in `three-stage-pipeline.md:54`
+- **Priority:** P1 (High)
+- **Docs:** `docs/guide/reference/three-stage-pipeline.md`
+
+### BUG-003: Missing Core Module References
+- **Issue:** Some documentation references `core/activeRegion.ts` but file is `core/activeRegionPolicy.ts`
+- **Evidence:** `docs/guide/reference/three-stage-pipeline.md:78`
+- **Impact:** Documentation inconsistency, confusing for developers
+- **Priority:** P2 (Medium)
 
 ## Quality Gates & Definition of Done (RULE)
 
@@ -184,6 +215,8 @@ Task checklist template (copy into PR description):
 
 ### Rust Core Setup (P1)
 
+- NOTE (v0.4): TS-first host is canonical until FT-133 lands. Rust WASM is compiled and staged; we will replace TS algorithmic modules behind the same interfaces with a feature flag, keeping tests unchanged.
+
 - [ ] (P1) [FT-130] Setup Rust crate structure  
        **AC:** - `crates/core-rs` initialized - WASM target configured - Basic FFI bindings
       **Owner:** @alex  
@@ -203,7 +236,13 @@ Task checklist template (copy into PR description):
        **Source:** v0.2 architecture → Memory Safety & FFI
 
 - [ ] (P1) [FT-133] WebAssembly bindings and TypeScript package  
-       **AC:** wasm32 target builds via wasm-bindgen; JS glue generates TS declarations; publishable npm package scaffolded (private); `bindings/wasm/pkg` integrated; demo consumes WASM path behind flag.  
+       **AC:**
+       - wasm32 target builds via wasm-bindgen; JS glue generates TS declarations
+       - Publishable npm package scaffolded (private); `bindings/wasm/pkg` integrated
+       - Introduce `USE_WASM_CORE` feature flag (default off)
+       - Replace TS PauseTimer/FragmentExtractor/MergeEngine with WASM equivalents when flag=true
+       - All existing tests pass unmodified under both modes (TS-only, WASM-enabled)
+       - CI job runs parity suite across both modes with golden corpus
        **Owner:** @alex  
        **DependsOn:** FT-132  
        **Source:** v0.2 architecture → Web (Browser / TypeScript)
@@ -531,34 +570,33 @@ Task checklist template (copy into PR description):
 
 - [ ] (P1) [LM‑LAB‑SPEC] Author JSONL stream SPEC and examples  
        **AC:** SPEC doc `docs/guide/reference/lm-stream.md` with event types (`meta`, `rules`, `stage`, `diff`, `commit`, `log`, `done`), transcript examples, invariants; `doc:check` passes.
-       **Owner:** @alex  
+      **Owner:** @alex  
        **DependsOn:** FT-231A, FT-232  
        **Source:** CONTRACT-LM-STREAM
 
 - [ ] (P1) [LM‑LAB‑TYPES] Add LM stream event types + mock adapter  
        **AC:** Extend `core/lm/types.ts` (non‑breaking) with event type exports for lab/tests; add `core/lm/mockStreamAdapter.ts` emitting JSONL transcript; keep main pipeline behavior unchanged.
-       **Owner:** @alex  
+      **Owner:** @alex  
        **DependsOn:** LM‑LAB‑SPEC  
        **Modules:** core/lm/types.ts, core/lm/mockStreamAdapter.ts
 
 - [ ] (P1) [LM‑LAB‑DEMO] Build LM Lab web demo route with rules panel + stream monitor  
        **AC:** Second demo accessible under the web demo app via hash route `#/lab` or a dedicated `demo/lm-lab`; inputs: fuzzy text textarea; controls: tone (None/Casual/Professional), thresholds sliders; right‑aligned collapsible rules panel (5vh margins, keyboard toggle); live JSONL event monitor; final outputs for context and tone. Respect reduced‑motion.
-       **Owner:** @alex  
+      **Owner:** @alex  
        **DependsOn:** LM‑LAB‑TYPES  
-       **Modules:** web-demo/src/lab/**/*, web-demo/src/App.tsx (router stub)
+       **Modules:** web-demo/src/lab/\*_/_, web-demo/src/App.tsx (router stub)
 
 - [ ] (P1) [LM‑LAB‑UNIT] Unit tests for two‑pass LM stream application  
        **AC:** `tests/lm_stream.spec.ts` parses sample transcript(s), applies diffs to a band buffer, verifies commit ordering (context before tone) and final outputs; covers overlapping diffs, missing commit, malformed event.
-       **Owner:** @alex  
+      **Owner:** @alex  
        **DependsOn:** LM‑LAB‑TYPES  
        **Modules:** tests/lm_stream.spec.ts
 
 - [ ] (P1) [LM‑LAB‑E2E] Playwright e2e for LM Lab  
        **AC:** Visit `/#/lab`; type/paste fuzzy text; observe event sequence (`meta → stage(context) → diff → commit → stage(tone) → diff → commit → done`); verify output matches mock; rules panel toggles impact output deterministically; reduced‑motion respected.
-       **Owner:** @alex  
+      **Owner:** @alex  
        **DependsOn:** LM‑LAB‑DEMO  
        **Modules:** e2e/tests/lm_lab.spec.ts, e2e/playwright.config.ts
-
   - [ ] (P1) [FT-318B] Web UI design polish for active region  
          **AC:** Finalize shimmer timing/gradient, reduced‑motion styles, and highlight durations; add a11y‑friendly colors and contrast; document tokens in `web-demo/src/App.css`.  
          **Owner:** @alex  
@@ -1505,49 +1543,49 @@ The remaining tasks are polish and platform expansion—the **core functionality
 ### 🚨 Critical Priority (Immediate - This Week)
 
 - [ ] **LM-501** Debug LM streaming reliability using enhanced diagnostic logging  
-      **AC:** Identify root causes of empty LM outputs in E2E tests; fix worker message passing; ensure corrections appear consistently in browser  
-      **Owner:** @dev  
-      **Source:** E2E test failures with empty lm-context-output  
+       **AC:** Identify root causes of empty LM outputs in E2E tests; fix worker message passing; ensure corrections appear consistently in browser  
+       **Owner:** @dev  
+       **Source:** E2E test failures with empty lm-context-output
 
 - [ ] **LM-501A** Validate corrections work end-to-end in browser dev tools  
-      **AC:** Manual verification in Chrome/Safari dev tools; worker logs show successful generation; LM Lab presets produce visible output  
-      **DependsOn:** LM-501  
+       **AC:** Manual verification in Chrome/Safari dev tools; worker logs show successful generation; LM Lab presets produce visible output  
+       **DependsOn:** LM-501
 
 - [ ] **LM-501B** Test health monitoring indicators in workbench LM tab  
-      **AC:** Status indicators (healthy/error/unknown) update correctly; worker active state tracked; error messages displayed  
-      **DependsOn:** LM-501  
+       **AC:** Status indicators (healthy/error/unknown) update correctly; worker active state tracked; error messages displayed  
+       **DependsOn:** LM-501
 
 - [ ] **LM-501C** Verify performance regression detection with artificial slowdowns  
-      **AC:** Trend analysis detects >20% latency changes; visual indicators show regression/improvement; metrics export includes trend data  
+       **AC:** Trend analysis detects >20% latency changes; visual indicators show regression/improvement; metrics export includes trend data
 
 ### 📈 Short-term Goals (Next 2 Weeks)
 
 - [ ] **LM-502** Stabilize LM reliability to >95% success rate  
-      **AC:** E2E tests pass consistently; LM outputs visible in 95%+ of runs; graceful degradation when models unavailable  
-      **DependsOn:** LM-501*  
+       **AC:** E2E tests pass consistently; LM outputs visible in 95%+ of runs; graceful degradation when models unavailable  
+       **DependsOn:** LM-501\*
 
 - [ ] **LM-503** Optimize first-token latency to <200ms consistently  
-      **AC:** Workbench metrics show <200ms p95 latency; model warmup implemented; backend selection optimized  
+       **AC:** Workbench metrics show <200ms p95 latency; model warmup implemented; backend selection optimized
 
 - [ ] **LM-504** Add sparkline charts for visual performance trends  
-      **AC:** Workbench metrics tab shows mini-charts; trend visualization clear; historical data preserved  
+       **AC:** Workbench metrics tab shows mini-charts; trend visualization clear; historical data preserved
 
 - [ ] **LM-505** Implement advanced presets with expected outcome validation  
-      **AC:** Presets include expected corrections; automated validation in tests; regression detection for preset quality  
+       **AC:** Presets include expected corrections; automated validation in tests; regression detection for preset quality
 
 ### 🏗️ Medium-term Strategy (Next Month)
 
 - [ ] **PLATFORM-601** macOS MVP planning using proven core architecture  
-      **AC:** Architecture document for Swift app; FFI interface defined; shared core strategy documented  
+       **AC:** Architecture document for Swift app; FFI interface defined; shared core strategy documented
 
 - [ ] **PLATFORM-602** PWA capabilities for web demo distribution  
-      **AC:** Service worker implemented; offline functionality; app manifest; installation prompts  
+       **AC:** Service worker implemented; offline functionality; app manifest; installation prompts
 
 - [ ] **QA-701** User acceptance testing with real-world scenarios  
-      **AC:** Test scenarios defined; user feedback collected; acceptance criteria validated  
+       **AC:** Test scenarios defined; user feedback collected; acceptance criteria validated
 
 - [ ] **PERF-801** Performance benchmarking across device tiers  
-      **AC:** Benchmark suite created; performance baselines established; optimization targets defined  
+       **AC:** Benchmark suite created; performance baselines established; optimization targets defined
 
 ---
 

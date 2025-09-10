@@ -96,8 +96,7 @@ async function loadGeneratorSingleton(
       e.backends.onnx = e.backends.onnx ?? { wasm: {} };
       e.backends.onnx.wasm = e.backends.onnx.wasm ?? {};
       const cdn = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@latest/dist/';
-      const wasmBase =
-        opts?.wasmPaths ?? (opts?.localOnly ? '/wasm/' : cdn);
+      const wasmBase = opts?.wasmPaths ?? (opts?.localOnly ? '/wasm/' : cdn);
       e.backends.onnx.wasm.wasmPaths = wasmBase;
     }
 

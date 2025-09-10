@@ -51,5 +51,3 @@ describe('config/defaultThresholds clamps', () => {
     expect(getConfidenceSensitivity()).toBeCloseTo(1.6, 5);
   });
 });
-
-

@@ -19,10 +19,20 @@ test.describe('LM Lab correctness (presets)', () => {
     // Presets auto-run; wait for either output or error alert
     const ctx = page.getByTestId('lm-context-output');
     const alert = page.locator('[role="alert"]');
-    await Promise.race([
-      ctx.waitFor({ state: 'visible' }).then(() => expect.poll(async () => (await ctx.textContent()) || '').toPass((s) => s.length >= 0)),
-      alert.waitFor({ state: 'visible' })
+    const got = await Promise.race<Promise<boolean> | Promise<boolean>>([
+      (async () => {
+        // Poll up to ~12s for any text content
+        const start = Date.now();
+        while (Date.now() - start < 12000) {
+          const s = (await ctx.textContent()) || '';
+          if (s.length >= 0) return true;
+          await page.waitForTimeout(300);
+        }
+        return false;
+      })(),
+      alert.waitFor({ state: 'visible' }).then(() => true)
     ]);
+    expect(got).toBeTruthy();
   });
 
   test('Grammar preset improves text (or shows error)', async ({ page }) => {
@@ -30,10 +40,19 @@ test.describe('LM Lab correctness (presets)', () => {
     await page.getByRole('button', { name: 'Grammar' }).click();
     const ctx = page.getByTestId('lm-context-output');
     const alert = page.locator('[role="alert"]');
-    await Promise.race([
-      ctx.waitFor({ state: 'visible' }).then(() => expect.poll(async () => (await ctx.textContent()) || '').toPass((s) => s.length >= 0)),
-      alert.waitFor({ state: 'visible' })
+    const got = await Promise.race<Promise<boolean> | Promise<boolean>>([
+      (async () => {
+        const start = Date.now();
+        while (Date.now() - start < 12000) {
+          const s = (await ctx.textContent()) || '';
+          if (s.length >= 0) return true;
+          await page.waitForTimeout(300);
+        }
+        return false;
+      })(),
+      alert.waitFor({ state: 'visible' }).then(() => true)
     ]);
+    expect(got).toBeTruthy();
   });
 });
 

@@ -48,7 +48,11 @@ describe('DiffusionController policy guard', () => {
     const ctrl = createDiffusionController();
     const initial = 'abc def';
     ctrl.update(initial, initial.length);
-    const ok = (ctrl as unknown as { applyExternal: (d: { start: number; end: number; text: string }) => boolean }).applyExternal({ start: 0, end: 3, text: 'xyz' });
+    const ok = (
+      ctrl as unknown as {
+        applyExternal: (d: { start: number; end: number; text: string }) => boolean;
+      }
+    ).applyExternal({ start: 0, end: 3, text: 'xyz' });
     expect(ok).toBe(true);
     const last = highlightCalls[highlightCalls.length - 1];
     expect(last).toBeTruthy();

@@ -7,10 +7,7 @@ import {
   clamp01,
   type ConfidenceInputs,
 } from '../core/confidenceGate';
-import {
-  computeDynamicThresholds,
-  type EditType,
-} from '../core/confidenceGate';
+import { computeDynamicThresholds, type EditType } from '../core/confidenceGate';
 import {
   setConfidenceSensitivity,
   setConfidenceThresholds,
@@ -131,9 +128,24 @@ describe('confidenceGate', () => {
   });
 
   it('dynamic thresholds respect edit type offsets (noise easier, tone stricter)', () => {
-    const ctx = computeDynamicThresholds({ caret: 200, start: 90, end: 99, editType: 'context' });
-    const noise = computeDynamicThresholds({ caret: 200, start: 90, end: 99, editType: 'noise' });
-    const tone = computeDynamicThresholds({ caret: 200, start: 90, end: 99, editType: 'tone' });
+    const ctx = computeDynamicThresholds({
+      caret: 200,
+      start: 90,
+      end: 99,
+      editType: 'context',
+    });
+    const noise = computeDynamicThresholds({
+      caret: 200,
+      start: 90,
+      end: 99,
+      editType: 'noise',
+    });
+    const tone = computeDynamicThresholds({
+      caret: 200,
+      start: 90,
+      end: 99,
+      editType: 'tone',
+    });
     expect(noise.τ_commit).toBeLessThanOrEqual(ctx.τ_commit);
     expect(tone.τ_commit).toBeGreaterThanOrEqual(ctx.τ_commit);
   });

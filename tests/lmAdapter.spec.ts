@@ -6,7 +6,10 @@
   ╚══════════════════════════════════════════════════════════════╝
 */
 import { describe, it, expect } from 'vitest';
-import { createTransformersAdapter, type TokenStreamer } from '../core/lm/transformersClient';
+import {
+  createTransformersAdapter,
+  type TokenStreamer,
+} from '../core/lm/transformersClient';
 
 function makeStreamer(chunks: string[], delayMs = 0): TokenStreamer {
   return {
@@ -23,7 +26,11 @@ describe('LMAdapter (transformersClient)', () => {
   it('streams chunks from runner', async () => {
     const adapter = createTransformersAdapter(makeStreamer(['Hello', ' ', 'World']));
     const out: string[] = [];
-    for await (const t of adapter.stream({ text: 'abc', caret: 3, band: { start: 0, end: 3 } })) {
+    for await (const t of adapter.stream({
+      text: 'abc',
+      caret: 3,
+      band: { start: 0, end: 3 },
+    })) {
       out.push(t);
     }
     expect(out.join('')).toBe('Hello World');
@@ -52,7 +59,9 @@ describe('LMAdapter (transformersClient)', () => {
   it('abort() stops further emission', async () => {
     const adapter = createTransformersAdapter(makeStreamer(['one', 'two', 'three'], 0));
     const out: string[] = [];
-    const it = adapter.stream({ text: 'abc', caret: 3, band: { start: 0, end: 3 } })[Symbol.asyncIterator]();
+    const it = adapter
+      .stream({ text: 'abc', caret: 3, band: { start: 0, end: 3 } })
+      [Symbol.asyncIterator]();
     const r1 = await it.next();
     if (!r1.done) out.push(r1.value);
     adapter.abort?.();
@@ -61,5 +70,3 @@ describe('LMAdapter (transformersClient)', () => {
     expect(out.join('')).toBe('one');
   });
 });
-
-
