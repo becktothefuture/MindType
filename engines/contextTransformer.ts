@@ -16,6 +16,12 @@
 */
 
 import { CONFIDENCE_THRESHOLDS } from '../config/defaultThresholds';
+import {
+  computeConfidence,
+  applyThresholds,
+  computeInputFidelity,
+  computeDynamicThresholds,
+} from '../core/confidenceGate';
 import type { LMContextManager } from '../core/lm/contextManager';
 
 export interface ContextWindow {
@@ -107,24 +113,38 @@ function deterministicRepairs(span: string): { span: string; changed: boolean } 
 }
 
 export async function contextTransform(
-  input: TransformInput, 
-  lmAdapter?: any,
-  contextManager?: LMContextManager
+  input: TransformInput,
+  lmAdapter?: unknown,
+  contextManager?: LMContextManager,
 ): Promise<TransformResult> {
   const { text, caret } = input;
-  console.log('[ContextTransformer] Function called', { textLength: text.length, caret, hasLMAdapter: !!lmAdapter, hasContextManager: !!contextManager });
+  // Enhanced diagnostic logging for LM-501
+  const diagnosticId = `ctx-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  console.log(`[ContextTransformer] START ${diagnosticId}`, {
+    textLength: text.length,
+    caret,
+    hasLMAdapter: !!lmAdapter,
+    hasContextManager: !!contextManager,
+    contextManagerInitialized: contextManager?.isInitialized(),
+    timestamp: new Date().toISOString(),
+  });
   const window = buildContextWindow(text, caret);
 
   // Gate on input fidelity (cheap heuristic on current+prev context)
   const sample = [window.previousSentences.join(' '), window.currentSentence]
     .join(' ')
     .slice(-200);
-  const nonSpace = sample.replace(/\s+/g, '');
-  const inputFidelity =
-    nonSpace.length === 0
-      ? 0
-      : (nonSpace.match(/[\p{L}\p{N}]/gu) || []).length / nonSpace.length;
+  const inputFidelity = computeInputFidelity(sample);
+  console.log(`[ContextTransformer] FIDELITY_CHECK ${diagnosticId}`, {
+    inputFidelity,
+    threshold: CONFIDENCE_THRESHOLDS.τ_input,
+    passed: inputFidelity >= CONFIDENCE_THRESHOLDS.τ_input,
+    sampleLength: sample.length,
+  });
   if (inputFidelity < CONFIDENCE_THRESHOLDS.τ_input) {
+    console.log(`[ContextTransformer] EARLY_EXIT ${diagnosticId}`, {
+      reason: 'low_input_fidelity',
+    });
     return { window, proposals: [] };
   }
 
@@ -163,15 +183,24 @@ export async function contextTransform(
   }
 
   // LM-based corrections using dual-context approach
+  console.log(`[ContextTransformer] LM_CHECK ${diagnosticId}`, {
+    hasLMAdapter: !!lmAdapter,
+    hasContextManager: !!contextManager,
+    isInitialized: contextManager?.isInitialized(),
+    willUseLM: !!(lmAdapter && contextManager && contextManager.isInitialized()),
+    rulesProposals: proposals.length,
+  });
   if (lmAdapter && contextManager && contextManager.isInitialized()) {
     try {
       const contextWindow = contextManager.getContextWindow();
-      
+
       // Use close context for focused corrections
       const closeText = contextWindow.close.text;
-      
+
       // Generate LM prompt with wide context awareness
-      const { selectSpanAndPrompt, postProcessLMOutput } = await import('../core/lm/policy');
+      const { selectSpanAndPrompt, postProcessLMOutput } = await import(
+        '../core/lm/policy'
+      );
       const selection = selectSpanAndPrompt(text, caret);
       // Use original selection band for LM prompting (may extend past caret to a word boundary)
       const lmBand = selection.band;
@@ -184,71 +213,196 @@ export async function contextTransform(
       if (validBand && selection.prompt && lmBand) {
         const band = bandClamped as { start: number; end: number };
         // Init LM stats container
-        const g: any = globalThis as any;
-        g.__mtLmStats = g.__mtLmStats || { runs: 0, aborted: 0, merges: 0, chunksLast: 0 };
+        const g = globalThis as any;
+        g.__mtLmStats = g.__mtLmStats || {
+          runs: 0,
+          aborted: 0,
+          merges: 0,
+          chunksLast: 0,
+        };
         g.__mtLmStats.runs += 1;
         let chunkCount = 0;
         const startedAt = Date.now();
 
-        console.log('[ContextTransformer] LM start', { caret, bandStart: band.start, bandEnd: band.end });
-        console.log('[ContextTransformer] LM processing with dual-context:', {
+        console.log(`[ContextTransformer] LM_START ${diagnosticId}`, {
+          caret,
+          bandStart: band.start,
+          bandEnd: band.end,
+          bandSize: band.end - band.start,
           wideTokens: contextWindow.wide.tokenCount,
           closeLength: closeText.length,
-          bandSize: band.end - band.start
+          promptLength: selection.prompt?.length || 0,
+          maxTokens: selection.maxNewTokens,
         });
 
         // Stream LM response
         let lmOutput = '';
         // Expose last chunks for the workbench LM panel
         (globalThis as any).__mtLastLMChunks = [] as string[];
-        for await (const chunk of lmAdapter.stream({
-          text,
-          caret,
-          band: lmBand, // prompt with full band (may include a few post-caret chars)
-          settings: { 
-            prompt: selection.prompt, 
-            maxNewTokens: selection.maxNewTokens,
-            wideContext: contextWindow.wide.text.slice(0, 2000), // Truncate for performance
-            closeContext: closeText
+        try {
+          console.log(`[ContextTransformer] LM_STREAM_START ${diagnosticId}`, {
+            streamParams: {
+              textLength: text.length,
+              caret,
+              bandStart: lmBand.start,
+              bandEnd: lmBand.end,
+              promptPreview: selection.prompt?.slice(0, 100) + '...',
+              wideContextLength: contextWindow.wide.text.slice(0, 2000).length,
+              closeContextLength: closeText.length,
+            },
+          });
+
+          for await (const chunk of lmAdapter.stream({
+            text,
+            caret,
+            band: lmBand, // prompt with full band (may include a few post-caret chars)
+            settings: {
+              prompt: selection.prompt,
+              maxNewTokens: selection.maxNewTokens,
+              wideContext: contextWindow.wide.text.slice(0, 2000), // Truncate for performance
+              closeContext: closeText,
+            },
+          })) {
+            lmOutput += chunk;
+            try {
+              const arr = (globalThis as any).__mtLastLMChunks as string[];
+              arr.push(String(chunk));
+              if (arr.length > 20) arr.shift();
+            } catch {}
+            chunkCount += 1;
+
+            // Log every 5th chunk to avoid spam but track progress
+            if (chunkCount % 5 === 0 || chunkCount <= 3) {
+              console.log(`[ContextTransformer] LM_CHUNK ${diagnosticId}`, {
+                chunkCount,
+                chunkLength: chunk.length,
+                chunkPreview: chunk.slice(0, 20),
+                totalOutputLength: lmOutput.length,
+              });
+            }
           }
-        })) {
-          lmOutput += chunk;
-          try {
-            const arr = (globalThis as any).__mtLastLMChunks as string[];
-            arr.push(String(chunk));
-            if (arr.length > 20) arr.shift();
-          } catch {}
-          chunkCount += 1;
+
+          console.log(`[ContextTransformer] LM_STREAM_END ${diagnosticId}`, {
+            chunkCount,
+            totalOutputLength: lmOutput.length,
+            outputPreview: lmOutput.slice(0, 50),
+            durationMs: Date.now() - startedAt,
+          });
+        } catch (streamError) {
+          console.error(`[ContextTransformer] LM_STREAM_ERROR ${diagnosticId}`, {
+            error: streamError,
+            chunkCount,
+            partialOutput: lmOutput.slice(0, 100),
+          });
+          throw streamError;
         }
 
-        const cleanedOutput = postProcessLMOutput(lmOutput.trim(), selection.span?.length || 0);
-        
+        const cleanedOutput = postProcessLMOutput(
+          lmOutput.trim(),
+          selection.span?.length || 0,
+        );
+        console.log(`[ContextTransformer] LM_POSTPROCESS ${diagnosticId}`, {
+          rawLength: lmOutput.trim().length,
+          cleanedLength: cleanedOutput?.length || 0,
+          spanLength: selection.span?.length || 0,
+        });
+
         // Validate proposal against wide context
-        if (cleanedOutput && selection.span && contextManager.validateProposal(cleanedOutput, selection.span)) {
-          console.log('[ContextTransformer] LM proposal validated:', {
+        if (
+          cleanedOutput &&
+          selection.span &&
+          contextManager.validateProposal(cleanedOutput, selection.span)
+        ) {
+          console.log(`[ContextTransformer] LM_VALIDATION_PASS ${diagnosticId}`, {
             original: selection.span.slice(0, 30),
-            proposal: cleanedOutput.slice(0, 30)
+            proposal: cleanedOutput.slice(0, 30),
+            originalLength: selection.span.length,
+            proposalLength: cleanedOutput.length,
           });
-          
+
           // Apply only the pre-caret portion to preserve caret safety
           const preCaretLen = Math.min(selection.span.length, band.end - band.start);
           const preCaretText = cleanedOutput.slice(0, preCaretLen);
-          proposals.push({ start: band.start, end: band.end, text: preCaretText });
+          // Confidence gating: compute dynamic thresholds and score
+          const thresholds = computeDynamicThresholds({
+            caret,
+            start: band.start,
+            end: band.end,
+            editType: 'lm',
+          });
+          const originalPre = selection.span.slice(0, preCaretLen);
+          // Simple heuristic: if text changes, assume high-quality fix; else low
+          const transformationQuality = originalPre === preCaretText ? 0.5 : 0.95;
+          // Proposal already validated against context manager → strong coherence
+          const contextCoherence = 0.95;
+          // Temporal decay (no decay during immediate application)
+          const temporalDecay = 1.0;
+          const score = computeConfidence({
+            inputFidelity,
+            transformationQuality,
+            contextCoherence,
+            temporalDecay,
+          });
+          const decision = applyThresholds(score, thresholds);
+          console.log(`[ContextTransformer] LM_CONFIDENCE ${diagnosticId}`, {
+            score,
+            thresholds,
+            decision,
+            transformationQuality,
+            contextCoherence,
+            temporalDecay,
+          });
+          if (decision === 'commit') {
+            console.log(`[ContextTransformer] LM_COMMIT ${diagnosticId}`, {
+              proposalAdded: true,
+              start: band.start,
+              end: band.end,
+              textLength: preCaretText.length,
+            });
+            proposals.push({ start: band.start, end: band.end, text: preCaretText });
+          } else {
+            console.log(`[ContextTransformer] LM_REJECT ${diagnosticId}`, {
+              reason: 'confidence_gate',
+              decision,
+              score,
+            });
+          }
           // Record stats and final merge log
           g.__mtLmStats.chunksLast = chunkCount;
           g.__mtLmStats.merges = (g.__mtLmStats.merges || 0) + 1;
-          console.log('[ContextTransformer] LM final merge', { chunkCount, band: selection.band });
+          console.log('[ContextTransformer] LM final merge', {
+            chunkCount,
+            band: selection.band,
+          });
         } else {
-          console.log('[ContextTransformer] LM proposal rejected by validation');
+          console.log(`[ContextTransformer] LM_VALIDATION_FAIL ${diagnosticId}`, {
+            hasCleanedOutput: !!cleanedOutput,
+            hasSpan: !!selection.span,
+            cleanedOutputLength: cleanedOutput?.length || 0,
+            spanLength: selection.span?.length || 0,
+            validationPassed:
+              cleanedOutput && selection.span
+                ? contextManager.validateProposal(cleanedOutput, selection.span)
+                : false,
+          });
         }
         console.log('[ContextTransformer] LM end', { chunkCount });
         try {
           g.__mtLmMetrics = g.__mtLmMetrics || [];
           const latency = Math.max(0, Date.now() - startedAt);
-          const tokens = (g.__mtLastLMChunks && Array.isArray(g.__mtLastLMChunks)) ? (g.__mtLastLMChunks as string[]).join('').length : chunkCount;
-          g.__mtLmMetrics.push({ timestamp: Date.now(), latency, tokens, backend: 'unknown' });
+          const tokens =
+            g.__mtLastLMChunks && Array.isArray(g.__mtLastLMChunks)
+              ? (g.__mtLastLMChunks as string[]).join('').length
+              : chunkCount;
+          g.__mtLmMetrics.push({
+            timestamp: Date.now(),
+            latency,
+            tokens,
+            backend: 'unknown',
+          });
           // Keep last 100 entries to bound memory
-          if (g.__mtLmMetrics.length > 100) g.__mtLmMetrics.splice(0, g.__mtLmMetrics.length - 100);
+          if (g.__mtLmMetrics.length > 100)
+            g.__mtLmMetrics.splice(0, g.__mtLmMetrics.length - 100);
         } catch {}
       }
     } catch (error) {

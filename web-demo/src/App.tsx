@@ -522,20 +522,20 @@ function App() {
         <h1 style={{ margin: 0, fontSize: '1.8em', fontWeight: '600' }}>Mind::Type Web Demo</h1>
       </div>
 
-      {/* 7x5 Grid Layout */}
+      {/* Redesigned Layout - All Panels Exposed */}
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(7, 1fr)', 
-        gridTemplateRows: 'repeat(5, 1fr)', 
-        gap: '8px',
+        gridTemplateColumns: '2fr 1fr 1fr', 
+        gridTemplateRows: 'auto auto 1fr auto', 
+        gap: '12px',
         // Header height approx 56px + margins; ensure total remains within 100vh
         height: 'calc(100vh - 64px)',
         maxWidth: '100vw'
       }}>
 
-        {/* EDITOR - Takes up 3x3 (main focus) */}
+        {/* EDITOR - Main focus area */}
         <div style={{ 
-          gridColumn: '1 / 4', 
+          gridColumn: '1 / 2', 
           gridRow: '1 / 4',
           background: 'rgba(255,255,255,0.05)',
           border: '2px solid rgba(0,200,120,0.3)',
@@ -594,9 +594,41 @@ function App() {
           </div>
         </div>
 
-        {/* LM CONTROLS - 2x1 */}
+        {/* CONTEXT WINDOW - Close to editor */}
         <div style={{ 
-          gridColumn: '4 / 6', 
+          gridColumn: '2 / 3', 
+          gridRow: '1 / 2',
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          borderRadius: '8px',
+          padding: '8px',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          <h4 style={{ margin: '0 0 6px 0', fontSize: '0.8em', textAlign: 'center' }}>🔍 Context Window</h4>
+          <textarea 
+            data-testid="context-window" 
+            readOnly 
+            value={contextWindowPreview} 
+            placeholder="(context window)" 
+            style={{ 
+              width: '100%', 
+              height: '80px', 
+              background: 'rgba(0,0,0,0.25)', 
+              color: '#ddd', 
+              border: '1px solid rgba(255,255,255,0.2)', 
+              borderRadius: '4px', 
+              padding: '4px', 
+              resize: 'none', 
+              fontSize: '0.7em',
+              fontFamily: 'monospace'
+            }} 
+          />
+        </div>
+
+        {/* LM CONTROLS - Adjacent to context */}
+        <div style={{ 
+          gridColumn: '3 / 4', 
           gridRow: '1 / 2',
           background: 'rgba(255,255,255,0.05)',
           border: '2px solid rgba(0,200,120,0.4)',
@@ -624,10 +656,10 @@ function App() {
           </div>
         </div>
 
-        {/* SCENARIOS - 2x1 */}
+        {/* CORRECTION STEPS - Close to context */}
         <div style={{ 
-          gridColumn: '6 / 8', 
-          gridRow: '1 / 2',
+          gridColumn: '2 / 4', 
+          gridRow: '2 / 3',
           background: 'rgba(255,255,255,0.05)',
           border: '1px solid rgba(255,255,255,0.2)',
           borderRadius: '8px',
@@ -635,7 +667,40 @@ function App() {
           display: 'flex',
           flexDirection: 'column'
         }}>
-          <h4 style={{ margin: '0 0 6px 0', fontSize: '0.9em', textAlign: 'center' }}>📝 Scenarios</h4>
+          <h4 style={{ margin: '0 0 6px 0', fontSize: '0.8em', textAlign: 'center' }}>🧪 Correction Steps</h4>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '6px', fontSize: '0.7em' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <label style={{ textAlign: 'center', opacity: 0.8, fontSize: '0.65em' }}>1) Buffer</label>
+              <textarea data-testid="preview-buffer" readOnly value={previewBuffer} style={{ width: '100%', height: '60px', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '4px', padding: '4px', resize: 'none', fontSize: '0.65em' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <label style={{ textAlign: 'center', opacity: 0.8, fontSize: '0.65em' }}>2) After Noise</label>
+              <textarea data-testid="preview-noise" readOnly value={previewNoise} placeholder={previewNoise ? '' : '(no change)'} style={{ width: '100%', height: '60px', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '4px', padding: '4px', resize: 'none', fontSize: '0.65em' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <label style={{ textAlign: 'center', opacity: 0.8, fontSize: '0.65em' }}>3) After Context</label>
+              <textarea data-testid="preview-context" readOnly value={previewContext} placeholder={previewContext ? '' : '(no change)'} style={{ width: '100%', height: '60px', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '4px', padding: '4px', resize: 'none', fontSize: '0.65em' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <label style={{ textAlign: 'center', opacity: 0.8, fontSize: '0.65em' }}>4) After Tone</label>
+              <textarea data-testid="preview-tone" readOnly value={previewTone} placeholder={previewTone ? '' : '(no change)'} style={{ width: '100%', height: '60px', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '4px', padding: '4px', resize: 'none', fontSize: '0.65em' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* SCENARIOS - Moved to bottom */}
+        <div style={{ 
+          gridColumn: '1 / 2', 
+          gridRow: '4 / 5',
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          borderRadius: '8px',
+          padding: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <h4 style={{ margin: 0, fontSize: '0.8em' }}>📝 Scenarios:</h4>
           <select
             value={scenarioId ?? ''}
             onChange={(e) => {
@@ -645,9 +710,8 @@ function App() {
               if (!v) setText("Try typing: 'teh qiuck brwon fox jmups oevr the lzay dog'");
             }}
             style={{ 
-              width: '100%', 
               padding: '4px', 
-              fontSize: '0.8em',
+              fontSize: '0.7em',
               background: 'rgba(255,255,255,0.1)', 
               border: '1px solid rgba(255,255,255,0.2)',
               borderRadius: '4px'
@@ -659,29 +723,35 @@ function App() {
             ))}
           </select>
           {scenarioId && (
-            <div style={{ display: 'flex', gap: '3px', marginTop: '4px' }}>
-              <button onClick={() => setStepIndex((i) => Math.max(0, i - 1))} style={{ fontSize: '0.7em', padding: '2px 4px', flex: 1 }}>⬅️</button>
-              <button onClick={() => setStepIndex((i) => i + 1)} style={{ fontSize: '0.7em', padding: '2px 4px', flex: 1 }}>➡️</button>
+            <div style={{ display: 'flex', gap: '3px' }}>
+              <button onClick={() => setStepIndex((i) => Math.max(0, i - 1))} style={{ fontSize: '0.7em', padding: '2px 4px' }}>⬅️</button>
+              <button onClick={() => setStepIndex((i) => i + 1)} style={{ fontSize: '0.7em', padding: '2px 4px' }}>➡️</button>
               <button onClick={() => {
                 const s = SCENARIOS.find((x) => x.id === scenarioId);
                 if (s) setText(s.corrected);
-              }} style={{ fontSize: '0.7em', padding: '2px 4px', flex: 1 }}>✨</button>
+              }} style={{ fontSize: '0.7em', padding: '2px 4px' }}>✨</button>
             </div>
           )}
         </div>
 
-        {/* TONE CONTROLS - 1x1 */}
+        {/* CONTROL PANELS - Right side */}
         <div style={{ 
-          gridColumn: '4 / 5', 
-          gridRow: '2 / 3',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          borderRadius: '8px',
-          padding: '8px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center'
+          gridColumn: '2 / 4', 
+          gridRow: '3 / 4',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '8px'
         }}>
+          {/* TONE CONTROLS */}
+          <div style={{ 
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '8px',
+            padding: '8px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center'
+          }}>
           <h4 style={{ margin: '0 0 6px 0', fontSize: '0.8em', textAlign: 'center' }}>🎨 Tone</h4>
           <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: '0.75em', marginBottom: '4px' }}>
             <input
@@ -709,17 +779,17 @@ function App() {
           </select>
         </div>
 
-        {/* PERFORMANCE - 1x1 */}
-        <div style={{ 
-          gridColumn: '5 / 6', 
-          gridRow: '2 / 3',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          borderRadius: '8px',
-          padding: '8px',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
+          </div>
+          
+          {/* PERFORMANCE */}
+          <div style={{ 
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '8px',
+            padding: '8px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
           <h4 style={{ margin: '0 0 6px 0', fontSize: '0.8em', textAlign: 'center' }}>⚡ Performance</h4>
           <div style={{ fontSize: '0.7em' }}>
             <div style={{ marginBottom: '4px' }}>
@@ -753,17 +823,17 @@ function App() {
           </div>
         </div>
 
-        {/* CONFIDENCE THRESHOLDS - 2x1 */}
-        <div style={{ 
-          gridColumn: '6 / 8', 
-          gridRow: '2 / 3',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          borderRadius: '8px',
-          padding: '8px',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
+          </div>
+          
+          {/* CONFIDENCE THRESHOLDS */}
+          <div style={{ 
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '8px',
+            padding: '8px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
           <h4 style={{ margin: '0 0 6px 0', fontSize: '0.8em', textAlign: 'center' }}>🎯 Confidence</h4>
           <div style={{ fontSize: '0.65em', display: 'grid', gap: '3px' }}>
             <div>
@@ -805,17 +875,17 @@ function App() {
           </div>
         </div>
 
-        {/* STATUS INDICATORS - 3x1 */}
-        <div style={{ 
-          gridColumn: '4 / 7', 
-          gridRow: '3 / 4',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          borderRadius: '8px',
-          padding: '8px',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
+          </div>
+          
+          {/* STATUS INDICATORS */}
+          <div style={{ 
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '8px',
+            padding: '8px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
           <h4 style={{ margin: '0 0 6px 0', fontSize: '0.8em', textAlign: 'center' }}>📊 Status</h4>
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', fontSize: '0.7em' }}>
             <span style={{ fontFamily: 'monospace', padding: '2px 4px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px' }} data-testid="caret-primary">
@@ -848,17 +918,26 @@ function App() {
           </div>
         </div>
 
-        {/* LM DEBUG INFO - 1x1 */}
+          </div>
+        </div>
+        
+        {/* BOTTOM PANEL - All exposed functionality */}
         <div style={{ 
-          gridColumn: '7 / 8', 
-          gridRow: '3 / 4',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          borderRadius: '8px',
-          padding: '8px',
-          display: 'flex',
-          flexDirection: 'column'
+          gridColumn: '2 / 4', 
+          gridRow: '4 / 5',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '8px'
         }}>
+          {/* LM DEBUG INFO */}
+          <div style={{ 
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '8px',
+            padding: '8px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
           <h4 style={{ margin: '0 0 6px 0', fontSize: '0.8em', textAlign: 'center' }}>🔍 LM Debug</h4>
           <div style={{ fontSize: '0.65em', fontFamily: 'monospace' }}>
             {lmDebug?.enabled ? (
@@ -875,50 +954,81 @@ function App() {
           </div>
         </div>
 
-        {/* WORKBENCH TABS + CONTENT - 4x1 */}
-        <div style={{ 
-          gridColumn: '1 / 5', 
-          gridRow: '4 / 5',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          borderRadius: '8px',
-          padding: '8px',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          {/* Tab Navigation */}
+          </div>
+          
+          {/* METRICS - Always visible */}
           <div style={{ 
-            display: 'flex', 
-            marginBottom: '8px',
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
-            paddingBottom: '6px'
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '8px',
+            padding: '8px',
+            display: 'flex',
+            flexDirection: 'column'
           }}>
-            {(['metrics', 'logs', 'lm', 'presets'] as const).map(tab => (
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '0.8em', textAlign: 'center' }}>📊 Metrics</h4>
+            <div style={{ fontSize: '0.65em', color: '#ddd' }}>
+              <div>LM runs: {lmMetrics.length} | Avg: {lmMetrics.length ? Math.round(lmMetrics.reduce((a, m) => a + m.latency, 0) / lmMetrics.length) : 0}ms</div>
+              {stats && (
+                <div style={{ marginTop: '4px' }}>
+                  <div>WPM: {typeof stats?.wpm_smoothed === 'number' ? Math.round(stats!.wpm_smoothed) : Math.round((eps * 60) / 5)}</div>
+                  <div>Keys: {stats.keystrokes ?? 0} | Del: {stats.deletes_seen ?? 0}</div>
+                </div>
+              )}
               <button
-                key={tab}
-                onClick={() => setActiveWorkbenchTab(tab)}
+                onClick={() => {
+                  const data = {
+                    session: Date.now(),
+                    metrics: lmMetrics,
+                    logs: logs.slice(-50),
+                    text: text,
+                    settings: { lmEnabled, toneEnabled, toneTarget, deterministicMode }
+                  };
+                  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `mindtype-session-${new Date().toISOString().slice(0, 16).replace(/:/g, '-')}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
                 style={{
-                  flex: 1,
-                  padding: '4px 8px',
-                  background: activeWorkbenchTab === tab ? 'rgba(0,200,120,0.15)' : 'transparent',
-                  border: 'none',
-                  color: activeWorkbenchTab === tab ? '#0c8' : '#aaa',
-                  fontSize: '0.7em',
+                  marginTop: '4px',
+                  padding: '2px 6px',
+                  background: 'rgba(0,200,120,0.1)',
+                  border: '1px solid rgba(0,200,120,0.3)',
                   borderRadius: '4px',
+                  color: '#0c8',
+                  fontSize: '0.65em',
                   cursor: 'pointer'
                 }}
-                data-testid={`workbench-tab-${tab}`}
+                data-testid="export-session"
               >
-                {tab === 'metrics' && '📊 Metrics'}
-                {tab === 'logs' && '📋 Logs'} 
-                {tab === 'lm' && '🧠 LM'}
-                {tab === 'presets' && '✨ Presets'}
+                📥 Export
               </button>
-            ))}
+            </div>
           </div>
+          
+          {/* LOGS - Always visible */}
+          <div style={{ 
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '8px',
+            padding: '8px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '0.8em', textAlign: 'center' }}>📋 Logs</h4>
+            <div data-testid="process-log" style={{ height: '80px', overflow: 'auto', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '4px', padding: '4px', textAlign: 'left', fontSize: '0.6em', fontFamily: 'monospace' }}>
+              {logs.slice(-8).map((l, i) => (
+                <div key={`${l.ts}-${i}`}>[{new Date(l.ts).toLocaleTimeString()}] {l.type}: {l.msg}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
-          {/* Tab Content */}
-          {activeWorkbenchTab === 'metrics' && (
+      {/* Removed all tab-based content and old grid sections */}
+      {false && (
             <div>
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-around', fontSize: '0.7em', fontFamily: 'monospace', marginBottom: '8px' }}>
                 {stats && (
@@ -984,177 +1094,7 @@ function App() {
                 </button>
               </div>
             </div>
-          )}
-
-          {activeWorkbenchTab === 'logs' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <label style={{ textAlign: 'left', opacity: 0.8, fontSize: '0.75em' }}>Process Log</label>
-              <div data-testid="process-log" style={{ height: 120, overflow: 'auto', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 4, padding: 4, textAlign: 'left', fontSize: '0.72em', fontFamily: 'monospace' }}>
-                {logs.slice(-12).map((l, i) => (
-                  <div key={`${l.ts}-${i}`}>[{new Date(l.ts).toLocaleTimeString()}] {l.type}: {l.msg}</div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeWorkbenchTab === 'lm' && (
-            <div>
-              <div style={{ fontSize: '0.7em', color: '#ddd', marginBottom: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  Status: 
-                  <span style={{ 
-                    color: lmHealth.status === 'healthy' ? '#0c8' : lmHealth.status === 'error' ? '#f66' : '#aa6',
-                    fontWeight: 'bold'
-                  }}>
-                    {lmHealth.status === 'healthy' ? '✅ Healthy' : lmHealth.status === 'error' ? '❌ Error' : '⏳ Unknown'}
-                  </span>
-                </div>
-                <div>Backend: {lmDebug?.backend || 'unknown'}</div>
-                <div>Worker: {lmHealth.workerActive ? '🟢 Active' : '🔴 Inactive'}</div>
-                <div>Context: {lmContextInitialized ? '🟢 Initialized' : '🔴 Not initialized'}</div>
-                <div>Tokens: {lmDebug?.lastChunks?.join('').length || 0}</div>
-                <div>Last latency: {lmMetrics[lmMetrics.length - 1]?.latency || 0}ms</div>
-                {lmHealth.lastError && (
-                  <div style={{ color: '#f66', fontSize: '0.6em', marginTop: '4px' }}>
-                    Error: {lmHealth.lastError}
-                  </div>
-                )}
-              </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7em', color: '#ddd' }}>
-                <input
-                  type="checkbox"
-                  checked={deterministicMode}
-                  onChange={(e) => setDeterministicMode(e.target.checked)}
-                  data-testid="deterministic-mode"
-                />
-                Deterministic (rules-only)
-              </label>
-              <div style={{ fontSize: '0.6em', opacity: 0.7, marginTop: '4px' }}>
-                Disables LM for reproducible testing
-              </div>
-            </div>
-          )}
-
-          {activeWorkbenchTab === 'presets' && (
-            <div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <button onClick={() => setText('helloo thr weathfr has beenb hood')} style={{ padding: '6px', background: 'rgba(0,200,120,0.1)', border: '1px solid rgba(0,200,120,0.3)', borderRadius: '4px', color: '#0c8', fontSize: '0.7em' }}>Typos</button>
-                <button onClick={() => setText('I has went to the store.')} style={{ padding: '6px', background: 'rgba(0,200,120,0.1)', border: '1px solid rgba(0,200,120,0.3)', borderRadius: '4px', color: '#0c8', fontSize: '0.7em' }}>Grammar</button>
-                <button onClick={() => setText("We can't ship this, it's kinda bad.")} style={{ padding: '6px', background: 'rgba(0,200,120,0.1)', border: '1px solid rgba(0,200,120,0.3)', borderRadius: '4px', color: '#0c8', fontSize: '0.7em' }}>Tone</button>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: '8px' }}>
-                <label style={{ textAlign: 'left', opacity: 0.8, fontSize: '0.75em' }}>Context window</label>
-                <textarea data-testid="context-window" readOnly value={contextWindowPreview} placeholder="(context window)" style={{ width: '100%', height: 44, background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none', fontSize: '0.75em' }} />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* STAGE PREVIEWS - 3x1 */}
-        <div style={{ 
-          gridColumn: '5 / 8', 
-          gridRow: '4 / 5',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          borderRadius: '8px',
-          padding: '8px',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          <h4 style={{ margin: '0 0 6px 0', fontSize: '0.8em', textAlign: 'center' }}>🧪 Stage Previews</h4>
-          <div style={{ display: 'grid', gridTemplateRows: 'repeat(4, minmax(28px, 1fr))', gap: '6px', fontSize: '0.7em' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <label style={{ textAlign: 'left', opacity: 0.8 }}>1) Buffer</label>
-              <textarea data-testid="preview-buffer" readOnly value={previewBuffer} style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <label style={{ textAlign: 'left', opacity: 0.8 }}>2) After Noise</label>
-              <textarea data-testid="preview-noise" readOnly value={previewNoise} placeholder={previewNoise ? '' : '(no change)'} style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <label style={{ textAlign: 'left', opacity: 0.8 }}>3) After Context</label>
-              <textarea data-testid="preview-context" readOnly value={previewContext} placeholder={previewContext ? '' : '(no change)'} style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <label style={{ textAlign: 'left', opacity: 0.8 }}>4) After Tone</label>
-              <textarea data-testid="preview-tone" readOnly value={previewTone} placeholder={previewTone ? '' : '(no change)'} style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.25)', color: '#ddd', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4, padding: 4, resize: 'none' }} />
-            </div>
-          </div>
-        </div>
-
-        {/* VISUAL SETTINGS - 3x1 */}
-        <div style={{ 
-          gridColumn: '1 / 4', 
-          gridRow: '5 / 6',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          borderRadius: '8px',
-          padding: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-around'
-        }}>
-          <h4 style={{ margin: 0, fontSize: '0.8em' }}>🎨 Visual</h4>
-          <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: '0.75em' }}>
-            <input
-              type="checkbox"
-              checked={showMarkers}
-              onChange={(e) => setShowMarkers(e.target.checked)}
-            />
-            Swap markers
-          </label>
-          {lastHighlight && (
-            <span style={{ fontFamily: "monospace", fontSize: '0.7em', padding: '2px 4px', background: 'rgba(255,200,0,0.2)', borderRadius: '3px' }}>
-              Highlight: [{lastHighlight.start}, {lastHighlight.end}]
-            </span>
-          )}
-        </div>
-
-        {/* QUICK ACTIONS - 4x1 */}
-        <div style={{ 
-          gridColumn: '4 / 8', 
-          gridRow: '5 / 6',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          borderRadius: '8px',
-          padding: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-around'
-        }}>
-          <h4 style={{ margin: 0, fontSize: '0.8em' }}>⚡ Quick Actions</h4>
-          <button onClick={() => setText("")} style={{ fontSize: '0.7em', padding: '4px 8px' }}>
-            🗑️ Clear
-          </button>
-          <button onClick={() => {
-            const preset = { tickMs, minBand, maxBand, tauInput, tauCommit, tauTone };
-            navigator.clipboard?.writeText(JSON.stringify(preset, null, 2));
-          }} style={{ fontSize: '0.7em', padding: '4px 8px' }}>
-            📋 Copy Settings
-          </button>
-          <button onClick={() => {
-            setText("teh qiuck brwon fox jmups oevr the lzay dog. this is a test of the mind type system.");
-          }} style={{ fontSize: '0.7em', padding: '4px 8px' }}>
-            🎯 Demo Text
-          </button>
-          <label style={{ fontSize: '0.7em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <input
-              type="checkbox"
-              checked={diagnosticMode}
-              onChange={(e) => setDiagnosticMode(e.target.checked)}
-            />
-            🔧 Diagnostic
-          </label>
-          <label style={{ fontSize: '0.7em', display: 'flex', alignItems: 'center', gap: '4px' }} title="Ignore selection/blur gating (unsafe)">
-            <input
-              type="checkbox"
-              checked={ignoreGating}
-              onChange={(e) => setIgnoreGating(e.target.checked)}
-              data-testid="toggle-ignore-gating"
-            />
-            🚫 Ignore gating (unsafe)
-          </label>
-        </div>
+        )}
       </div>
 
       {/* Workbench Panel - REMOVED: Integrated into main grid */}
@@ -1247,10 +1187,34 @@ function App() {
             {activeWorkbenchTab === 'lm' && (
               <div>
                 <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9em', color: '#0c8' }}>LM Status</h4>
-                <div style={{ fontSize: '0.8em', color: '#ddd', marginBottom: '12px' }}>
+                
+                {/* Enhanced diagnostic status for LM-501 */}
+                <div style={{ fontSize: '0.75em', color: '#ddd', marginBottom: '12px', fontFamily: 'monospace' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                    Status: 
+                    <span style={{ 
+                      color: lmHealth.status === 'healthy' ? '#0c8' : lmHealth.status === 'error' ? '#f66' : '#aa6',
+                      fontWeight: 'bold'
+                    }}>
+                      {lmHealth.status === 'healthy' ? '✅ Healthy' : lmHealth.status === 'error' ? '❌ Error' : '⏳ Unknown'}
+                    </span>
+                  </div>
                   <div>Backend: {lmDebug?.backend || 'unknown'}</div>
+                  <div>Worker: {lmHealth.workerActive ? '🟢 Active' : '🔴 Inactive'}</div>
+                  <div>Context: {lmContextInitialized ? '🟢 Initialized' : '🔴 Not initialized'}</div>
+                  <div>LM runs: {(() => {
+                    try {
+                      const stats = (globalThis as any).__mtLmStats;
+                      return stats?.runs || 0;
+                    } catch { return 0; }
+                  })()}</div>
                   <div>Tokens: {lmDebug?.lastChunks?.join('').length || 0}</div>
                   <div>Last latency: {lmMetrics[lmMetrics.length - 1]?.latency || 0}ms</div>
+                  {lmHealth.lastError && (
+                    <div style={{ color: '#f66', fontSize: '0.7em', marginTop: '4px' }}>
+                      Error: {lmHealth.lastError}
+                    </div>
+                  )}
                 </div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8em', color: '#ddd' }}>
                   <input
