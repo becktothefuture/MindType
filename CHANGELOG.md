@@ -94,3 +94,13 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 ### CI / Quality Gates
 
 - All gates green: typecheck, lint, format, tests with coverage.
+
+## v0.5.0 (2025-09-13)
+
+- Consolidated demos under  (project root)
+- Simplified, numbered overview: 5 links across Main & Visual categories
+- Vite serves  from project-root 
+- Diagnostics bus + LM context reliability improvements
+- Noise/context transformer fixes; caret-safe selection hardening
+- E2E test stability and coverage retained
+- Version bump to 0.5.0
