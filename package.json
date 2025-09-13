@@ -1,6 +1,6 @@
 {
   "name": "mindtyper",
-  "version": "0.2.0-alpha",
+  "version": "0.4.0",
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -16,7 +16,8 @@
     "prepare": "husky",
     "setup:local": "node scripts/setup-local-assets.cjs",
     "doc:sync": "node scripts/doc2code.cjs sync",
-    "doc:check": "node scripts/doc2code.cjs check"
+    "doc:check": "node scripts/doc2code.cjs check",
+    "copy:wasm": "mkdir -p \"web-demo/public/wasm\" && cp -R \"node_modules/.pnpm/onnxruntime-web@*/node_modules/onnxruntime-web/dist/\"* \"web-demo/public/wasm/\" 2>/dev/null || echo 'WASM copy failed; using CDN fallback'"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,md,css,scss,json,mdx}": "prettier --write",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@huggingface/transformers": "^3.7.0",
+    "@mermaid-js/mermaid-cli": "^11.9.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.2.1",
     "@typescript-eslint/eslint-plugin": "^8.4.0",

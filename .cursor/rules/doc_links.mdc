@@ -6,11 +6,11 @@ alwaysApply: true
 Links to critical files by name for Cursor memory and quick reference.
 
 ## Core Documentation
-- [Implementation Tasks](docs/implementation.md)
-- [PRD](docs/PRD.md)
-- [Project Structure](docs/project_structure.md)
-- [Glossary](docs/README.md#glossary)
-- [Project Overview](docs/README.md)
+- [Implementation Tasks](docs/02-implementation/02-Implementation.md)
+- [PRD](docs/01-prd/01-PRD.md)
+- [Project Structure](docs/14-project-structure/14-project_structure.md)
+- [Glossary](docs/00-index/00-README.md#glossary)
+- [Project Overview](docs/00-index/00-README.md)
 - [System Principles](docs/system_principles.md)
 
 ## Key Directories
@@ -19,10 +19,10 @@ Links to critical files by name for Cursor memory and quick reference.
 - [UI Components](ui/)
 - [Utilities](utils/)
 - [Tests](tests/)
- - [Architecture](docs/architecture/)
+ - [Architecture](docs/04-architecture/)
  - [ADRs](docs/adr/)
  - [Acceptance (BDD)](docs/qa/acceptance/)
- - [Guides](docs/guide/)
+ - [Guides](docs/06-guides/)
  - [Accessibility](docs/a11y/)
 
 ## Entry Point

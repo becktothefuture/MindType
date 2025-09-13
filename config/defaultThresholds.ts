@@ -15,13 +15,45 @@
   • HOW  ▸ Generated via scripts/doc2code.cjs
 */
 
-export const SHORT_PAUSE_MS = 300;
+export const SHORT_PAUSE_MS = 600; // Increased for demo responsiveness
 export const LONG_PAUSE_MS = 2000;
 export const MAX_SWEEP_WINDOW = 80;
 
 let typingTickMs = 75;
 let minValidationWords = 5;
 let maxValidationWords = 5;
+let confidenceSensitivity = 1.0; // multiplier for dynamic thresholds
+let sentenceContextPerSide = 3; // sentences per side for LM context (2-5 range)
+
+// Confidence thresholds for v0.4 pipeline
+type ConfidenceThresholds = {
+  τ_input: number;
+  τ_commit: number;
+  τ_tone: number;
+  τ_discard: number;
+};
+
+let CONFIDENCE_THRESHOLDS_MUT: ConfidenceThresholds = {
+  // τ_input: minimum input fidelity to attempt Context stage (lowered for demo)
+  τ_input: 0.55,
+  // τ_commit: minimum combined score to apply any proposal (lowered for demo)
+  τ_commit: 0.80,
+  // τ_tone: tone proposals must also meet this
+  τ_tone: 0.75,
+  // τ_discard: below this, proposals are dropped
+  τ_discard: 0.3,
+};
+
+export function getConfidenceThresholds(): Readonly<ConfidenceThresholds> {
+  return CONFIDENCE_THRESHOLDS_MUT;
+}
+
+export function setConfidenceThresholds(partial: Partial<ConfidenceThresholds>): void {
+  CONFIDENCE_THRESHOLDS_MUT = { ...CONFIDENCE_THRESHOLDS_MUT, ...partial };
+}
+
+// Back-compat named export (read-only view)
+export const CONFIDENCE_THRESHOLDS = getConfidenceThresholds();
 
 export function getTypingTickMs(): number {
   return typingTickMs;
@@ -42,4 +74,23 @@ export function setValidationBandWords(minWords: number, maxWords: number): void
   const max = Math.max(3, Math.min(12, Math.floor(maxWords)));
   minValidationWords = Math.min(min, max);
   maxValidationWords = Math.max(min, max);
+}
+
+export function getConfidenceSensitivity(): number {
+  return confidenceSensitivity;
+}
+
+export function setConfidenceSensitivity(value: number): void {
+  const v = Number(value);
+  if (!Number.isFinite(v)) return;
+  // Clamp to a reasonable range; demo may set ≥1.6 temporarily
+  confidenceSensitivity = Math.max(0.1, Math.min(5, v));
+}
+
+export function getSentenceContextPerSide(): number {
+  return sentenceContextPerSide;
+}
+
+export function setSentenceContextPerSide(value: number): void {
+  sentenceContextPerSide = Math.max(2, Math.min(5, Math.round(value)));
 }

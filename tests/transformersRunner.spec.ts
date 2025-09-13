@@ -349,8 +349,10 @@ describe('Qwen token streamer', () => {
     __resetQwenSingletonForTests();
     vi.mock('../core/lm/transformersClient', () => ({ detectBackend: () => 'cpu' }));
 
-    // Spy on console.info to count ready logs
-    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    // Enable logger at info level and spy on console.log (default sink)
+    const { setLoggerConfig } = await import('../core/logger');
+    setLoggerConfig({ enabled: true, level: 'info' });
+    const infoSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     vi.doMock('@huggingface/transformers', () => ({
       pipeline: async () =>
@@ -381,7 +383,9 @@ describe('Qwen token streamer', () => {
     expect(chunks1.join('')).toBe('ready-once');
     expect(chunks2.join('')).toBe('ready-once');
     // exactly one ready log despite two runs
-    const calls = infoSpy.mock.calls.filter((c) => String(c[0]).includes('[LM] ready'));
+    const calls = infoSpy.mock.calls.filter(
+      (c) => String(c[0]).includes('[lm.runner]') && String(c[0]).includes('[LM] ready'),
+    );
     expect(calls.length).toBe(1);
     infoSpy.mockRestore();
   });

@@ -1,873 +1,1395 @@
-import { useState, useEffect, useRef } from "react";
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  APP.TSX  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ Web demo tone controls and thresholds
+  • WHY  ▸ REQ-TONE-CONTROLS-UI
+  • HOW  ▸ See linked contracts and guides in docs
+*/
+import { useState, useEffect, useRef, useCallback } from "react";
 import "./App.css";
-import DebugPanel, { type LMDebugInfo } from "./components/DebugPanel";
+import "./braille-animation.css";
 import { SCENARIOS } from "./scenarios";
 import { replaceRange } from "../../utils/diff";
-// TS pipeline imports
 import { boot } from "../../index";
-import { createMockLMAdapter } from "../../core/lm/mockAdapter";
-import { setLoggerConfig } from "../../core/logger";
+import { createWorkerLMAdapter } from "../../core/lm/workerAdapter";
+import { createLMContextManager, type LMContextManager } from "../../core/lm/contextManager";
 import { createLiveRegion, type LiveRegion } from "../../ui/liveRegion";
-// LM integration is driven by core pipeline (future task). Demo remains rules-only.
+import { setSwapConfig, emitSwap } from "../../ui/swapRenderer";
+import { DEMO_PRESETS, DEFAULT_PRESET, type DemoPreset } from "./demo-presets";
+import { setLoggerConfig, type LogRecord } from "../../core/logger";
+import { diagBus } from "../../core/diagnosticsBus";
 import {
   getTypingTickMs,
-  setTypingTickMs,
   getMinValidationWords,
   getMaxValidationWords,
+  getConfidenceThresholds,
+  getConfidenceSensitivity,
+  setTypingTickMs,
   setValidationBandWords,
+  setConfidenceThresholds,
+  setConfidenceSensitivity,
 } from "../../config/defaultThresholds";
+import type { CaretSnapshot } from "./caretShim";
 
-function StatusStrip() {
-  const [status, setStatus] = useState<{ statuses?: Record<string, boolean>; events?: Record<string, boolean> }>({});
-  useEffect(() => {
-    const on = (e: Event) => setStatus((e as CustomEvent).detail as any);
-    window.addEventListener('mindtype:status', on as EventListener);
-    return () => window.removeEventListener('mindtype:status', on as EventListener);
-  }, []);
-  const renderGroup = (title: string, keys: string[], values?: Record<string, boolean>, color = '#12d97b') => (
-    <div style={{ padding: 12, borderRadius: 10, border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)' }}>
-      <div style={{ fontFamily: 'monospace', fontSize: 12, opacity: 0.9, marginBottom: 8 }}>{title}</div>
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {keys.map((k) => (
-          <div key={k} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 114 }}>
-            <div style={{ fontFamily: 'monospace', fontSize: 12, whiteSpace: 'nowrap' }}>{k}</div>
-            <div style={{ width: 12, height: 12, borderRadius: 12, marginTop: 6, background: values && values[k] ? color : 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.35)' }} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-  return (
-    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 10 }}>
-      {renderGroup('Statuses', ['BLUR','ACTIVE_IDLE','TYPING','PASTED','SHORT_PAUSE','LONG_PAUSE','DELETE_BURST','SELECTION_ACTIVE','CARET_JUMP','IME_COMPOSING','BLOCKED'], status.statuses, '#12d97b')}
-      {renderGroup('Events', ['CUT','UNDO_REDO','DROP','AUTOCORRECT','LINE_BREAK','ARROW_MOVE'], status.events, '#33b1ff')}
-    </div>
-  );
-}
-
-// Caret snapshot type from WASM shim
-type CaretSnapshot = {
-  primary: string;
-  input_modality: string;
-  field_kind: string;
-  selection: { collapsed: boolean; start: number; end: number };
-  ime_active: boolean;
-  blocked: boolean;
-  caret: number;
-  text_len: number;
-  device_tier: string;
-  timestamp_ms: number;
+// LM Types
+type LMHealth = {
+  status: 'healthy' | 'error' | 'unknown';
+  lastError?: string;
+  workerActive: boolean;
 };
 
-type MonitorStats = Partial<{
-  events_processed: number;
-  snapshots_emitted: number;
-  deletes_seen: number;
-  delete_bursts: number;
-  pastes: number;
-  cuts: number;
-  undos_redos: number;
-  caret_jumps: number;
-  keystrokes: number;
-  avg_inter_key_ms: number;
-  eps_smoothed: number;
-  wpm_smoothed: number;
-  burst_len_current: number;
-  burst_len_max: number;
-}>;
+type LMMetric = {
+  timestamp: number;
+  latency: number;
+  tokensGenerated: number;
+};
 
-interface LogEntry {
-  level: string;
-  message: string;
-  timestamp: string;
-}
-
-function escapeHtml(raw: string): string {
-  return raw
-    .replaceAll(/&/g, "&amp;")
-    .replaceAll(/</g, "&lt;")
-    .replaceAll(/>/g, "&gt;")
-    .replaceAll(/\u00A0/g, "&nbsp;");
-}
-
-function computeNewlineSafeRange(
-  text: string,
-  start: number,
-  end: number,
-  suppressUntilMs: number,
-): { start: number; end: number } | null {
-  if (Date.now() < suppressUntilMs) return null;
-  const len = text.length;
-  const s0 = Math.max(0, Math.min(start, len));
-  const e0 = Math.max(0, Math.min(end, len));
-  // Fallback when empty
-  if (e0 <= s0) {
-    let j = Math.max(0, s0 - 1);
-    while (j > 0 && text[j] === "\n") j -= 1;
-    if (text[j] === "\n") return null;
-    return { start: j, end: Math.min(j + 1, len) };
-  }
-  let s = s0;
-  let e = e0;
-  const slice = text.slice(s, e);
-  // If the slice contains a newline, clamp to last line segment
-  const nl = slice.lastIndexOf("\n");
-  if (nl !== -1) {
-    s = s + nl + 1; // start just after the last newline in the slice
-    if (s >= e) {
-      // fallback to 1 char before the newline
-      let j = Math.max(0, s - 1);
-      while (j > 0 && text[j] === "\n") j -= 1;
-      if (text[j] === "\n") return null;
-      return { start: j, end: Math.min(j + 1, len) };
-    }
-  }
-  // If clamped segment is newline-only/whitespace-only, fallback
-  const seg = text.slice(s, e);
-  if (seg === "" || /^\n+$/.test(seg)) {
-    let j = Math.max(0, s - 1);
-    while (j > 0 && text[j] === "\n") j -= 1;
-    if (text[j] === "\n") return null;
-    return { start: j, end: Math.min(j + 1, len) };
-  }
-  return { start: s, end: e };
-}
+type LMDebugInfo = {
+  backend: string;
+  modelPath: string;
+  initialized: boolean;
+  controlJson: string;
+  lastChunks: string[];
+};
 
 function App() {
-  const [text, setText] = useState(
-    "",
-  );
+  // Core state
+  const [text, setText] = useState(DEFAULT_PRESET.text);
+  const [currentPreset, setCurrentPreset] = useState<DemoPreset>(DEFAULT_PRESET);
   const [scenarioId, setScenarioId] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState<number>(0);
-  const [idleMs, setIdleMs] = useState(1000);
-  // Legacy WASM demo removed
   const [tickMs, setTickMs] = useState<number>(getTypingTickMs());
-  const [minBand, setMinBand] = useState<number>(getMinValidationWords());
+  const [minBand] = useState<number>(getMinValidationWords());
   const [maxBand, setMaxBand] = useState<number>(getMaxValidationWords());
-  const [bandRange, setBandRange] = useState<{ start: number; end: number } | null>(
-    null,
-  );
-  const [lastHighlight, setLastHighlight] = useState<
-    { start: number; end: number } | null
-  >(null);
-  const secureRef = useRef(false);
-  const imeRef = useRef(false);
-  const [isSecure, setIsSecure] = useState(false);
-  const [isIMEComposing, setIsIMEComposing] = useState(false);
-  const [freezeBand, setFreezeBand] = useState(false);
-  const [bandDelayMs, setBandDelayMs] = useState(0);
-  const suppressUntilRef = useRef<number>(0);
-  const [pipeline] = useState(() =>
-    boot({
-      security: {
-        isSecure: () => secureRef.current,
-        isIMEComposing: () => imeRef.current,
-      },
-    }),
-  );
-  // WASM demo removed; pause state unused in rules-only demo
-  const [showDebugPanel, setShowDebugPanel] = useState(false);
-  const [logs] = useState<LogEntry[]>([]);
-  // reserved for LM-in-core chase policy
+  const [bandRange] = useState<{ start: number; end: number } | null>(null);
+  const [lastHighlight] = useState<{ start: number; end: number } | null>(null);
   const [isTyping, setIsTyping] = useState(false);
-  const [lmDebug, setLmDebug] = useState<LMDebugInfo | undefined>(undefined);
-  const [lmEnabled, setLmEnabled] = useState(false);
+  
+  // LM state
+  const [lmEnabled, setLmEnabled] = useState(true);
+  const [lmHealth] = useState<LMHealth>({ status: 'unknown', workerActive: false });
+  const [lmMetrics] = useState<LMMetric[]>([]);
+  const [lmDebug] = useState<LMDebugInfo | undefined>(undefined);
+  const [lmContextInitialized, setLmContextInitialized] = useState(false);
+  
+  // Tone state
+  const [toneEnabled, setToneEnabled] = useState<boolean>(false);
+  const [toneTarget, setToneTarget] = useState<'None' | 'Casual' | 'Professional'>('None');
+  // ⟢ Resizable bottom workbench height (px)
+  const [bottomHeightPx, setBottomHeightPx] = useState<number>(220);
+  const bottomResizeRef = useRef<{ dragging: boolean; startY: number; startH: number } | null>(null);
 
-  const overlayRef = useRef<HTMLDivElement | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const caretRef = useRef<number>(0);
-  const typingGlowTimerRef = useRef<number | null>(null);
+  const startBottomDrag = (e: React.MouseEvent) => {
+    bottomResizeRef.current = { dragging: true, startY: e.clientY, startH: bottomHeightPx };
+    window.addEventListener('mousemove', onBottomDrag);
+    window.addEventListener('mouseup', stopBottomDrag);
+  };
+
+  const onBottomDrag = (e: MouseEvent) => {
+    const ctx = bottomResizeRef.current;
+    if (!ctx?.dragging) return;
+    const delta = ctx.startY - e.clientY; // drag up increases height
+    const next = Math.max(140, Math.min(420, ctx.startH + delta));
+    setBottomHeightPx(next);
+  };
+
+  const stopBottomDrag = () => {
+    bottomResizeRef.current = null;
+    window.removeEventListener('mousemove', onBottomDrag as any);
+    window.removeEventListener('mouseup', stopBottomDrag as any);
+  };
+  
+  // Confidence thresholds
+  const [tauInput, setTauInput] = useState<number>(getConfidenceThresholds().τ_input);
+  const [tauCommit, setTauCommit] = useState<number>(Math.min(getConfidenceThresholds().τ_commit, 0.8));
+  const [tauTone] = useState<number>(getConfidenceThresholds().τ_tone);
+  const [sensitivity, setSensitivity] = useState<number>(Math.max(getConfidenceSensitivity(), 1.6));
+  
+  // UI state
+  const [showMarkers, setShowMarkers] = useState<boolean>(false);
+  const [caretState] = useState<CaretSnapshot | null>(null);
+  const [eps] = useState<number>(0);
+  const [stats] = useState<any>(null);
+  const [systemStatuses, setSystemStatuses] = useState<Record<string, boolean>>({});
+  const [ignoreGating, setIgnoreGating] = useState<boolean>(true);
+  const [diagnosticMode, setDiagnosticMode] = useState<boolean>(false);
+  const [activeWorkbenchTab, setActiveWorkbenchTab] = useState<'diagnostics' | 'lm' | 'logs'>('diagnostics');
+  
+  // Preview buffers
+  const [previewBuffer, setPreviewBuffer] = useState<string>("");
+  const [previewNoise, setPreviewNoise] = useState<string>("");
+  const [previewContext, setPreviewContext] = useState<string>("");
+  const [previewTone, setPreviewTone] = useState<string>("");
+  
+  // Logs & Diagnostics
+  const [logs, setLogs] = useState<Array<{ ts: number; type: string; msg: string }>>([]);
+  const [noiseEvents, setNoiseEvents] = useState<any[]>([]);
+  const [lmWireEvents, setLmWireEvents] = useState<any[]>([]);
+  
+  // Refs
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const pipelineRef = useRef<any | null>(null);
+  const lmAdapterRef = useRef<ReturnType<typeof createWorkerLMAdapter> | null>(null);
+  const lmContextManagerRef = useRef<LMContextManager | null>(null);
   const liveRegionRef = useRef<LiveRegion | null>(null);
+  const caretRef = useRef<number>(0);
+  const rafRef = useRef<number | null>(null);
+  const typingTimeoutRef = useRef<number | null>(null);
+  const pausedBySelectionRef = useRef<boolean>(false);
+  const pausedByBlurRef = useRef<boolean>(false);
+  
+  // Derived state
+  const pausedBySelectionOrBlur = pausedBySelectionRef.current || pausedByBlurRef.current;
+  const [blockedBanner, setBlockedBanner] = useState<string>('');
 
-  // Caret monitor UI state
-  const [caretState, setCaretState] = useState<CaretSnapshot | null>(null);
-  const [caretLog, setCaretLog] = useState<CaretSnapshot[]>([]);
-  const [eps, setEps] = useState<number>(0);
-  const [stats, setStats] = useState<MonitorStats | null>(null);
-
-  function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    const v = e.target.value;
-    setText(v);
-    caretRef.current = e.target.selectionStart ?? v.length;
-    const caret = e.target.selectionStart ?? v.length;
-    // boundary hint reserved for future LM-in-core
-    // glow on key input
-    setIsTyping(true);
-    if (typingGlowTimerRef.current) window.clearTimeout(typingGlowTimerRef.current);
-    typingGlowTimerRef.current = window.setTimeout(() => setIsTyping(false), 1200);
-    // Feed the core pipeline (rules + diffusion visuals)
-    pipeline.ingest(v, caret);
-  }
-
-  function syncOverlayStyles() {
-    const ta = textareaRef.current;
-    const ov = overlayRef.current;
-    if (!ta || !ov) return;
-    const cs = window.getComputedStyle(ta);
-    const copyProps = [
-      "fontSize",
-      "fontFamily",
-      "fontWeight",
-      "fontStyle",
-      "lineHeight",
-      "letterSpacing",
-      "textAlign",
-      "paddingTop",
-      "paddingRight",
-      "paddingBottom",
-      "paddingLeft",
-      "borderTopWidth",
-      "borderRightWidth",
-      "borderBottomWidth",
-      "borderLeftWidth",
-      "borderTopLeftRadius",
-      "borderTopRightRadius",
-      "borderBottomLeftRadius",
-      "borderBottomRightRadius",
-    ] as const;
-    for (const p of copyProps) (ov.style as any)[p] = (cs as any)[p];
-    ov.style.borderStyle = cs.borderStyle;
-    ov.style.borderColor = "transparent";
-    ov.style.width = cs.width;
-    ov.style.height = cs.height;
-  }
-
-  // LM demo flow removed (handled by core in future tasks)
-
-  // Ensure LM is loaded when Mode is LM (including initial mount)
-  // no-op; LM not controlled by the demo any more
-
-  // LM scheduling removed from demo
-
-  function syncOverlayScroll() {
-    const ta = textareaRef.current;
-    const ov = overlayRef.current;
-    if (!ta || !ov) return;
-    ov.scrollTop = ta.scrollTop;
-    ov.scrollLeft = ta.scrollLeft;
-  }
-
-  // Start TS pipeline and live region
+  // ⟢ Initialize pipeline
   useEffect(() => {
-    pipeline.start();
-    // ⟢ Initialize screen reader live region
-    liveRegionRef.current = createLiveRegion({
-      id: 'mt-corrections-announcer',
-      politeness: 'polite',
+    const ta = textareaRef.current;
+    if (!ta) return;
+
+    // Create live region
+    const lr = createLiveRegion();
+    liveRegionRef.current = lr;
+    
+    // Configure logging
+    setLoggerConfig({
+      enabled: true,
+      level: diagnosticMode ? 'debug' : 'warn',
+      sink: (record: LogRecord) => {
+        setLogs(prev => [
+          ...prev.slice(-100),
+          { ts: record.timeMs, type: record.level, msg: record.message }
+        ]);
+      },
     });
+
+    // Subscribe to diagnostics bus (noise + lm-wire)
+    const u1 = diagBus.subscribe('noise', (ev) => {
+      setNoiseEvents(prev => [...prev.slice(-49), ev]);
+    });
+    const u2 = diagBus.subscribe('lm-wire', (ev) => {
+      setLmWireEvents(prev => [...prev.slice(-99), ev]);
+    });
+
+    // Initialize LM adapter - use mock for reliable demo
+    import('../../core/lm/mockStreamAdapter').then(({ createMockStreamLMAdapter }) => {
+      const mockAdapter = createMockStreamLMAdapter();
+      lmAdapterRef.current = mockAdapter;
+      
+      // Set the adapter on the pipeline
+      if (pipelineRef.current && lmEnabled) {
+        pipelineRef.current.setLMAdapter(mockAdapter);
+      }
+      
+      console.log('[App] Mock stream adapter loaded for reliable demo');
+    }).catch((error) => {
+      console.error('[App] Failed to load mock adapter:', error);
+      // Minimal fallback
+      const fallbackAdapter = {
+        async *stream() { yield 'the '; },
+        abort() {},
+        getStats() { return { runs: 0, staleDrops: 0 }; }
+      } as any;
+      lmAdapterRef.current = fallbackAdapter;
+    });
+
+    // Initialize LM context manager
+    const contextManager = createLMContextManager();
+    lmContextManagerRef.current = contextManager;
+    (globalThis as any).__mtContextManager = contextManager;
+
+    // Boot pipeline
+    const pipeline = boot();
+    pipeline.start();
+    pipelineRef.current = pipeline;
     
+    // LM adapter will be set asynchronously when loaded
+
+    return () => {
+      try { pipeline.stop(); } catch {}
+      try { lr.destroy(); } catch {}
+      (globalThis as any).__mtContextManager = undefined;
+      u1();
+      u2();
+    };
+  }, [lmEnabled, diagnosticMode]);
+
+  // ⟢ Initialize caret position on app load
+  useEffect(() => {
+    // Set initial caret to end of default text (with delay to ensure textarea is ready)
+    const initializeCaret = () => {
+      const initialCaret = DEFAULT_PRESET.text.length;
+      caretRef.current = initialCaret;
+      
+      const ta = textareaRef.current;
+      if (ta) {
+        ta.value = DEFAULT_PRESET.text; // Ensure text is set
+        ta.setSelectionRange(initialCaret, initialCaret);
+        // Don't auto-focus to avoid interrupting user
+      }
+      
+      console.log('[App] Initial caret set:', { 
+        preset: DEFAULT_PRESET.name,
+        textLength: DEFAULT_PRESET.text.length, 
+        caret: initialCaret,
+        textPreview: DEFAULT_PRESET.text.slice(0, 50) + '...'
+      });
+    };
+
+    // Small delay to ensure DOM is ready
+    setTimeout(initializeCaret, 100);
+  }, []);
+
+  // ⟢ Load saved preset from localStorage on startup
+  useEffect(() => {
     try {
-      const stored = localStorage.getItem('mt.debug');
-      if (stored === 'true') {
-        // Enable verbose core logs
-        setLoggerConfig({ enabled: true, level: 'debug' });
-        console.info('[demo] debug logging enabled');
-      }
-    } catch {}
-    return () => {
-      pipeline.stop();
-      liveRegionRef.current?.destroy();
-    };
-  }, [pipeline]);
-
-  // Toggle LM mock adapter for demo visibility
-  useEffect(() => {
-    if (lmEnabled) {
-      pipeline.setLMAdapter(createMockLMAdapter() as unknown as any);
-    } else {
-      // @ts-expect-error using noop via public API
-      pipeline.setLMAdapter({ stream: async function* () {} });
-    }
-  }, [lmEnabled, pipeline]);
-
-  // Console access for quick manual testing
-  useEffect(() => {
-    (window as any).mt = pipeline;
-    (window as any).mtDebug = {
-      setLMDebug: (info: LMDebugInfo) => setLmDebug(info),
-    };
-    const id = window.setInterval(() => {
-      try {
-        const sel = (globalThis as any).__mtLastLMSelection;
-        if (!sel) return;
-        setLmDebug({
-          enabled: true,
-          status: 'idle',
-          band: sel.band ?? null,
-          span: sel.span ?? null,
-          ctxBefore: sel.ctxBefore ?? '',
-          ctxAfter: sel.ctxAfter ?? '',
-          prompt: sel.prompt ?? null,
-          controlJson: sel.controlJson ?? '{}',
-          lastChunks: (globalThis as any).__mtLastLMChunks || [],
-        });
-      } catch {}
-    }, 250);
-    return () => {
-      delete (window as any).mt;
-      delete (window as any).mtDebug;
-      window.clearInterval(id);
-    };
-  }, [pipeline]);
-
-  // WASM demo removed
-
-  // Scenario step-through: progressively reveal scenario.raw
-  useEffect(() => {
-    if (!scenarioId) return;
-    const s = SCENARIOS.find((x) => x.id === scenarioId);
-    if (!s) return;
-    const next = s.raw.slice(0, Math.min(stepIndex, s.raw.length));
-    setText(next);
-  }, [scenarioId, stepIndex]);
-
-  // Suppress band briefly after Enter to avoid flicker at line breaks
-  useEffect(() => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    const onKeyDown = (ev: KeyboardEvent) => {
-      if (ev.key === "Enter") suppressUntilRef.current = Date.now() + 250;
-    };
-    ta.addEventListener("keydown", onKeyDown);
-    return () => ta.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  useEffect(() => {
-    syncOverlayStyles();
-    syncOverlayScroll();
-    const ta = textareaRef.current;
-    if (!ta) return;
-    const onScroll = () => syncOverlayScroll();
-    ta.addEventListener("scroll", onScroll);
-    const ro = new ResizeObserver(() => syncOverlayStyles());
-    ro.observe(ta);
-    return () => {
-      ta.removeEventListener("scroll", onScroll);
-      ro.disconnect();
-    };
-  }, []);
-
-  // Cleanup typing glow timer on unmount
-  useEffect(() => {
-    return () => {
-      if (typingGlowTimerRef.current) window.clearTimeout(typingGlowTimerRef.current);
-    };
-  }, []);
-
-  // WASM demo correction flow removed
-
-  // 5b. Wire UI event listeners for visualization from TS pipeline
-  useEffect(() => {
-    const onActiveRegion = (e: Event) => {
-      const { start, end } = (e as CustomEvent).detail as {
-        start: number;
-        end: number;
-      };
-      if (freezeBand) return; // pause updates for inspection
-      const apply = () => {
-        const adjusted = computeNewlineSafeRange(
-          text,
-          start,
-          end,
-          suppressUntilRef.current,
-        );
-        if (!adjusted) return;
-        setBandRange({ start: adjusted.start, end: adjusted.end });
-        const ov = overlayRef.current;
-        if (ov) {
-          const t = text;
-          const before = escapeHtml(t.slice(0, adjusted.start));
-          const band = escapeHtml(t.slice(adjusted.start, adjusted.end));
-          const after = escapeHtml(t.slice(adjusted.end));
-          ov.innerHTML = `${before}<span class="active-region">${band || "\u200b"}</span>${after}`;
-        }
-      };
-      if (bandDelayMs > 0) setTimeout(apply, bandDelayMs);
-      else apply();
-    };
-    const onMechanicalSwap = (e: Event) => {
-      const { start, end, text: diffText, markerGlyph, durationMs, instant } = (e as CustomEvent).detail as {
-        start: number;
-        end: number;
-        text: string;
-        markerGlyph?: string;
-        durationMs: number;
-        instant: boolean;
-      };
-      
-      // Show visual feedback (mechanical swap or instant for reduced-motion)
-      setLastHighlight({ start, end });
-      const clearDelay = instant ? 100 : Math.max(800, durationMs + 200);
-      setTimeout(() => setLastHighlight(null), clearDelay);
-      
-      // Apply correction to textarea
-      try {
-        const caret = caretRef.current;
-        const updated = replaceRange(text, start, end, diffText, caret);
-        setText(updated);
-        // ⟢ Critical: sync the pipeline's internal state with the corrected text
-        pipeline.ingest(updated, caret);
-        requestAnimationFrame(() => {
+      const savedPresetName = localStorage.getItem('mindtype-demo-preset');
+      if (savedPresetName) {
+        const savedPreset = DEMO_PRESETS.find(p => p.name === savedPresetName);
+        if (savedPreset && savedPreset.name !== DEFAULT_PRESET.name) {
+          setCurrentPreset(savedPreset);
+          setText(savedPreset.text);
+          const newCaret = savedPreset.text.length;
+          caretRef.current = newCaret;
+          
+          // Update textarea
           const ta = textareaRef.current;
-          if (ta) ta.setSelectionRange(caret, caret);
-        });
-      } catch (err) {
-        console.warn('[web-demo] failed to apply swap', { start, end, diffText, err });
+          if (ta) {
+            ta.value = savedPreset.text;
+            ta.setSelectionRange(newCaret, newCaret);
+          }
+          
+          // Re-initialize LM context with saved preset
+          if (lmContextManagerRef.current) {
+            lmContextManagerRef.current.initialize(savedPreset.text, newCaret);
+            setLmContextInitialized(true);
+          }
+        }
       }
-    };
-    
-    const onSwapAnnouncement = (e: Event) => {
-      const { message, count } = (e as CustomEvent).detail as {
-        message: string;
-        count: number;
-      };
-      // ⟢ Announce to screen readers via live region
-      const announcement = `${message} (${count} correction${count === 1 ? '' : 's'})`;
-      liveRegionRef.current?.announce(announcement);
-      console.info(`[SR] ${announcement}`);
-    };
-    window.addEventListener("mindtype:activeRegion", onActiveRegion as EventListener);
-    window.addEventListener("mindtype:mechanicalSwap", onMechanicalSwap as EventListener);
-    window.addEventListener("mindtype:swapAnnouncement", onSwapAnnouncement as EventListener);
-    // ⟢ Keep legacy highlight listener for compatibility during transition
-    window.addEventListener("mindtype:highlight", onMechanicalSwap as EventListener);
-    return () => {
-      window.removeEventListener("mindtype:activeRegion", onActiveRegion as EventListener);
-      window.removeEventListener("mindtype:mechanicalSwap", onMechanicalSwap as EventListener);
-      window.removeEventListener("mindtype:swapAnnouncement", onSwapAnnouncement as EventListener);
-      window.removeEventListener("mindtype:highlight", onMechanicalSwap as EventListener);
-    };
-  }, [text, freezeBand, bandDelayMs]);
+    } catch (e) {
+      console.warn('[App] Failed to load preset from localStorage:', e);
+    }
+  }, []);
 
-  // 5c. Live controls for cadence and band sizing
+  // ⟢ Update configuration
   useEffect(() => {
     setTypingTickMs(tickMs);
   }, [tickMs]);
+
   useEffect(() => {
     setValidationBandWords(minBand, maxBand);
   }, [minBand, maxBand]);
 
-  // Listen to caret monitor snapshots from the shim (if WASM is present)
   useEffect(() => {
-    const onSnaps = (e: Event) => {
-      const arr = (e as CustomEvent).detail as CaretSnapshot[];
-      if (!arr || arr.length === 0) return;
-      const last = arr[arr.length - 1];
-      setCaretState(last);
-      setCaretLog((prev) => {
-        const next = prev.concat(arr);
-        // clamp to last 100
-        if (next.length > 100) next.splice(0, next.length - 100);
-        // EPS over last 1000ms
-        const now = Date.now();
-        const recent = next.filter((s) => now - s.timestamp_ms <= 1000).length;
-        setEps(recent);
-        return next;
+    setConfidenceThresholds({
+      τ_input: tauInput,
+      τ_commit: tauCommit,
+      τ_tone: tauTone,
+    });
+  }, [tauInput, tauCommit, tauTone]);
+
+  useEffect(() => {
+    setConfidenceSensitivity(sensitivity);
+  }, [sensitivity]);
+  
+  // ⟢ Swap renderer config
+  useEffect(() => {
+    setSwapConfig({ showMarker: showMarkers });
+  }, [showMarkers]);
+
+  // ⟢ Handle text changes
+  const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value);
+    caretRef.current = e.target.selectionStart || 0;
+    
+    // Auto-initialize LM context on first keystroke if not already done
+    if (lmContextManagerRef.current && !lmContextInitialized) {
+      console.log('[App] Auto-initializing LM context on first keystroke');
+      lmContextManagerRef.current.initialize(e.target.value, caretRef.current);
+      setLmContextInitialized(true);
+    }
+    
+    // Reset typing state
+    setIsTyping(true);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = window.setTimeout(() => setIsTyping(false), 1000);
+  }, [lmContextInitialized]);
+
+  // ⟢ Handle textarea focus (LM context initialization)
+  const handleTextareaFocus = useCallback(() => {
+    if (lmContextManagerRef.current && !lmContextInitialized) {
+      console.log('[App] Initializing LM context on focus');
+      lmContextManagerRef.current.initialize(text, caretRef.current);
+      setLmContextInitialized(true);
+    }
+  }, [text, lmContextInitialized]);
+
+  // ⟢ Braille animation for corrections
+  const showBrailleAnimation = useCallback((start: number, end: number, glyph: string, instant: boolean) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    // Create braille indicator element
+    const indicator = document.createElement('div');
+    indicator.className = `braille-indicator ${instant ? 'reduced-motion' : ''}`;
+    indicator.textContent = glyph;
+    indicator.setAttribute('aria-hidden', 'true');
+
+    // Position the indicator at the start of the corrected span
+    const textBeforeStart = textarea.value.substring(0, start);
+    const lines = textBeforeStart.split('\n');
+    const currentLine = lines.length - 1;
+    const currentColumn = lines[currentLine].length;
+
+    // Approximate positioning (rough calculation for demo)
+    const charWidth = 9; // Approximate character width in pixels
+    const lineHeight = 24; // Approximate line height in pixels
+    const scrollTop = textarea.scrollTop;
+    const scrollLeft = textarea.scrollLeft;
+
+    const left = Math.max(0, currentColumn * charWidth - scrollLeft + 16); // 16px padding
+    const top = Math.max(0, currentLine * lineHeight - scrollTop + 16);
+
+    indicator.style.left = `${left}px`;
+    indicator.style.top = `${top}px`;
+
+    // Calculate sweep distance based on corrected span length
+    const spanLength = end - start;
+    const sweepDistance = Math.min(spanLength * charWidth, 40);
+    indicator.style.setProperty('--sweep-distance', `${sweepDistance}px`);
+
+    // Add to textarea container
+    const container = textarea.parentElement;
+    if (container) {
+      container.style.position = 'relative';
+      container.appendChild(indicator);
+
+      // Trigger animation
+      requestAnimationFrame(() => {
+        indicator.classList.add('animate');
       });
-      try {
-        const s = (window as any).__mtStats as MonitorStats | undefined;
-        if (s) setStats(s);
-      } catch {}
-    };
-    window.addEventListener('mindtype:caretSnapshots', onSnaps as EventListener);
-    return () => window.removeEventListener('mindtype:caretSnapshots', onSnaps as EventListener);
+
+      // Clean up after animation
+      setTimeout(() => {
+        if (indicator.parentElement) {
+          indicator.parentElement.removeChild(indicator);
+        }
+      }, instant ? 300 : 800);
+    }
   }, []);
 
-  // 5d. Reduced-motion default and persistence
-  useEffect(() => {
-    try {
-      const storedTick = localStorage.getItem('mt.tickMs');
-      const storedMin = localStorage.getItem('mt.minBand');
-      const storedMax = localStorage.getItem('mt.maxBand');
-      const prefersReduced =
-        typeof window !== 'undefined' &&
-        window.matchMedia &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (storedTick) setTickMs(parseInt(storedTick, 10));
-      else if (prefersReduced) setTickMs(120);
-      if (storedMin) setMinBand(parseInt(storedMin, 10));
-      if (storedMax) setMaxBand(parseInt(storedMax, 10));
-    } catch {}
-  }, []);
-  useEffect(() => {
-    try {
-      localStorage.setItem('mt.tickMs', String(tickMs));
-      localStorage.setItem('mt.minBand', String(minBand));
-      localStorage.setItem('mt.maxBand', String(maxBand));
-    } catch {}
-  }, [tickMs, minBand, maxBand]);
+  // ⟢ Handle preset changes
+  const handlePresetChange = useCallback((preset: DemoPreset) => {
+    setCurrentPreset(preset);
+    setText(preset.text);
+    const newCaret = preset.text.length;
+    caretRef.current = newCaret;
+    
+    // Re-initialize LM context with new text
+    if (lmContextManagerRef.current) {
+      lmContextManagerRef.current.initialize(preset.text, newCaret);
+      setLmContextInitialized(true);
+    }
+    
+    // Update textarea and set caret properly
+    const ta = textareaRef.current;
+    if (ta) {
+      ta.value = preset.text;
+      ta.setSelectionRange(newCaret, newCaret);
+      ta.focus(); // Ensure focus for caret position
+    }
 
-  // 6. Keyboard shortcut for debug panel
+    // Persist to localStorage
+    try {
+      localStorage.setItem('mindtype-demo-preset', preset.name);
+    } catch (e) {
+      console.warn('[App] Failed to save preset to localStorage:', e);
+    }
+
+    console.log('[App] Preset changed:', { name: preset.name, textLength: preset.text.length, caret: newCaret });
+  }, [lmContextManagerRef]);
+
+  // ⟢ Trigger correction sweep (CTA function)
+  const runCorrections = useCallback(() => {
+    const pipeline = pipelineRef.current;
+    const ta = textareaRef.current;
+    if (!pipeline || !text || !ta) return;
+    
+    // Ensure caret is at end of text for corrections
+    const correctCaret = text.length;
+    caretRef.current = correctCaret;
+    ta.setSelectionRange(correctCaret, correctCaret);
+    ta.focus();
+    
+    console.log('[App] Running corrections via CTA button', { 
+      textLength: text.length, 
+      caret: correctCaret,
+      textPreview: text.slice(0, 50) + '...'
+    });
+    
+    // Force a sweep by ingesting current text with correct caret
+    pipeline.ingest(text, correctCaret);
+    
+    // Show feedback that processing has started
+    setIsTyping(false); // Stop typing indicator
+  }, [text]);
+
+  // ⟢ Apply corrections from events
+  const applyFromEvent = useCallback((detail: { start: number; end: number; text: string }) => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    
+    try {
+      const newText = replaceRange(ta.value, detail.start, detail.end, detail.text, caretRef.current);
+      setText(newText);
+      ta.value = newText;
+      
+      // Preserve caret position
+      ta.setSelectionRange(caretRef.current, caretRef.current);
+      
+      // Re-ingest
+      pipelineRef.current?.ingest(newText, caretRef.current);
+    } catch (err) {
+      console.error('[App] Failed to apply correction:', err);
+    }
+  }, []);
+
+  // ⟢ Event listeners
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.altKey &&
-        event.shiftKey &&
-        event.metaKey &&
-        event.key === "l"
-      ) {
-        setShowDebugPanel((prev) => !prev);
+    const onHighlight = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.start != null && detail?.end != null && detail?.text != null) {
+        applyFromEvent(detail);
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
+
+    const onMechanicalSwap = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.start != null && detail?.end != null && detail?.text != null) {
+        // Apply the text correction
+        applyFromEvent(detail);
+        
+        // Show braille animation if marker is enabled
+        if (detail.markerGlyph && showMarkers) {
+          showBrailleAnimation(detail.start, detail.end, detail.markerGlyph, detail.instant);
+        }
+      }
+    };
+
+    const onStatus = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { statuses?: Record<string, boolean> };
+      if (detail?.statuses) setSystemStatuses(detail.statuses);
+    };
+
+    const onMindtypeBlocked = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setBlockedBanner(detail?.reason || 'Blocked');
+      setTimeout(() => setBlockedBanner(''), 3000);
+    };
+
+    const onSwapAnnouncement = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.message && liveRegionRef.current) {
+        // Announce correction summary to screen readers
+        const message = detail.count === 1 
+          ? 'Text corrected behind cursor'
+          : `${detail.count} corrections applied behind cursor`;
+        liveRegionRef.current.announce(message);
+      }
+    };
+
+    document.addEventListener('mindtype:highlight', onHighlight);
+    document.addEventListener('mindtype:mechanicalSwap', onMechanicalSwap);
+    document.addEventListener('mindtype:swapAnnouncement', onSwapAnnouncement);
+    document.addEventListener('mindtype:blocked', onMindtypeBlocked);
+    document.addEventListener('mindtype:status', onStatus);
+
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener('mindtype:highlight', onHighlight);
+      document.removeEventListener('mindtype:mechanicalSwap', onMechanicalSwap);
+      document.removeEventListener('mindtype:swapAnnouncement', onSwapAnnouncement);
+      document.removeEventListener('mindtype:blocked', onMindtypeBlocked);
+      document.removeEventListener('mindtype:status', onStatus);
+    };
+  }, [applyFromEvent]);
+
+  // ⟢ Selection/blur handling
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+
+    const handleSelectionChange = () => {
+      const hasSelection = ta.selectionStart !== ta.selectionEnd;
+      pausedBySelectionRef.current = hasSelection;
+    };
+
+    const handleFocus = () => {
+      pausedByBlurRef.current = false;
+    };
+
+    const handleBlur = () => {
+      pausedByBlurRef.current = true;
+    };
+
+    ta.addEventListener('select', handleSelectionChange);
+    ta.addEventListener('focus', handleFocus);
+    ta.addEventListener('blur', handleBlur);
+
+    return () => {
+      ta.removeEventListener('select', handleSelectionChange);
+      ta.removeEventListener('focus', handleFocus);
+      ta.removeEventListener('blur', handleBlur);
     };
   }, []);
 
-  // Debug logs (WASM logger removed) — keep UI panel without logs source
+  // ⟢ Preview generation
+  useEffect(() => {
+    if (!bandRange || !pipelineRef.current) return;
+    
+    const updatePreviews = () => {
+      try {
+        const sample = text.slice(bandRange.start, bandRange.end);
+        setPreviewBuffer(sample);
+        
+        // Generate previews for each transformer
+        const n = pipelineRef.current!.engines.noise.transform({ text: sample, caret: 0 });
+        setPreviewNoise(n.text === sample ? '' : n.text);
+        
+        const c = pipelineRef.current!.engines.context.transform({ text: sample, caret: 0 });
+        setPreviewContext(c.text === sample ? '' : c.text);
+        
+        const t = toneEnabled && toneTarget !== 'None' 
+          ? pipelineRef.current!.engines.tone.transform({ text: sample, caret: 0, target: toneTarget.toLowerCase() as any })
+          : { text: sample };
+        setPreviewTone(t.text === sample ? '' : t.text);
+    } catch {}
+    };
+    
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(updatePreviews);
+    
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [text, bandRange, toneEnabled, toneTarget]);
+
+  // ⟢ Scenario handling
+  const loadScenario = useCallback((id: string) => {
+    const scenario = SCENARIOS.find(s => s.id === id);
+    if (!scenario) return;
+    
+    setScenarioId(id);
+    setStepIndex(0);
+    setText(scenario.steps[0].text);
+    
+    const ta = textareaRef.current;
+    if (ta) {
+      ta.value = scenario.steps[0].text;
+      const caret = scenario.steps[0].caretAfter || scenario.steps[0].text.length;
+      ta.setSelectionRange(caret, caret);
+      caretRef.current = caret;
+      pipelineRef.current?.ingest(scenario.steps[0].text, caret);
+    }
+  }, []);
+
+  const nextScenarioStep = useCallback(() => {
+    if (!scenarioId) return;
+    
+    const scenario = SCENARIOS.find(s => s.id === scenarioId);
+    if (!scenario) return;
+    
+    const nextIdx = stepIndex + 1;
+    if (nextIdx >= scenario.steps.length) {
+      setScenarioId(null);
+      setStepIndex(0);
+      return;
+    }
+    
+    setStepIndex(nextIdx);
+    const step = scenario.steps[nextIdx];
+    setText(step.text);
+    
+    const ta = textareaRef.current;
+    if (ta) {
+      ta.value = step.text;
+      const caret = step.caretAfter || step.text.length;
+      ta.setSelectionRange(caret, caret);
+      caretRef.current = caret;
+      pipelineRef.current?.ingest(step.text, caret);
+    }
+  }, [scenarioId, stepIndex]);
+
+  // ⟢ LM Lab presets
+  const applyLMLabPreset = useCallback((preset: string) => {
+    const presets: Record<string, string> = {
+      typo: "Hello wrold! This is a simple tpyo test.",
+      context: "The cat sat on the mat. The cta was very happy.",
+      grammar: "She don't know nothing about that issue yesterday.",
+      mixed: "I cant beleive its already Wendesday. Time flys when your having fun!",
+    };
+    
+    const presetText = presets[preset];
+    if (!presetText) return;
+    
+    setText(presetText);
+    const ta = textareaRef.current;
+    if (ta) {
+      ta.value = presetText;
+      const caret = presetText.length;
+      ta.setSelectionRange(caret, caret);
+      caretRef.current = caret;
+      pipelineRef.current?.ingest(presetText, caret);
+    }
+  }, []);
 
   return (
     <div className="App">
-      <button
-        className="debug-toggle"
-        onClick={() => setShowDebugPanel((p) => !p)}
-      >
-        {showDebugPanel ? "Hide" : "Show"} Debug Panel (⌥⇧⌘L)
-      </button>
-
-      <h1>Mind::Type Web Demo</h1>
-
-      <div className="card">
-        <h2>Editor</h2>
-        {/* Caret Monitor Status */}
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: 'monospace' }}>EPS: {eps}</span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {['BLUR','ACTIVE_IDLE','TYPING','PASTED'].map((k) => {
-              const on = (caretState?.primary || '').toUpperCase() === k;
-              const color = on ? (k === 'BLUR' ? '#999' : '#0C6') : 'rgba(255,255,255,0.18)';
-              return (
-                <div key={k} title={k} style={{ width: 12, height: 12, borderRadius: 12, background: color, border: '1px solid rgba(255,255,255,0.28)' }} />
-              );
-            })}
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            <span data-testid="caret-primary" style={{ padding: '2px 6px', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 6, fontSize: 12 }}>
-              {(caretState?.primary || 'BLUR').toUpperCase()}
-            </span>
-            <span style={{ padding: '2px 6px', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 6, fontSize: 12 }}>
-              WPM~: {typeof stats?.wpm_smoothed === 'number' ? Math.round(stats!.wpm_smoothed) : Math.round((eps * 60) / 5)}
-            </span>
-            {caretState?.ime_active && (
-              <span style={{ padding: '2px 6px', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 6, fontSize: 12 }}>IME</span>
-            )}
-            {caretState?.blocked && (
-              <span style={{ padding: '2px 6px', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 6, fontSize: 12 }}>BLOCKED</span>
-            )}
-          </div>
+      {/* Pause banner */}
+      {pausedBySelectionOrBlur && (
+        <div role="status" aria-live="polite" style={{
+          position: 'fixed', top: '1rem', right: '1rem', zIndex: 1000,
+          background: 'rgba(20,20,20,0.85)', color: '#fff', padding: '0.5rem 0.75rem',
+          borderRadius: 6, fontSize: 12
+        }}>
+          Corrections paused: selection/blur
         </div>
-        {/* LED status strip */}
-        <StatusStrip />
-        {/* Stats panel */}
-        {stats && (
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 8, fontFamily: 'monospace', fontSize: 12 }}>
-            <span>keys: {stats.keystrokes ?? 0}</span>
-            <span>avg Δt: {stats.avg_inter_key_ms ? Math.round(stats.avg_inter_key_ms) : 0} ms</span>
-            <span>EPS~: {stats.eps_smoothed ? stats.eps_smoothed.toFixed(2) : (eps || 0)}</span>
-            <span>burst: {stats.burst_len_current ?? 0} (max {stats.burst_len_max ?? 0})</span>
-            <span>deletes: {stats.deletes_seen ?? 0} / bursts {stats.delete_bursts ?? 0}</span>
-            <span>pastes: {stats.pastes ?? 0}</span>
-            <span>jumps: {stats.caret_jumps ?? 0}</span>
-          </div>
-        )}
-        <div className={`editor-wrap ${isTyping ? 'typing' : ''}`}>
-          <div className="editor-overlay" aria-hidden id="mt-overlay" ref={overlayRef} />
-          <textarea
-            className="editor-textarea"
-            ref={textareaRef}
-            value={text}
-            placeholder="Type here. Pause to see live corrections."
-            onChange={handleTextChange}
-            onBlur={() => setIsTyping(false)}
-            onCompositionStart={() => {
-              setIsIMEComposing(true);
-              imeRef.current = true;
-              setIsTyping(true);
-            }}
-            onCompositionEnd={() => {
-              setIsIMEComposing(false);
-              imeRef.current = false;
-              if (typingGlowTimerRef.current) window.clearTimeout(typingGlowTimerRef.current);
-              typingGlowTimerRef.current = window.setTimeout(() => setIsTyping(false), 1200);
-            }}
-            rows={10}
-            cols={80}
-            data-gramm="false"
-            data-lt-active="false"
-            spellCheck={false}
-            autoCorrect="off"
-            autoCapitalize="off"
-          />
+      )}
+      
+      {/* Blocked banner */}
+      {blockedBanner && (
+        <div role="alert" style={{
+          position: 'fixed', bottom: '1rem', right: '1rem', zIndex: 1000,
+          background: '#f44', color: '#fff', padding: '0.5rem 0.75rem',
+          borderRadius: 6, fontSize: 12
+        }}>
+          {blockedBanner}
         </div>
-        {bandRange && (
-          <div style={{ fontFamily: "monospace", marginTop: 8 }}>
-            <small data-testid="active-region-label">
-              Active region: [{bandRange.start}, {bandRange.end}]
-            </small>
-          </div>
-        )}
-        {lastHighlight && (
-          <div style={{ fontFamily: "monospace" }}>
-            <small>
-              Last highlight: [{lastHighlight.start}, {lastHighlight.end}]
-            </small>
-          </div>
-        )}
-        <p>
-          <i>
-            Type to see the active region trail behind your cursor. The engine catches up after a short pause.
-          </i>
+      )}
+
+      <div style={{ 
+      height: '100vh', 
+      padding: '8px', 
+      background: '#0b0f12',
+      fontFamily: 'Inter, system-ui, sans-serif',
+      color: 'rgba(245, 246, 248, 0.92)',
+      overflow: 'hidden'
+    }}>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+        <h1 style={{ margin: 0, fontSize: '1.8em', fontWeight: '600' }}>Mind::Type Web Demo</h1>
+        <div style={{ marginTop: '8px' }}>
+          <a 
+            href="/#/demos" 
+            style={{
+              color: '#7ce0b8',
+              textDecoration: 'none',
+              fontSize: '0.9em',
+              fontWeight: '500',
+              transition: 'color 0.2s ease'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.color = '#4db8ff'}
+            onMouseOut={(e) => e.currentTarget.style.color = '#7ce0b8'}
+          >
+            🎯 View All Demos
+          </a>
+        </div>
+      </div>
+
+      {/* Demo Preset Controls */}
+      <div style={{
+        background: 'rgba(124, 224, 184, 0.1)',
+        border: '1px solid rgba(124, 224, 184, 0.3)',
+        borderRadius: '12px',
+        padding: '16px',
+        marginBottom: '16px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
+          <h3 style={{ margin: 0, fontSize: '1.1em', color: '#7ce0b8' }}>
+            ✨ Quick Demo
+          </h3>
+          <select
+            value={currentPreset.name}
+            onChange={(e) => {
+              const preset = DEMO_PRESETS.find(p => p.name === e.target.value);
+              if (preset) handlePresetChange(preset);
+            }}
+            aria-label="Select demo preset"
+            title="Choose a preset with different types of text errors to demonstrate"
+            style={{
+              background: '#1a2332',
+              color: '#e7e9ee',
+              border: '1px solid rgba(124, 224, 184, 0.3)',
+              borderRadius: '6px',
+              padding: '6px 12px',
+              fontSize: '0.9em'
+            }}
+          >
+            {DEMO_PRESETS.map(preset => (
+              <option key={preset.name} value={preset.name}>
+                {preset.name}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={runCorrections}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                runCorrections();
+              }
+            }}
+            aria-label="Run corrections on current text"
+            title="Apply AI-powered corrections to the current text"
+            style={{
+              background: 'linear-gradient(135deg, #7ce0b8, #4db8ff)',
+              color: '#0b0f12',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 20px',
+              fontSize: '1em',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 12px rgba(124, 224, 184, 0.3)',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(124, 224, 184, 0.4)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(124, 224, 184, 0.3)';
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.outline = '2px solid #7ce0b8';
+              e.currentTarget.style.outlineOffset = '2px';
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.outline = 'none';
+            }}
+          >
+            🚀 Run Corrections
+          </button>
+        </div>
+        <p id="demo-description" style={{ 
+          margin: 0, 
+          fontSize: '0.85em', 
+          color: '#a0a8b0',
+          fontStyle: 'italic'
+        }}>
+          {currentPreset.description} Text corrections will be applied automatically behind your cursor as you type, or click "Run Corrections" to process the current text immediately.
         </p>
       </div>
 
-      {/* Field grid + sim buttons */}
-      <div className="card" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
-        <div>
-          <h3 style={{ marginTop: 0 }}>Input</h3>
-          <input type="text" placeholder="InputText" style={{ width: "100%", padding: 8 }} />
-        </div>
-        <div>
-          <h3 style={{ marginTop: 0 }}>Textarea</h3>
-          <textarea rows={6} placeholder="TextArea" style={{ width: "100%", padding: 8 }} />
-        </div>
-        <div>
-          <h3 style={{ marginTop: 0 }}>ContentEditable</h3>
-          <div contentEditable suppressContentEditableWarning style={{ minHeight: 120, padding: 8, border: "1px solid rgba(255,255,255,0.22)", borderRadius: 6 }}>
-            Edit me…
-          </div>
-        </div>
-        <div>
-          <h3 style={{ marginTop: 0 }}>Secure (mock)</h3>
-          <input type="password" placeholder="Password" style={{ width: "100%", padding: 8 }} />
-        </div>
-        <div>
-          <h3 style={{ marginTop: 0 }}>Readonly (mock)</h3>
-          <input type="text" readOnly defaultValue="Cannot edit" style={{ width: "100%", padding: 8, opacity: 0.75 }} />
-        </div>
-        <div>
-          <h3 style={{ marginTop: 0 }}>Simulate</h3>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            <button onClick={() => {
-              const ae = document.activeElement as any;
-              const insert = "hello ";
-              if (!ae) return;
-              if (ae instanceof HTMLInputElement || ae instanceof HTMLTextAreaElement) {
-                const s = ae.selectionStart ?? ae.value.length;
-                const e = ae.selectionEnd ?? s;
-                ae.value = ae.value.slice(0, s) + insert + ae.value.slice(e);
-                const caret = s + insert.length;
-                ae.setSelectionRange(caret, caret);
-                ae.dispatchEvent(new InputEvent('beforeinput', { cancelable: true, bubbles: true, data: insert, inputType: 'insertText' } as any));
-                ae.dispatchEvent(new InputEvent('input', { bubbles: true, data: insert, inputType: 'insertText' } as any));
-                return;
-              }
-              if (ae instanceof HTMLElement && ae.isContentEditable) {
-                const sel = window.getSelection?.();
-                if (!sel) return;
-                if (sel.rangeCount === 0) return;
-                const r = sel.getRangeAt(0);
-                r.deleteContents();
-                r.insertNode(document.createTextNode(insert));
-                // Move caret after inserted text
-                sel.collapse(r.endContainer, (r.endContainer as Text).length || 0);
-                document.dispatchEvent(new Event('selectionchange', { bubbles: true }));
-              }
-            }}>Insert</button>
-            <button onClick={() => navigator.clipboard?.readText().then((t) => {
-              const ae = document.activeElement as any;
-              if (ae && typeof ae.value === 'string') {
-                const s = ae.selectionStart ?? ae.value.length;
-                const e = ae.selectionEnd ?? s;
-                ae.value = ae.value.slice(0, s) + t + ae.value.slice(e);
-                ae.setSelectionRange(s + t.length, s + t.length);
-                ae.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertFromPaste' } as any));
-              }
-            }).catch(() => {})}>Paste</button>
-            <button onClick={() => (document.activeElement as HTMLElement | null)?.blur()}>Force blur</button>
-            <button onClick={() => {
-              const ae = document.activeElement as any;
-              if (!ae || typeof ae.value !== 'string') return;
-              const pos = (ae.selectionStart ?? ae.value.length) + 12;
-              const clamped = Math.min(pos, ae.value.length);
-              ae.setSelectionRange(clamped, clamped);
-              ae.dispatchEvent(new Event('selectionchange', { bubbles: true }));
-            }}>Caret jump</button>
-            <button onClick={() => {
-              const sel = window.getSelection?.();
-              if (!sel) return;
-              const ta = document.querySelector('textarea');
-              if (!ta) return;
-              (ta as HTMLTextAreaElement).focus();
-              const s = (ta as HTMLTextAreaElement).selectionStart ?? 0;
-              const e = Math.min(s + 5, (ta as HTMLTextAreaElement).value.length);
-              (ta as HTMLTextAreaElement).setSelectionRange(s, e);
-              document.dispatchEvent(new Event('selectionchange', { bubbles: true }));
-            }}>Selection toggle</button>
-          </div>
-        </div>
-      </div>
-
-      {/* Caret Monitor Log */}
-      <div className="card" style={{ textAlign: 'left' }}>
-        <h2>Caret Monitor Log (last 100)</h2>
-        <div style={{ maxHeight: 240, overflow: 'auto', fontFamily: 'monospace', fontSize: 12, background: 'rgba(255,255,255,0.04)', padding: 8, borderRadius: 8 }}>
-          {caretLog.length === 0 ? (
-            <div style={{ opacity: 0.7 }}>No snapshots yet. Type or paste to see state changes.</div>
-          ) : (
-            caretLog.map((s, i) => (
-              <div key={i}>
-                [{new Date(s.timestamp_ms).toLocaleTimeString()}] {s.primary} • caret {s.caret}/{s.text_len} • sel {s.selection.start}-{s.selection.end}
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      {showDebugPanel && (
-        <DebugPanel idleMs={idleMs} onIdleMsChange={setIdleMs} logs={logs} lmDebug={lmDebug} />
-      )}
-
-      <div className="card" style={{ marginTop: 16 }}>
-        <h2>Live controls</h2>
-        <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span>Scenario</span>
-            <select
-              aria-label="Scenario"
-              value={scenarioId ?? ''}
-              onChange={(e) => {
-                const v = e.target.value || null;
-                setScenarioId(v);
-                setStepIndex(0);
-                if (!v) setText("");
-              }}
-            >
-              <option value="">None</option>
-              {SCENARIOS.map((s) => (
-                <option key={s.id} value={s.id}>{s.title}</option>
+        {/* Main Layout Grid */}
+      <div style={{ 
+        display: 'grid', 
+          gridTemplateColumns: '1fr 2fr 1fr',
+          gridTemplateRows: `auto 1fr ${bottomHeightPx}px`,
+          gap: '8px',
+          height: 'calc(100vh - 60px)'
+        }}>
+          {/* LEFT PANEL - Scenarios & Presets */}
+        <div style={{ 
+            gridColumn: '1', 
+          gridRow: '1 / 4',
+            background: 'rgba(20, 24, 28, 0.4)',
+          borderRadius: '8px',
+          padding: '12px',
+            overflow: 'auto'
+          }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '0.9em', color: '#0c8' }}>Scenarios</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
+              {SCENARIOS.map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => loadScenario(s.id)}
+                  style={{
+                    padding: '6px 8px',
+                    background: scenarioId === s.id ? '#0c8' : 'rgba(255,255,255,0.1)',
+                    color: scenarioId === s.id ? '#000' : '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '0.75em',
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                >
+                  {s.name}
+                </button>
               ))}
-            </select>
-          </label>
-          {scenarioId && (
-            <>
-              <button onClick={() => setStepIndex((i) => Math.max(0, i - 1))}>Step back</button>
-              <button onClick={() => setStepIndex((i) => i + 1)}>Step</button>
-              <button onClick={() => {
-                const s = SCENARIOS.find((x) => x.id === scenarioId);
-                if (s) setText(s.corrected);
-              }}>Apply corrected</button>
-            </>
-          )}
-          {/* LM controls removed until LM-in-core lands */}
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {scenarioId && (
+                <button
+                  onClick={nextScenarioStep}
+              style={{ 
+                    padding: '6px 8px',
+                    background: '#f90',
+                    color: '#000',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '0.75em',
+                    cursor: 'pointer',
+                    marginTop: '4px'
+                  }}
+                >
+                  Next Step ({stepIndex + 1}/{SCENARIOS.find(s => s.id === scenarioId)?.steps.length || 0})
+                </button>
+            )}
+          </div>
+
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '0.9em', color: '#0c8' }}>LM Lab Presets</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <button onClick={() => applyLMLabPreset('typo')} style={{
+                padding: '6px 8px',
+                background: 'rgba(255,255,255,0.1)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '0.75em',
+                cursor: 'pointer',
+                textAlign: 'left'
+              }}>
+                Simple Typos
+              </button>
+              <button onClick={() => applyLMLabPreset('context')} style={{
+                padding: '6px 8px',
+                background: 'rgba(255,255,255,0.1)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '0.75em',
+                cursor: 'pointer',
+                textAlign: 'left'
+              }}>
+                Context Errors
+              </button>
+              <button onClick={() => applyLMLabPreset('grammar')} style={{
+                padding: '6px 8px',
+                background: 'rgba(255,255,255,0.1)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '0.75em',
+                cursor: 'pointer',
+                textAlign: 'left'
+              }}>
+                Grammar Issues
+              </button>
+              <button onClick={() => applyLMLabPreset('mixed')} style={{
+                padding: '6px 8px',
+                background: 'rgba(255,255,255,0.1)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '0.75em',
+                cursor: 'pointer',
+                textAlign: 'left'
+              }}>
+                Mixed Errors
+              </button>
+            </div>
+        </div>
+
+          {/* CENTER - Main Textarea */}
+        <div style={{ 
+            gridColumn: '2', 
+            gridRow: '1 / 3',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          <textarea 
+              ref={textareaRef}
+              value={text}
+              onChange={handleTextChange}
+              onFocus={handleTextareaFocus}
+              placeholder="Start typing to see corrections..."
+              aria-label="Text input for correction demonstration"
+              aria-describedby="demo-description"
+              role="textbox"
+              aria-multiline="true"
+            style={{ 
+                height: '35vh',
+                padding: '16px',
+                fontSize: '16px',
+                lineHeight: '1.6',
+                background: 'rgba(20, 24, 28, 0.6)',
+                color: 'rgba(245, 246, 248, 0.92)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+              resize: 'none', 
+                fontFamily: 'Inter, system-ui, sans-serif'
+            }} 
+          />
+        </div>
+
+          {/* RIGHT PANEL - Controls */}
+        <div style={{ 
+            gridColumn: '3', 
+            gridRow: '1 / 4',
+            background: 'rgba(20, 24, 28, 0.4)',
+          borderRadius: '8px',
+            padding: '12px',
+            overflow: 'auto'
+          }}>
+            {/* Core Controls */}
+            <div style={{ marginBottom: '16px' }}>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '0.9em', color: '#0c8' }}>Core Controls</h3>
+              
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '0.8em' }}>
+                <input
+                  type="checkbox"
+                  checked={diagnosticMode}
+                  onChange={(e) => setDiagnosticMode(e.target.checked)}
+                />
+                Diagnostic mode
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '0.8em' }}>
             <input
               type="checkbox"
               checked={lmEnabled}
               onChange={(e) => setLmEnabled(e.target.checked)}
             />
-            Enable LM (mock) — demo only
+                Enable LM
           </label>
-          <label>
-            Tick (ms): {tickMs}
-            <input
-              type="range"
-              min={30}
-              max={150}
-              step={1}
-              value={tickMs}
-              onChange={(e) => setTickMs(parseInt(e.target.value, 10))}
-            />
-          </label>
-          <label>
-            Min band words: {minBand}
-            <input
-              type="range"
-              min={1}
-              max={5}
-              step={1}
-              value={minBand}
-              onChange={(e) =>
-                setMinBand(Math.min(parseInt(e.target.value, 10), maxBand))
-              }
-            />
-          </label>
-          <label>
-            Max band words: {maxBand}
-            <input
-              type="range"
-              min={3}
-              max={12}
-              step={1}
-              value={maxBand}
-              onChange={(e) =>
-                setMaxBand(Math.max(parseInt(e.target.value, 10), minBand))
-              }
-            />
-          </label>
-          {/* WASM demo toggle removed */}
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '0.8em' }}>
+                <input
+                  type="checkbox"
+                  checked={!lmEnabled}
+                  onChange={(e) => setLmEnabled(!e.target.checked)}
+                />
+                Rules Only (deterministic)
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '0.8em' }}>
+                <input
+                  type="checkbox"
+                  checked={showMarkers}
+                  onChange={(e) => setShowMarkers(e.target.checked)}
+                />
+                Show markers
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '0.8em' }}>
             <input
               type="checkbox"
-              checked={isSecure}
-              onChange={(e) => {
-                setIsSecure(e.target.checked);
-                secureRef.current = e.target.checked;
-              }}
+                  checked={ignoreGating}
+                  onChange={(e) => setIgnoreGating(e.target.checked)}
             />
-            Secure field (disable corrections)
+                Ignore gating
           </label>
-          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            IME composing: {isIMEComposing ? "yes" : "no"}
-          </span>
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <input
-              type="checkbox"
-              checked={freezeBand}
-              onChange={(e) => setFreezeBand(e.target.checked)}
-            />
-            Freeze band (debug)
-          </label>
-          <label>
-            Band delay (ms): {bandDelayMs}
-            <input
-              type="range"
-              min={0}
-              max={1000}
-              step={50}
-              value={bandDelayMs}
-              onChange={(e) => setBandDelayMs(parseInt(e.target.value, 10))}
-            />
-          </label>
-          <button
-            onClick={() => {
-              const preset = { tickMs, minBand, maxBand };
-              navigator.clipboard?.writeText(JSON.stringify(preset)).catch(() => {});
-            }}
-          >
-            Copy preset
-          </button>
-          <button
-            onClick={() => {
-              const raw = prompt('Paste preset JSON');
-              if (!raw) return;
-              try {
-                const p = JSON.parse(raw);
-                if (typeof p.tickMs === 'number') setTickMs(p.tickMs);
-                if (typeof p.minBand === 'number') setMinBand(p.minBand);
-                if (typeof p.maxBand === 'number') setMaxBand(p.maxBand);
-                // WASM preset ignored
-              } catch {}
-            }}
-          >
-            Import preset
-          </button>
         </div>
-        {/* Latency metrics removed */}
-      </div>
+
+            {/* Timing Controls */}
+            <div style={{ marginBottom: '16px' }}>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '0.9em', color: '#0c8' }}>Timing</h3>
+              
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8em' }}>
+              Tick: {tickMs}ms
+              <input
+                type="range"
+                  min="50"
+                  max="500"
+                  step="10"
+                value={tickMs}
+                  onChange={(e) => setTickMs(Number(e.target.value))}
+                  style={{ width: '100%' }}
+                />
+              </label>
+
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8em' }}>
+                Max band: {maxBand} words
+              <input
+                type="range"
+                  min={minBand}
+                  max="50"
+                  step="1"
+                value={maxBand}
+                  onChange={(e) => setMaxBand(Number(e.target.value))}
+                  style={{ width: '100%' }}
+                />
+              </label>
+        </div>
+
+            {/* Confidence Controls */}
+            <div style={{ marginBottom: '16px' }}>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '0.9em', color: '#0c8' }}>Confidence</h3>
+              
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8em' }}>
+              τ_input: {tauInput.toFixed(2)}
+              <input
+                type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                value={tauInput}
+                  onChange={(e) => setTauInput(Number(e.target.value))}
+                  style={{ width: '100%' }}
+              />
+              </label>
+
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8em' }}>
+              τ_commit: {tauCommit.toFixed(2)}
+              <input
+                type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                value={tauCommit}
+                  onChange={(e) => setTauCommit(Number(e.target.value))}
+                  style={{ width: '100%' }}
+                />
+              </label>
+
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.8em' }}>
+                Sensitivity: {sensitivity.toFixed(2)}
+              <input
+                type="range"
+                  min="1"
+                  max="3"
+                  step="0.1"
+                value={sensitivity}
+                  onChange={(e) => setSensitivity(Number(e.target.value))}
+                  style={{ width: '100%' }}
+              />
+              </label>
+        </div>
+
+            {/* Tone Controls */}
+            <div>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '0.9em', color: '#0c8' }}>Tone</h3>
+              
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '0.8em' }}>
+                <input
+                  type="checkbox"
+                  checked={toneEnabled}
+                  onChange={(e) => setToneEnabled(e.target.checked)}
+                />
+                Enable tone
+              </label>
+
+              {toneEnabled && (
+                <select
+                  value={toneTarget}
+                  onChange={(e) => setToneTarget(e.target.value as any)}
+                  style={{
+                    width: '100%',
+                    padding: '4px',
+                    background: 'rgba(255,255,255,0.1)',
+                    color: '#fff',
+            border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: '4px',
+                    fontSize: '0.8em'
+                  }}
+                >
+                  <option value="None">None</option>
+                  <option value="Casual">Casual</option>
+                  <option value="Professional">Professional</option>
+                </select>
+            )}
+          </div>
+        </div>
+
+          {/* STATUS INDICATORS - Top Center */}
+        <div style={{ 
+            gridColumn: '2', 
+            gridRow: '3',
+            display: 'flex',
+            gap: '8px',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '0.75em',
+            color: '#888',
+            padding: '4px',
+            overflow: 'hidden'
+          }}>
+            <span>Caret: {caretState?.caret ?? 0}</span>
+            <span>•</span>
+            <span>Band: {bandRange ? `${bandRange.start}–${bandRange.end}` : 'none'}</span>
+            <span>•</span>
+            <span>ε: {eps.toFixed(3)}</span>
+            <span>•</span>
+            <span>{isTyping ? '⌨️ Typing' : '✓ Idle'}</span>
+            {stats && (
+              <>
+                <span>•</span>
+                <span>Δt: {stats.avg_inter_key_ms ? Math.round(stats.avg_inter_key_ms) : 0}ms</span>
+              </>
+            )}
+        </div>
+
+          {/* BOTTOM PANEL - Workbench */}
+          <div style={{ 
+            gridColumn: '1 / 4', 
+            background: 'rgba(20, 24, 28, 0.4)',
+            borderRadius: '8px',
+            padding: '12px',
+            display: 'flex',
+            flexDirection: 'column',
+            height: `${bottomHeightPx}px`,
+            overflow: 'hidden'
+          }}>
+            {/* Resize handle */}
+            <div
+              onMouseDown={startBottomDrag}
+              style={{ cursor: 'ns-resize', height: 6, margin: '-8px 0 8px 0', background: 'rgba(255,255,255,0.12)', borderRadius: 4 }}
+              title="Drag to resize"
+            />
+            {/* Workbench Tabs */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+              <button
+                onClick={() => setActiveWorkbenchTab('diagnostics')}
+                style={{
+                  padding: '4px 12px',
+                  background: activeWorkbenchTab === 'diagnostics' ? '#0c8' : 'rgba(255,255,255,0.1)',
+                  color: activeWorkbenchTab === 'diagnostics' ? '#000' : '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontSize: '0.75em',
+                  cursor: 'pointer'
+                }}
+              >
+                Diagnostics
+              </button>
+                <button
+                onClick={() => setActiveWorkbenchTab('lm')}
+                  style={{
+                  padding: '4px 12px',
+                  background: activeWorkbenchTab === 'lm' ? '#0c8' : 'rgba(255,255,255,0.1)',
+                  color: activeWorkbenchTab === 'lm' ? '#000' : '#fff',
+                  border: 'none',
+                    borderRadius: '4px',
+                  fontSize: '0.75em',
+                    cursor: 'pointer'
+                  }}
+                >
+                LM Status
+                </button>
+              <button
+                onClick={() => setActiveWorkbenchTab('logs')}
+                style={{
+                  padding: '4px 12px',
+                  background: activeWorkbenchTab === 'logs' ? '#0c8' : 'rgba(255,255,255,0.1)',
+                  color: activeWorkbenchTab === 'logs' ? '#000' : '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontSize: '0.75em',
+                  cursor: 'pointer'
+                }}
+              >
+                Logs
+            </button>
+          </div>
+          
+            {/* Tab Content */}
+            <div style={{ flex: 1, overflow: 'auto' }}>
+              {activeWorkbenchTab === 'diagnostics' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px', fontSize: '0.75em', fontFamily: 'monospace' }}>
+                  {/* TEXT LOOP */}
+                  <div style={{ background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: 6 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Text Loop</div>
+                    <div>Caret: {caretState?.caret ?? 0}</div>
+                    <div>Typing ε: {eps.toFixed(3)}</div>
+                    <div>Avg Δt: {stats?.avg_inter_key_ms ? Math.round(stats.avg_inter_key_ms) : 0}ms</div>
+                    <div style={{ marginTop: 6, color: '#888' }}>Statuses:</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {Object.entries(systemStatuses).map(([k, v]) => (
+                        <span key={k} style={{ padding: '2px 4px', borderRadius: 4, background: v ? 'rgba(0,204,136,0.18)' : 'rgba(255,102,102,0.18)', color: v ? '#0c8' : '#f66' }}>{k}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* NOISE */}
+                  <div style={{ background: 'rgba(255,153,0,0.08)', padding: '6px', borderRadius: 6 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Noise Transformer</div>
+                    <div style={{ color: '#888' }}>Band sample</div>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: 4, marginBottom: 6 }}>{previewBuffer || '—'}</div>
+                    <div style={{ color: '#888' }}>Output</div>
+                    <div style={{ background: 'rgba(255,153,0,0.15)', padding: '4px', borderRadius: 4 }}>{previewNoise || '—'}</div>
+                    <div style={{ marginTop: 6, color: '#888' }}>Recent evaluations</div>
+                    <div style={{ maxHeight: 100, overflow: 'auto', fontFamily: 'monospace', fontSize: '0.7em', background: 'rgba(0,0,0,0.2)', padding: 6, borderRadius: 4 }}>
+                      {noiseEvents.length === 0 ? '—' : noiseEvents.slice(-10).reverse().map((e, i) => (
+                        <div key={i}>
+                          [{new Date(e.time).toLocaleTimeString()}] {e.rule} → {e.decision}
+                          {e.start != null && e.end != null ? ` @${e.start}..${e.end}` : ''}
+                          {e.text ? ` "${String(e.text).slice(0,20)}"` : ''}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* CONTEXT / LM */}
+                  <div style={{ background: 'rgba(0,204,136,0.08)', padding: '6px', borderRadius: 6 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Context / LM</div>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+                      <span>LM:</span>
+                      <span style={{ padding: '2px 6px', borderRadius: 4, background: lmHealth.status === 'healthy' ? 'rgba(0,204,136,0.18)' : lmHealth.status === 'error' ? 'rgba(255,102,102,0.18)' : 'rgba(170,170,102,0.18)', color: lmHealth.status === 'healthy' ? '#0c8' : lmHealth.status === 'error' ? '#f66' : '#aa6' }}>
+                        {lmHealth.status}
+                      </span>
+                      <span>Worker: {lmHealth.workerActive ? '🟢' : '🔴'}</span>
+                      <span>Runs: {(globalThis as any).__mtLmStats?.runs || 0}</span>
+                      <span>Chunks: {(globalThis as any).__mtLmStats?.chunksLast || 0}</span>
+                      <span>Latency: {lmMetrics.at(-1)?.latency || 0}ms</span>
+                    </div>
+                    <div style={{ color: '#888' }}>Output</div>
+                    <div style={{ background: 'rgba(0,204,136,0.15)', padding: '4px', borderRadius: 4 }}>{previewContext || '—'}</div>
+                    <div style={{ marginTop: 6, color: '#888' }}>LM wire (recent)</div>
+                    <div style={{ maxHeight: 100, overflow: 'auto', fontFamily: 'monospace', fontSize: '0.7em', background: 'rgba(0,0,0,0.2)', padding: 6, borderRadius: 4 }}>
+                      {lmWireEvents.length === 0 ? '—' : lmWireEvents.slice(-10).reverse().map((e, i) => (
+                        <div key={i}>[{new Date(e.time).toLocaleTimeString()}] {e.phase} {(e.requestId||'').slice(-6)}</div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* TONE */}
+                  <div style={{ background: 'rgba(255,0,255,0.08)', padding: '6px', borderRadius: 6 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Tone</div>
+                    <div>Enabled: {toneEnabled ? 'Yes' : 'No'}</div>
+                    <div>Target: {toneTarget}</div>
+                    <div style={{ color: '#888', marginTop: 6 }}>Output</div>
+                    <div style={{ background: 'rgba(255,0,255,0.15)', padding: '4px', borderRadius: 4 }}>{previewTone || '—'}</div>
+                  </div>
+                </div>
+              )}
+            
+            {activeWorkbenchTab === 'lm' && (
+              <div>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9em', color: '#0c8' }}>LM Status</h4>
+                  <div style={{ fontSize: '0.75em', color: '#ddd', marginBottom: '12px', fontFamily: 'monospace' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                      Status:
+                      <span style={{
+                        color: lmHealth.status === 'healthy' ? '#0c8' : lmHealth.status === 'error' ? '#f66' : '#aa6',
+                        fontWeight: 'bold'
+                      }}>
+                        {lmHealth.status === 'healthy' ? '✅ Healthy' : lmHealth.status === 'error' ? '❌ Error' : '⏳ Unknown'}
+                      </span>
+                    </div>
+                  <div>Backend: {lmDebug?.backend || 'unknown'}</div>
+                    <div>Worker: {lmHealth.workerActive ? '🟢 Active' : '🔴 Inactive'}</div>
+                    <div>Context: {lmContextInitialized ? '🟢 Initialized' : '🔴 Not initialized'}</div>
+                    <div>LM runs: {(() => {
+                      try {
+                        const stats = (globalThis as any).__mtLmStats;
+                        return stats?.runs || 0;
+                      } catch { return 0; }
+                    })()}</div>
+                    <div>Stale drops: {(() => {
+                      try {
+                        const stats = (globalThis as any).__mtLmStats;
+                        return stats?.aborted || 0;
+                      } catch { return 0; }
+                    })()}</div>
+                    <div>Last chunks: {(() => {
+                      try {
+                        const stats = (globalThis as any).__mtLmStats;
+                        return stats?.chunksLast || 0;
+                      } catch { return 0; }
+                    })()}</div>
+                  <div>Tokens: {lmDebug?.lastChunks?.join('').length || 0}</div>
+                  <div>Last latency: {lmMetrics[lmMetrics.length - 1]?.latency || 0}ms</div>
+                    {lmHealth.lastError && (
+                      <div style={{ color: '#f66', fontSize: '0.7em', marginTop: '4px' }}>
+                        Error: {lmHealth.lastError}
+              </div>
+            )}
+                    </div>
+
+                  {/* Context Windows Display */}
+                  {lmContextInitialized && lmContextManagerRef.current && (
+                    <div style={{ marginTop: '16px' }}>
+                      <h5 style={{ margin: '0 0 8px 0', fontSize: '0.8em', color: '#0c8' }}>Context Windows</h5>
+                      {(() => {
+                        try {
+                          const contextWindow = lmContextManagerRef.current?.getContextWindow?.();
+                          if (!contextWindow) return <div style={{ fontSize: '0.7em', color: '#888' }}>No context available</div>;
+                          
+                          return (
+                            <div style={{ fontSize: '0.7em', fontFamily: 'monospace' }}>
+                              <div style={{ marginBottom: '8px' }}>
+                                <div style={{ color: '#7ce0b8', fontWeight: 'bold' }}>Wide Context ({contextWindow.wide?.tokenCount || 0} tokens):</div>
+                                <div style={{ 
+                                  background: 'rgba(124, 224, 184, 0.1)', 
+                                  padding: '4px 6px', 
+                                  borderRadius: '4px',
+                                  marginTop: '2px',
+                                  maxHeight: '60px',
+                                  overflow: 'auto',
+                                  wordBreak: 'break-word'
+                                }}>
+                                  {contextWindow.wide?.text?.slice(-200) || 'No wide context'}
+                                  {(contextWindow.wide?.text?.length || 0) > 200 && '...'}
+                                </div>
+                              </div>
+                              <div>
+                                <div style={{ color: '#4db8ff', fontWeight: 'bold' }}>Close Context:</div>
+                                <div style={{ 
+                                  background: 'rgba(77, 184, 255, 0.1)', 
+                                  padding: '4px 6px', 
+                                  borderRadius: '4px',
+                                  marginTop: '2px',
+                                  maxHeight: '60px',
+                                  overflow: 'auto',
+                                  wordBreak: 'break-word'
+                                }}>
+                                  {contextWindow.close?.text || 'No close context'}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        } catch (e) {
+                          return <div style={{ fontSize: '0.7em', color: '#f66' }}>Context error: {String(e)}</div>;
+                        }
+                      })()}
+                    </div>
+                  )}
+                  
+                  {/* Emit swap button */}
+                <button
+                  onClick={() => {
+                      if (lastHighlight) {
+                        emitSwap({ start: lastHighlight.start, end: lastHighlight.end, text: 'TEST_SWAP' });
+                      }
+                    }}
+                    disabled={!lastHighlight}
+                  style={{
+                      padding: '6px 12px',
+                      background: lastHighlight ? '#f90' : '#444',
+                      color: lastHighlight ? '#000' : '#888',
+                      border: 'none',
+                    borderRadius: '4px',
+                      fontSize: '0.75em',
+                      cursor: lastHighlight ? 'pointer' : 'not-allowed'
+                  }}
+                >
+                    Emit Test Swap
+                </button>
+              </div>
+            )}
+            
+              {activeWorkbenchTab === 'logs' && (
+                <div style={{ fontSize: '0.7em', fontFamily: 'monospace', color: '#ddd' }}>
+                  {logs.slice(-8).map((l, i) => (
+                    <div key={`${l.ts}-${i}`}>[{new Date(l.ts).toLocaleTimeString()}] {l.type}: {l.msg}</div>
+                  ))}
+              </div>
+            )}
+          </div>
+          </div>
+        </div>
+    </div>
     </div>
   );
 }
 
 export default App;
-

@@ -1,0 +1,23 @@
+#╔════════════════════════════════════════════════════════════╗
+#║  █  T H R E S H O L D S   S P E C   ( v0.4 )  █░░░░░░░░░░  ║
+#╚════════════════════════════════════════════════════════════╝
+# WHAT ▸ Authoritative thresholds used to generate config/defaultThresholds.ts
+# WHY  ▸ Keep a single doc source; code is generated via scripts/doc2code.cjs
+# HOW  ▸ Edit values here → run `pnpm doc:sync` to regenerate TS constants
+
+timing:
+  SHORT_PAUSE_MS: 300
+  LONG_PAUSE_MS: 2000
+  TYPING_TICK_MS: 75
+
+band:
+  MIN_VALIDATION_WORDS: 5
+  MAX_VALIDATION_WORDS: 5
+  SENTENCE_CONTEXT_PER_SIDE: 3 # range 2–5
+
+confidence:
+  tau_input: 0.65
+  tau_commit: 0.9
+  tau_tone: 0.85
+  tau_discard: 0.3
+  sensitivity: 1.0

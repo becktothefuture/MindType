@@ -49,6 +49,16 @@ const DEFAULT_CONFIG: Required<SwapConfig> = {
   announceToSR: true,
 };
 
+let CURRENT_CONFIG: Required<SwapConfig> = { ...DEFAULT_CONFIG };
+
+export function setSwapConfig(next: Partial<SwapConfig>): void {
+  CURRENT_CONFIG = { ...CURRENT_CONFIG, ...next } as Required<SwapConfig>;
+}
+
+export function getSwapConfig(): Required<SwapConfig> {
+  return CURRENT_CONFIG;
+}
+
 // ⟢ Batch announcements to avoid SR spam
 let pendingAnnouncements: SwapSite[] = [];
 let announcementTimer: ReturnType<typeof setTimeout> | null = null;
@@ -90,7 +100,7 @@ export function renderMechanicalSwap(
   range: { start: number; end: number; text: string },
   config: SwapConfig = {},
 ) {
-  const cfg = { ...DEFAULT_CONFIG, ...config };
+  const cfg = { ...CURRENT_CONFIG, ...config };
 
   // ⟢ Check for reduced-motion preference
   const reducedMotion =

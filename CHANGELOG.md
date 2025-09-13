@@ -20,6 +20,36 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning (pre‑1.0). Dates are in YYYY‑MM‑DD.
 
+## [0.4.0] - 2025-09-09
+
+### Added
+
+- Core‑owned LM orchestration in Context stage with dual‑context windowing:
+  - `core/lm/contextManager.ts` for Close (2–5 sentences) and Wide (document) contexts
+  - Validation of Close‑context proposals against Wide context prior to commit
+- Web Worker integration for Transformers.js with robust adapter:
+  - `core/lm/workerAdapter.ts` (timeouts, error propagation, health logs)
+  - `core/lm/transformersRunner.ts` (CDN wasmPaths default; `/wasm/` fallback)
+- Workbench in web demo showing LM health, context windows, logs, and metrics
+- Data‑testid hooks in LM Lab for E2E verification; presets JSON support
+
+### Changed
+
+- `engines/contextTransformer.ts` updated to drive LM span selection, prompting, and band‑bounded merges
+- `core/sweepScheduler.ts` passes LM adapter/context to Context stage; removed duplicate LM stage
+- Docs consolidated: canonical LM reference at `docs/06-guides/06-03-reference/lm.md`; architecture updated with v0.4 pipeline
+
+### Fixed
+
+- Stabilized ONNX Runtime Web asset loading (CDN by default; local fallback)
+- Improved worker error handling and abort on new keystroke
+
+### Docs
+
+- Architecture (C1/C2/C3 and Overview) updated to show LM Worker + dual‑context
+- Guides updated: LM reference now includes dual‑context and worker runtime details
+- Root docs index clarified that v0.4 content is consolidated; removed redundant v0.4 files
+
 ## [0.0.1-alpha] - 2025-08-08
 
 ### Added
@@ -31,7 +61,7 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 
 - Prettier config aligned with workspace gates (`.prettierrc`).
 - ESLint flat config polish and consistent single quotes (`eslint.config.js`).
-- `docs/implementation.md` updated with TODOs covering WASM bindings, LLM adapter, engine rules, A11Y, benches, and traceability.
+- `docs/02-implementation/02-Implementation.md` updated with TODOs covering WASM bindings, LLM adapter, engine rules, A11Y, benches, and traceability.
 
 ### Removed
 
@@ -51,14 +81,14 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 
 ### Added
 
-- FT-212: Punctuation normalization in `engines/tidySweep.ts` (spaces around commas/periods, em dash spacing).
+- FT-212: Punctuation normalization in `engines/noiseTransformer.ts` (spaces around commas/periods, em dash spacing).
 - FT-214: Whitespace normalization (collapse multi-spaces/tabs; trim trailing whitespace before newline).
 - FT-216: Capitalization rules (sentence-start capitalization; standalone 'i' → 'I').
 - Web demo: active region alignment and newline safety improvements; `SecurityContext` gating hooks.
 
 ### Tests
 
-- Expanded unit tests across tidySweep rules, diffusion controller, and sweep scheduler; integration harness proves end-to-end flow.
+- Expanded unit tests across noise transformer rules, diffusion controller, and sweep scheduler; integration harness proves end-to-end flow.
 - Added branch-edge tests to lift global branch coverage ≥90%; utils guard at 100% branches.
 
 ### CI / Quality Gates

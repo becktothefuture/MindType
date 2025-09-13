@@ -44,4 +44,4 @@ void mind_type_core_free_string(struct MTString s);
 
 ### Documentation
 
-- See `docs/guide/reference/core-rust-details.md` and `docs/guide/reference/rust-merge.md` for design and API details.
+- See `docs/06-guides/06-03-reference/core-rust-details.md` and `docs/06-guides/06-03-reference/rust-merge.md` for design and API details.

@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>Mind Type — Braille Flicker</title>
+    <meta name="mt-version" content="0.2.0-alpha" />
+    <meta name="mt-last-updated" content="2025-08-26T00:00:00.000Z" />
+    <link rel="stylesheet" href="/_shared/header.css" />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --fg: #111111;
+        --line: #eaeaea;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family:
+          'Geist',
+          'Inter',
+          'SF Pro Text',
+          'SF Pro Display',
+          'Segoe UI',
+          Roboto,
+          Helvetica,
+          Arial,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      .layout {
+        min-height: 100dvh;
+        display: flex;
+        gap: 16px;
+        padding: 16px;
+        align-items: stretch;
+        justify-content: center;
+      }
+      .preview {
+        flex: 1 1 80%;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        overflow: hidden;
+      }
+      .logoWrap {
+        position: relative;
+        width: 200px;
+        height: auto;
+      }
+      .logoWrap svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      /* Fixed overlay aligned to connector group; keeps symbol static */
+      .logoDots {
+        position: absolute;
+        left: 46.56%;
+        top: 41.32%;
+        width: 7.76%;
+        height: 29.75%;
+        pointer-events: none;
+      }
+      .panel {
+        flex: 0 0 20%;
+        min-width: 240px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .section {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #666;
+      }
+      .group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 8px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      .toolbar {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .preset {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: #111;
+        padding: 6px 10px;
+        border-radius: 10px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .preset.active {
+        background: #111;
+        color: #fff;
+        border-color: #111;
+      }
+      .control {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: center;
+      }
+      .control label {
+        font-size: 12px;
+        color: #333;
+      }
+      .control .val {
+        font-size: 12px;
+        color: #666;
+        border: 1px solid var(--line);
+        padding: 2px 6px;
+        border-radius: 8px;
+      }
+      .control input[type='range'] {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body data-demo-title="Mind Type — Braille Flicker">
+    <script src="/_shared/header.js" defer></script>
+    <div class="layout">
+      <section class="preview" aria-label="Preview">
+        <div class="logoWrap" aria-label="Logo">
+          <svg viewbox="0 0 464 121" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M9.096 91.4062V28.9262H19.744L39.632 83.0462L59.52 28.9262H70.168V91.4062H62.512V43.0942L44.648 91.4062H34.528L16.664 43.0942V91.4062H9.096ZM85.2119 91.4062V44.7662H92.6919V91.4062H85.2119ZM85.0359 37.4622V28.8382H92.8679V37.4622H85.0359ZM106.696 91.4062V44.7662H113.472L113.736 56.6462L112.856 55.8542C113.443 53.0969 114.47 50.8382 115.936 49.0782C117.403 47.2596 119.163 45.9102 121.216 45.0302C123.328 44.1502 125.587 43.7102 127.992 43.7102C131.571 43.7102 134.504 44.5022 136.792 46.0862C139.139 47.6702 140.87 49.8116 141.984 52.5102C143.158 55.1502 143.744 58.1129 143.744 61.3982V91.4062H136.352V63.5102C136.352 60.6356 136 58.2302 135.296 56.2942C134.651 54.2996 133.595 52.8036 132.128 51.8062C130.662 50.7502 128.755 50.2222 126.408 50.2222C122.83 50.2222 119.896 51.3662 117.608 53.6542C115.32 55.8836 114.176 59.1689 114.176 63.5102V91.4062H106.696ZM171.733 92.4623C167.685 92.4623 164.165 91.4649 161.173 89.4702C158.24 87.4756 155.981 84.6596 154.397 81.0222C152.813 77.3849 152.021 73.0729 152.021 68.0862C152.021 63.0996 152.813 58.7876 154.397 55.1502C155.981 51.5129 158.24 48.6969 161.173 46.7022C164.165 44.7076 167.685 43.7102 171.733 43.7102C174.842 43.7102 177.688 44.3849 180.269 45.7342C182.85 47.0249 184.786 48.8729 186.077 51.2782V28.9262H193.557V91.4062H186.781L186.517 84.3662C185.226 86.8889 183.261 88.8836 180.621 90.3502C177.981 91.7583 175.018 92.4623 171.733 92.4623ZM173.229 85.4222C175.986 85.4222 178.304 84.7182 180.181 83.3102C182.117 81.9022 183.584 79.9076 184.581 77.3262C185.578 74.6862 186.077 71.6062 186.077 68.0862C186.077 64.4489 185.578 61.3396 184.581 58.7582C183.584 56.1769 182.117 54.2116 180.181 52.8622C178.304 51.4542 175.986 50.7502 173.229 50.7502C169.122 50.7502 165.866 52.3049 163.461 55.4142C161.056 58.4649 159.853 62.6889 159.853 68.0862C159.853 73.4249 161.056 77.6489 163.461 80.7582C165.866 83.8676 169.122 85.4222 173.229 85.4222Z"
+              fill="black"
+              style="fill: black; fill-opacity: 1"
+            />
+            <path
+              id="connector"
+              style="opacity: 0"
+              d="M245.592 64.2142C243.832 64.2142 242.424 63.6862 241.368 62.6302C240.371 61.5742 239.872 60.0489 239.872 58.0542C239.872 56.1769 240.371 54.6809 241.368 53.5662C242.365 52.4516 243.773 51.8942 245.592 51.8942C247.293 51.8942 248.643 52.4222 249.64 53.4782C250.696 54.5342 251.224 56.0596 251.224 58.0542C251.224 59.9902 250.696 61.5156 249.64 62.6302C248.643 63.6862 247.293 64.2142 245.592 64.2142ZM222.096 64.2142C220.336 64.2142 218.928 63.6862 217.872 62.6302C216.875 61.5742 216.376 60.0489 216.376 58.0542C216.376 56.1769 216.875 54.6809 217.872 53.5662C218.869 52.4516 220.277 51.8942 222.096 51.8942C223.797 51.8942 225.147 52.4222 226.144 53.4782C227.2 54.5342 227.728 56.0596 227.728 58.0542C227.728 59.9902 227.2 61.5156 226.144 62.6302C225.147 63.6862 223.797 64.2142 222.096 64.2142ZM222.096 86.2142C220.336 86.2142 218.928 85.6862 217.872 84.6302C216.875 83.5742 216.376 82.0489 216.376 80.0542C216.376 78.1769 216.875 76.6809 217.872 75.5662C218.869 74.4516 220.277 73.8942 222.096 73.8942C223.797 73.8942 225.147 74.4222 226.144 75.4782C227.2 76.5342 227.728 78.0596 227.728 80.0542C227.728 81.9902 227.2 83.5156 226.144 84.6302C225.147 85.6862 223.797 86.2142 222.096 86.2142ZM245.592 86.2142C243.832 86.2142 242.424 85.6862 241.368 84.6302C240.371 83.5742 239.872 82.0489 239.872 80.0542C239.872 78.1769 240.371 76.6809 241.368 75.5662C242.365 74.4516 243.773 73.8942 245.592 73.8942C247.293 73.8942 248.643 74.4222 249.64 75.4782C250.696 76.5342 251.224 78.0596 251.224 80.0542C251.224 81.9902 250.696 83.5156 249.64 84.6302C248.643 85.6862 247.293 86.2142 245.592 86.2142Z"
+            />
+            <path
+              d="M283.504 91.4062V36.3182H264.056V28.9262H310.52V36.3182H291.16V91.4062H283.504ZM314.459 104.606V98.0943H319.827C321.469 98.0943 322.672 97.8303 323.435 97.3023C324.256 96.8329 324.872 96.0409 325.283 94.9263L326.955 90.5262H324.403L307.331 44.7662H315.515L329.331 83.5742L342.619 44.7662H350.803L331.883 97.3023C331.003 99.8249 329.653 101.673 327.835 102.846C326.075 104.02 323.64 104.606 320.531 104.606H314.459ZM359.7 104.606V44.7662H366.652L366.828 54.7982L365.772 54.2702C366.946 50.8089 368.882 48.1982 371.58 46.4382C374.279 44.6196 377.418 43.7102 380.996 43.7102C385.631 43.7102 389.415 44.8542 392.348 47.1422C395.34 49.4302 397.54 52.4222 398.948 56.1182C400.415 59.8142 401.148 63.8036 401.148 68.0862C401.148 72.3689 400.415 76.3582 398.948 80.0542C397.54 83.7502 395.34 86.7423 392.348 89.0302C389.415 91.3182 385.631 92.4623 380.996 92.4623C378.591 92.4623 376.362 92.0516 374.308 91.2302C372.255 90.4089 370.495 89.2649 369.028 87.7982C367.62 86.3316 366.652 84.6009 366.124 82.6062L367.18 81.3742V104.606H359.7ZM380.292 85.4222C384.34 85.4222 387.538 83.8969 389.884 80.8462C392.231 77.7956 393.404 73.5422 393.404 68.0862C393.404 62.6302 392.231 58.3769 389.884 55.3262C387.538 52.2756 384.34 50.7502 380.292 50.7502C377.594 50.7502 375.247 51.3956 373.252 52.6862C371.316 53.9769 369.82 55.9129 368.764 58.4942C367.708 61.0756 367.18 64.2729 367.18 68.0862C367.18 71.8996 367.679 75.0969 368.676 77.6782C369.732 80.2596 371.258 82.1956 373.252 83.4862C375.247 84.7769 377.594 85.4222 380.292 85.4222ZM429.372 92.4623C424.972 92.4623 421.159 91.4649 417.932 89.4702C414.764 87.4756 412.3 84.6596 410.54 81.0222C408.839 77.3262 407.988 73.0142 407.988 68.0862C407.988 63.1582 408.839 58.8756 410.54 55.2382C412.3 51.6009 414.735 48.7849 417.844 46.7902C421.012 44.7369 424.738 43.7102 429.02 43.7102C433.068 43.7102 436.647 44.6782 439.756 46.6142C442.866 48.4916 445.3 51.2489 447.06 54.8862C448.82 58.5236 449.7 62.9529 449.7 68.1743V70.3742H415.82C416.114 75.3609 417.434 79.1156 419.78 81.6382C422.127 84.1609 425.324 85.4222 429.372 85.4222C432.423 85.4222 434.916 84.7182 436.852 83.3102C438.847 81.8436 440.226 79.9369 440.988 77.5902L448.996 78.2062C447.764 82.3716 445.418 85.8036 441.956 88.5023C438.495 91.1423 434.3 92.4623 429.372 92.4623ZM415.82 63.8622H441.516C441.164 59.3449 439.844 56.0302 437.556 53.9182C435.327 51.8062 432.482 50.7502 429.02 50.7502C425.442 50.7502 422.508 51.8649 420.22 54.0942C417.932 56.2649 416.466 59.5209 415.82 63.8622Z"
+              fill="black"
+              style="fill: black; fill-opacity: 1"
+            />
+          </svg>
+          <canvas class="logoDots"></canvas>
+        </div>
+      </section>
+      <aside class="panel" aria-label="Parameters">
+        <div class="section">Presets</div>
+        <div class="group">
+          <nav class="toolbar" aria-label="Presets">
+            <button class="preset active" data-preset="server">Server Farm</button>
+            <button class="preset" data-preset="calm">Calm Drift</button>
+            <button class="preset" data-preset="chatty">Chatty</button>
+            <button class="preset" data-preset="burst">Burst Transfer</button>
+            <button class="preset" data-preset="glitch">Glitch Pulse</button>
+            <button class="preset" data-preset="steady">Steady Stream</button>
+            <button class="preset" data-preset="echo">Echo</button>
+            <button class="preset" data-preset="chaos">CHAOS</button>
+            <button class="preset" data-preset="organism">Organism</button>
+            <button class="preset" data-preset="metronome">Metronome</button>
+            <button class="preset" data-preset="nebula">Nebula</button>
+            <button class="preset" data-preset="quasar">Quasar</button>
+            <button class="preset" data-preset="raindrop">Raindrop</button>
+          </nav>
+        </div>
+        <div class="section">Visual</div>
+        <div class="group">
+          <div class="control">
+            <label for="steps">Steps</label>
+            <span class="val" id="stepsVal">1</span>
+            <input id="steps" type="range" min="1" max="8" step="1" value="1" />
+          </div>
+          <div class="control">
+            <label for="size">Dot Size</label>
+            <span class="val" id="sizeVal">0.17</span>
+            <input
+              id="size"
+              type="range"
+              min="0.06"
+              max="0.18"
+              step="0.001"
+              value="0.17"
+            />
+          </div>
+          <div class="control">
+            <label for="canvasW">Canvas W (%)</label>
+            <span class="val" id="canvasWVal">100</span>
+            <input id="canvasW" type="range" min="20" max="160" step="1" value="100" />
+          </div>
+          <div class="control">
+            <label for="canvasH">Canvas H (%)</label>
+            <span class="val" id="canvasHVal">100</span>
+            <input id="canvasH" type="range" min="20" max="160" step="1" value="100" />
+          </div>
+        </div>
+        <div class="section">Flow</div>
+        <div class="group">
+          <div class="control">
+            <label for="spawn">Spawn (s)</label>
+            <span class="val" id="spawnVal">0.35</span>
+            <input id="spawn" type="range" min="0.1" max="1.5" step="0.01" value="0.35" />
+          </div>
+          <div class="control">
+            <label for="stepMin">Step Min (s)</label>
+            <span class="val" id="stepMinOut">0.045</span>
+            <input
+              id="stepMin"
+              type="range"
+              min="0.02"
+              max="0.25"
+              step="0.005"
+              value="0.045"
+            />
+          </div>
+          <div class="control">
+            <label for="stepMax">Step Max (s)</label>
+            <span class="val" id="stepMaxOut">0.12</span>
+            <input
+              id="stepMax"
+              type="range"
+              min="0.03"
+              max="0.35"
+              step="0.005"
+              value="0.12"
+            />
+          </div>
+        </div>
+        <div class="section">Bursts</div>
+        <div class="group">
+          <div class="control">
+            <label for="burstChance">Burst Chance</label>
+            <span class="val" id="burstChanceOut">0.25</span>
+            <input
+              id="burstChance"
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value="0.25"
+            />
+          </div>
+          <div class="control">
+            <label for="burstMax">Burst Max</label>
+            <span class="val" id="burstMaxOut">2</span>
+            <input id="burstMax" type="range" min="1" max="6" step="1" value="2" />
+          </div>
+        </div>
+        <div class="section">Idle & Spikes</div>
+        <div class="group">
+          <div class="control">
+            <label for="idle">Idle Flicker</label>
+            <span class="val" id="idleOut">0.06</span>
+            <input id="idle" type="range" min="0" max="0.3" step="0.005" value="0.06" />
+          </div>
+          <div class="control">
+            <label for="spike">Spike Chance</label>
+            <span class="val" id="spikeOut">0.012</span>
+            <input
+              id="spike"
+              type="range"
+              min="0"
+              max="0.08"
+              step="0.001"
+              value="0.012"
+            />
+          </div>
+        </div>
+        <div class="section">Smoothing</div>
+        <div class="group">
+          <div class="control">
+            <label for="tau">Smoothing Tau (s)</label>
+            <span class="val" id="tauOut">0.12</span>
+            <input id="tau" type="range" min="0" max="0.35" step="0.005" value="0.12" />
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <script>
+      (function () {
+        const logoDots = document.querySelector('.logoDots');
+        if (!logoDots) {
+          throw new Error('logoDots canvas not found');
+        }
+        const lctx = logoDots.getContext('2d', { alpha: true });
+        const toolbar = document.querySelector('.toolbar');
+        const presetButtons = Array.from(document.querySelectorAll('.preset'));
+        const stepsInput = document.getElementById('steps');
+        const stepsVal = document.getElementById('stepsVal');
+        const sizeInput = document.getElementById('size');
+        const sizeVal = document.getElementById('sizeVal');
+        const canvasW = document.getElementById('canvasW');
+        const canvasWVal = document.getElementById('canvasWVal');
+        const canvasH = document.getElementById('canvasH');
+        const canvasHVal = document.getElementById('canvasHVal');
+        const connectorEl = document.getElementById('connector');
+        const logoGeom = { cx: 0, cy: 0, r: 10, dx: 18, dy: 18 };
+        const spawnInput = document.getElementById('spawn');
+        const spawnVal = document.getElementById('spawnVal');
+        const stepMinInput = document.getElementById('stepMin');
+        const stepMinOut = document.getElementById('stepMinOut');
+        const stepMaxInput = document.getElementById('stepMax');
+        const stepMaxOut = document.getElementById('stepMaxOut');
+        const burstChanceInput = document.getElementById('burstChance');
+        const burstChanceOut = document.getElementById('burstChanceOut');
+        const burstMaxInput = document.getElementById('burstMax');
+        const burstMaxOut = document.getElementById('burstMaxOut');
+        const idleInput = document.getElementById('idle');
+        const idleOut = document.getElementById('idleOut');
+        const spikeInput = document.getElementById('spike');
+        const spikeOut = document.getElementById('spikeOut');
+        const tauInput = document.getElementById('tau');
+        const tauOut = document.getElementById('tauOut');
+
+        // Center four only
+        const D2 = 2,
+          D3 = 4,
+          D5 = 16,
+          D6 = 32,
+          ALL = D2 | D3 | D5 | D6;
+        const DOTS = [D2, D3, D5, D6];
+
+        // Presets
+        const presets = {
+          server: {
+            name: 'Server Farm',
+            spawnMean: 0.35,
+            stepMin: 0.045,
+            stepMax: 0.12,
+            burstChance: 0.25,
+            burstMax: 2,
+            smoothingTau: 0.12,
+            flickerAmp: 0.12,
+            idleFlicker: 0.06,
+            spikeChance: 0.012,
+            radiusFactor: 0.11,
+            glowPx: 0,
+            color: '#111111',
+          },
+          calm: {
+            name: 'Calm Drift',
+            spawnMean: 0.9,
+            stepMin: 0.09,
+            stepMax: 0.18,
+            burstChance: 0.1,
+            burstMax: 2,
+            smoothingTau: 0.2,
+            flickerAmp: 0.05,
+            idleFlicker: 0.03,
+            spikeChance: 0.004,
+            radiusFactor: 0.12,
+            glowPx: 0,
+            color: '#111111',
+          },
+          chatty: {
+            name: 'Chatty',
+            spawnMean: 0.18,
+            stepMin: 0.04,
+            stepMax: 0.09,
+            burstChance: 0.35,
+            burstMax: 3,
+            smoothingTau: 0.09,
+            flickerAmp: 0.22,
+            idleFlicker: 0.1,
+            spikeChance: 0.02,
+            radiusFactor: 0.105,
+            glowPx: 0,
+            color: '#111111',
+          },
+          burst: {
+            name: 'Burst Transfer',
+            spawnMean: 0.6,
+            stepMin: 0.06,
+            stepMax: 0.12,
+            burstChance: 0.65,
+            burstMax: 4,
+            smoothingTau: 0.12,
+            flickerAmp: 0.12,
+            idleFlicker: 0.05,
+            spikeChance: 0.016,
+            radiusFactor: 0.115,
+            glowPx: 0,
+            color: '#111111',
+          },
+          glitch: {
+            name: 'Glitch Pulse',
+            spawnMean: 0.28,
+            stepMin: 0.03,
+            stepMax: 0.11,
+            burstChance: 0.3,
+            burstMax: 3,
+            smoothingTau: 0.06,
+            flickerAmp: 0.28,
+            idleFlicker: 0.12,
+            spikeChance: 0.04,
+            radiusFactor: 0.105,
+            glowPx: 0,
+            color: '#111111',
+          },
+          steady: {
+            name: 'Steady Stream',
+            spawnMean: 0.22,
+            stepMin: 0.07,
+            stepMax: 0.09,
+            burstChance: 0.15,
+            burstMax: 2,
+            smoothingTau: 0.08,
+            flickerAmp: 0.02,
+            idleFlicker: 0.02,
+            spikeChance: 0.003,
+            radiusFactor: 0.11,
+            glowPx: 0,
+            color: '#111111',
+          },
+          echo: {
+            name: 'Echo',
+            spawnMean: 0.42,
+            stepMin: 0.05,
+            stepMax: 0.13,
+            burstChance: 0.3,
+            burstMax: 3,
+            smoothingTau: 0.14,
+            flickerAmp: 0.08,
+            idleFlicker: 0.05,
+            spikeChance: 0.01,
+            radiusFactor: 0.11,
+            glowPx: 0,
+            color: '#111111',
+          },
+          chaos: {
+            name: 'CHAOS',
+            spawnMean: 0.12,
+            spawnMeanModAmp: 0.7,
+            spawnMeanModFreq: 3.7,
+            stepMin: 0.02,
+            stepMax: 0.22,
+            burstChance: 0.75,
+            burstMax: 6,
+            smoothingTau: 0.05,
+            flickerAmp: 0.35,
+            idleFlicker: 0.18,
+            spikeChance: 0.06,
+            radiusFactor: 0.115,
+            glowPx: 0,
+            color: '#111111',
+          },
+          organism: {
+            name: 'Organism',
+            spawnMean: 0.3,
+            spawnMeanModAmp: 0.45,
+            spawnMeanModFreq: 0.9,
+            stepMin: 0.04,
+            stepMax: 0.16,
+            burstChance: 0.5,
+            burstMax: 4,
+            smoothingTau: 0.18,
+            flickerAmp: 0.06,
+            idleFlicker: 0.08,
+            spikeChance: 0.008,
+            radiusFactor: 0.11,
+            glowPx: 0,
+            color: '#111111',
+          },
+          metronome: {
+            name: 'Metronome',
+            spawnMean: 0.3,
+            stepMin: 0.08,
+            stepMax: 0.08,
+            burstChance: 0.05,
+            burstMax: 2,
+            smoothingTau: 0.05,
+            flickerAmp: 0.02,
+            idleFlicker: 0.02,
+            spikeChance: 0.002,
+            color: '#111111',
+          },
+          nebula: {
+            name: 'Nebula',
+            spawnMean: 1.1,
+            spawnMeanModAmp: 0.6,
+            spawnMeanModFreq: 0.5,
+            stepMin: 0.12,
+            stepMax: 0.25,
+            burstChance: 0.18,
+            burstMax: 3,
+            smoothingTau: 0.3,
+            flickerAmp: 0.1,
+            idleFlicker: 0.07,
+            spikeChance: 0.006,
+            color: '#111111',
+          },
+          quasar: {
+            name: 'Quasar',
+            spawnMean: 0.2,
+            spawnMeanModAmp: 0.3,
+            spawnMeanModFreq: 2.2,
+            stepMin: 0.03,
+            stepMax: 0.08,
+            burstChance: 0.9,
+            burstMax: 6,
+            smoothingTau: 0.07,
+            flickerAmp: 0.25,
+            idleFlicker: 0.12,
+            spikeChance: 0.05,
+            color: '#111111',
+          },
+          raindrop: {
+            name: 'Raindrop',
+            spawnMean: 0.12,
+            stepMin: 0.02,
+            stepMax: 0.06,
+            burstChance: 0.1,
+            burstMax: 2,
+            smoothingTau: 0.04,
+            flickerAmp: 0.04,
+            idleFlicker: 0.02,
+            spikeChance: 0.008,
+            color: '#111111',
+          },
+        };
+
+        // Fixed configuration (use the original "Server Farm" baseline)
+        const config = presets.server;
+
+        // Preset click: sync values and apply (preserve dot size)
+        presetButtons.forEach((btn) => {
+          btn.addEventListener(
+            'click',
+            () => {
+              presetButtons.forEach((b) => b.classList.remove('active'));
+              btn.classList.add('active');
+              const key = btn.getAttribute('data-preset');
+              const p = presets[key] || presets.server;
+              spawnInput.value = String(p.spawnMean);
+              stepMinInput.value = String(p.stepMin);
+              stepMaxInput.value = String(p.stepMax);
+              burstChanceInput.value = String(p.burstChance);
+              burstMaxInput.value = String(p.burstMax);
+              idleInput.value = String(p.idleFlicker);
+              spikeInput.value = String(p.spikeChance);
+              tauInput.value = String(p.smoothingTau || 0);
+              refreshLabels();
+              applyControlsToConfig();
+            },
+            { passive: true },
+          );
+        });
+
+        function resize() {
+          const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+          const wrap = logoDots.parentElement;
+          const wScale = (Number(canvasW.value) || 100) / 100;
+          const hScale = (Number(canvasH.value) || 100) / 100;
+          if (wrap && connectorEl) {
+            const wrapRect = wrap.getBoundingClientRect();
+            const connRect = connectorEl.getBoundingClientRect();
+            const cxCss = connRect.left + connRect.width / 2 - wrapRect.left;
+            const cyCss = connRect.top + connRect.height / 2 - wrapRect.top;
+            const baseW = Math.max(1, connRect.width);
+            const baseH = Math.max(1, connRect.height);
+            const wCss = Math.round(baseW * wScale);
+            const hCss = Math.round(baseH * hScale);
+            logoDots.style.width = wCss + 'px';
+            logoDots.style.height = hCss + 'px';
+            logoDots.style.left = Math.round(cxCss - wCss / 2) + 'px';
+            logoDots.style.top = Math.round(cyCss - hCss / 2) + 'px';
+          }
+          // Sync backing store to CSS size
+          const lw = Math.max(1, logoDots.clientWidth);
+          const lh = Math.max(1, logoDots.clientHeight);
+          if (logoDots.width !== lw * dpr || logoDots.height !== lh * dpr) {
+            logoDots.width = lw * dpr;
+            logoDots.height = lh * dpr;
+          }
+        }
+
+        // Controls wiring
+        function refreshLabels() {
+          stepsVal.textContent = String(stepsInput.value);
+          sizeVal.textContent = Number(sizeInput.value).toFixed(3);
+          canvasWVal.textContent = String(canvasW.value);
+          canvasHVal.textContent = String(canvasH.value);
+          spawnVal.textContent = Number(spawnInput.value).toFixed(2);
+          stepMinOut.textContent = Number(stepMinInput.value).toFixed(3);
+          stepMaxOut.textContent = Number(stepMaxInput.value).toFixed(3);
+          burstChanceOut.textContent = Number(burstChanceInput.value).toFixed(2);
+          burstMaxOut.textContent = String(burstMaxInput.value);
+          idleOut.textContent = Number(idleInput.value).toFixed(3);
+          spikeOut.textContent = Number(spikeInput.value).toFixed(3);
+          tauOut.textContent = Number(tauInput.value).toFixed(3);
+        }
+        function applyControlsToConfig() {
+          config.spawnMean = Number(spawnInput.value);
+          config.stepMin = Number(stepMinInput.value);
+          config.stepMax = Number(stepMaxInput.value);
+          config.burstChance = Number(burstChanceInput.value);
+          config.burstMax = Number(burstMaxInput.value);
+          config.idleFlicker = Number(idleInput.value);
+          config.spikeChance = Number(spikeInput.value);
+          config.smoothingTau = Number(tauInput.value);
+          config.radiusFactor = Number(sizeInput.value);
+        }
+        function onInput() {
+          if (Number(stepMinInput.value) > Number(stepMaxInput.value)) {
+            stepMaxInput.value = stepMinInput.value;
+          }
+          refreshLabels();
+          applyControlsToConfig();
+          resize();
+        }
+        [
+          stepsInput,
+          sizeInput,
+          canvasW,
+          canvasH,
+          spawnInput,
+          stepMinInput,
+          stepMaxInput,
+          burstChanceInput,
+          burstMaxInput,
+          idleInput,
+          spikeInput,
+          tauInput,
+        ].forEach((el) => el.addEventListener('input', onInput, { passive: true }));
+        refreshLabels();
+        applyControlsToConfig();
+        // Controls removed; no input listeners
+
+        // Engine
+        const SEQ_LR = [D2, D2 | D3, D3, D3 | D5, D5, D5 | D6, D6];
+        const SEQ_RL = [D6, D5 | D6, D5, D3 | D5, D3, D2 | D3, D2];
+        const packets = [];
+        let nextSpawn = 0;
+
+        const lamps = new Float32Array(4); // brightness for [D2,D3,D5,D6]
+
+        function rand(min, max) {
+          return min + Math.random() * (max - min);
+        }
+        function randInt(min, max) {
+          return Math.floor(rand(min, max + 1));
+        }
+        function expDelay(mean) {
+          return -Math.log(1 - Math.random()) * mean;
+        }
+
+        function makePacket(dir) {
+          const seq = dir > 0 ? SEQ_LR : SEQ_RL;
+          const durs = new Array(seq.length)
+            .fill(0)
+            .map(() => rand(config.stepMin, config.stepMax));
+          return { dir, seq, idx: 0, t: 0, d: durs };
+        }
+
+        function updatePackets(dt, t) {
+          if (t >= nextSpawn) {
+            // optional organism-like modulation of spawn mean
+            const effMean =
+              config.spawnMean *
+              (1 +
+                (config.spawnMeanModAmp || 0) *
+                  Math.sin(t * (config.spawnMeanModFreq || 0)));
+            const bursts =
+              Math.random() < config.burstChance ? randInt(2, config.burstMax) : 1;
+            for (let i = 0; i < bursts; i++)
+              packets.push(makePacket(Math.random() < 0.5 ? 1 : -1));
+            nextSpawn = t + expDelay(Math.max(0.05, effMean));
+          }
+
+          let pattern = 0;
+          for (let i = packets.length - 1; i >= 0; i--) {
+            const p = packets[i];
+            p.t += dt;
+            while (p.idx < p.seq.length && p.t >= p.d[p.idx]) {
+              p.t -= p.d[p.idx];
+              p.idx++;
+            }
+            if (p.idx >= p.seq.length) {
+              packets.splice(i, 1);
+              continue;
+            }
+            pattern |= p.seq[p.idx];
+          }
+
+          if (pattern === 0 && Math.random() < config.idleFlicker) {
+            pattern |= DOTS[randInt(0, 3)];
+          }
+          if (Math.random() < config.spikeChance) {
+            pattern |= ALL;
+          }
+
+          return pattern;
+        }
+
+        // removed large preview dots
+
+        function drawLogoDots(pattern, dt) {
+          const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+          const w = logoDots.width,
+            h = logoDots.height;
+          lctx.setTransform(1, 0, 0, 1, 0, 0);
+          lctx.clearRect(0, 0, w, h);
+          // Use the overlay box itself (center and size) for stable layout
+          const cx = Math.floor(w / 2);
+          const cy = Math.floor(h / 2);
+          // Dot radius derived from user Dot Size factor relative to min dimension
+          const r = Math.max(1, Math.floor(Math.min(w, h) * Number(sizeInput.value)));
+          const dx = Math.floor(r * 1.85);
+          const dy = Math.floor(r * 1.85);
+          const positions = [
+            [cx - dx, cy - dy],
+            [cx - dx, cy + dy],
+            [cx + dx, cy - dy],
+            [cx + dx, cy + dy],
+          ];
+
+          // strict on/off; no smoothing
+          const steps = 1;
+          const a = 1;
+          for (let i = 0; i < 4; i++) {
+            const on = lastPattern & DOTS[i] ? 1 : 0;
+            lampsLogo[i] += (on - lampsLogo[i]) * a;
+          }
+
+          for (let i = 0; i < 4; i++) {
+            const b = lampsLogo[i];
+            if (b < 0.02) continue;
+            const [x, y] = positions[i];
+            const quantized = b >= 0.5 ? 1 : 0;
+            lctx.save();
+            lctx.globalAlpha = quantized;
+            lctx.fillStyle = '#111111';
+            lctx.beginPath();
+            lctx.arc(x, y, r, 0, Math.PI * 2);
+            lctx.closePath();
+            lctx.fill();
+            lctx.restore();
+          }
+        }
+
+        let prev = performance.now();
+        let lastPattern = 0;
+        const lampsLogo = new Float32Array(4);
+        function loop(ts) {
+          const dt = Math.min(0.1, Math.max(0, (ts - prev) / 1000));
+          prev = ts;
+          resize();
+          const t = ts / 1000;
+          const pattern = updatePackets(dt, t);
+          lastPattern = pattern;
+          drawLogoDots(pattern, dt);
+          requestAnimationFrame(loop);
+        }
+
+        // steps control
+        // No steps control
+
+        window.addEventListener('resize', resize, { passive: true });
+        resize();
+        requestAnimationFrame(loop);
+      })();
+    </script>
+  </body>
+</html>

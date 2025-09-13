@@ -1,0 +1,20 @@
+name: Demo Header Check
+on:
+  pull_request:
+    paths:
+      - 'web-demo/public/demo/**/index.html'
+      - 'scripts/docs-verify-demo-headers.mjs'
+
+jobs:
+  verify-demo-headers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+      - name: Verify header includes in demo pages
+        run: node scripts/docs-verify-demo-headers.mjs
+

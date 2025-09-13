@@ -28,12 +28,21 @@ export function createNoopLMAdapter(): LMAdapter {
   return { stream: () => empty() } as LMAdapter;
 }
 
-export function boot(options?: { security?: SecurityContext }) {
+export type BootOptions = {
+  security?: SecurityContext;
+  toneEnabled?: boolean;
+  toneTarget?: 'None' | 'Casual' | 'Professional';
+};
+
+export function boot(options?: BootOptions) {
   const monitor = createTypingMonitor();
   const security = options?.security ?? createDefaultSecurityContext();
   // LM adapter can be injected later; pass getter to scheduler/controller
   let lmAdapter: LMAdapter = createNoopLMAdapter();
-  const scheduler = createSweepScheduler(monitor, security, () => lmAdapter);
+  const scheduler = createSweepScheduler(monitor, security, () => lmAdapter, {
+    toneEnabled: options?.toneEnabled,
+    toneTarget: options?.toneTarget,
+  });
 
   // lmAdapter declared above
 
@@ -65,5 +74,11 @@ export function boot(options?: { security?: SecurityContext }) {
     monitor,
     scheduler,
     security,
+    setToneEnabled(v: boolean) {
+      scheduler.setOptions({ toneEnabled: v });
+    },
+    setToneTarget(v: 'None' | 'Casual' | 'Professional') {
+      scheduler.setOptions({ toneTarget: v });
+    },
   };
 }

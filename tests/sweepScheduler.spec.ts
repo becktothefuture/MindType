@@ -26,8 +26,8 @@ vi.mock('../config/defaultThresholds', () => ({
 import { SHORT_PAUSE_MS, getTypingTickMs } from '../config/defaultThresholds';
 
 // Mock engines to observe calls after pause catch-up
-vi.mock('../engines/tidySweep', () => ({
-  tidySweep: vi.fn(() => ({ diff: null })),
+vi.mock('../engines/noiseTransformer', () => ({
+  noiseTransform: vi.fn(() => ({ diff: null })),
 }));
 vi.mock('../engines/backfillConsistency', () => ({
   backfillConsistency: vi.fn(() => ({ diffs: [] })),
@@ -52,7 +52,7 @@ vi.mock('../core/diffusionController', () => ({
 
 // Import after mocks are in place
 import { createSweepScheduler } from '../core/sweepScheduler';
-import { tidySweep } from '../engines/tidySweep';
+import { noiseTransform } from '../engines/noiseTransformer';
 import { backfillConsistency } from '../engines/backfillConsistency';
 
 describe('SweepScheduler', () => {
@@ -60,7 +60,7 @@ describe('SweepScheduler', () => {
     vi.useFakeTimers();
     tickOnce.mockClear();
     catchUp.mockClear();
-    (tidySweep as unknown as { mockClear?: () => void }).mockClear?.();
+    (noiseTransform as unknown as { mockClear?: () => void }).mockClear?.();
     (backfillConsistency as unknown as { mockClear?: () => void }).mockClear?.();
     state = { text: '', caret: 0, frontier: 0 };
   });
@@ -97,7 +97,7 @@ describe('SweepScheduler', () => {
     await Promise.resolve();
 
     expect(catchUp).toHaveBeenCalled();
-    expect(tidySweep).toHaveBeenCalled();
+    expect(noiseTransform).toHaveBeenCalled();
     expect(backfillConsistency).toHaveBeenCalled();
 
     scheduler.stop();
@@ -118,7 +118,7 @@ describe('SweepScheduler', () => {
     await Promise.resolve();
     expect(tickOnce).not.toHaveBeenCalled();
     expect(catchUp).not.toHaveBeenCalled();
-    expect(tidySweep).not.toHaveBeenCalled();
+    expect(noiseTransform).not.toHaveBeenCalled();
     expect(backfillConsistency).not.toHaveBeenCalled();
 
     scheduler.stop();

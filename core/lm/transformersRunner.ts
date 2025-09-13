@@ -12,6 +12,7 @@
 
 import type { TokenStreamer } from './transformersClient';
 import { detectBackend } from './transformersClient';
+import { createLogger } from '../logger';
 
 export interface QwenRunnerOptions {
   modelId?: string;
@@ -48,6 +49,7 @@ type LoadedGenerator = {
 let singletonGenerator: Promise<LoadedGenerator> | null = null;
 let singletonInitOptions: QwenRunnerOptions | undefined;
 let warmupCompleted = false;
+const log = createLogger('lm.runner');
 
 async function loadGeneratorSingleton(
   options?: QwenRunnerOptions,
@@ -82,14 +84,20 @@ async function loadGeneratorSingleton(
       (env as Record<string, unknown>).allowLocalModels = false as unknown as never;
       (env as Record<string, unknown>).allowRemoteModels = true as unknown as never;
     }
-    if (opts?.localOnly && opts?.wasmPaths) {
+    // Configure ONNX Runtime Web WASM path
+    // Use provided path if set; otherwise default:
+    // - localOnly: '/wasm/' served by host
+    // - remote: jsdelivr CDN to avoid local 404s
+    {
       const e = env as unknown as {
         backends?: { onnx?: { wasm?: { wasmPaths?: string } } };
       } & Record<string, unknown>;
       e.backends = e.backends ?? {};
       e.backends.onnx = e.backends.onnx ?? { wasm: {} };
       e.backends.onnx.wasm = e.backends.onnx.wasm ?? {};
-      e.backends.onnx.wasm.wasmPaths = opts.wasmPaths;
+      const cdn = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@latest/dist/';
+      const wasmBase = opts?.wasmPaths ?? (opts?.localOnly ? '/wasm/' : cdn);
+      e.backends.onnx.wasm.wasmPaths = wasmBase;
     }
 
     const backend = detectBackend();
@@ -132,7 +140,7 @@ async function loadGeneratorSingleton(
       loadOptions as Record<string, unknown>,
     );
 
-    console.info('[LM] ready', {
+    log.info('[LM] ready', {
       modelId,
       backend,
       device: isWebGPU ? 'webgpu' : undefined,
@@ -145,8 +153,8 @@ async function loadGeneratorSingleton(
 }
 
 export function createQwenTokenStreamer(options?: QwenRunnerOptions): TokenStreamer {
-  // Default to local-only unless explicitly disabled per session
-  const localOnlyDefault = options?.localOnly ?? true;
+  // Default to remote models for easier setup, local-only when explicitly enabled
+  const localOnlyDefault = options?.localOnly ?? false;
   // Device-tier default token caps
   const backend = detectBackend();
   // FT-231F: token cap clamp by backend tier [8, 48]
@@ -167,7 +175,7 @@ export function createQwenTokenStreamer(options?: QwenRunnerOptions): TokenStrea
       });
 
       // ⟢ One-time warm-up generation (FT-231F)
-      console.info('[LM] warming up model...');
+      log.info('[LM] warming up model...');
       const warmupStart = Date.now();
 
       // Check if this is a test environment (mock generator)
@@ -175,7 +183,7 @@ export function createQwenTokenStreamer(options?: QwenRunnerOptions): TokenStrea
         typeof (gen as { callback_function?: unknown })?.callback_function === 'undefined'
       ) {
         // Mock/test environment - skip actual generation
-        console.info('[LM] warm-up completed in 0ms (test env)');
+        log.info('[LM] warm-up completed in 0ms (test env)');
         warmupCompleted = true;
         return;
       }
@@ -184,7 +192,7 @@ export function createQwenTokenStreamer(options?: QwenRunnerOptions): TokenStrea
       // Consume the generator to trigger model initialization
       await warmupGen;
       const warmupMs = Date.now() - warmupStart;
-      console.info(`[LM] warm-up completed in ${warmupMs}ms`);
+      log.info(`[LM] warm-up completed in ${warmupMs}ms`);
       warmupCompleted = true;
     } catch (err) {
       console.warn('[LM] warm-up failed:', err);

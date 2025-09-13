@@ -1,0 +1,27 @@
+{"language":"en","ctx_before":"He is","span_in":"a lot","ctx_after":" late.","span_out":"a lot","tags":["noop","spacing"]}
+{"language":"en","ctx_before":"She replied","span_in":"‘ok’","ctx_after":" softly.","span_out":"'ok'","tags":["quote_marks"]}
+{"language":"en","ctx_before":"Rule","span_in":"and  /  or","ctx_after":" both.","span_out":"and/or","tags":["slash_spacing","spacing"]}
+{"language":"en","ctx_before":"Hello","span_in":" ,","ctx_after":" world.","span_out":",","tags":["spacing","punctuation"]}
+{"language":"en","ctx_before":"","span_in":"im  al ex  ,   nice 2  meet  u","ctx_after":"","span_out":"I'm Alex, nice to meet you","tags":["denoise_full","sms","spacing","apostrophe"]}
+{"language":"en","ctx_before":"We met at","span_in":"union square","ctx_after":" today.","span_out":"Union Square","tags":["capitalization"]}
+{"language":"en","ctx_before":"","span_in":"  new   fea ture  ava il able  !!! ","ctx_after":"","span_out":"New feature available!!!","tags":["denoise_full","spacing","split_words","capitalization"]}
+{"language":"en","ctx_before":"Contact","span_in":" info @ exa mple . org ","ctx_after":" today.","span_out":"info@example.org","tags":["email","spacing","mixed"]}
+{"language":"en","ctx_before":"Open","span_in":" ( space)","ctx_after":" now.","span_out":" (space)","tags":["parentheses_spacing"]}
+{"language":"en","ctx_before":"","span_in":"(  pls  reply  )  asap ","ctx_after":"","span_out":"(please reply) ASAP","tags":["denoise_full","parentheses_spacing","spacing","capitalization"]}
+{"language":"en","ctx_before":"We can","span_in":"accomodate","ctx_after":" two more guests.","span_out":"accommodate","tags":["typo"]}
+{"language":"en","ctx_before":"Label","span_in":"5kg/ bag","ctx_after":" of rice.","span_out":"5 kg/bag","tags":["units","spacing","slash_spacing"]}
+{"language":"en","ctx_before":"","span_in":"its  fine  ...   go  on","ctx_after":"","span_out":"It's fine... go on","tags":["denoise_full","apostrophe","ellipsis","spacing"]}
+{"language":"en","ctx_before":"","span_in":"  R & D   Dept . ","ctx_after":"","span_out":"R&D Dept.","tags":["denoise_full","spacing","capitalization"]}
+{"language":"en","ctx_before":"She stays","span_in":"calm","ctx_after":" always.","span_out":"calm","tags":["noop"]}
+{"language":"en","ctx_before":"We need","span_in":"re write","ctx_after":" this.","span_out":"rewrite","tags":["split_words"]}
+{"language":"en","ctx_before":"","span_in":"we  ' ll   do   it 2moro","ctx_after":"","span_out":"We'll do it tomorrow","tags":["denoise_full","sms","apostrophe","spacing"]}
+{"language":"en","ctx_before":"Wait","span_in":" ....","ctx_after":" please.","span_out":"…","tags":["ellipsis","punctuation"]}
+{"language":"en","ctx_before":"He said","span_in":"“hello”","ctx_after":" there.","span_out":"\"hello\"","tags":["quote_marks"]}
+{"language":"en","ctx_before":"","span_in":"w e  sh ould  st art   at  5 pm .","ctx_after":"","span_out":"We should start at 5 p.m.","tags":["denoise_full","spacing","number_format","missing_punctuation"]}
+{"language":"en","ctx_before":"I will","span_in":"help","ctx_after":" you.","span_out":"help","tags":["noop"]}
+{"language":"en","ctx_before":"","span_in":"  add  :  1  ma in  st .  ","ctx_after":"","span_out":"Address: 1 Main St.","tags":["denoise_full","spacing","capitalization"]}
+{"language":"en","ctx_before":"She","span_in":" ca n ’ t","ctx_after":" swim.","span_out":"can't","tags":["apostrophe","spacing"]}
+{"language":"en","ctx_before":"He said","span_in":"dont","ctx_after":" worry.","span_out":"don't","tags":["apostrophe"]}
+{"language":"en","ctx_before":"She called","span_in":"whatsapp","ctx_after":" quickly.","span_out":"WhatsApp","tags":["spelling_brand","capitalization"]}
+{"language":"en","ctx_before":"Close the","span_in":"windwo","ctx_after":" please.","span_out":"window","tags":["transposition"]}
+{"language":"en","ctx_before":"They enjoyed","span_in":"touche","ctx_after":" and banter.","span_out":"touché","tags":["diacritic"]}

@@ -10,8 +10,8 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ Streamed diffusion of LM corrections
-  • WHY  ▸ REQ-STREAMED-DIFFUSION
+  • WHAT ▸ Streamed diffusion of LM corrections; Context transformer with ±2 sentence look-around; Tone transformer with baseline detection and selectable tone; Confidence gating across pipeline stages; Integrate Noise → Context → Tone pipeline with staging buffer; English-only gating for full pipeline (Noise for others)
+  • WHY  ▸ REQ-STREAMED-DIFFUSION, REQ-CONTEXT-TRANSFORMER, REQ-TONE-TRANSFORMER, REQ-CONFIDENCE-GATE, REQ-THREE-STAGE-PIPELINE, REQ-LANGUAGE-GATING
   • HOW  ▸ See linked contracts and guides in docs
 */
 
@@ -20,7 +20,7 @@ import {
   getMinValidationWords,
   getMaxValidationWords,
 } from '../config/defaultThresholds';
-import { tidySweep } from '../engines/tidySweep';
+import { noiseTransform } from '../engines/noiseTransformer';
 import { replaceRange } from '../utils/diff';
 import type { LMAdapter } from './lm/types';
 import type { ActiveRegionPolicy } from './activeRegionPolicy';
@@ -28,6 +28,7 @@ import { emitActiveRegion } from '../ui/highlighter';
 import { renderHighlight } from '../ui/swapRenderer';
 import { createLogger } from './logger';
 import { streamMerge } from './lm/mergePolicy';
+import { UndoIsolation } from './undoIsolation';
 
 export interface DiffusionState {
   text: string;
@@ -54,6 +55,7 @@ export function createDiffusionController(
     seg = null;
   }
   const log = createLogger('diffusion');
+  const undo = new UndoIsolation(150);
 
   let state: DiffusionState = { text: '', caret: 0, frontier: 0 };
   // Throttle rendering to avoid UI storms (esp. Safari). ~60fps ceiling.
@@ -147,7 +149,7 @@ export function createDiffusionController(
   function tickOnce() {
     const r = nextWordRange();
     if (!r) return;
-    const res = tidySweep({ text: state.text, caret: state.caret, hint: r });
+    const res = noiseTransform({ text: state.text, caret: state.caret, hint: r });
     if (res.diff) {
       // Do not log user text per privacy policy
       log.debug('diff', {
@@ -254,5 +256,69 @@ export function createDiffusionController(
     } catch {}
   }
 
-  return { update, tickOnce, catchUp, getState: () => state };
+  function applyExternal(diff: { start: number; end: number; text: string }): boolean {
+    try {
+      const before = state.text.slice(diff.start, diff.end);
+      const updated = replaceRange(
+        state.text,
+        diff.start,
+        diff.end,
+        diff.text,
+        state.caret,
+      );
+      state.text = updated;
+      const newEnd = diff.start + diff.text.length;
+      state.frontier = Math.max(state.frontier, newEnd);
+      clampFrontier();
+      maybeRender();
+      try {
+        // Emit highlight so hosts (web demo) apply the visible replacement
+        renderHighlight({ start: diff.start, end: diff.end, text: diff.text });
+      } catch {}
+      try {
+        undo.addEdit({
+          start: diff.start,
+          end: newEnd,
+          before,
+          after: diff.text,
+          appliedAt: Date.now(),
+        });
+      } catch {}
+      return true;
+    } catch {
+      // Safety guards failed; ignore external diff
+      return false;
+    }
+  }
+
+  function rollbackLastSystemGroup(): void {
+    const g = undo.popLastGroup();
+    if (!g || g.edits.length === 0) return;
+    for (let i = g.edits.length - 1; i >= 0; i--) {
+      const e = g.edits[i];
+      try {
+        const updated = replaceRange(
+          state.text,
+          e.start,
+          e.start + e.after.length,
+          e.before,
+          state.caret,
+        );
+        state.text = updated;
+        state.frontier = Math.min(state.frontier, e.start);
+      } catch {}
+    }
+    clampFrontier();
+    maybeRender();
+  }
+
+  return {
+    update,
+    tickOnce,
+    catchUp,
+    getState: () => state,
+    applyExternal,
+    rollbackLastSystemGroup,
+    getActiveRegionPolicy: () => policy,
+  };
 }

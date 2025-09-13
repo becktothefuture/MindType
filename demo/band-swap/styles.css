@@ -1,5 +1,5 @@
 /*╔══════════════════════════════════════════════════════════╗
-  ║  ░  MANUAL NOISE WAVE STYLES v2  ░░░░░░░░░░░░░░░░░░░░  ║
+  ║  ░  STYLES  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
   ║                                                            ║
   ║                                                            ║
   ║                                                            ║
@@ -10,12 +10,12 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ Interactive manual wave control with click/drag support
-  • WHY  ▸ Enable precise user control of noise wave position
-  • HOW  ▸ Cursor states, visual feedback, touch support
+  • WHAT ▸ Band-swap noise-cluster animation demo
+  • WHY  ▸ REQ-BAND-SWAP
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
-:root {
+::root {
   --bg: #000;
   --fg: #fff;
   --active: #ff2daa;
@@ -420,3 +420,5 @@ p[data-mt] {
     cursor: pointer;
   }
 }
+
+

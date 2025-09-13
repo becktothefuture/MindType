@@ -1,14 +1,30 @@
-import { StrictMode } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
+import LMLab from "./lab/LMLab";
+import DemoShowcase from "./DemoShowcase.tsx";
 import { createCaretShim } from "./caretShim";
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+function Root() {
+  const [hash, setHash] = useState<string>(typeof window !== 'undefined' ? window.location.hash : '');
+  useEffect(() => {
+    const handler = () => setHash(window.location.hash || '');
+    window.addEventListener('hashchange', handler);
+    // initialize on mount
+    handler();
+    return () => window.removeEventListener('hashchange', handler);
+  }, []);
+  const isLab = hash === '#/lab';
+  const isDemos = hash === '#/demos';
+  return (
+    <StrictMode>
+      {isDemos ? <DemoShowcase /> : isLab ? <LMLab /> : <App />}
+    </StrictMode>
+  );
+}
+
+createRoot(document.getElementById("root")!).render(<Root />);
 
 // Attach caret monitor; keep side-effect minimal for demo
 createCaretShim().then((shim) => {

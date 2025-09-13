@@ -1,0 +1,9 @@
+{
+  "presets": [
+    { "id": "typos", "name": "Typos", "text": "helloo thr weathfr has beenb hood", "tone": "None" },
+    { "id": "grammar", "name": "Grammar", "text": "I has went to the store.", "tone": "None" },
+    { "id": "tone", "name": "Tone", "text": "We can't ship this, it's kinda bad.", "tone": "Professional" }
+  ]
+}
+
+

@@ -28,4 +28,4 @@ init_logger();
 const t = new WasmPauseTimer(500);
 ```
 
-- See also: `docs/guide/reference/core-rust-details.md`.
+- See also: `docs/06-guides/06-03-reference/core-rust-details.md`.

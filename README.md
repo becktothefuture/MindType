@@ -18,13 +18,13 @@
 
 ![build](https://img.shields.io/badge/build-pending-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
-![version](https://img.shields.io/badge/version-0.2.0--alpha-purple)
+![version](https://img.shields.io/badge/version-0.4.0-purple)
 
 ### TL;DR
 
 - Typing engines propose caret-safe diffs in real time (Tidy Sweep) and during idle (Backfill Consistency). An active region (3–8 words) trails the caret and “draws in” corrections.
 - A small TypeScript core wires input monitoring and scheduling. A Rust crate powers WASM-ready primitives. Local LM target: Transformers.js + Qwen2.5‑0.5B‑Instruct (q4, WebGPU) with graceful fallback to rules.
-- Quality gates: pnpm typecheck, lint, format:check, test. Tasks live in `docs/implementation.md`.
+- Quality gates: pnpm typecheck, lint, format:check, test. Tasks live in `docs/02-implementation/02-Implementation.md`.
 
 ### Demo • _add GIF here_
 
@@ -39,13 +39,15 @@
 - Contracts (what this means)
 - Cross-Module Data Flow
 - Task Board & Docs
+- What's New
 - License
 
 ### Recommended reading
 
 - Product narrative: see `docs/mindtyper_manifesto.md` for the vision and feel.
-- Brand pitch: see `docs/brand/messaging.md` (Mind::Type v0.2 Vision Pitch).
+- Brand pitch: see `docs/brand/messaging.md` (Mind::Type v0.4 Vision Pitch).
 - Changelog: see `CHANGELOG.md` for release history.
+- **What's New**: see [`docs/06-guides/whats-new-v0.4.md`](docs/06-guides/whats-new-v0.4.md) for v0.4 highlights.
 
 ## Overview
 
@@ -71,7 +73,7 @@ Mind::Type turns noisy keystreams into clean text via small, reversible diffs. F
 2. Install deps: `pnpm install`
 3. Run unit tests: `pnpm test`
 4. Run quality gates: `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test`
-5. Explore tasks: open `docs/implementation.md`
+5. Explore tasks: open `docs/02-implementation/02-Implementation.md`
 
 ### Web demo: build and run
 
@@ -133,13 +135,13 @@ MindType/
 
 ### engines/
 
-- `engines/tidySweep.ts`: Forward pass that proposes minimal diffs behind the CARET within a `MAX_SWEEP_WINDOW` window (stub returns no diff until rules land).
+- `engines/noiseTransformer.ts`: Forward pass that proposes minimal diffs behind the CARET within a `MAX_SWEEP_WINDOW` window.
 - `engines/backfillConsistency.ts`: Reverse pass that proposes consistency diffs in the stable zone behind the caret (stub returns empty array).
 
 ### ui/
 
 - `ui/highlighter.ts`: Renders active region (3–8 words behind caret) and applied fix highlights; honors reduced-motion.
-- `ui/groupUndo.ts`: Optional batching for host‑applied diffs. NOTE: Tapestry/LM evolutions are explicitly exempt — normal editor undo semantics apply.
+- `ui/groupUndo.ts`: Optional batching for host‑applied diffs. NOTE: Active region (formerly “tapestry”)/LM evolutions are explicitly exempt — normal editor undo semantics apply.
 
 ### utils/
 
@@ -147,7 +149,7 @@ MindType/
 
 ### tests/
 
-- `tests/tidySweep.spec.ts`: Verifies tidy sweep returns no crossing-caret edits (stubbed now).
+- `tests/noiseTransformer.spec.ts`: Verifies noise transformer returns no crossing-caret edits.
 - `tests/backfill.spec.ts`: Ensures reverse pass outputs array of diffs (shape guard for stable zone logic).
 - `tests/diff.spec.ts`: Validates `replaceRange` correctness and caret guardrails.
 
@@ -158,16 +160,16 @@ MindType/
   - `docs/code_overview_simple.md`: Intro to code layout.
   - `docs/core_rust_details.md`: Deeper Rust core insights.
   - `docs/developer_tasks.md`: Task conventions.
-  - `docs/implementation.md`: Live task board (used by workflow).
+  - `docs/02-implementation/02-Implementation.md`: Live task board (used by workflow).
   - `docs/mac_app_details.md`: macOS app build notes.
-  - `docs/project_structure.md`: High-level structure summary.
+  - `docs/14-project-structure/14-project_structure.md`: High-level structure summary.
   - `docs/web_demo_details.md`, `docs/web_demo_server.md`: Web demo explainer.
 - Questionnaire (product/UX/tech/security): `docs/questionnaire/*.md`
 
 ### crates/core-rs/ (Rust)
 
 - `src/lib.rs`: WASM bindings and exported types; exposes logger, timer, fragment extractor, merger, and token stream stubs.
-- `src/fragment.rs`: Extracts the last complete sentence fragment using Unicode segmentation.
+- `src/fragment.rs`: Extracts the last complete sentence using Unicode segmentation.
 - `src/merge.rs`: Simple token-appending merger (placeholder for diff-based merge).
 - `src/pause_timer.rs`: Idle detection utility; used to decide when to schedule sweeps.
 - `src/logger.rs`: In-memory logger; serializable to JS via WASM.
@@ -208,124 +210,11 @@ MindType/
 - `Cargo.toml`, `Cargo.lock`: Rust workspace metadata.
 - `pnpm-lock.yaml`: Node dependency lockfile.
 
-## Deep Directory Guide
-
-### config/
-
-- **purpose**: Centralizes timing/windows so engines and UI behave consistently.
-- **responsibilities**: Own `SHORT_PAUSE_MS`, `LONG_PAUSE_MS`, `MAX_SWEEP_WINDOW` consumed by `core/` and `engines/`.
-- **when to change**: Tuning feel/latency, A/B variants, environment-specific presets.
-- **contracts**:
-  - Names and units are stable (milliseconds, characters).
-  - Read-only from consumers; do not mutate at runtime.
-
-### core/
-
-- **purpose**: Orchestration glue: subscribe to typing, debounce, trigger sweeps.
-- **responsibilities**: Emit `TypingEvent` snapshots, schedule `tidySweep` and `backfillConsistency` after pauses.
-- **when to change**: Adjust debounce rules, add/remove sweep phases, connect monitors in hosts.
-- **contracts**:
-  - `TypingEvent` shape is `{ text, caret, atMs }`.
-  - Never trigger engines while keys are actively arriving; respect `SHORT_PAUSE_MS`.
-
-### engines/
-
-- **purpose**: Propose caret-safe diffs. Forward keeps the live zone clean; reverse polishes earlier text with more context.
-- **responsibilities**: Implement rules and return normalized diff shapes.
-- **when to change**: Add rule detectors (spelling, punctuation, name normalization), refine windows, integrate Rust/WASM helpers.
-- **contracts**:
-  - Tidy: returns `{ diff | null }` where `diff.start/end < caret`.
-  - Backfill: returns `{ diffs: Array<{ start; end; text }> }` strictly in the stable zone.
-  - Never edit at/after the caret; diffs are minimal and reversible.
-
-### utils/
-
-- **purpose**: Pure helpers that are environment-agnostic.
-- **responsibilities**: Range math, safe replace, future text utilities.
-- **when to change**: Improve diff operations or add pure helpers.
-- **contracts**:
-  - Throw on invalid ranges and caret violations.
-  - No I/O or global state; deterministic.
-
-### ui/
-
-- **purpose**: Visual affordances and undo grouping around accepted diffs.
-- **responsibilities**: Render highlights; group engine diffs into one undo step per sweep.
-- **when to change**: Modify highlight behavior, reduced-motion support, or host undo semantics.
-- **contracts**:
-  - Consumes ranges/diffs; does not compute business rules.
-  - Platform-specific effects stay here (DOM/Accessibility).
-
-### tests/
-
-- **purpose**: Guardrails for caret safety, diff shapes, and evolving rules.
-- **responsibilities**: Unit tests for engines and utils; baseline behavior.
-- **when to change**: Add new rule cases or invariants; extend edge coverage.
-- **contracts**:
-  - Runnable in Node (no DOM); keep tests fast and deterministic.
-
-### crates/core-rs/
-
-- **purpose**: Canonical core (pause timer, fragment extraction, merge, token streaming) compiled to WASM and linked via FFI.
-- **responsibilities**: Provide stable wasm-bindgen/FFI APIs; implement performant algorithms.
-- **when to change**: Algorithmic improvements, bindings, performance, platform features.
-- **contracts**:
-  - No UI concerns; streaming is cancellable; APIs remain minimal and versioned.
-
-### web-demo/
-
-- **purpose**: Vite/React playground to exercise the core with a debug panel.
-- **responsibilities**: Showcase typing → sweep → apply → highlight; expose knobs for thresholds.
-- **when to change**: Prototype UX, visualize telemetry, validate feel.
-- **contracts**:
-  - Isolated from core tests; consumes WASM package when available.
-
-### e2e/
-
-- **purpose**: Playwright flows spanning typing through visual feedback.
-- **responsibilities**: Scenario tests; smoke parity as features land.
-- **when to change**: Add user journeys and regression suites.
-- **contracts**:
-  - Separate package scope; do not affect core unit test config.
-
-### docs/
-
-- **purpose**: Ground truth for architecture, decisions, and active tasks.
-- **responsibilities**: Keep specs aligned with code; document contracts and flows.
-- **when to change**: Any cross-module change or new invariant.
-- **contracts**:
-  - Docs reflect shipped behavior; outdated sections are marked clearly.
-
-### root
-
-- **purpose**: Entry, tooling, and repo configs.
-- **responsibilities**: `index.ts` bootstrap, lint/test/tsconfig, `Justfile` recipes.
-- **when to change**: Update bootstrap API or dev ergonomics/CI.
-- **contracts**:
-  - Tooling stays consistent with workspace (ESLint v9 flat, Vitest scope, TS target).
-
-## Contracts (what this means)
-
-“Contracts” are the stable promises modules make to each other. They define shapes, timing, and safety rules that let teams change internals without breaking dependents.
-
-- **Shape contracts**: The exact TypeScript/Rust types exchanged.
-  - Example: `TypingEvent` is `{ text: string; caret: number; atMs: number }`.
-  - Example: Tidy returns `{ diff: { start; end; text } | null }`; Backfill returns `{ diffs: Array<{ start; end; text }> }`.
-- **Behavioral contracts**: Rules that must always hold.
-  - Example: Engines never edit at/after the caret; diffs are minimal and reversible in one undo step.
-  - Example: `sweepScheduler` only runs after `SHORT_PAUSE_MS` and cancels on new keystrokes.
-- **Performance contracts**: Bounds or expectations.
-  - Example: Tidy operates within `MAX_SWEEP_WINDOW` behind the caret to keep latency low.
-- **Platform contracts**: Separation of concerns.
-  - Example: Rust core exposes wasm/FFI APIs and stays UI-free; UI modules handle DOM/AX specifics.
-
-Keep these contracts visible in code (types, tests) and docs; if you change one, update both the tests and this section.
-
 ## Cross-Module Data Flow (high level)
 
 - Host editor → `core/typingMonitor` (keystrokes, caret, timestamps)
-- `core/sweepScheduler` → triggers `engines/tidySweep` (short pause) and `engines/backfillConsistency` (idle)
-- Engines propose diffs → host applies (grouping optional; tapestry/LM evolutions are exempt) → `ui/highlighter` shows feedback
+- `core/sweepScheduler` → triggers `engines/noiseTransformer` (short pause) and `engines/backfillConsistency` (idle)
+- Engines propose diffs → host applies (grouping optional; active-region/LM evolutions are exempt) → `ui/highlighter` shows feedback
 - Rust crate primitives (WASM) may augment extraction/merging/logging when integrated into the demo or apps
 
 ## How Rust and TypeScript work together
@@ -372,9 +261,23 @@ Where Swift fits (mac app):
 
 ## Task Board & Docs
 
-- Tasks: `docs/implementation.md` (first unchecked drives work in Cursor)
+- Tasks: `docs/02-implementation/02-Implementation.md` (first unchecked drives work in Cursor)
 - System rules: `.cursor/rules/workflow.mdc`, `.cursor/rules/comment_style.mdc`, `.cursor/rules/generate.mdc`
 - Glossary: `.cursor/rules/glossary.mdc`
+
+## What's New
+
+For the latest features, changes, and improvements in v0.4, see:
+
+📋 **[What's New in v0.4](docs/06-guides/06-guides/whats-new-v0.4.md)**
+
+Key highlights include:
+
+- Enhanced active region tracking and visualization
+- Improved caret safety with undo isolation
+- Performance optimizations and LM adapter interface
+- Comprehensive test coverage and e2e validation
+- Swift/FFI bridge foundations for native apps
 
 ## License
 
@@ -382,4 +285,4 @@ MIT — see the badge above.
 
 # Mind::Type
 
-- See `docs/guide/reference/caret-monitor.md` for the Caret Monitor v2 state model and APIs.
+- See `docs/06-guides/06-guides/reference/caret-monitor.md` for the Caret Monitor v2 state model and APIs.

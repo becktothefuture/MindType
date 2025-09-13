@@ -10,8 +10,8 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ No edits at or after the caret; Active region policy (render vs context ranges)
-  • WHY  ▸ REQ-IME-CARETSAFE, CONTRACT-ACTIVE-REGION
+  • WHAT ▸ No edits at or after the caret; Active region policy (render vs context ranges); LMAdapter streaming contract
+  • WHY  ▸ REQ-IME-CARETSAFE, CONTRACT-ACTIVE-REGION, CONTRACT-LM-ADAPTER
   • HOW  ▸ See linked contracts and guides in docs
 */
 
@@ -31,6 +31,9 @@ export interface ActiveRegionPolicy {
   computeRenderRange(state: DiffusionStateLike): { start: number; end: number };
   computeContextRange(state: DiffusionStateLike): { start: number; end: number };
 }
+
+// Alias exported for clarity in LM integration docs/tests
+export type BandPolicy = ActiveRegionPolicy;
 
 function iterateWordSegments(
   text: string,
