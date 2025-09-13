@@ -1,0 +1,173 @@
+<!--══════════════════════════════════════════════════════════
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  ░  C O R R E C T I O N   F L U X   D E M O   ░░░░░░░░░░░░░░  ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌                      ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ╚══════════════════════════════════════════════════════════════╝
+    • WHAT ▸ Standalone demo for the animated correction entity (dot‑matrix)
+    • WHY  ▸ Explore parameters (≥10) and UX of animated, caret-safe corrections
+    • HOW  ▸ Vanilla JS overlay + controls; respects reduced motion; 2D XY pads
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mind::Type — Correction Flux Demo</title>
+    <meta name="mt-version" content="0.0.0" />
+    <meta name="mt-last-updated" content="" />
+    <link rel="stylesheet" href="../_shared/header.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <script src="../_shared/header.js" defer></script>
+    <div id="app-root" class="page">
+      <header class="page-header">
+        <h1>Mind⠶Type — Correction Flux</h1>
+        <p class="subtitle">Animated, dot‑matrix correction entity with independent timing and rich controls.</p>
+      </header>
+
+      <main class="layout">
+        <!-- LEFT: text + progress -->
+        <section class="left-pane" aria-label="Text and progress">
+          <div class="text-stage" id="textStage">
+            <div class="text-wrap" id="textWrap" aria-live="polite" aria-label="Demo text">
+              <!-- characters inserted dynamically -->
+            </div>
+            <div class="entity-overlay" id="entityOverlay" aria-hidden="true"></div>
+          </div>
+          <div class="progress-row">
+            <label for="progress" class="progress-label">Position</label>
+            <input id="progress" type="range" min="0" max="100" step="0.1" value="0" />
+            <span class="progress-value" id="progressValue">0%</span>
+          </div>
+        </section>
+
+        <!-- RIGHT: controls -->
+        <aside class="control-pane" id="controlPane" aria-label="Controls">
+          <div class="pane-header">
+            <h2>Controls</h2>
+            <button id="collapseBtn" title="Toggle panel (/)" aria-expanded="true">⟘</button>
+          </div>
+          <div class="controls" id="controls">
+            <div class="group">
+              <h3>Entity</h3>
+              <label>Speed <span id="speedVal">1.0×</span>
+                <input id="speed" type="range" min="0.1" max="5" step="0.1" value="1" />
+              </label>
+              <label>Density <span id="densityVal">16</span>
+                <input id="density" type="range" min="1" max="64" step="1" value="16" />
+              </label>
+              <label>Symbol size <span id="sizeVal">18px</span>
+                <input id="size" type="range" min="10" max="32" step="1" value="18" />
+              </label>
+              <div class="row-3">
+                <label>Hue <span id="hueVal">160</span>
+                  <input id="hue" type="range" min="0" max="360" step="1" value="160" />
+                </label>
+                <label>Sat <span id="satVal">70%</span>
+                  <input id="sat" type="range" min="0" max="100" step="1" value="70" />
+                </label>
+                <label>Light <span id="lightVal">80%</span>
+                  <input id="light" type="range" min="20" max="95" step="1" value="80" />
+                </label>
+              </div>
+              <label>Trail length <span id="trailVal">400ms</span>
+                <input id="trail" type="range" min="0" max="800" step="10" value="400" />
+              </label>
+              <label>Jitter <span id="jitterVal">2px</span>
+                <input id="jitter" type="range" min="0" max="12" step="0.5" value="2" />
+              </label>
+            </div>
+
+            <div class="group">
+              <h3>Path</h3>
+              <label>Type
+                <select id="pathType">
+                  <option value="linear">Linear</option>
+                  <option value="sine">Sine</option>
+                  <option value="spiral">Spiral</option>
+                  <option value="flow">Flow Field</option>
+                  <option value="summon">Summon</option>
+                </select>
+              </label>
+              <label>Amplitude <span id="ampVal">12px</span>
+                <input id="amp" type="range" min="0" max="40" step="1" value="12" />
+              </label>
+              <label>Frequency <span id="freqVal">1.0</span>
+                <input id="freq" type="range" min="0.1" max="6" step="0.1" value="1" />
+              </label>
+            </div>
+
+            <div class="group">
+              <h3>Commit</h3>
+              <label>Cadence
+                <select id="cadence">
+                  <option value="word">Per‑word</option>
+                  <option value="boundary">Per‑boundary</option>
+                  <option value="sentence">Per‑sentence</option>
+                </select>
+              </label>
+              <label>Delay <span id="delayVal">120ms</span>
+                <input id="delay" type="range" min="0" max="500" step="10" value="120" />
+              </label>
+              <label>Follow‑caret bias <span id="biasVal">0.6</span>
+                <input id="bias" type="range" min="0" max="1" step="0.01" value="0.6" />
+              </label>
+              <label>Off‑band priority
+                <select id="priority">
+                  <option value="low">Low</option>
+                  <option value="med" selected>Med</option>
+                  <option value="high">High</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="group">
+              <h3>2D Pads</h3>
+              <div class="xy-grid">
+                <div class="xy-pad" id="padSpeedDensity" aria-label="Speed × Density">
+                  <div class="xy-thumb" id="thumbSD"></div>
+                </div>
+                <div class="xy-caption">Speed × Density</div>
+                <div class="xy-pad" id="padAmpFreq" aria-label="Amplitude × Frequency">
+                  <div class="xy-thumb" id="thumbAF"></div>
+                </div>
+                <div class="xy-caption">Amplitude × Frequency</div>
+              </div>
+            </div>
+
+            <div class="group">
+              <h3>Display</h3>
+              <label class="row">
+                <input id="autoPlay" type="checkbox" checked /> Auto‑play
+              </label>
+              <label class="row">
+                <input id="showTrail" type="checkbox" checked /> Show trail
+              </label>
+              <label class="row">
+                <input id="reduced" type="checkbox" /> Reduced motion
+              </label>
+            </div>
+          </div>
+        </aside>
+      </main>
+
+      <footer class="page-footer">
+        <a href="/#/demos">← Back to Demos</a>
+      </footer>
+    </div>
+
+    <script src="./main.js" type="module"></script>
+  </body>
+  </html>
+
+
+

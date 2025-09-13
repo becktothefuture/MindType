@@ -1,0 +1,45 @@
+name: Docs Guards
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'scripts/**'
+      - '.github/workflows/docs-guards.yml'
+
+jobs:
+  check-docs-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+      - name: Enforce numbered folders
+        run: |
+          set -e
+          offending=$(find docs -maxdepth 1 -type f \( -name '*.md' -o -name '*.json' -o -name '*.yaml' -o -name '*.yml' \) -not -name 'index.md' -print)
+          if [ -n "$offending" ]; then
+            echo "Flat files detected at docs root:" >&2
+            echo "$offending" >&2
+            exit 1
+          fi
+      - name: Generate folder indices
+        run: node scripts/docs-generate-indices.mjs
+      - name: Check Swiss-grid header presence
+        run: |
+          set -e
+          missing=$(grep -L "^<!--══════════════════════════════════════════════════" $(git ls-files 'docs/**/*.md' | tr '\n' ' ')) || true
+          if [ -n "$missing" ]; then
+            echo "Files missing Swiss-grid header:" >&2
+            echo "$missing" >&2
+            exit 1
+          fi
+      - name: Markdown link check
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --verbose --include-fragments 'docs/**/*.md'
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+

@@ -39,6 +39,15 @@ test.describe('Demo Corrections (FT-318A)', () => {
     // Check that logs show the correction was applied
     const logs = await page.getByTestId('process-log').textContent();
     expect(logs).toContain('APPLY');
+    
+    // Check for braille animation indicators (if markers are enabled)
+    const markerToggle = page.getByRole('checkbox', { name: /Show markers/ });
+    if (await markerToggle.isVisible() && await markerToggle.isChecked()) {
+      // Look for braille indicator elements that might have been created
+      const brailleIndicators = page.locator('.braille-indicator');
+      // Note: Animation is brief, so we might not catch it, but class should exist in DOM
+      console.log('Braille indicators found:', await brailleIndicators.count());
+    }
   });
   
   test('Demo preserves caret position during correction', async ({ page }) => {

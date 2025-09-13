@@ -17,8 +17,22 @@ export default defineConfig({
         const ASSETS_ROOT = resolve(__dirname, "..", "assets");
         const MODELS = join(ASSETS_ROOT, "models");
         const WASM = join(ASSETS_ROOT, "wasm");
+        const PUBLIC_DIR = resolve(__dirname, "public");
+        
         server.middlewares.use((req: any, res: any, next: () => void) => {
           const url = req?.url || "";
+          
+          // Serve static demo HTML files directly (bypass SPA routing)
+          if (url.startsWith("/demo/") && (url.endsWith("/") || url.includes(".html"))) {
+            const demoPath = url.endsWith("/") ? url + "index.html" : url;
+            const filePath = join(PUBLIC_DIR, demoPath);
+            if (fs.existsSync(filePath)) {
+              res.setHeader("Content-Type", "text/html; charset=utf-8");
+              fs.createReadStream(filePath).pipe(res);
+              return;
+            }
+          }
+          
           const serve = (baseDir: string, prefix: string) => {
             const rel = url.slice(prefix.length);
             const filePath = join(baseDir, rel);
@@ -29,6 +43,9 @@ export default defineConfig({
                 wasm: "application/wasm",
                 onnx: "application/octet-stream",
                 txt: "text/plain; charset=utf-8",
+                html: "text/html; charset=utf-8",
+                css: "text/css; charset=utf-8",
+                js: "application/javascript; charset=utf-8",
               };
               res.setHeader("Content-Type", m[ext] || "application/octet-stream");
               fs.createReadStream(filePath).pipe(res);
@@ -62,6 +79,13 @@ export default defineConfig({
     middlewareMode: false,
     proxy: {},
     open: '/#/demos',
+  },
+  // Configure SPA fallback to not interfere with static demo routes
+  appType: 'spa',
+  publicDir: 'public',
+  worker: {
+    format: 'es',
+    plugins: [react()],
   },
   build: {
     rollupOptions: {

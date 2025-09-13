@@ -52,6 +52,7 @@ export function selectSpanAndPrompt(
     return { band: null, prompt: null, span: null, maxNewTokens: 0, controlJson: '{}' };
   if (span.length > cfg.maxSpanChars)
     return { band: null, prompt: null, span: null, maxNewTokens: 0, controlJson: '{}' };
+  // Enforce word boundary at end by default
   if (cfg.enforceWordBoundaryAtEnd && /\w$/.test(span)) {
     return { band: null, prompt: null, span: null, maxNewTokens: 0, controlJson: '{}' };
   }
@@ -108,6 +109,7 @@ function computeSimpleBand(
   text: string,
   caretIndex: number,
 ): { start: number; end: number } | null {
+  // CRITICAL: Band must be strictly behind caret (caret-safe requirement)
   // Find reasonable start position (up to 10 words back or 50 chars)
   const left = text.slice(0, caretIndex);
   const parts = left.split(/(\b)/g);
@@ -118,25 +120,21 @@ function computeSimpleBand(
     i--;
   }
   const start = Math.max(0, left.lastIndexOf(parts[Math.max(0, i + 1)] ?? ''));
-  const bandStart = isNaN(start) ? Math.max(0, caretIndex - 50) : start;
+  let bandStart = isNaN(start) ? Math.max(0, caretIndex - 50) : start;
 
-  // Extend beyond caret to include text that needs correction
-  // Look for next word boundary or take up to 50 more characters
-  const right = text.slice(caretIndex);
-  const wordBoundary = right.search(/\s+/);
+  // Band end is strictly AT caret, never beyond (caret-safe enforcement)
   let bandEnd = caretIndex;
 
-  if (wordBoundary > 0) {
-    // Include the current word plus a bit more context
-    bandEnd = Math.min(text.length, caretIndex + wordBoundary + 20);
-  } else {
-    // No word boundary found, take a reasonable chunk
-    bandEnd = Math.min(text.length, caretIndex + 50);
+  // Handle edge case: if caret is at end of text and we have no content behind it
+  if (bandEnd <= bandStart && caretIndex === text.length && caretIndex > 0) {
+    // Take the last few characters for correction
+    bandStart = Math.max(0, caretIndex - 20);
+    bandEnd = caretIndex;
   }
 
-  // Ensure we have at least some content to work with
+  // Ensure we have some content to work with, but never exceed caret
   if (bandEnd <= bandStart) {
-    bandEnd = Math.min(text.length, bandStart + 20);
+    return null; // No valid band available
   }
 
   return { start: bandStart, end: bandEnd };

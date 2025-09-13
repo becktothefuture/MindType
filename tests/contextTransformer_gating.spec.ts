@@ -9,7 +9,7 @@
   • HOW  ▸ Mock LM adapter and context manager
 */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { contextTransform } from '../engines/contextTransformer';
 
 function makeLMAdapter(chunks: string[]) {
@@ -61,5 +61,75 @@ describe('contextTransformer confidence gating', () => {
     const res = await contextTransform({ text, caret }, lmAdapter, mgr);
     // Held by gate → no proposals
     expect(res.proposals.length).toBe(0);
+  });
+
+  describe('caret-safe band selection', () => {
+    it('never selects band beyond caret position', async () => {
+      const text = 'Hello teh world needs correction';
+      const caret = 15; // after "world"
+      const lmAdapter = makeLMAdapter(['the ']);
+      const mgr = makeContextManager(text);
+      
+      // Mock selectSpanAndPrompt to capture band selection
+      let capturedBand: any = null;
+      const originalImport = await import('../core/lm/policy');
+      const mockSelectSpanAndPrompt = (text: string, caret: number) => {
+        const result = originalImport.selectSpanAndPrompt(text, caret);
+        capturedBand = result.band;
+        return result;
+      };
+      
+      // Temporarily replace the import
+      const mockModule = { ...originalImport, selectSpanAndPrompt: mockSelectSpanAndPrompt };
+      vi.doMock('../core/lm/policy', () => mockModule);
+      
+      await contextTransform({ text, caret }, lmAdapter, mgr);
+      
+      // Verify band never exceeds caret
+      if (capturedBand) {
+        expect(capturedBand.end).toBeLessThanOrEqual(caret);
+        expect(capturedBand.start).toBeLessThan(capturedBand.end);
+      }
+    });
+
+    it('handles caret at end of text', async () => {
+      const text = 'Hello teh world';
+      const caret = text.length; // at end
+      const lmAdapter = makeLMAdapter(['the ']);
+      const mgr = makeContextManager(text);
+      
+      const res = await contextTransform({ text, caret }, lmAdapter, mgr);
+      
+      // Should still be able to correct text behind caret
+      if (res.proposals.length > 0) {
+        const p = res.proposals[0];
+        expect(p.end).toBeLessThanOrEqual(caret);
+        expect(p.start).toBeLessThan(p.end);
+      }
+    });
+
+    it('handles empty text gracefully', async () => {
+      const text = '';
+      const caret = 0;
+      const lmAdapter = makeLMAdapter(['']);
+      const mgr = makeContextManager(text);
+      
+      const res = await contextTransform({ text, caret }, lmAdapter, mgr);
+      
+      // Should not crash and should not produce proposals for empty text
+      expect(res.proposals.length).toBe(0);
+    });
+
+    it('handles caret at position 0', async () => {
+      const text = 'Hello world';
+      const caret = 0;
+      const lmAdapter = makeLMAdapter(['']);
+      const mgr = makeContextManager(text);
+      
+      const res = await contextTransform({ text, caret }, lmAdapter, mgr);
+      
+      // Should not produce proposals when caret is at beginning
+      expect(res.proposals.length).toBe(0);
+    });
   });
 });

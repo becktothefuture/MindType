@@ -202,17 +202,18 @@ export async function contextTransform(
       const { selectSpanAndPrompt, postProcessLMOutput } = await import(
         '../core/lm/policy'
       );
-      const selection = selectSpanAndPrompt(text, caret);
-      // Use original selection band for LM prompting (may extend past caret to a word boundary)
+      let selection = selectSpanAndPrompt(text, caret);
+      // Fallback: if no band at end-of-text, try with minimal padding
+      if (!selection.band && caret === text.length && caret > 0) {
+        // Add minimal padding to get a band, then use original caret for safety
+        selection = selectSpanAndPrompt(text + ' ', caret);
+      }
+      // Band is already caret-safe from computeSimpleBand, no clamping needed
       const lmBand = selection.band;
-      // Create a caret-safe band for proposal application
-      const bandClamped = selection.band
-        ? { start: selection.band.start, end: Math.min(selection.band.end, caret) }
-        : null;
-      const validBand = !!lmBand && !!bandClamped && bandClamped.start < bandClamped.end;
+      const validBand = !!lmBand && lmBand.start < lmBand.end && lmBand.end <= caret;
 
       if (validBand && selection.prompt && lmBand) {
-        const band = bandClamped as { start: number; end: number };
+        const band = lmBand as { start: number; end: number };
         // Init LM stats container
         const g = globalThis as any;
         g.__mtLmStats = g.__mtLmStats || {

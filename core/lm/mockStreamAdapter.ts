@@ -50,7 +50,7 @@ export function createMockStreamLMAdapter(): LMAdapter {
         return s;
       }
 
-      const toneTarget = (params.settings as any)?.toneTarget ?? 'None';
+      const toneTarget = (params.settings as { toneTarget?: 'None' | 'Casual' | 'Professional' } | undefined)?.toneTarget ?? 'None';
 
       const events: LMStreamEvent[] = [
         { type: 'meta', session: 's-mock', model: 'mock-lm', version: '0.4' },

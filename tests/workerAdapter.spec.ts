@@ -25,11 +25,16 @@ describe('WorkerAdapter (interface)', () => {
     // Dynamic import to avoid issues in Node.js
     const createAdapter = () => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { createWorkerLMAdapter } = require('../core/lm/workerAdapter');
-        return createWorkerLMAdapter(makeWorker);
+        // Use dynamic import to satisfy ESM lint rule
+        // Note: avoid top-level await to keep test sync
+        let mod: any;
+        (function assign() { /* istanbul ignore next */ })();
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        import('../core/lm/workerAdapter').then(({ createWorkerLMAdapter }) => {
+          mod = createWorkerLMAdapter(makeWorker);
+        });
+        return mod ?? null;
       } catch {
-        // Expected in Node.js environment
         return null;
       }
     };

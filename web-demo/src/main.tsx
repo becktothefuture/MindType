@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
 import LMLab from "./lab/LMLab";
+import DemoShowcase from "./DemoShowcase.tsx";
 import { createCaretShim } from "./caretShim";
 
 function Root() {
@@ -18,19 +19,7 @@ function Root() {
   const isDemos = hash === '#/demos';
   return (
     <StrictMode>
-      {isDemos ? (
-        <div style={{ padding: 16, color: '#e7e9ee', background: '#0b0f12', minHeight: '100vh', fontFamily: 'Inter, system-ui, sans-serif' }}>
-          <h1 style={{ marginTop: 0 }}>Mind::Type — Demos</h1>
-          <p style={{ opacity: 0.8 }}>All demos served by this dev server.</p>
-          <ul style={{ lineHeight: 1.8 }}>
-            <li><a href="/#/" style={{ color: '#7ce0b8' }}>Typing LM Demo (React)</a></li>
-            <li><a href="/#/lab" style={{ color: '#7ce0b8' }}>LM Lab</a></li>
-            <li><a href="/demo/band-swap/" style={{ color: '#7ce0b8' }}>Band‑Swap Demo</a></li>
-            <li><a href="/demo/mt-braille-animation-v1/" style={{ color: '#7ce0b8' }}>Braille Animation v1</a></li>
-            <li><a href="/demo/mt-scroll-anim-v1/" style={{ color: '#7ce0b8' }}>Scroll Anim v1</a></li>
-          </ul>
-        </div>
-      ) : isLab ? <LMLab /> : <App />}
+      {isDemos ? <DemoShowcase /> : isLab ? <LMLab /> : <App />}
     </StrictMode>
   );
 }

@@ -162,7 +162,34 @@ export function LMLab() {
   return (
     <div style={{ padding: '2rem', display: 'flex', gap: '1rem' }}>
       <div style={{ flex: 1 }}>
-        <h2>LM Lab</h2>
+        <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+          <h2 style={{ margin: '0 0 8px 0' }}>LM Lab</h2>
+          <div>
+            <a 
+              href="/#/demos" 
+              style={{
+                color: '#7ce0b8',
+                textDecoration: 'none',
+                fontSize: '0.9em',
+                fontWeight: '500',
+                marginRight: '16px'
+              }}
+            >
+              🎯 All Demos
+            </a>
+            <a 
+              href="/#/" 
+              style={{
+                color: '#4db8ff',
+                textDecoration: 'none',
+                fontSize: '0.9em',
+                fontWeight: '500'
+              }}
+            >
+              ← Main Demo
+            </a>
+          </div>
+        </div>
         {/* Dynamic presets from JSON */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
           {dynamicPresets.map((p) => (

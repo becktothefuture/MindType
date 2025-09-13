@@ -24,7 +24,7 @@
 
 - Typing engines propose caret-safe diffs in real time (Tidy Sweep) and during idle (Backfill Consistency). An active region (3–8 words) trails the caret and “draws in” corrections.
 - A small TypeScript core wires input monitoring and scheduling. A Rust crate powers WASM-ready primitives. Local LM target: Transformers.js + Qwen2.5‑0.5B‑Instruct (q4, WebGPU) with graceful fallback to rules.
-- Quality gates: pnpm typecheck, lint, format:check, test. Tasks live in `docs/implementation.md`.
+- Quality gates: pnpm typecheck, lint, format:check, test. Tasks live in `docs/02-implementation/02-Implementation.md`.
 
 ### Demo • _add GIF here_
 
@@ -47,7 +47,7 @@
 - Product narrative: see `docs/mindtyper_manifesto.md` for the vision and feel.
 - Brand pitch: see `docs/brand/messaging.md` (Mind::Type v0.4 Vision Pitch).
 - Changelog: see `CHANGELOG.md` for release history.
-- **What's New**: see [`docs/guide/whats-new-v0.4.md`](docs/guide/whats-new-v0.4.md) for v0.4 highlights.
+- **What's New**: see [`docs/06-guides/whats-new-v0.4.md`](docs/06-guides/whats-new-v0.4.md) for v0.4 highlights.
 
 ## Overview
 
@@ -73,7 +73,7 @@ Mind::Type turns noisy keystreams into clean text via small, reversible diffs. F
 2. Install deps: `pnpm install`
 3. Run unit tests: `pnpm test`
 4. Run quality gates: `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test`
-5. Explore tasks: open `docs/implementation.md`
+5. Explore tasks: open `docs/02-implementation/02-Implementation.md`
 
 ### Web demo: build and run
 
@@ -160,7 +160,7 @@ MindType/
   - `docs/code_overview_simple.md`: Intro to code layout.
   - `docs/core_rust_details.md`: Deeper Rust core insights.
   - `docs/developer_tasks.md`: Task conventions.
-  - `docs/implementation.md`: Live task board (used by workflow).
+  - `docs/02-implementation/02-Implementation.md`: Live task board (used by workflow).
   - `docs/mac_app_details.md`: macOS app build notes.
   - `docs/project_structure.md`: High-level structure summary.
   - `docs/web_demo_details.md`, `docs/web_demo_server.md`: Web demo explainer.
@@ -261,7 +261,7 @@ Where Swift fits (mac app):
 
 ## Task Board & Docs
 
-- Tasks: `docs/implementation.md` (first unchecked drives work in Cursor)
+- Tasks: `docs/02-implementation/02-Implementation.md` (first unchecked drives work in Cursor)
 - System rules: `.cursor/rules/workflow.mdc`, `.cursor/rules/comment_style.mdc`, `.cursor/rules/generate.mdc`
 - Glossary: `.cursor/rules/glossary.mdc`
 
@@ -269,7 +269,7 @@ Where Swift fits (mac app):
 
 For the latest features, changes, and improvements in v0.4, see:
 
-📋 **[What's New in v0.4](docs/guide/whats-new-v0.4.md)**
+📋 **[What's New in v0.4](docs/06-guides/06-guides/whats-new-v0.4.md)**
 
 Key highlights include:
 
@@ -285,4 +285,4 @@ MIT — see the badge above.
 
 # Mind::Type
 
-- See `docs/guide/reference/caret-monitor.md` for the Caret Monitor v2 state model and APIs.
+- See `docs/06-guides/06-guides/reference/caret-monitor.md` for the Caret Monitor v2 state model and APIs.

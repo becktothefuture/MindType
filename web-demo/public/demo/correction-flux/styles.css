@@ -1,0 +1,66 @@
+/*╔══════════════════════════════════════════════════════╗
+  ║  ░  C O R R E C T I O N   F L U X   S T Y L E S  ░░░  ║
+  ║                                                      ║
+  ║   Layout, panel, text stage and entity visuals.      ║
+  ║                                                      ║
+  ╚══════════════════════════════════════════════════════╝
+  • WHAT ▸ Visual styling for the Correction Flux demo
+  • WHY  ▸ Clean, minimal, MindType aesthetic
+  • HOW  ▸ CSS grid; absolute overlay; 2D pads
+*/
+
+:root {
+  --bg: #0b0f12;
+  --panel: rgba(20,24,28,0.6);
+  --text: rgba(245,246,248,0.9);
+  --muted: #a0a8b0;
+  --accent: #7ce0b8;
+  --accent-2: #4db8ff;
+}
+
+* { box-sizing: border-box; }
+html, body, .page { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif; }
+
+.page-header { padding: 12px 16px; text-align: center; }
+.page-header h1 { margin: 0; font-weight: 600; }
+.subtitle { margin: 6px 0 0; font-size: 0.9em; color: var(--muted); }
+
+.layout { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; height: calc(100vh - 80px); padding: 8px; }
+.left-pane { display: flex; flex-direction: column; gap: 12px; }
+.control-pane { background: var(--panel); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px; overflow: auto; position: relative; }
+.pane-header { display: flex; justify-content: space-between; align-items: center; }
+.pane-header h2 { margin: 0; font-size: 1em; color: var(--accent); }
+.pane-header button { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--text); border-radius: 6px; padding: 4px 8px; cursor: pointer; }
+
+.controls .group { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; margin-top: 10px; }
+.controls h3 { margin: 0 0 8px 0; font-size: 0.9em; color: var(--accent-2); }
+.controls label { display: block; font-size: 0.8em; margin-bottom: 8px; color: var(--text); }
+.controls input[type="range"], .controls select { width: 100%; }
+.row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.row { display: flex; align-items: center; gap: 8px; }
+
+.text-stage { position: relative; background: #000; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); padding: 16px; height: 60vh; overflow: hidden; }
+.text-wrap { font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 40px; line-height: 1.3; color: rgba(255,255,255,0.78); white-space: pre-wrap; word-break: break-word; }
+.text-char { display: inline-block; position: relative; }
+.entity-overlay { position: absolute; inset: 0; pointer-events: none; }
+.entity-dot { position: absolute; font-family: ui-monospace, monospace; will-change: transform, opacity; }
+.entity-dot.trail { opacity: 0.45; }
+
+.progress-row { display: grid; grid-template-columns: 80px 1fr auto; align-items: center; gap: 8px; background: var(--panel); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; }
+.progress-label { font-size: 0.8em; color: var(--muted); }
+.progress-value { font-size: 0.8em; color: var(--muted); min-width: 48px; text-align: right; }
+
+.xy-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.xy-pad { position: relative; height: 140px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; }
+.xy-thumb { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); transform: translate(-50%, -50%); left: 50%; top: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+.xy-caption { font-size: 0.75em; color: var(--muted); text-align: center; }
+
+.page-footer { padding: 8px 16px; text-align: center; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .entity-dot { transition: none !important; animation: none !important; }
+}
+
+
+

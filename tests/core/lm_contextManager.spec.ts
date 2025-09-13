@@ -123,4 +123,88 @@ describe('LM Context Manager', () => {
     // Contextual (words present in wide context) → accept
     expect(mgr.validateProposal('brown fox', 'brwon fx')).toBe(true);
   });
+
+  describe('caret-safe context updates', () => {
+    it('updates context when caret moves behind previous position', async () => {
+      const text = 'Hello world. This is a test sentence.';
+      const mgr = createLMContextManager();
+      
+      // Initialize at end
+      await mgr.initialize(text, text.length);
+      const initialContext = mgr.getContextWindow();
+      
+      // Move caret back
+      await mgr.updateWideContext(text, 15); // After "Hello world."
+      const updatedContext = mgr.getContextWindow();
+      
+      // Context should be updated for new position
+      expect(updatedContext.wide.text).not.toBe(initialContext.wide.text);
+    });
+
+    it('handles empty text gracefully', async () => {
+      const mgr = createLMContextManager();
+      await mgr.initialize('', 0);
+      
+      const context = mgr.getContextWindow();
+      expect(context.wide.text).toBe('');
+      expect(context.close.text).toBe('');
+      expect(context.wide.tokenCount).toBe(0);
+    });
+
+    it('handles single character text', async () => {
+      const mgr = createLMContextManager();
+      await mgr.initialize('a', 1);
+      
+      const context = mgr.getContextWindow();
+      expect(context.wide.text).toBe('a');
+      expect(context.close.text).toBe('a');
+      expect(context.wide.tokenCount).toBeGreaterThan(0);
+    });
+
+    it('handles text without sentence boundaries', async () => {
+      const text = 'just some words without punctuation';
+      const mgr = createLMContextManager();
+      await mgr.initialize(text, text.length);
+      
+      const context = mgr.getContextWindow();
+      // Should fall back to character-based windowing
+      expect(context.close.text).toBeTruthy();
+      expect(context.wide.text).toBe(text);
+    });
+  });
+
+  describe('validation edge cases', () => {
+    it('handles malformed proposals', async () => {
+      const mgr = createLMContextManager();
+      await mgr.initialize('Test text', 9);
+      
+      // Empty strings
+      expect(mgr.validateProposal('', 'original')).toBe(false);
+      expect(mgr.validateProposal('proposal', '')).toBe(false);
+      
+      // Null/undefined (should not crash)
+      expect(mgr.validateProposal(null as any, 'original')).toBe(false);
+      expect(mgr.validateProposal('proposal', null as any)).toBe(false);
+    });
+
+    it('validates proposals with special characters', async () => {
+      const text = 'Hello! @user #hashtag $money & more...';
+      const mgr = createLMContextManager();
+      await mgr.initialize(text, text.length);
+      
+      // Should handle special characters in context
+      expect(mgr.validateProposal('@user', '@usr')).toBe(true);
+      expect(mgr.validateProposal('#hashtag', '#hastag')).toBe(true);
+    });
+
+    it('validates proposals with Unicode text', async () => {
+      const text = 'Héllo wørld café naïve résumé';
+      const mgr = createLMContextManager();
+      await mgr.initialize(text, text.length);
+      
+      // Should handle Unicode correctly
+      expect(mgr.validateProposal('café', 'cafe')).toBe(true);
+      expect(mgr.validateProposal('naïve', 'naive')).toBe(true);
+    });
+  });
 });

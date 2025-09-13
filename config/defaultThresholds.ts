@@ -15,7 +15,7 @@
   • HOW  ▸ Generated via scripts/doc2code.cjs
 */
 
-export const SHORT_PAUSE_MS = 300;
+export const SHORT_PAUSE_MS = 600; // Increased for demo responsiveness
 export const LONG_PAUSE_MS = 2000;
 export const MAX_SWEEP_WINDOW = 80;
 
@@ -34,12 +34,12 @@ type ConfidenceThresholds = {
 };
 
 let CONFIDENCE_THRESHOLDS_MUT: ConfidenceThresholds = {
-  // τ_input: minimum input fidelity to attempt Context stage
-  τ_input: 0.65,
-  // τ_commit: minimum combined score to apply any proposal
-  τ_commit: 0.9,
+  // τ_input: minimum input fidelity to attempt Context stage (lowered for demo)
+  τ_input: 0.55,
+  // τ_commit: minimum combined score to apply any proposal (lowered for demo)
+  τ_commit: 0.80,
   // τ_tone: tone proposals must also meet this
-  τ_tone: 0.85,
+  τ_tone: 0.75,
   // τ_discard: below this, proposals are dropped
   τ_discard: 0.3,
 };

@@ -167,7 +167,7 @@ export function createSweepScheduler(
           lastEvent.text.slice(0, noise.diff.start) +
           noise.diff.text +
           lastEvent.text.slice(noise.diff.end);
-        (globalThis as any).__mtStagePreview = { noise: preview };
+        (globalThis as unknown as { __mtStagePreview?: unknown }).__mtStagePreview = { noise: preview } as unknown;
       } catch {}
     }
     backfillConsistency({ text: lastEvent.text, caret: lastEvent.caret });
@@ -183,7 +183,7 @@ export function createSweepScheduler(
           { text: st.text, caret: st.caret },
           lmAdapter ?? undefined,
           // Get context manager from global if available
-          (globalThis as any).__mtContextManager,
+          (globalThis as unknown as { __mtContextManager?: import('./lm/contextManager').LMContextManager }).__mtContextManager,
         );
         let contextPreview = st.text;
         for (const p of ctx.proposals) {
@@ -215,8 +215,8 @@ export function createSweepScheduler(
           // Defer actual application until conflicts are resolved below
         }
         try {
-          (globalThis as any).__mtStagePreview = {
-            ...(globalThis as any).__mtStagePreview,
+          (globalThis as unknown as { __mtStagePreview?: { buffer?: string; context?: string } }).__mtStagePreview = {
+            ...((globalThis as unknown as { __mtStagePreview?: { buffer?: string; context?: string } }).__mtStagePreview || {}),
             buffer: st.text.slice(Math.max(0, st.caret - 48), st.caret),
             context: contextPreview,
           };
@@ -231,8 +231,7 @@ export function createSweepScheduler(
           const updated = diffusion.getState();
           const baseline = detectBaseline(updated.text);
           // Device-tier scope: CPU:10, WebGPU/WASM:20
-          const w: unknown = (globalThis as unknown as { navigator?: { gpu?: unknown } })
-            ?.navigator;
+          const w: unknown = (globalThis as unknown as { navigator?: { gpu?: unknown } }).navigator;
           const hasWebGPU = Boolean((w as { gpu?: unknown })?.gpu);
           const hasWASM = typeof WebAssembly !== 'undefined';
           const scopeN = hasWebGPU || hasWASM ? 20 : 10;
@@ -279,8 +278,8 @@ export function createSweepScheduler(
             } catch {}
           }
           try {
-            (globalThis as any).__mtStagePreview = {
-              ...(globalThis as any).__mtStagePreview,
+            (globalThis as unknown as { __mtStagePreview?: { tone?: string } }).__mtStagePreview = {
+              ...((globalThis as unknown as { __mtStagePreview?: { tone?: string } }).__mtStagePreview || {}),
               tone: tonePreview,
             };
           } catch {}
@@ -291,8 +290,8 @@ export function createSweepScheduler(
     } finally {
       try {
         const st2 = diffusion.getState();
-        (globalThis as any).__mtStagePreview = {
-          ...(globalThis as any).__mtStagePreview,
+        (globalThis as unknown as { __mtStagePreview?: { buffer?: string } }).__mtStagePreview = {
+          ...((globalThis as unknown as { __mtStagePreview?: { buffer?: string } }).__mtStagePreview || {}),
           buffer: st2.text.slice(Math.max(0, st2.caret - 48), st2.caret),
         };
       } catch {}

@@ -6,6 +6,7 @@
   ║  HOW  ▸ Message API: init/generate/abort/status      ║
   ╚══════════════════════════════════════════════════════╝ */
 import type { LMAdapter, LMCapabilities, LMInitOptions, LMStreamParams } from './types';
+import { diagBus } from '../diagnosticsBus';
 
 type WorkerMessage =
   | { type: 'ready' }
@@ -69,6 +70,20 @@ export function createWorkerLMAdapter(makeWorker: () => Worker): LMAdapter {
         caret: params.caret,
         timestamp: new Date().toISOString(),
       });
+      try {
+        diagBus.publish({
+          channel: 'lm-wire',
+          time: Date.now(),
+          phase: 'stream_init',
+          requestId,
+          detail: {
+            bandStart: params.band?.start,
+            bandEnd: params.band?.end,
+            textLength: params.text?.length || 0,
+            caret: params.caret,
+          },
+        });
+      } catch {}
       const chunks: string[] = [];
       let resolver: (() => void) | null = null;
       let closed = false;
@@ -106,6 +121,15 @@ export function createWorkerLMAdapter(makeWorker: () => Worker): LMAdapter {
           matchesRequest: rid === requestId,
           aborted,
         });
+        try {
+          diagBus.publish({
+            channel: 'lm-wire',
+            time: Date.now(),
+            phase: 'msg_recv',
+            requestId,
+            detail: { type: (msg as any).type, messageRequestId: rid, matches: rid === requestId, aborted },
+          });
+        } catch {}
         if (msg.type === 'chunk' && rid === requestId) {
           if (!aborted) {
             console.log(`[WorkerAdapter] CHUNK_RECV ${requestId}`, {
@@ -113,6 +137,15 @@ export function createWorkerLMAdapter(makeWorker: () => Worker): LMAdapter {
               chunkPreview: msg.text.slice(0, 20),
               totalChunksQueued: chunks.length + 1,
             });
+            try {
+              diagBus.publish({
+                channel: 'lm-wire',
+                time: Date.now(),
+                phase: 'chunk_recv',
+                requestId,
+                detail: { chunkLength: msg.text.length },
+              });
+            } catch {}
             push(msg.text);
           } else {
             console.log(`[WorkerAdapter] CHUNK_IGNORED ${requestId}`, {
@@ -124,6 +157,15 @@ export function createWorkerLMAdapter(makeWorker: () => Worker): LMAdapter {
             totalChunksProcessed: chunks.length,
             aborted,
           });
+          try {
+            diagBus.publish({
+              channel: 'lm-wire',
+              time: Date.now(),
+              phase: 'stream_done',
+              requestId,
+              detail: { totalChunksProcessed: chunks.length, aborted },
+            });
+          } catch {}
           close();
         } else if (msg.type === 'error' && (!rid || rid === requestId)) {
           console.error(`[WorkerAdapter] STREAM_ERROR ${requestId}`, {
@@ -132,6 +174,15 @@ export function createWorkerLMAdapter(makeWorker: () => Worker): LMAdapter {
             aborted,
           });
           // Surface error to UI by throwing
+          try {
+            diagBus.publish({
+              channel: 'lm-wire',
+              time: Date.now(),
+              phase: 'stream_error',
+              requestId,
+              detail: { error: msg.message, chunksReceived: chunks.length, aborted },
+            });
+          } catch {}
           throw new Error(`LM Worker Error: ${msg.message}`);
         }
       };
@@ -145,6 +196,15 @@ export function createWorkerLMAdapter(makeWorker: () => Worker): LMAdapter {
           chunksReceived: chunks.length,
           aborted,
         });
+        try {
+          diagBus.publish({
+            channel: 'lm-wire',
+            time: Date.now(),
+            phase: 'stream_error',
+            requestId,
+            detail: { timeoutMs, chunksReceived: chunks.length, aborted },
+          });
+        } catch {}
         close();
         throw new Error(`LM Worker timeout after ${timeoutMs}ms`);
       }, timeoutMs);
@@ -157,6 +217,15 @@ export function createWorkerLMAdapter(makeWorker: () => Worker): LMAdapter {
           hasSettings: !!params.settings,
         });
         w.postMessage({ type: 'generate', requestId, params });
+        try {
+          diagBus.publish({
+            channel: 'lm-wire',
+            time: Date.now(),
+            phase: 'msg_send',
+            requestId,
+            detail: { bandStart: params.band?.start, bandEnd: params.band?.end, hasSettings: !!params.settings },
+          });
+        } catch {}
 
         let yieldedChunks = 0;
         while (!closed || chunks.length) {
@@ -168,6 +237,15 @@ export function createWorkerLMAdapter(makeWorker: () => Worker): LMAdapter {
               chunkLength: chunk.length,
               remainingQueued: chunks.length,
             });
+            try {
+              diagBus.publish({
+                channel: 'lm-wire',
+                time: Date.now(),
+                phase: 'chunk_yield',
+                requestId,
+                detail: { chunkIndex: yieldedChunks, chunkLength: chunk.length, remainingQueued: chunks.length },
+              });
+            } catch {}
             yield chunk;
           } else {
             await wait();
@@ -178,6 +256,15 @@ export function createWorkerLMAdapter(makeWorker: () => Worker): LMAdapter {
           totalYielded: yieldedChunks,
           aborted,
         });
+        try {
+          diagBus.publish({
+            channel: 'lm-wire',
+            time: Date.now(),
+            phase: 'stream_done',
+            requestId,
+            detail: { totalYielded: yieldedChunks, aborted },
+          });
+        } catch {}
       } finally {
         clearTimeout(timeoutId);
         w.removeEventListener('message', onMessage);

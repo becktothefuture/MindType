@@ -19,7 +19,7 @@ describe('LM Full Flow Integration', () => {
     // Mock worker that returns corrections
     const mockWorker = {
       postMessage: vi.fn(),
-      addEventListener: vi.fn((event: string, handler: Function) => {
+      addEventListener: vi.fn((event: string, handler: (e: MessageEvent) => void) => {
         if (event === 'message') {
           // Simulate async worker response
           setTimeout(() => {
@@ -92,7 +92,7 @@ describe('LM Full Flow Integration', () => {
     // Test low-confidence scenario (no actual change)
     const mockWorker = {
       postMessage: vi.fn(),
-      addEventListener: vi.fn((event: string, handler: Function) => {
+      addEventListener: vi.fn((event: string, handler: (e: MessageEvent) => void) => {
         if (event === 'message') {
           setTimeout(() => {
             // Return same text (no correction)
