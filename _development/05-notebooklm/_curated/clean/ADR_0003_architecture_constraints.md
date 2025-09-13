@@ -34,5 +34,5 @@ Verification
 
 Links
 
-- PRD: `docs/PRD.md` → Goals (MUST/WON'T), Constraints
+- PRD: `docs/01-prd/01-PRD.md` → Goals (MUST/WON'T), Constraints
 - Related: `docs/adr/0002-caret-safe-diff.md`

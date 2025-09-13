@@ -56,7 +56,7 @@ Task checklist template (copy into PR description):
 - [ ] Typecheck, lint, format:check green
 - [ ] Coverage thresholds satisfied
 - [ ] Accessibility/performance checks (if applicable)
-- [ ] `docs/implementation.md` + PRD traceability updated
+- [ ] `docs/02-implementation/02-Implementation.md` + PRD traceability updated
 
 ## Stage 1 — Foundation & Setup ✅
 
@@ -512,7 +512,7 @@ Task checklist template (copy into PR description):
 ### LM Testing Lab (Two‑Pass Stream: Context → Tone) — New
 
 - [ ] (P1) [LM‑LAB‑SPEC] Author JSONL stream SPEC and examples  
-       **AC:** SPEC doc `docs/guide/reference/lm-stream.md` with event types (`meta`, `rules`, `stage`, `diff`, `commit`, `log`, `done`), transcript examples, invariants; `doc:check` passes.
+       **AC:** SPEC doc `docs/06-guides/06-03-reference/lm-stream.md` with event types (`meta`, `rules`, `stage`, `diff`, `commit`, `log`, `done`), transcript examples, invariants; `doc:check` passes.
       **Owner:** @alex  
        **DependsOn:** FT-231A, FT-232  
        **Source:** CONTRACT-LM-STREAM
@@ -691,12 +691,12 @@ Task checklist template (copy into PR description):
 ## Documentation To‑Do (created/updated in this PR)
 
 - [x] `docs/ADHD-docs.md` — approachable deep dive; links across system
-- [x] `docs/guide/reference/band-policy.md` — ActiveRegionPolicy design & API
-- [x] `docs/guide/reference/injector.md` — Injector contract + hosts
-- [x] `docs/guide/reference/lm-worker.md` — Worker protocol & memory guard
-- [x] `docs/guide/reference/rust-merge.md` — Caret‑safe merge in Rust/FFI
-- [ ] `docs/guide/reference/active-region-design.md` — Visual design, tokens, reduced‑motion variants
-- [ ] `docs/guide/how-to/mac-ux.md` — macOS UX flows (onboarding, prefs, overlays)
+- [x] `docs/06-guides/06-03-reference/band-policy.md` — ActiveRegionPolicy design & API
+- [x] `docs/06-guides/06-03-reference/injector.md` — Injector contract + hosts
+- [x] `docs/06-guides/06-03-reference/lm-worker.md` — Worker protocol & memory guard
+- [x] `docs/06-guides/06-03-reference/rust-merge.md` — Caret‑safe merge in Rust/FFI
+- [ ] `docs/06-guides/06-03-reference/active-region-design.md` — Visual design, tokens, reduced‑motion variants
+- [ ] `docs/06-guides/06-02-how-to/mac-ux.md` — macOS UX flows (onboarding, prefs, overlays)
 
 All docs follow house comment header style; stubs will be filled as tasks land.
 
@@ -859,9 +859,9 @@ All docs follow house comment header style; stubs will be filled as tasks land.
 
 ## Doc2Code Rollout Tasks (live)
 
-- [ ] Add SPEC blocks for core REQs in `docs/PRD.md`
-- [ ] Add CONTRACT for LMAdapter in `docs/guide/reference/lm-behavior.md`
-- [x] Add CONTRACT for Active Region in `docs/guide/reference/active-region-design.md`
+- [ ] Add SPEC blocks for core REQs in `docs/01-prd/01-PRD.md`
+- [ ] Add CONTRACT for LMAdapter in `docs/06-guides/06-03-reference/lm-behavior.md`
+- [x] Add CONTRACT for Active Region in `docs/06-guides/06-03-reference/active-region-design.md`
 - [x] Add doc2code CLI and package scripts
 - [x] Add Cursor authoring rule `.cursor/rules/doc2code.mdc`
 - [ ] Update headers by running `pnpm doc:sync`
@@ -1087,7 +1087,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   acceptance:
     - Prompt template refined to allow minimal grammatical fixes incl. tense/word-choice
     - Evaluation on datasets/fuzzy_text_en.jsonl shows measurable lift
-  output: core/lm/policy.ts, docs/guide/reference/lm.md (prompt)
+  output: core/lm/policy.ts, docs/06-guides/06-03-reference/lm.md (prompt)
 
 - id: MODEL-002
   title: Expand dataset categories for real-world noise
@@ -1095,7 +1095,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   dependsOn: []
   acceptance:
     - Add ≥6 new categories (OCR ligatures, confusables, locale numbers, units/currency, URL/email spacing, quotes/parentheses)
-  output: datasets/fuzzy_text_en.jsonl, docs/guide/how-to/fuzzy-text-dataset.md
+  output: datasets/fuzzy_text_en.jsonl, docs/06-guides/06-02-how-to/fuzzy-text-dataset.md
 
 - id: CONTEXT-APPLY-001
   title: Apply LM in Context for live typing (not only Lab)
@@ -1145,7 +1145,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   dependsOn: [OBS-LOG-001]
   acceptance:
     - Run 6 example inputs in Lab + main demo; logs show LM start→chunks→merge with nonzero counters
-  output: Console captures in docs/guide/reference/workbench.md (appendix)
+  output: Console captures in docs/06-guides/06-03-reference/workbench.md (appendix)
 
 - id: DIAG-002
   title: Wire LM path until counters show LM runs > 0 consistently
@@ -1162,7 +1162,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   acceptance:
     - Typing example "this sjummer i berbng to the beacj" improves materially behind caret
     - All gates green; docs updated with before/after; workbench metrics captured
-  output: web-demo (verified), docs/guide/reference/workbench.md (demo notes)
+  output: web-demo (verified), docs/06-guides/06-03-reference/workbench.md (demo notes)
 ```
 
 ## Stage 7 — v0.4 Polish & Optimization (P2)

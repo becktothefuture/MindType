@@ -107,7 +107,7 @@ Task checklist template (copy into PR description):
 - [ ] Typecheck, lint, format:check green
 - [ ] Coverage thresholds satisfied
 - [ ] Accessibility/performance checks (if applicable)
-- [ ] `docs/implementation.md` + PRD traceability updated
+- [ ] `docs/02-implementation/02-Implementation.md` + PRD traceability updated
 
 ## Stage 1 — Foundation & Setup ✅
 
@@ -918,7 +918,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
 
 ## Doc2Code Rollout Tasks (live)
 
-- [ ] Add SPEC blocks for core REQs in `docs/PRD.md`
+- [ ] Add SPEC blocks for core REQs in `docs/01-prd/01-PRD.md`
 - [ ] Add CONTRACT for LMAdapter in `docs/.././06-guides/reference/lm-behavior.md`
 - [x] Add CONTRACT for Active Region in `docs/.././06-guides/reference/active-region-design.md`
 - [x] Add doc2code CLI and package scripts

@@ -3,7 +3,7 @@
 ## PROJECT CONTEXT
 
 - **Repo**: `/Users/alexanderbeck/Coding Folder /MindType`
-- **Source of Truth**: `docs/implementation.md` (ordered checklist of 1500+ tasks)
+- **Source of Truth**: `docs/02-implementation/02-Implementation.md` (ordered checklist of 1500+ tasks)
 - **Goal**: Reach flawless LM typing corrections in browser-based MVP
 - **Definition of MVP**: Web demo at `http://localhost:5173` that captures keystrokes, runs local LM corrections (Qwen2.5-0.5B-Instruct), shows live corrected text with per-keystroke latency, retains caret position, and passes all E2E tests
 
@@ -18,7 +18,7 @@
 
 ## LOOP CONTROLLER
 
-You will iterate over `docs/implementation.md` top-to-bottom:
+You will iterate over `docs/02-implementation/02-Implementation.md` top-to-bottom:
 
 1. **READ** the next unchecked task from implementation.md
 2. **CREATE TODO** using our Todo2 workflow (assess complexity, create appropriate task count)
@@ -111,7 +111,7 @@ Based on our analysis, focus on these high-priority items:
 
 ## START
 
-1. **Parse** `docs/implementation.md` and identify next unchecked task
+1. **Parse** `docs/02-implementation/02-Implementation.md` and identify next unchecked task
 2. **Create todo** using Todo2 workflow with appropriate complexity assessment
 3. **Research** local codebase + internet for current best practices
 4. **Plan** minimal step to advance MVP

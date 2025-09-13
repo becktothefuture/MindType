@@ -15,7 +15,7 @@
   • HOW  ▸ See linked contracts and guides in docs
 */
 
-:root {
+::root {
   --bg: #000;
   --fg: #fff;
   --active: #ff2daa;
@@ -420,3 +420,5 @@ p[data-mt] {
     cursor: pointer;
   }
 }
+
+

@@ -44,7 +44,7 @@
 
 1. Typecheck → 2) Lint → 3) Format:check → 4) Unit+Integration tests (coverage) → 5) Coverage guard → 6) E2E/A11y smoke (non-blocking; report only)
 
-Keep this file short and link to detailed specs in `docs/implementation.md` and `docs/PRD.md`.
+Keep this file short and link to detailed specs in `docs/02-implementation/02-Implementation.md` and `docs/01-prd/01-PRD.md`.
 
 ### Cross‑links
 

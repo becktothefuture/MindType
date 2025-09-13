@@ -21,6 +21,6 @@
 
 See also:
 
-- docs/guide/reference/three-stage-pipeline.md
-- docs/guide/reference/confidence-system.md
-- docs/guide/how-to/web-demo-details.md
+- docs/06-guides/06-03-reference/three-stage-pipeline.md
+- docs/06-guides/06-03-reference/confidence-system.md
+- docs/06-guides/06-02-how-to/web-demo-details.md

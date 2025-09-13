@@ -75,11 +75,9 @@ describe('Sweep Timing Behavior', () => {
       // Should not have triggered sweep yet
       expect(mockLMAdapter.stream).not.toHaveBeenCalled();
 
-      // Fast-forward past SHORT_PAUSE_MS
+      // Fast-forward past SHORT_PAUSE_MS and flush only pending timers to avoid loops
       vi.advanceTimersByTime(100);
-      
-      // Allow async operations to complete
-      await vi.runAllTimersAsync();
+      await vi.runOnlyPendingTimersAsync();
 
       // Should have triggered sweep
       // Note: This is a simplified test - actual behavior depends on
@@ -161,8 +159,9 @@ describe('Sweep Timing Behavior', () => {
       // Should not have triggered sweep during rapid typing
       expect(mockLMAdapter.stream).not.toHaveBeenCalled();
 
-      // Fast-forward past SHORT_PAUSE_MS from last event
+      // Fast-forward past SHORT_PAUSE_MS from last event and flush pending timers
       vi.advanceTimersByTime(SHORT_PAUSE_MS);
+      vi.runOnlyPendingTimers();
 
       // Now should be ready to process
     });

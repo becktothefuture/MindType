@@ -12,7 +12,7 @@
 
 // Demo text with deliberate noise
 const DEMO_TEXT = (
-  "heya have you heard there was a n icre cream truck outside that';s kinda cool right\"\n" +
+  "heya have you heard there was a n icre cream truck outside that';s kinda cool right"\n" +
   "it parked near the corner and people were like, is it open?\n" +
   "some folks said the flavour list was wildddd and the prices were okish"
 );

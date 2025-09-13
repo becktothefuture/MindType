@@ -78,26 +78,34 @@ export interface Thresholds {
 }
 
 export function applyThresholds(
-  score: ConfidenceScore,
+  score: ConfidenceScore | number,
   thresholds: Thresholds = getConfidenceThresholds(),
   opts?: { requireTone?: boolean },
 ): GateDecision {
+  const combined = typeof score === 'number' ? score : score.combined;
+  const inputFidelity = typeof score === 'number' ? thresholds.τ_input : score.inputFidelity;
+  const transformationQuality =
+    typeof score === 'number' ? undefined : score.transformationQuality;
+  // If very low combined, discard early regardless of input fidelity
+  if (combined < thresholds.τ_discard) return 'discard';
   // If the raw input isn't good enough, hold (don’t proceed to deeper stages)
-  if (score.inputFidelity < thresholds.τ_input) return 'hold';
-  // If very low combined, discard
-  if (score.combined < thresholds.τ_discard) return 'discard';
+  if (inputFidelity < thresholds.τ_input) return 'hold';
   // If tone is required for this decision, enforce both tone and commit bars
   if (opts?.requireTone) {
+    if (typeof score === 'number') {
+      // Without per-component details, require combined to meet commit
+      return combined >= thresholds.τ_commit ? 'commit' : 'hold';
+    }
     if (
-      score.combined >= thresholds.τ_commit &&
-      score.transformationQuality >= thresholds.τ_tone
+      combined >= thresholds.τ_commit &&
+      (transformationQuality ?? 0) >= thresholds.τ_tone
     ) {
       return 'commit';
     }
     return 'hold';
   }
   // Otherwise, commit only on combined meeting commit threshold
-  if (score.combined >= thresholds.τ_commit) return 'commit';
+  if (combined >= thresholds.τ_commit) return 'commit';
   return 'hold';
 }
 

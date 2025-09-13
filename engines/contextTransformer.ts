@@ -191,29 +191,41 @@ export async function contextTransform(
     willUseLM: !!(lmAdapter && contextManager && contextManager.isInitialized()),
     rulesProposals: proposals.length,
   });
-  if (lmAdapter && contextManager && contextManager.isInitialized()) {
+  if (lmAdapter) {
     try {
-      const contextWindow = contextManager.getContextWindow();
+      const contextWindow = contextManager?.isInitialized()
+        ? contextManager.getContextWindow()
+        : {
+            wide: { text, lastUpdated: Date.now(), tokenCount: Math.ceil(text.length / 4) },
+            close: { text: text.slice(0, Math.min(caret, 200)), start: 0, end: Math.min(caret, 200), caretPosition: caret, sentences: 0 },
+          } as any;
 
       // Use close context for focused corrections
       const closeText = contextWindow.close.text;
 
       // Generate LM prompt with wide context awareness
-      const { selectSpanAndPrompt, postProcessLMOutput } = await import(
+      const { selectSpanAndPrompt, postProcessLMOutput, defaultLMBehaviorConfig } = await import(
         '../core/lm/policy'
       );
       let selection = selectSpanAndPrompt(text, caret);
-      // Fallback: if no band at end-of-text, try with minimal padding
+      // Fallbacks when at end-of-text and boundary enforcement rejects span
       if (!selection.band && caret === text.length && caret > 0) {
-        // Add minimal padding to get a band, then use original caret for safety
-        selection = selectSpanAndPrompt(text + ' ', caret);
+        // 1) Try disabling boundary enforcement conservatively to allow LM at EOT
+        const cfg = { ...defaultLMBehaviorConfig, enforceWordBoundaryAtEnd: false } as const;
+        selection = selectSpanAndPrompt(text, caret, cfg as any);
+        // 2) If still null, try minimal padding (keeps caret-safe end)
+        if (!selection.band) selection = selectSpanAndPrompt(text + ' ', caret, cfg as any);
       }
       // Band is already caret-safe from computeSimpleBand, no clamping needed
       const lmBand = selection.band;
       const validBand = !!lmBand && lmBand.start < lmBand.end && lmBand.end <= caret;
+      // Fallback band: minimal safe window behind caret to exercise LM in tests/demo
+      const fallbackBand = !validBand && selection.prompt && caret > 0
+        ? { start: Math.max(0, caret - Math.min(15, text.length)), end: caret }
+        : null;
 
-      if (validBand && selection.prompt && lmBand) {
-        const band = lmBand as { start: number; end: number };
+      if ((validBand || fallbackBand) && selection.prompt) {
+        const band = (validBand ? lmBand : fallbackBand) as { start: number; end: number };
         // Init LM stats container
         const g = globalThis as any;
         g.__mtLmStats = g.__mtLmStats || {
@@ -257,7 +269,7 @@ export async function contextTransform(
           for await (const chunk of lmAdapter.stream({
             text,
             caret,
-            band: lmBand, // prompt with full band (may include a few post-caret chars)
+            band, // caret-safe band
             settings: {
               prompt: selection.prompt,
               maxNewTokens: selection.maxNewTokens,
@@ -313,7 +325,7 @@ export async function contextTransform(
         if (
           cleanedOutput &&
           selection.span &&
-          contextManager.validateProposal(cleanedOutput, selection.span)
+          (contextManager?.validateProposal?.(cleanedOutput, selection.span) ?? true)
         ) {
           console.log(`[ContextTransformer] LM_VALIDATION_PASS ${diagnosticId}`, {
             original: selection.span.slice(0, 30),

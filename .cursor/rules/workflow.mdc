@@ -5,7 +5,7 @@
 ╚═══════════════════════════════════════════════════════════════════╝
   • WHAT ▸ End-to-end rules for planning, execution, and library use
   • WHY  ▸ Ensure predictable, test-first changes and safe merges
-  • HOW  ▸ Pick tasks from docs/implementation.md, enforce gates, use Context7
+  • HOW  ▸ Pick tasks from docs/02-implementation/02-Implementation.md, enforce gates, use Context7
 -->
 
 ## 0) Preload & Tools
@@ -22,14 +22,14 @@
 ```
 
 ## 1) Task Intake (single source of truth)
-- Read `docs/implementation.md` and pick the **first unchecked task** (top–down) from the highest active Stage.
+- Read `docs/02-implementation/02-Implementation.md` and pick the **first unchecked task** (top–down) from the highest active Stage.
 - If no tasks exist, switch to **PLAN_ONLY** and propose tasks using the schema below.
 
 ## 2) Modes
 
 ### A. PLAN_ONLY (no code edits)
 1) Scan repo and constraints to fulfil the requested outcome.  
-2) **Append tasks** into `docs/implementation.md` under the correct Stage using the **Task Schema**.  
+2) **Append tasks** into `docs/02-implementation/02-Implementation.md` under the correct Stage using the **Task Schema**.  
 3) Keep tasks atomic; each must have **AC** (acceptance criteria).  
 4) Stop and wait for approval.
 
@@ -56,7 +56,7 @@
 - One branch per task; never commit to `main`.  
 - Protected branch checks (typecheck, tests, lint, format) must be required before merge.
 
-## 5) Task Schema (docs/implementation.md)
+## 5) Task Schema (docs/02-implementation/02-Implementation.md)
 - `- [ ] (P1) [FT-123] Title  — path/to/file.ts`  
   **AC:** concrete acceptance criteria (facts, numbers, paths)  
   **Owner:** @alex (optional) • **DependsOn:** FT-122 (optional) • **Source:** Questionnaire #NN / ADR-00X / PRD line

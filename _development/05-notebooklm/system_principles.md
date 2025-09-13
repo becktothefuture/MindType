@@ -292,5 +292,5 @@ principle links to deeper docs that hold the technical details.
 - Core logic enforces safety and orchestration (`core/**`).
 - The web demo renders controls, state, and explainers; it never owns
   LM scheduling or merge policy.
-- All behaviour changes update this file, `docs/guide/reference/lm-behavior.md`, and the
+- All behaviour changes update this file, `docs/06-guides/06-03-reference/lm-behavior.md`, and the
   QA matrix.

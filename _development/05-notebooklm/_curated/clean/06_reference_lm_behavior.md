@@ -19,10 +19,10 @@
 
 ## Overview
 
-- This document is now consolidated into `docs/guide/reference/lm.md`.
+- This document is now consolidated into `docs/06-guides/06-03-reference/lm.md`.
 - Please see that canonical reference for behavior, policy, and worker runtime.
 
-See: `docs/guide/reference/lm.md`
+See: `docs/06-guides/06-03-reference/lm.md`
 
 - We select a small span near the caret, include a limited context window, and send a precise instruction: “Correct ONLY the Span; return just the corrected Span.”
 - We merge only that span back, preserving caret safety.

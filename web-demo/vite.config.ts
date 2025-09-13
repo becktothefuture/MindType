@@ -18,16 +18,39 @@ export default defineConfig({
         const MODELS = join(ASSETS_ROOT, "models");
         const WASM = join(ASSETS_ROOT, "wasm");
         const PUBLIC_DIR = resolve(__dirname, "public");
+        const DEMO_DIR = resolve(__dirname, "..", "demo");
         
         server.middlewares.use((req: any, res: any, next: () => void) => {
           const url = req?.url || "";
           
-          // Serve static demo HTML files directly (bypass SPA routing)
-          if (url.startsWith("/demo/") && (url.endsWith("/") || url.includes(".html"))) {
-            const demoPath = url.endsWith("/") ? url + "index.html" : url;
-            const filePath = join(PUBLIC_DIR, demoPath);
-            if (fs.existsSync(filePath)) {
-              res.setHeader("Content-Type", "text/html; charset=utf-8");
+          // Serve all demo assets from project-root /demo directory (HTML, JS, CSS, etc.)
+          if (typeof url === 'string' && url.startsWith('/demo/')) {
+            const rel = url.slice('/demo/'.length);
+            let filePath = join(DEMO_DIR, rel);
+            // If the path points to a directory (or ends with '/'), serve index.html
+            try {
+              if (url.endsWith('/') || (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory())) {
+                const asIndex = join(DEMO_DIR, rel, 'index.html');
+                if (fs.existsSync(asIndex)) {
+                  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+                  fs.createReadStream(asIndex).pipe(res);
+                  return;
+                }
+              }
+            } catch {}
+
+            if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+              const ext = filePath.split('.').pop() || '';
+              const m: Record<string, string> = {
+                json: 'application/json',
+                wasm: 'application/wasm',
+                onnx: 'application/octet-stream',
+                txt: 'text/plain; charset=utf-8',
+                html: 'text/html; charset=utf-8',
+                css: 'text/css; charset=utf-8',
+                js: 'application/javascript; charset=utf-8',
+              };
+              res.setHeader('Content-Type', m[ext] || 'application/octet-stream');
               fs.createReadStream(filePath).pipe(res);
               return;
             }
@@ -59,7 +82,7 @@ export default defineConfig({
         });
       },
     } as PluginOption,
-    // Public directory serves /demo/* and /_shared/* now; custom mount removed
+    // Public directory still serves SPA assets; /demo/* is mounted from project root demo/
   ],
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
@@ -83,6 +106,11 @@ export default defineConfig({
   // Configure SPA fallback to not interfere with static demo routes
   appType: 'spa',
   publicDir: 'public',
+  resolve: {
+    alias: {
+      '/demo': resolve(__dirname, '..', 'demo'),
+    },
+  },
   worker: {
     format: 'es',
     plugins: [react()],

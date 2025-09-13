@@ -99,10 +99,12 @@ export function createLMContextManager(): LMContextManager {
     const endSegment = segments[endSentence];
     const endIndex = endSegment.index + endSegment.segment.length;
 
+    // Clamp close context strictly behind caret for caret safety
+    const clampedEnd = Math.min(endIndex, caretPosition);
     return {
-      text: text.slice(startIndex, endIndex),
+      text: text.slice(startIndex, clampedEnd),
       start: startIndex,
-      end: endIndex,
+      end: clampedEnd,
       sentences: endSentence - startSentence + 1,
     };
   }
@@ -166,10 +168,20 @@ export function createLMContextManager(): LMContextManager {
         contextLength: closeContext.text.length,
       });
 
-      contextWindow.close = {
-        ...closeContext,
-        caretPosition,
-      };
+      // Preserve last updated close context if new extraction is identical;
+      // otherwise update to reflect caret move.
+      if (
+        contextWindow.close.start !== closeContext.start ||
+        contextWindow.close.end !== closeContext.end ||
+        contextWindow.close.text !== closeContext.text
+      ) {
+        contextWindow.close = {
+          ...closeContext,
+          caretPosition,
+        };
+      } else {
+        contextWindow.close.caretPosition = caretPosition;
+      }
     },
 
     getContextWindow(): LMContextWindow {
@@ -181,6 +193,8 @@ export function createLMContextManager(): LMContextManager {
 
     validateProposal(proposal: string, originalSpan: string): boolean {
       if (!contextWindow) return false;
+      if (typeof proposal !== 'string' || typeof originalSpan !== 'string') return false;
+      if (proposal.length === 0 || originalSpan.length === 0) return false;
 
       // Basic validation: proposal should be different from original
       if (proposal.trim() === originalSpan.trim()) {

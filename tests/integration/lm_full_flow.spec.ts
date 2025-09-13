@@ -65,8 +65,8 @@ describe('LM Full Flow Integration', () => {
     // Simulate typing with fuzzy text
     pipeline.ingest('Hello teh world', 15);
 
-    // Wait for sweep to run
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    // Wait for sweep to run (SHORT_PAUSE_MS=600, tierDelay may be 1.1x) + buffer
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     // Verify worker was called
     expect(mockWorker.postMessage).toHaveBeenCalled();

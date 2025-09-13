@@ -53,7 +53,7 @@ Mind::Type is a quiet, system‑wide typing utility that converts noisy input in
 
 ### References
 
-- C4: docs/architecture/C1-context.md, C2-containers.md, C3-components.md
+- C4: docs/04-architecture/C1-context.md, C2-containers.md, C3-components.md
 - ADRs: docs/adr
 - BDD: docs/qa/acceptance
 - Guides (Diátaxis): docs/guide
@@ -75,7 +75,7 @@ Appendix — Traceability Map (starter)
 | REQ-STREAMED-DIFFUSION   | PRIN-HUMAN-01, PRIN-LOGIC-10 | —        | SCEN-DIFFUSION-001 | core/diffusionController.ts; lm-behavior.md                                              |
 | REQ-VISUAL-SWAP          | PRIN-HUMAN-02, PRIN-HUMAN-03 | —        | SCEN-DIFFUSION-001 | ui/swapRenderer.ts; a11y/wcag-checklist.md                                               |
 | REQ-A11Y-MOTION          | PRIN-HUMAN-03                | —        | SCEN-HILITE-001    | a11y/wcag-checklist.md; ui/motion.ts                                                     |
-| REQ-LOCAL-LM-INTEGRATION | PRIN-SAFETY-05, PRIN-PERF-11 | ADR-0005 | SCEN-LMLOCAL-001   | lm-behavior.md; core/lm/factory.ts; docs/guide/reference/lm-worker.md; crates/core-rs/\* |
+| REQ-LOCAL-LM-INTEGRATION | PRIN-SAFETY-05, PRIN-PERF-11 | ADR-0005 | SCEN-LMLOCAL-001   | lm-behavior.md; core/lm/factory.ts; docs/06-guides/06-03-reference/lm-worker.md; crates/core-rs/\* |
 
 ### Stakeholders
 
@@ -92,7 +92,7 @@ Appendix — Traceability Map (starter)
 
 ### Data Model & Persistence
 
-- See `docs/architecture/data_model.md` for entities, constraints, and persistence approach. No user text is persisted by default; settings only.
+- See `docs/04-architecture/data_model.md` for entities, constraints, and persistence approach. No user text is persisted by default; settings only.
 
 ### Release Criteria (MVP)
 

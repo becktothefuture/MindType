@@ -20,6 +20,7 @@ import {
   getConfidenceThresholds,
   setConfidenceThresholds,
   SHORT_PAUSE_MS,
+  setConfidenceSensitivity,
   type ConfidenceThresholds,
 } from '../../config/defaultThresholds';
 
@@ -29,6 +30,8 @@ describe('Confidence Gating System', () => {
   beforeEach(() => {
     // Save original thresholds
     originalThresholds = { ...getConfidenceThresholds() };
+    // Normalize sensitivity so dynamic thresholds are predictable per test
+    setConfidenceSensitivity(1);
   });
 
   afterEach(() => {
@@ -45,7 +48,7 @@ describe('Confidence Gating System', () => {
         temporalDecay: 1.0,
       };
 
-      const score = computeConfidence(inputs);
+      const score = computeConfidence(inputs).combined;
       expect(score).toBeGreaterThan(0.8);
     });
 
@@ -57,7 +60,7 @@ describe('Confidence Gating System', () => {
         temporalDecay: 0.5,
       };
 
-      const score = computeConfidence(inputs);
+      const score = computeConfidence(inputs).combined;
       expect(score).toBeLessThan(0.5);
     });
 
@@ -69,7 +72,7 @@ describe('Confidence Gating System', () => {
         temporalDecay: 0,
       };
 
-      const score = computeConfidence(inputs);
+      const score = computeConfidence(inputs).combined;
       expect(score).toBeGreaterThanOrEqual(0);
       expect(score).toBeLessThanOrEqual(1);
     });
@@ -79,30 +82,42 @@ describe('Confidence Gating System', () => {
     it('commits proposals above τ_commit threshold', () => {
       // Use demo-tuned thresholds (τ_commit = 0.80)
       setConfidenceThresholds({ τ_commit: 0.80 });
-      
-      const highScore = 0.85;
-      const dynamicThresholds = { commit: 0.80, discard: 0.3 };
-      
+      const highScore = computeConfidence({
+        inputFidelity: 0.9,
+        transformationQuality: 0.95,
+        contextCoherence: 0.9,
+        temporalDecay: 1,
+      });
+      const base = getConfidenceThresholds();
+      const dynamicThresholds = { ...base, τ_commit: 0.80, τ_discard: 0.3 };
       const decision = applyThresholds(highScore, dynamicThresholds);
       expect(decision).toBe('commit');
     });
 
     it('holds proposals below τ_commit threshold', () => {
       setConfidenceThresholds({ τ_commit: 0.80 });
-      
-      const lowScore = 0.75;
-      const dynamicThresholds = { commit: 0.80, discard: 0.3 };
-      
+      const lowScore = computeConfidence({
+        inputFidelity: 0.8,
+        transformationQuality: 0.7,
+        contextCoherence: 0.7,
+        temporalDecay: 0.7,
+      });
+      const base = getConfidenceThresholds();
+      const dynamicThresholds = { ...base, τ_commit: 0.80, τ_discard: 0.3 };
       const decision = applyThresholds(lowScore, dynamicThresholds);
       expect(decision).toBe('hold');
     });
 
     it('discards proposals below τ_discard threshold', () => {
       setConfidenceThresholds({ τ_discard: 0.3 });
-      
-      const veryLowScore = 0.2;
-      const dynamicThresholds = { commit: 0.80, discard: 0.3 };
-      
+      const veryLowScore = computeConfidence({
+        inputFidelity: 0.2,
+        transformationQuality: 0.1,
+        contextCoherence: 0.2,
+        temporalDecay: 0.3,
+      });
+      const base = getConfidenceThresholds();
+      const dynamicThresholds = { ...base, τ_commit: 0.80, τ_discard: 0.3 };
       const decision = applyThresholds(veryLowScore, dynamicThresholds);
       expect(decision).toBe('discard');
     });
@@ -128,7 +143,7 @@ describe('Confidence Gating System', () => {
       const farThresholds = computeDynamicThresholds(farFromCaretEdit);
 
       // Closer edits should have higher thresholds (more conservative)
-      expect(closeThresholds.commit).toBeGreaterThanOrEqual(farThresholds.commit);
+      expect(closeThresholds.τ_commit).toBeGreaterThanOrEqual(farThresholds.τ_commit);
     });
 
     it('differentiates between edit types', () => {
@@ -148,7 +163,7 @@ describe('Confidence Gating System', () => {
       });
 
       // Different edit types should have different threshold adjustments
-      expect(contextThresholds.commit).not.toBe(noiseThresholds.commit);
+      expect(contextThresholds.τ_commit).not.toBe(noiseThresholds.τ_commit);
     });
   });
 
@@ -202,7 +217,7 @@ describe('Confidence Gating System', () => {
         temporalDecay: 1.0,        // Recent edit
       };
 
-      const score = computeConfidence(inputs);
+      const score = computeConfidence(inputs).combined;
       const dynamicThresholds = computeDynamicThresholds({
         caret: 20,
         start: 4,
@@ -226,7 +241,7 @@ describe('Confidence Gating System', () => {
         temporalDecay: 0.7,        // Somewhat stale
       };
 
-      const score = computeConfidence(inputs);
+      const score = computeConfidence(inputs).combined;
       const dynamicThresholds = computeDynamicThresholds({
         caret: 50,
         start: 45,

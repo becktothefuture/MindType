@@ -162,7 +162,7 @@ MindType/
   - `docs/developer_tasks.md`: Task conventions.
   - `docs/02-implementation/02-Implementation.md`: Live task board (used by workflow).
   - `docs/mac_app_details.md`: macOS app build notes.
-  - `docs/project_structure.md`: High-level structure summary.
+  - `docs/14-project-structure/14-project_structure.md`: High-level structure summary.
   - `docs/web_demo_details.md`, `docs/web_demo_server.md`: Web demo explainer.
 - Questionnaire (product/UX/tech/security): `docs/questionnaire/*.md`
 

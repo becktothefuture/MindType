@@ -26,4 +26,4 @@ Consequences:
 - Workerized LM path retained, but controlled by core
 - Tests and QA updated to validate rollback and caret-entry guards
 
-See also: `docs/guide/reference/lm-worker.md`, `docs/implementation.md`, `crates/core-rs/src/*`.
+See also: `docs/06-guides/06-03-reference/lm-worker.md`, `docs/02-implementation/02-Implementation.md`, `crates/core-rs/src/*`.

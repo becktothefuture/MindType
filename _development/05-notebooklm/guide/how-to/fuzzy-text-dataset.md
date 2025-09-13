@@ -18,7 +18,7 @@
 
 ### Overview
 
-This document defines the English fuzzy‑text dataset used to fine‑tune Qwen for Mind::Type, aligned with `docs/guide/how-to/fine-tune-qwen.md`.
+This document defines the English fuzzy‑text dataset used to fine‑tune Qwen for Mind::Type, aligned with `docs/06-guides/06-02-how-to/fine-tune-qwen.md`.
 
 - Span‑bounded: the model must return only the corrected Span.
 - Short contexts: keep `ctx_before` and `ctx_after` ≤ 60 chars each.
@@ -76,7 +76,7 @@ From `core/lm/policy.ts`, the instruction requires Span‑only output, no quotat
 
 ### Using This Dataset with the Fine‑Tune Guide
 
-Follow `docs/guide/how-to/fine-tune-qwen.md`. Minimal steps (copy/paste):
+Follow `docs/06-guides/06-02-how-to/fine-tune-qwen.md`. Minimal steps (copy/paste):
 
 ```python
 from datasets import load_dataset, DatasetDict

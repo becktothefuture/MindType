@@ -21,16 +21,16 @@
 - **Core idea**: While you type, we clean up text behind your cursor, safely. No cloud. No clunky UI.
 - **How**: A shared brain (Rust) + thin shells (web/macOS). We stream small, caret‑safe fixes inside an “active region”.
 - **Why**: Keep your flow. Low friction, low latency, local privacy.
-- More detail: see `docs/PRD.md` and `docs/architecture/README.md`.
+- More detail: see `docs/01-prd/01-PRD.md` and `docs/04-architecture/README.md`.
 
 ## The Mental Model (fast map)
 
 - **Keystrokes → Events**: `TypingMonitor` emits `{ text, caret, atMs }`. See `core/typingMonitor.ts`.
 - **Scheduler**: `SweepScheduler` paces streaming ticks (~60–90 ms) and catch‑up after ~500 ms idle. See `core/sweepScheduler.ts`.
-- **Diffusion**: `DiffusionController` moves a frontier toward the caret, validating word‑by‑word in a trailing band (3–8 words). See `core/diffusionController.ts` and `docs/guide/reference/band-policy.md`.
-- **Engines**: Rules (`engines/noiseTransformer.ts`) and LM stream. Rules fix structure (typos, spaces). LM fixes semantics via the Context transformer (`engines/contextTransformer.ts`) with dual-context windows; Tone transformer (`engines/toneTransformer.ts`) is in progress. See `docs/guide/reference/lm.md`.
-- **Merge**: Apply tiny diffs, never at/after the caret; Unicode‑safe. TS: `utils/diff.ts`. Rust: `docs/guide/reference/rust-merge.md` (target).
-- **Host Injection**: Web updates a textarea; macOS uses Accessibility APIs. Contract in `docs/guide/reference/injector.md`.
+- **Diffusion**: `DiffusionController` moves a frontier toward the caret, validating word‑by‑word in a trailing band (3–8 words). See `core/diffusionController.ts` and `docs/06-guides/06-03-reference/band-policy.md`.
+- **Engines**: Rules (`engines/noiseTransformer.ts`) and LM stream. Rules fix structure (typos, spaces). LM fixes semantics via the Context transformer (`engines/contextTransformer.ts`) with dual-context windows; Tone transformer (`engines/toneTransformer.ts`) is in progress. See `docs/06-guides/06-03-reference/lm.md`.
+- **Merge**: Apply tiny diffs, never at/after the caret; Unicode‑safe. TS: `utils/diff.ts`. Rust: `docs/06-guides/06-03-reference/rust-merge.md` (target).
+- **Host Injection**: Web updates a textarea; macOS uses Accessibility APIs. Contract in `docs/06-guides/06-03-reference/injector.md`.
 
 ## Band (the trailing “safe zone”)
 
@@ -38,13 +38,13 @@
 - Size: tunable (defaults 3–8 words), moves as you type. See `config/defaultThresholds.ts`. For LM context, we use sentences: N previous sentences (2–5, default 3), active sentence excluded except prefix to caret.
 - Two uses:
   - **Render range**: What you see as the band.
-  - **Context range**: What the LM reads around the span. See `docs/guide/reference/band-policy.md`.
+  - **Context range**: What the LM reads around the span. See `docs/06-guides/06-03-reference/band-policy.md`.
 
 ## Rules vs LM (who fixes what)
 
 - **Rules**: cheap, instant, deterministic. Good for typos, punctuation, capitalisation. File: `engines/noiseTransformer.ts`.
-- **LM**: semantic upgrades (agreement, clarity) with strict policy: span‑only prompts, short outputs, abort on input. Files: `core/lm/policy.ts`; worker runtime: `web-demo/src/worker/lmWorker.ts`. See `docs/guide/reference/lm.md`.
-- **Priority**: On conflicts, rules win for structure; LM wins for semantics when safe. Details in `docs/guide/reference/lm-behavior.md`.
+- **LM**: semantic upgrades (agreement, clarity) with strict policy: span‑only prompts, short outputs, abort on input. Files: `core/lm/policy.ts`; worker runtime: `web-demo/src/worker/lmWorker.ts`. See `docs/06-guides/06-03-reference/lm.md`.
+- **Priority**: On conflicts, rules win for structure; LM wins for semantics when safe. Details in `docs/06-guides/06-03-reference/lm-behavior.md`.
 
 ## Safety Nets (non‑negotiables)
 
@@ -55,12 +55,12 @@
 
 ## Local‑Only by Default (privacy)
 
-- On device only. Demo runs LM in a Worker and can fetch WASM via CDN when not local‑only; if memory is tight, we fall back to rules. See `docs/guide/reference/lm.md` and `docs/PRD.md`.
+- On device only. Demo runs LM in a Worker and can fetch WASM via CDN when not local‑only; if memory is tight, we fall back to rules. See `docs/06-guides/06-03-reference/lm.md` and `docs/01-prd/01-PRD.md`.
 
 ## macOS vs Web (same brain, different hands)
 
 - Web demo: `web-demo/` renders band and highlights; LM runs in a Worker; merges are driven by the core (UI is thin).
-- macOS: Swift app connects to Rust core via FFI and injects text via AX APIs. See `docs/guide/how-to/mac-app-details.md`.
+- macOS: Swift app connects to Rust core via FFI and injects text via AX APIs. See `docs/06-guides/06-02-how-to/mac-app-details.md`.
 
 ## How a character becomes correct (fast path)
 
@@ -68,33 +68,33 @@
 2. `DiffusionController` advances one word → rules apply a tiny diff (if safe).
 3. After a pause, controller catches up to the caret. If LM is on: it selects a short span, prompts, streams, merges safely.
 4. UI shows a subtle band and highlight. Caret never moves. Undo is one step.  
-   See: `core/sweepScheduler.ts`, `core/diffusionController.ts`, `engines/noiseTransformer.ts`, `docs/guide/reference/lm.md`.
+   See: `core/sweepScheduler.ts`, `core/diffusionController.ts`, `engines/noiseTransformer.ts`, `docs/06-guides/06-03-reference/lm.md`.
 
 ## Deep‑dive links (pick your lane)
 
-- Product constraints: `docs/PRD.md`, `docs/adr/0003-architecture-constraints.md`
-- Architecture: `docs/architecture/README.md`, `docs/architecture/C1-context.md`, `C2-containers.md`, `C3-components.md`
+- Product constraints: `docs/01-prd/01-PRD.md`, `docs/adr/0003-architecture-constraints.md`
+- Architecture: `docs/04-architecture/README.md`, `docs/04-architecture/C1-context.md`, `C2-containers.md`, `C3-components.md`
 - Core engines: `engines/noiseTransformer.ts`, `engines/backfillConsistency.ts`
-- Diffusion & Band: `core/diffusionController.ts`, `docs/guide/reference/band-policy.md`
-- LM reference: `docs/guide/reference/lm.md`, `core/lm/policy.ts`, `crates/core-rs/src/*`
-- Merge safety: `utils/diff.ts`, `docs/guide/reference/rust-merge.md`, ADR‑0002
+- Diffusion & Band: `core/diffusionController.ts`, `docs/06-guides/06-03-reference/band-policy.md`
+- LM reference: `docs/06-guides/06-03-reference/lm.md`, `core/lm/policy.ts`, `crates/core-rs/src/*`
+- Merge safety: `utils/diff.ts`, `docs/06-guides/06-03-reference/rust-merge.md`, ADR‑0002
 - A11y & UI: `ui/highlighter.ts`, `ui/liveRegion.ts`, `ui/motion.ts`, `docs/a11y/wcag-checklist.md`
-- macOS app: `docs/guide/how-to/mac-app-details.md`
+- macOS app: `docs/06-guides/06-02-how-to/mac-app-details.md`
 
 ## FAQ (rapid fire)
 
-- “Can it rewrite whole sentences?” Yes, but we discourage long spans; we prefer tiny, safe diffs that feel instant. See `docs/guide/reference/lm.md`.
+- “Can it rewrite whole sentences?” Yes, but we discourage long spans; we prefer tiny, safe diffs that feel instant. See `docs/06-guides/06-03-reference/lm.md`.
 - “Why not just do it in React?” We keep hot logic outside React to avoid jank; React only displays.
 - “Why a band?” It’s a human‑visible bound and a safety window. It’s also predictable for tests.
 - “What if the LM suggests garbage?” Confidence gating + rollback + rules precedence.
 
 ## Read next (suggested path)
 
-1. `docs/architecture/README.md` (big picture)
-2. `docs/guide/reference/lm.md` (span + worker + merge rules)
-3. `docs/guide/reference/band-policy.md` (render vs context)
-4. `docs/guide/reference/injector.md` (how hosts apply diffs)
-5. `docs/guide/reference/rust-merge.md` (low‑level merge safety)
+1. `docs/04-architecture/README.md` (big picture)
+2. `docs/06-guides/06-03-reference/lm.md` (span + worker + merge rules)
+3. `docs/06-guides/06-03-reference/band-policy.md` (render vs context)
+4. `docs/06-guides/06-03-reference/injector.md` (how hosts apply diffs)
+5. `docs/06-guides/06-03-reference/rust-merge.md` (low‑level merge safety)
 
 ---
 
@@ -115,7 +115,7 @@
 - **Word‑bounded**: never ends mid‑word; optimizes both UX and model prompts.
 - **Size**: 3–8 words defaults hit a sweet spot (signal vs latency). Tunable.
 - **Line‑aware**: render range avoids crossing fresh newlines for stability.
-  See `docs/guide/reference/band-policy.md`.
+  See `docs/06-guides/06-03-reference/band-policy.md`.
 
 ## Caret safety: the core invariant
 
@@ -142,7 +142,7 @@ export function replaceRange(
 - **Unicode safety**: also guards surrogate pairs so we never split emoji or
   compound graphemes.
 - **Rust parity**: `apply_span` will mirror these checks and be the canonical
-  engine for hosts. See `docs/guide/reference/rust-merge.md`.
+  engine for hosts. See `docs/06-guides/06-03-reference/rust-merge.md`.
 
 ## LM policy: tight prompts, small outputs, strict merges
 
@@ -211,7 +211,7 @@ export function emitActiveRegion(_range: { start: number; end: number }) {
 - **AX APIs**: insert text diff where supported.
 - **Clipboard fallback**: copy replacement span + `Cmd‑V` if needed.
 - **Undo**: group LM/rule edits so one `Cmd‑Z` reverts the sweep.
-- See `docs/guide/how-to/mac-app-details.md` and `docs/guide/reference/injector.md`.
+- See `docs/06-guides/06-02-how-to/mac-app-details.md` and `docs/06-guides/06-03-reference/injector.md`.
 
 ## Security & IME (when to do nothing)
 

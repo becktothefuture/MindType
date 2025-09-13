@@ -18,7 +18,7 @@
 - Answers go directly beneath questions, in bold “Answer” blocks.
 - Link each question to its related FT-\* task(s) and doc sections.
 - Treat resolved answers as source-of-truth until superseded.
-- Reference this doc in PRs; copy key decisions to `docs/implementation.md` if they affect scope/AC.
+- Reference this doc in PRs; copy key decisions to `docs/02-implementation/02-Implementation.md` if they affect scope/AC.
 
 ## Template
 

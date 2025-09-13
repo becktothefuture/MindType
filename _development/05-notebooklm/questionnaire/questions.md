@@ -18,7 +18,7 @@
 - Answers go directly beneath questions, in bold “Answer” blocks.
 - Link each question to its related FT-\* task(s) and doc sections.
 - Treat resolved answers as source-of-truth until superseded.
-- Reference this doc in PRs; copy key decisions to `docs/implementation.md` if they affect scope/AC.
+- Reference this doc in PRs; copy key decisions to `docs/02-implementation/02-Implementation.md` if they affect scope/AC.
 
 ## Template
 
@@ -126,7 +126,7 @@ Notes:
 
 ### Q006: Remote model opt-in default and data handling (RESOLVED)
 
-- Related: FT-231, crates/core-rs/src/\*, docs/guide/reference/lm-worker.md
+- Related: FT-231, crates/core-rs/src/\*, docs/06-guides/06-03-reference/lm-worker.md
 - Context: Principles propose "remote off unless opted in". Current runner defaults to allow remote unless `localOnly=true`.
 - Question: Should the default be `localOnly=true` at the host level unless the user explicitly enables remote models for the session? If not, how do we surface opt-in clearly and reversibly?
 

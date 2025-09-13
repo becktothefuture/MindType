@@ -1,10 +1,10 @@
-> Non‑canonical mirror. For latest truth, see `docs/README.md` in the repository.
+> Non‑canonical mirror. For latest truth, see `docs/00-index/00-README.md` in the repository.
 
 ## Folder purposes (mirrored)
 
 - Root (this folder)
   - Top‑level product/plan docs and indices: `PRD.md`, `implementation.md`, `system_principles.md`, `project_structure.md`, `backlog.md`. Start here for the current plan and principles.
-  - Versioning policy: see `docs/versioning.md`. As of v0.4, all canonical PRD/architecture content is consolidated in root docs and `docs/architecture/*`; previous `docs/v0.4/*` files were merged or removed to prevent drift.
+  - Versioning policy: see `docs/15-versioning/15-versioning.md`. As of v0.4, all canonical PRD/architecture content is consolidated in root docs and `docs/architecture/*`; previous `docs/v0.4/*` files were merged or removed to prevent drift.
 
 - `architecture/`
   - System design and C4 views. Use `README.md` for the overview; `C1-context.md`, `C2-containers.md`, `C3-components.md` for deeper levels. ADRs live separately under `adr/`.

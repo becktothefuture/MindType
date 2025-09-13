@@ -48,6 +48,7 @@ export interface SweepScheduler {
   start(): void;
   stop(): void;
   setOptions(opts: Partial<PipelineOptions>): void;
+  onEvent(ev: TypingEvent): void; // exposed for tests and hosts
 }
 
 export interface PipelineOptions {
@@ -325,5 +326,6 @@ export function createSweepScheduler(
       if (typeof next.toneEnabled === 'boolean') opts.toneEnabled = next.toneEnabled;
       if (next.toneTarget) opts.toneTarget = next.toneTarget;
     },
+    onEvent,
   };
 }

@@ -38,4 +38,4 @@
 
 ### Cursor workflow notes
 
-- Keep `docs/implementation.md` aligned with `docs/v0.4/MindType v0.4-master guide.md` and the v0.4 architecture. Use doc citations to avoid stale snippets.
+- Keep `docs/02-implementation/02-Implementation.md` aligned with `docs/v0.4/MindType v0.4-master guide.md` and the v0.4 architecture. Use doc citations to avoid stale snippets.

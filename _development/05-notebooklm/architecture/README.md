@@ -66,7 +66,7 @@ Native macOS layer written in Swift/SwiftUI. It links to the **same Rust core** 
 
 ## System Map & Contracts (authoritative)
 
-The following contracts define how parts communicate efficiently. See linked guides in `docs/guide/reference/**` for detailed specs.
+The following contracts define how parts communicate efficiently. See linked guides in `docs/06-guides/06-03-reference/**` for detailed specs.
 
 1. Input monitor → Scheduler
 

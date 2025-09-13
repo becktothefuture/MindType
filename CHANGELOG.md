@@ -37,7 +37,7 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 
 - `engines/contextTransformer.ts` updated to drive LM span selection, prompting, and band‑bounded merges
 - `core/sweepScheduler.ts` passes LM adapter/context to Context stage; removed duplicate LM stage
-- Docs consolidated: canonical LM reference at `docs/guide/reference/lm.md`; architecture updated with v0.4 pipeline
+- Docs consolidated: canonical LM reference at `docs/06-guides/06-03-reference/lm.md`; architecture updated with v0.4 pipeline
 
 ### Fixed
 
@@ -61,7 +61,7 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 
 - Prettier config aligned with workspace gates (`.prettierrc`).
 - ESLint flat config polish and consistent single quotes (`eslint.config.js`).
-- `docs/implementation.md` updated with TODOs covering WASM bindings, LLM adapter, engine rules, A11Y, benches, and traceability.
+- `docs/02-implementation/02-Implementation.md` updated with TODOs covering WASM bindings, LLM adapter, engine rules, A11Y, benches, and traceability.
 
 ### Removed
 

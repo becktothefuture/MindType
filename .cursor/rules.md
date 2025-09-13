@@ -15,7 +15,7 @@
 
 1. Follow the plan, in order
 
-- Execute tasks strictly in the order listed under “Critical LM Task Execution Order” in `docs/implementation.md`.
+- Execute tasks strictly in the order listed under “Critical LM Task Execution Order” in `docs/02-implementation/02-Implementation.md`.
 - Announce any intentional deviation with justification; otherwise, do not re-order.
 
 2. Enforce Quality Gates & Definition of Done
@@ -49,7 +49,7 @@
 7. Tests & docs as deliverables
 
 - Add unit/integration tests for new logic and update `docs/qa/README.md` test mapping.
-- Keep `docs/guide/reference/lm-behavior.md` and `docs/implementation.md` in sync with behaviour changes.
+- Keep `docs/06-guides/06-03-reference/lm-behavior.md` and `docs/02-implementation/02-Implementation.md` in sync with behaviour changes.
 
 8. Communication discipline
 
@@ -100,7 +100,7 @@
 
 16. Docs & Questions discipline
 
-- Update `docs/implementation.md`, `docs/guide/reference/lm-behavior.md`, and `docs/qa/README.md` for any behaviour change.
+- Update `docs/02-implementation/02-Implementation.md`, `docs/06-guides/06-03-reference/lm-behavior.md`, and `docs/qa/README.md` for any behaviour change.
 - Log uncertainties in `docs/questions.md`; proceed on safe defaults; revisit once answered.
 
 17. Observability & safety
@@ -114,7 +114,7 @@
 
 ### References
 
-- Plan and task order: `docs/implementation.md`
+- Plan and task order: `docs/02-implementation/02-Implementation.md`
 - QA matrix and CI gates: `docs/qa/README.md`
-- LM policy/behaviour: `docs/guide/reference/lm-behavior.md`
+- LM policy/behaviour: `docs/06-guides/06-03-reference/lm-behavior.md`
 - Questions log: `docs/questions.md`
