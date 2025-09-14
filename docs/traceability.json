@@ -46,8 +46,8 @@
       "docs/12-qa/qa/acceptance/two_word_highlight.feature#SCEN-HILITE-001"
     ],
     "tests": [
-      "e2e/tests/motion.spec.ts",
-      "e2e/tests/liveRegion.spec.ts"
+      "tests/motion.spec.ts",
+      "tests/liveRegion.spec.ts"
     ],
     "invariants": [],
     "types": [],
@@ -93,8 +93,8 @@
     "kind": "REQ",
     "title": "Context transformer with ±2 sentence look-around",
     "modules": [
-      "crates/core-rs/src/workers/context.rs",
-      "crates/core-rs/src/diffusion.rs"
+      "engines/contextTransformer.ts",
+      "core/diffusionController.ts"
     ],
     "acceptance": [
       "docs/12-qa/qa/acceptance/context_transformer.feature#SCEN-CONTEXT-001"
@@ -112,8 +112,8 @@
     "kind": "REQ",
     "title": "Tone transformer with baseline detection and selectable tone",
     "modules": [
-      "crates/core-rs/src/workers/tone.rs",
-      "crates/core-rs/src/diffusion.rs"
+      "engines/toneTransformer.ts",
+      "core/diffusionController.ts"
     ],
     "acceptance": [
       "docs/12-qa/qa/acceptance/tone_transformer.feature#SCEN-TONE-001"
@@ -131,9 +131,9 @@
     "kind": "REQ",
     "title": "Confidence gating across pipeline stages",
     "modules": [
-      "crates/core-rs/src/confidence.rs",
-      "crates/core-rs/src/staging_buffer.rs",
-      "crates/core-rs/src/diffusion.rs"
+      "core/confidenceGate.ts",
+      "core/stagingBuffer.ts",
+      "core/diffusionController.ts"
     ],
     "acceptance": [
       "docs/12-qa/qa/acceptance/confidence_gate.feature#SCEN-CONFIDENCE-001"
@@ -150,7 +150,7 @@
     "kind": "REQ",
     "title": "Integrate Noise → Context → Tone pipeline with staging buffer",
     "modules": [
-      "crates/core-rs/src/diffusion.rs",
+      "core/diffusionController.ts",
       "crates/core-rs/src/scheduler.rs"
     ],
     "acceptance": [
@@ -167,8 +167,8 @@
     "kind": "REQ",
     "title": "English-only gating for full pipeline (Noise for others)",
     "modules": [
-      "crates/core-rs/src/language_detection.rs",
-      "crates/core-rs/src/diffusion.rs",
+      "core/languageDetection.ts",
+      "core/diffusionController.ts",
       "crates/core-rs/src/scheduler.rs"
     ],
     "acceptance": [
@@ -246,9 +246,9 @@
     "kind": "CONTRACT",
     "title": "LMAdapter streaming contract",
     "modules": [
-      "crates/core-rs/src/lm/types.rs",
-      "crates/core-rs/src/lm/factory.rs",
-      "crates/core-rs/src/active_region.rs"
+      "core/lm/types.ts",
+      "core/lm/factory.ts",
+      "core/activeRegionPolicy.ts"
     ],
     "acceptance": [],
     "tests": [],
@@ -267,12 +267,12 @@
     "kind": "CONTRACT",
     "title": "JSONL LM stream protocol (context → tone)",
     "modules": [
-      "crates/core-rs/src/lm/types.rs",
-      "crates/core-rs/src/lm/mock_stream_adapter.rs",
+      "core/lm/types.ts",
+      "core/lm/mockStreamAdapter.ts",
       "web-demo/src/lab/LMLab.tsx"
     ],
     "acceptance": [
-      "crates/core-rs/tests/lm_stream.rs#SCEN-LM-STREAM-001",
+      "tests/lm_stream.spec.ts#SCEN-LM-STREAM-001",
       "e2e/tests/lm_lab.spec.ts#SCEN-LM-LAB-002"
     ],
     "tests": [],

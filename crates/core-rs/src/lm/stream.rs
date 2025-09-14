@@ -10,4 +10,4 @@
 */
 
 #[allow(dead_code)]
-pub fn _stub_lm_${f%.rs}() {}
+pub fn _stub_lm_stream() {}

@@ -17,6 +17,6 @@ export const DEFAULT_SYMBOLS = [
 export interface LMStreamParams {
   text: string;
   caret: number;
-  band: { start: number; end: number };
+  active_region: { start: number; end: number };
   settings?: Record<string, unknown>;
 }

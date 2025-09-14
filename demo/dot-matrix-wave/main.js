@@ -1,18 +1,18 @@
-/*╔══════════════════════════════════════════════════════╗
-  ║  ░  D O T - M A T R I X   W A V E   J S  ░░░░░░░░░░  ║
-  ║                                                      ║
-  ║                                                      ║
-  ║                                                      ║
-  ║                                                      ║
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  MAIN  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
   ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
-  ║                                                      ║
-  ║                                                      ║
-  ║                                                      ║
-  ║                                                      ║
-  ╚══════════════════════════════════════════════════════╝
-  • WHAT ▸ Dot-matrix wave animation controller
-  • WHY  ▸ Demonstrate visual feedback for corrections
-  • HOW  ▸ Canvas manipulation with braille symbol overlay
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ Dot-matrix wave animation demo; Dot-matrix wave animation tokens
+  • WHY  ▸ REQ-DOT-MATRIX-WAVE, CONTRACT-DOT-MATRIX-WAVE
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 // Default braille symbols for dot matrix effect

@@ -4,23 +4,34 @@ alwaysApply: true
 
 # Generation Structure Rules
 
-This file contains the generation structure and patterns for the MindTyper project.
+This file contains the generation structure and patterns for the Mind::Type project.
 
-## Code Generation Patterns
+## Code Generation Principles (Concise)
 
-### File Structure
-- Use TypeScript for all core logic
-- Follow modular architecture principles
-- Maintain separation of concerns
+### Architecture
+- Rust-first core (`crates/core-rs/**`) owns all correction/orchestration logic.
+- UI/web/macOS integrate via FFI/WASM; TypeScript remains for demos and UI only.
+- Keep modules small, cohesive, and testable; avoid unnecessary abstractions.
 
-### Naming Conventions
-- Use camelCase for variables and functions
-- Use PascalCase for classes and interfaces
-- Use kebab-case for file names
+### Naming
+- Prefer clear, technical compound names without spaces (e.g., `NoiseWorker`).
+- Use snake_case in Rust; PascalCase for types; follow Rust API idioms.
+- In TS UI, follow project conventions (PascalCase components, camelCase vars).
 
 ### Documentation
-- Include JSDoc comments for all public APIs
-- Maintain comprehensive README files
-- Update relevant documentation with changes# Generation Structure Rules
+- Docs are authoritative; edit docs first, then code.
+- Run `pnpm doc:check` then `pnpm doc:sync` before coding linked modules.
+- Keep READMEs minimal; link to PRD/Architecture/Guides for details.
 
-This file contains the generation structure and patterns for the MindTyper project.
+### Quality Gates (per change)
+- Rust: `cargo clippy -- -D warnings` and `cargo test` must pass.
+- TS UI/Demos: `pnpm -s test` must pass.
+- Formatting/linters must pass across touched stacks.
+
+### Simplicity
+- Prefer the simplest solution that meets requirements; avoid over‑engineering.
+- Ship small, verifiable diffs with tests and traceable docs.
+
+### Model Guidance
+- Follow LM Operating Guidelines in `workflow.mdc` §2.2 for execution excellence in Cursor.
+ - For creative solutioning, apply §2.3 “Ingenuity & Autonomy Toolkit”.

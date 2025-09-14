@@ -21,11 +21,13 @@ alwaysApply: true
 
 # Doc2Code Authoring Rules
 
-- Load these docs when editing `core/**`, `engines/**`, `ui/**`, or `tests/**`:
-  - `docs/02-implementation/02-Implementation.md`, `docs/01-prd/01-PRD.md`, `docs/system_principles.md`, `docs/adr/**`.
+- Load these docs when editing `crates/core-rs/**`, `ui/**`, or `tests/**`:
+  - `docs/02-implementation/02-Implementation.md`, `docs/01-prd/01-PRD.md`, `docs/03-system-principles/03-System-Principles.md`, `docs/05-adr/**`.
 - Do not hand-edit the Swiss-grid header in source files; run `pnpm doc:sync` instead.
 - When introducing new behavior, add a SPEC block (REQ or CONTRACT) in the appropriate doc.
 - PRs must pass `pnpm doc:check`; missing SPECs should block.
+
+> Thoroughness: Before claiming Done, apply the workflow Thoroughness checklist (docs-first, tests, gates, clean sweep, proof-of-done).
 
 ## Agent Workflow (always)
 
