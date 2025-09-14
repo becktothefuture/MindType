@@ -42,10 +42,10 @@ This document defines the official terminology for Mind::Type. **Use these terms
 
 | ✅ **USE THIS** | ❌ **NOT THIS** | **Definition** |
 |-----------------|----------------|----------------|
-| **Noise correction** | Typo fix, Basic correction | Basic typos, transpositions, spacing |
-| **Grammar correction** | Context transform | Punctuation, capitalization, simple grammar |
-| **Context correction** | Semantic fix | Sentence-level coherence improvements |
-| **Tone adjustment** | Style transform | Formality level changes |
+| **NoiseWorker** | Typo fix, Basic correction | Basic typos, transpositions, spacing |
+| **GrammarWorker** | Punctuation worker | Punctuation, capitalization, simple grammar |
+| **ContextWorker** | Semantic worker | Sentence-level coherence improvements |
+| **ToneWorker** | Style worker | Formality level changes |
 
 ### Processing Concepts
 

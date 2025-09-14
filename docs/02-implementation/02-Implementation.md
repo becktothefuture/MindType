@@ -231,9 +231,9 @@ This stage connects the functional Rust core to the user-facing applications.
        **DependsOn:** FT-201  
        **Source:** Integration requirements
 
-### Noise Correction Implementation (P1)
+### NoiseWorker Implementation (P1)
 
-- [x] (P1) [FT-210] Create noise correction engine scaffold  
+- [x] (P1) [FT-210] Create NoiseWorker engine scaffold  
        **AC:** - Basic engine structure in `crates/core-rs/src/workers/noise.rs` - Rule interface defined - Test infrastructure
       **Owner:** @alex  
        **DependsOn:** FT-120  
@@ -463,7 +463,7 @@ This stage connects the functional Rust core to the user-facing applications.
 ### Visual Feedback (P1)
 
 - [x] (P1) [FT-310] Implement highlighter core  
-       **AC:** - Active region (3–8 words) trailing behind caret with DOM manipulation - Subtle shimmer animation; fade/static when reduced‑motion - Applied correction highlights - Minimal, non-intrusive UI
+       **AC:** - Active region (20 words) trailing behind caret with DOM manipulation - Subtle shimmer animation; fade/static when reduced‑motion - Applied correction highlights - Minimal, non-intrusive UI
       **Owner:** @alex  
        **DependsOn:** FT-201  
        **Source:** PRD REQ-A11Y-MOTION + REQ-ACTIVE-REGION
@@ -814,7 +814,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   output: crates/core-rs/src/scheduler.rs, crates/core-rs/tests/scheduler.rs
 
 - id: FT-304
-  title: Implement NoiseTransformer
+  title: Implement NoiseWorker
   priority: P1
   dependsOn: [FT-303]
   acceptance:
@@ -824,7 +824,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   output: crates/core-rs/src/workers/noise.rs, crates/core-rs/tests/noise.rs
 
 - id: FT-305
-  title: Implement ContextTransformer with local LM
+  title: Implement ContextWorker with local LM
   priority: P1
   dependsOn: [FT-303]
   acceptance:
@@ -834,7 +834,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   output: crates/core-rs/src/workers/context.rs, crates/core-rs/src/lm/{policy.rs,runner.rs}, crates/core-rs/tests/context.rs
 
 - id: FT-306
-  title: Implement ToneTransformer (light consistency)
+  title: Implement ToneWorker (light consistency)
   priority: P1
   dependsOn: [FT-305]
   acceptance:
@@ -903,7 +903,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
 
 > Beginner-friendly summary
 >
-> We are upgrading from a single-stage "noise correction" into a 3-stage pipeline: Noise → Context → Tone. We'll also add a confidence-scoring system and a staging buffer so only high-quality edits are applied. Finally, we add English-only gating and tone controls in the demo.
+> We are upgrading from a single-stage NoiseWorker into a 3-stage pipeline: NoiseWorker → ContextWorker → ToneWorker. We'll also add a confidence-scoring system and a staging buffer so only high-quality edits are applied. Finally, we add English-only gating and tone controls in the demo.
 
 ```yaml
 - id: FT-401
@@ -1024,7 +1024,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   priority: P1
   dependsOn: [LM-FLOW-001]
   acceptance:
-    - Logs: "ContextTransformer: LM start/end, chunk_count, final_merge"
+    - Logs: "ContextWorker: LM start/end, chunk_count, final_merge"
     - Gauge(s): total_lm_runs, aborted_runs, stale_drops
     - Workbench LM tab shows these metrics
   output: crates/core-rs/src/workers/context.rs (logs), web-demo/src/App.tsx (metrics render)

@@ -165,7 +165,7 @@ principle links to deeper docs that hold the technical details.
 - Behaviour: Maintain typing flow. Prefer micro-suggestions over blocks;
   defer heavy work during active bursts; resume in quiet gaps.
 - Examples:
-  - Skip LM calls if pause < SHORT_PAUSE_MS (300ms); rely on rules-only noise correction
+  - Skip LM calls if pause < SHORT_PAUSE_MS (300ms); rely on rules-only NoiseWorker
     until a longer pause is detected.
   - Batch multiple small diffs into a single grouped undo step to keep
     rhythm and reduce cognitive churn.

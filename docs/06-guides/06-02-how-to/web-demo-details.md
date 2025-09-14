@@ -113,7 +113,7 @@ Current state:
 
 1. **Demo Initialization**: User sees prefilled fuzzy text from curated presets with description.
 2. **Instant Demo**: Click "🚀 Run Corrections" CTA for immediate processing, or start typing naturally.
-3. **Live Corrections**: While typing, a typing tick (~60–90 ms) advances a trailing active region (typically 3–8 words long) behind the caret.
+3. **Live Corrections**: While typing, a typing tick (~60–90 ms) advances a trailing active region (up to 20 words) behind the caret.
 4. **Rule Application**: Rules apply minimal, caret‑safe patches within that region.
 5. **LM Processing**: After ~600 ms of idle time, Context stage engages with dual-context LM processing.
 6. **Visual Feedback**: Corrections apply atomically via `replaceRange` with dot matrix wave animation.
@@ -131,7 +131,7 @@ InputMonitor (Rust) -- emits {text, caret, atMs}
 CorrectionScheduler (Rust) ──── DiffusionController ──── Noise → Context → Tone
      |                           |
      v                           v
- LM (local, device-tiered)   Active Region (3–8 words)
+ LM (local, device-tiered)   Active Region (20 words)
 Apply diff (caret‑safe) → Braille Animation → SR Announce
 ```
 

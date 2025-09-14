@@ -27,7 +27,7 @@ Mind::Type is a quiet, system‑wide typing utility that converts noisy input in
 
 ### Goals (MUST) / Non‑Goals (WON'T)
 
-- MUST: on‑device inference by default; p95 keystroke→correction ≤ 15 ms; caret‑safe edits; granular undo via host stack; reduced‑motion compliance; encrypted remote channel support behind explicit opt‑in; tone adjustment optional, off by default.
+- MUST: on‑device inference by default; p95 keystroke→correction ≤ 15 ms; caret‑safe edits; granular undo via host stack; reduced‑motion compliance; encrypted remote channel support behind explicit opt‑in; ToneWorker optional, off by default.
 - WON'T: silent cloud text processing; heavy suggestions UI; collaborative prefs; background data retention.
 
 ### Success Metrics
@@ -114,7 +114,7 @@ Appendix — Traceability Map (starter)
 
 ### Release Criteria (MVP)
 
-- Functionality: Caret‑safe noise corrections within window; pause catch‑up; active region visuals; secure fields/IME handling
+- Functionality: Caret‑safe NoiseWorker within window; pause catch‑up; active region visuals; secure fields/IME handling
 - Usability: Reduced‑motion compliance; minimal unobtrusive UI
 - Reliability: p95 latency targets met on M‑series in demo; unit/integration tests green; coverage guard passes
 - Supportability: Local‑only default; clear setup script `pnpm setup:local`; logs gated; docs updated (PRD, implementation, QA mapping)

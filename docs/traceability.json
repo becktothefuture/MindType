@@ -46,8 +46,8 @@
       "docs/12-qa/qa/acceptance/two_word_highlight.feature#SCEN-HILITE-001"
     ],
     "tests": [
-      "tests/motion.spec.ts",
-      "tests/liveRegion.spec.ts"
+      "e2e/tests/motion.spec.ts",
+      "e2e/tests/liveRegion.spec.ts"
     ],
     "invariants": [],
     "types": [],
@@ -93,8 +93,8 @@
     "kind": "REQ",
     "title": "Context transformer with ±2 sentence look-around",
     "modules": [
-      "engines/contextTransformer.ts",
-      "core/diffusionController.ts"
+      "crates/core-rs/src/workers/context.rs",
+      "crates/core-rs/src/diffusion.rs"
     ],
     "acceptance": [
       "docs/12-qa/qa/acceptance/context_transformer.feature#SCEN-CONTEXT-001"
@@ -112,8 +112,8 @@
     "kind": "REQ",
     "title": "Tone transformer with baseline detection and selectable tone",
     "modules": [
-      "engines/toneTransformer.ts",
-      "core/diffusionController.ts"
+      "crates/core-rs/src/workers/tone.rs",
+      "crates/core-rs/src/diffusion.rs"
     ],
     "acceptance": [
       "docs/12-qa/qa/acceptance/tone_transformer.feature#SCEN-TONE-001"
@@ -131,9 +131,9 @@
     "kind": "REQ",
     "title": "Confidence gating across pipeline stages",
     "modules": [
-      "core/confidenceGate.ts",
-      "core/stagingBuffer.ts",
-      "core/diffusionController.ts"
+      "crates/core-rs/src/confidence.rs",
+      "crates/core-rs/src/staging_buffer.rs",
+      "crates/core-rs/src/diffusion.rs"
     ],
     "acceptance": [
       "docs/12-qa/qa/acceptance/confidence_gate.feature#SCEN-CONFIDENCE-001"
@@ -150,7 +150,7 @@
     "kind": "REQ",
     "title": "Integrate Noise → Context → Tone pipeline with staging buffer",
     "modules": [
-      "core/diffusionController.ts",
+      "crates/core-rs/src/diffusion.rs",
       "crates/core-rs/src/scheduler.rs"
     ],
     "acceptance": [
@@ -167,8 +167,8 @@
     "kind": "REQ",
     "title": "English-only gating for full pipeline (Noise for others)",
     "modules": [
-      "core/languageDetection.ts",
-      "core/diffusionController.ts",
+      "crates/core-rs/src/language_detection.rs",
+      "crates/core-rs/src/diffusion.rs",
       "crates/core-rs/src/scheduler.rs"
     ],
     "acceptance": [
@@ -236,7 +236,7 @@
     "acceptance": [],
     "tests": [],
     "invariants": [
-      "Context can extend beyond render band but never crosses secure fields",
+      "Context can extend beyond render region but never crosses secure fields",
       "Render range must not include caret position (REQ-IME-CARETSAFE)"
     ],
     "types": [],
@@ -246,9 +246,9 @@
     "kind": "CONTRACT",
     "title": "LMAdapter streaming contract",
     "modules": [
-      "core/lm/types.ts",
-      "core/lm/factory.ts",
-      "core/activeRegionPolicy.ts"
+      "crates/core-rs/src/lm/types.rs",
+      "crates/core-rs/src/lm/factory.rs",
+      "crates/core-rs/src/active_region.rs"
     ],
     "acceptance": [],
     "tests": [],
@@ -258,7 +258,7 @@
     "types": [
       {
         "name": "LMStreamParams",
-        "ts": "export interface LMStreamParams {\n  text: string;\n  caret: number;\n  band: { start: number; end: number };\n  settings?: Record<string, unknown>;\n}\n"
+        "ts": "export interface LMStreamParams {\n  text: string;\n  caret: number;\n  active_region: { start: number; end: number };\n  settings?: Record<string, unknown>;\n}\n"
       }
     ],
     "source": "docs/06-guides/06-03-reference/lm-behavior.md"
@@ -267,12 +267,12 @@
     "kind": "CONTRACT",
     "title": "JSONL LM stream protocol (context → tone)",
     "modules": [
-      "core/lm/types.ts",
-      "core/lm/mockStreamAdapter.ts",
+      "crates/core-rs/src/lm/types.rs",
+      "crates/core-rs/src/lm/mock_stream_adapter.rs",
       "web-demo/src/lab/LMLab.tsx"
     ],
     "acceptance": [
-      "tests/lm_stream.spec.ts#SCEN-LM-STREAM-001",
+      "crates/core-rs/tests/lm_stream.rs#SCEN-LM-STREAM-001",
       "e2e/tests/lm_lab.spec.ts#SCEN-LM-LAB-002"
     ],
     "tests": [],

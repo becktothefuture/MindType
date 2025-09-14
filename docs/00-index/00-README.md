@@ -44,7 +44,7 @@ Tip (for the parents): If you only read two docs to grasp the build, read this p
   - Developer‑facing guidance using Diátaxis:
     - `how-to/` — step‑by‑step tasks (web demo server, mac app details, etc.)
     - `tutorials/` — learn by doing (try Mind::Type in 5 min)
-    - `reference/` — APIs and contracts (band policy, injector, LM behavior, worker, rust merge, config flags)
+    - `reference/` — APIs and contracts (active region policy, injector, LM behavior, worker, rust merge, config flags)
     - `explanations/` — deeper rationale (e.g., why caret‑safe diffs)
 
 - `qa/`

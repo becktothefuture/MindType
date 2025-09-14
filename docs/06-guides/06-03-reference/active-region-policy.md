@@ -22,7 +22,7 @@
 
 - Word segmentation via `Intl.Segmenter('word')` (TS) or ICU (Rust).
 - Newline clamp: prefer not to cross line breaks for the render range.
-- Size: defaults 3–8 words; configurable via `config/defaultThresholds.ts`.
+- Size: defaults 20 words; configurable via `config/defaultThresholds.ts`.
 - Context can be larger than render; render is always within context.
 
 ## Interfaces

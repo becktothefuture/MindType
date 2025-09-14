@@ -3,7 +3,7 @@
 #╚════════════════════════════════════════════════════╝
 # WHAT ▸ Word-by-word streamed corrections behind caret
 # WHY  ▸ Make the trailing process visible and predictable
-# HOW  ▸ Active region (3–8 words), caret-safe edits, pause catch-up
+# HOW  ▸ Active region (20 words), caret-safe edits, pause catch-up
 # IDs  ▸ SCEN-DIFFUSION-001 | PRIN: PRIN-LOGIC-10, PRIN-HUMAN-01 | REQ: REQ-STREAMED-DIFFUSION, REQ-ACTIVE-REGION
 
 Feature: Streamed diffusion (REQ-STREAMED-DIFFUSION, REQ-ACTIVE-REGION)

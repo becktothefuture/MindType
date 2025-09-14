@@ -125,6 +125,6 @@ _Language: TypeScript + React + WASM_
    CorrectionScheduler (Rust) ──── DiffusionController ──── Noise → Context → Tone
         |                           |
         v                           v
-    LM (local)                 Active Region (3–8 words, shimmer)
+    LM (local)                 Active Region (20 words, shimmer)
 Apply diff (caret‑safe) → Visual → Announce
 ```

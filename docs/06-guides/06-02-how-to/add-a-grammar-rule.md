@@ -11,7 +11,7 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ Add a safe grammar correction rule
+    • WHAT ▸ Add a safe GrammarWorker rule
     • WHY  ▸ Improve fluency without changing voice
     • HOW  ▸ Implement in `crates/core-rs/src/workers/noise.rs`
 -->

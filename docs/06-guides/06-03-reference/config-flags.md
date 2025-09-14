@@ -16,7 +16,7 @@
     • HOW  ▸ Source `config/defaultThresholds.ts`
 -->
 
-- ACTIVE_REGION_MAX: 80 chars behind CARET (noise correction).
+- ACTIVE_REGION_MAX: 80 chars behind CARET (NoiseWorker).
 - HIGHLIGHT_FADE_MS: ≤ 250 ms; respects reduced motion.
 - DEBOUNCE_MS: 8–12 ms for keystrokes.
 

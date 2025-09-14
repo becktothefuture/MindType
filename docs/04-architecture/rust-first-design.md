@@ -159,7 +159,7 @@ pub extern "C" fn mt_free_response(response: MTCorrectionResponse) {
 
 ## Performance Targets
 
-- **Latency**: < 5ms for noise corrections, < 50ms with LM
+- **Latency**: < 5ms for NoiseWorker, < 50ms with LM
 - **Memory**: < 50MB resident (excluding optional LM models)
 - **Throughput**: 60+ corrections/second
 - **Active Region**: Process 20 words in < 10ms

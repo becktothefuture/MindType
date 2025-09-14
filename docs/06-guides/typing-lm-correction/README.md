@@ -113,9 +113,9 @@ stateDiagram-v2
     [*] --> Idle
     Idle --> Typing: keypress
     Typing --> Typing: continuous input (< debounce)
-    Typing --> BandArmed: pause >= debounce
-    BandArmed --> AwaitingLM: diff>0 and policy-permits
-    BandArmed --> Idle: diff==0
+    Typing --> RegionArmed: pause >= debounce
+    RegionArmed --> AwaitingLM: diff>0 and policy-permits
+    RegionArmed --> Idle: diff==0
     AwaitingLM --> Merging: fresh result & caret-safe
     AwaitingLM --> Idle: stale/aborted/error
     Merging --> CoolingOff: merge complete

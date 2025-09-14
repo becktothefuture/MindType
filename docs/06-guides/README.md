@@ -22,7 +22,7 @@
 - [06-02-how-to](./06-02-how-to/)
 - [06-03-reference](./06-03-reference/)
 - [06-04-explanations](./06-04-explanations/)
-- [B A N D  S W A P   D E M O](./band-swap.md)
+- [D O T - M A T R I X   W A V E   D E M O](./dot-matrix-wave.md)
 - [D E M O   H E A D E R   R U L E](./demo-header.md)
 - [Cross‑Platform Matrix (v0.4)](./platform_matrix.md)
 - [T E R M I N O L O G Y   G U I D E](./terminology.md)

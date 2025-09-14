@@ -107,7 +107,7 @@ This is the comprehensive index for all Mind::Type Deep-Dive Questionnaire quest
 | 25  | Should tone adaptation be passive or user-led?                                         | ✅ **Answered** | tone, user-control, automation          |
 | 26  | Should Mind::Type offer writing "moods" or presets (e.g. punchy, poetic, polite)?      | ✅ **Answered** | tone, presets, user-control             |
 | 27  | Should Mind::Type suggest vocabulary refinements (e.g. "bigger" → "larger")?           | ✅ **Answered** | vocabulary, AI-behavior, refinement     |
-| 28  | Should Mind::Type handle grammar correction (e.g. verb tense, subject–verb agreement)? | ✅ **Answered** | grammar, correction, automation         |
+| 28  | Should Mind::Type handle GrammarWorker (e.g. verb tense, subject–verb agreement)? | ✅ **Answered** | grammar, correction, automation         |
 | 29  | Should Mind::Type infer sentence boundaries and resegment input as needed?             | ✅ **Answered** | grammar, structure, boundaries          |
 | 30  | Should Mind::Type detect and remove filler words ("just", "like", "very")?             | ✅ **Answered** | style, filler-words, voice-preservation |
 

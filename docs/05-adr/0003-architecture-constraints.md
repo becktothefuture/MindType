@@ -40,7 +40,7 @@ Consequences
 
 Scope of Prohibitions (WON'T)
 
-- Cloud grammar correction or server‑side diffing of user text.
+- Cloud GrammarWorker or server‑side diffing of user text.
 - Persistent remote storage of input content.
 - Complex suggestion panels, ranked lists, or blocking dialogs.
 

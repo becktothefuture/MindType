@@ -30,7 +30,7 @@ This document captures the runtime data model used by Mind::Type's core pipeline
 - **ActiveRegion**
   - Keys: implicit by `start,end`
   - Fields: `start: number`, `end: number`, `minWords: number`, `maxWords: number`
-  - Constraints: `0 ≤ start ≤ end ≤ text.length`; size targets 3–8 words; never crosses caret
+  - Constraints: `0 ≤ start ≤ end ≤ text.length`; size up to 20 words; never crosses caret
 
 - **Diff**
   - Keys: implicit by `start,end`
@@ -38,7 +38,7 @@ This document captures the runtime data model used by Mind::Type's core pipeline
   - Constraints: `end ≥ start`; apply only when `end < caret` (caret-safe)
 
 - **CorrectionResult**
-  - Fields: `diff: Diff | null` (noise correction), `diffs: Diff[]` (backfill)
+  - Fields: `diff: Diff | null` (NoiseWorker), `diffs: Diff[]` (backfill)
   - Constraints: all diffs respect caret safety and window limits
 
 - **ActiveRegionSpan** (runtime tracking)
@@ -59,7 +59,7 @@ This document captures the runtime data model used by Mind::Type's core pipeline
 ### Constraints (Business Rules)
 
 - Caret Safety: No `Diff` may start or end at/after caret.
-- Windowing: Noise correction operates within `MAX_ACTIVE_REGION` behind caret; Backfill only in the stable zone.
+- Windowing: NoiseWorker operates within `MAX_ACTIVE_REGION` behind caret; Backfill only in the stable zone.
 - Reduced Motion: Visual feedback degrades to static when enabled.
 - Privacy: No text persistence by default; logs gated and content-free.
 

@@ -138,7 +138,7 @@ KPIs to watch:
 
 - **Predictability**: Fixed yet adaptive cadence establishes rhythm.
 - **Low salience**: Minimal, fast‑fading cues; never alter viewport or focus.
-- **Safety**: Band‑bounded merges avoid caret friction; undo is native.
+- **Safety**: Active-region-bounded merges avoid caret friction; undo is native.
 - **Respect**: User remains author; corrections are suggestions expressed as
   done‑for‑you edits, not commands.
 

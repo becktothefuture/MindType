@@ -11,7 +11,7 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ How to fine‑tune Qwen for Mind::Type’s band‑bounded
+    • WHAT ▸ How to fine‑tune Qwen for Mind::Type's active-region-bounded
              grammar/clarity corrections
     • WHY  ▸ Improve accuracy and determinism while preserving
              latency and caret safety
@@ -49,7 +49,7 @@ In plain words: today we already run a small Qwen model in the browser.
 We give it a short instruction and a prompt. It streams words back while
 you type.
 
-- The LM path is handled by the shared v0.4 LM stack (`core/lm/*`) with strict single‑string prompts from `core/lm/policy.ts` and device‑tiered fallbacks.
+- The LM path is handled by the Rust core LM modules (`crates/core-rs/src/lm/*`) with strict single‑string prompts and device‑tiered fallbacks.
 
 - Determinism: `do_sample: false`, small `max_new_tokens` (~32 by default)
   and boundary‑aware chunking.
@@ -70,7 +70,7 @@ In plain words: we build a list of tiny “before → after” examples. Each
 example has the Span we want to fix, a bit of text before/after it, and
 the correct fixed Span.
 
-- Input unit: one band‑bounded correction.
+- Input unit: one active-region-bounded correction.
 - Fields:
   - language (string, optional)
   - ctx_before (string)
@@ -279,11 +279,11 @@ Sketch:
 // Pseudocode inside a vitest spec
 const runner = createQwenTokenStreamer({ modelId: "your-org/...", localOnly: false });
 for (const case of loadEvalCases()) {
-  const { band, prompt } = selectSpanAndPrompt(case.text, case.caret);
-  if (!band || !prompt) continue;
+  const { activeRegion, prompt } = selectSpanAndPrompt(case.text, case.caret);
+  if (!activeRegion || !prompt) continue;
   let out = "";
   for await (const chunk of runner.generateStream({ prompt })) out += chunk;
-  const fixed = postProcessLMOutput(out, band.end - band.start);
+  const fixed = postProcessLMOutput(out, activeRegion.end - activeRegion.start);
   expect(similarity(fixed, case.span_out)).toBeGreaterThan(THRESHOLD);
 }
 ```

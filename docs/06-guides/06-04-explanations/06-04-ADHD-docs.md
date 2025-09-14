@@ -27,7 +27,7 @@
 
 - **Keystrokes → Events**: `InputMonitor` emits `{ text, caret, atMs }`. See `crates/core-rs/src/monitor.rs`.
 - **Scheduler**: `CorrectionScheduler` paces streaming ticks (~60–90 ms) and catch‑up after ~500 ms idle. See `crates/core-rs/src/scheduler.rs`.
-- **Diffusion**: `DiffusionController` moves a frontier toward the caret, validating word‑by‑word in a trailing active region (3–8 words). See `crates/core-rs/src/diffusion.rs` and `docs/06-guides/06-03-reference/active-region-policy.md`.
+- **Diffusion**: `DiffusionController` moves a frontier toward the caret, validating word‑by‑word in a trailing active region (20 words). See `crates/core-rs/src/diffusion.rs` and `docs/06-guides/06-03-reference/active-region-policy.md`.
 - **Engines**: Rules (`crates/core-rs/src/workers/noise.rs`) and LM stream. Rules fix structure (typos, spaces). LM fixes semantics via the Context worker (`crates/core-rs/src/workers/context.rs`) with dual-context windows; Tone worker (`crates/core-rs/src/workers/tone.rs`) is in progress. See `docs/06-guides/06-03-reference/lm.md`.
 - **Merge**: Apply tiny diffs, never at/after the caret; Unicode‑safe. Rust: `crates/core-rs/src/diff.rs`. See `docs/06-guides/06-03-reference/rust-merge.md`.
 - **Host Injection**: Web updates a textarea; macOS uses Accessibility APIs. Contract in `docs/06-guides/06-03-reference/injector.md`.
@@ -35,23 +35,23 @@
 ## Active region (the trailing “safe zone”)
 
 - Think: a highlight a few words behind your cursor. Corrections happen inside it.
-- Size: tunable (defaults 3–8 words), moves as you type. See `config/defaultThresholds.ts`. For LM context, we use sentences: N previous sentences (2–5, default 3), active sentence excluded except prefix to caret.
+- Size: tunable (defaults 20 words), moves as you type. See `config/defaultThresholds.ts`. For LM context, we use sentences: N previous sentences (2–5, default 3), active sentence excluded except prefix to caret.
 - Two uses:
   - **Render range**: What you see as the active region.
   - **Context range**: What the LM reads around the span. See `docs/06-guides/06-03-reference/active-region-policy.md`.
 
 ## Rules vs LM (who fixes what)
 
-- **Rules**: cheap, instant, deterministic. Good for typos, punctuation, capitalisation. File: `engines/noiseTransformer.ts`.
-- **LM**: semantic upgrades (agreement, clarity) with strict policy: span‑only prompts, short outputs, abort on input. Files: `core/lm/policy.ts`; worker runtime: `web-demo/src/worker/lmWorker.ts`. See `docs/06-guides/06-03-reference/lm.md`.
+- **Rules**: cheap, instant, deterministic. Good for typos, punctuation, capitalisation. File: `crates/core-rs/src/workers/noise.rs`.
+- **LM**: semantic upgrades (agreement, clarity) with strict policy: span‑only prompts, short outputs, abort on input. Files: `crates/core-rs/src/lm/policy.rs`; worker runtime: Rust core LM modules. See `docs/06-guides/06-03-reference/lm.md`.
 - **Priority**: On conflicts, rules win for structure; LM wins for semantics when safe. Details in `docs/06-guides/06-03-reference/lm-behavior.md`.
 
 ## Safety Nets (non‑negotiables)
 
 - Never edit at/after the caret. TS `replaceRange`; Rust `apply_span` (target). See ADR‑0002 in `docs/adr/0002-caret-safe-diff.md`.
 - Unicode‑safe boundaries (no surrogate pair splits).
-- Secure fields and IME composition disable corrections. See `core/security.ts`.
-- Reduced‑motion visuals. See `ui/motion.ts`, `ui/highlighter.ts`.
+- Secure fields and IME composition disable corrections. See Rust core security module.
+- Reduced‑motion visuals. See platform UI motion components.
 
 ## Local‑Only by Default (privacy)
 
@@ -59,7 +59,7 @@
 
 ## macOS vs Web (same brain, different hands)
 
-- Web demo: `web-demo/` renders band and highlights; LM runs in a Worker; merges are driven by the core (UI is thin).
+- Web demo: `web-demo/` renders active region and highlights; LM runs in Rust core; merges are driven by the core (UI is thin).
 - macOS: Swift app connects to Rust core via FFI and injects text via AX APIs. See `docs/06-guides/06-02-how-to/mac-app-details.md`.
 
 ## How a character becomes correct (fast path)
@@ -67,7 +67,7 @@
 1. You press a key → `InputMonitor` emits an event → `CorrectionScheduler` schedules a streaming tick.
 2. `DiffusionController` advances one word → rules apply a tiny diff (if safe).
 3. After a pause, controller catches up to the caret. If LM is on: it selects a short span, prompts, streams, merges safely.
-4. UI shows a subtle band and highlight. Caret never moves. Undo is one step.  
+4. UI shows a subtle active region and highlight. Caret never moves. Undo is one step.  
    See: `crates/core-rs/src/scheduler.rs`, `crates/core-rs/src/diffusion.rs`, `crates/core-rs/src/workers/noise.rs`, `docs/06-guides/06-03-reference/lm.md`.
 
 ## Deep‑dive links (pick your lane)
@@ -75,7 +75,7 @@
 - Product constraints: `docs/01-prd/01-PRD.md`, `docs/adr/0003-architecture-constraints.md`
 - Architecture: `docs/04-architecture/README.md`, `docs/04-architecture/C1-context.md`, `C2-containers.md`, `C3-components.md`
 - Core engines: `engines/noiseTransformer.ts`, `engines/backfillConsistency.ts`
-- Diffusion & Band: `core/diffusionController.ts`, `docs/06-guides/06-03-reference/active-region-policy.md`
+- Diffusion & Active Region: `crates/core-rs/src/diffusion.rs`, `docs/06-guides/06-03-reference/active-region-policy.md`
 - LM reference: `docs/06-guides/06-03-reference/lm.md`, `core/lm/policy.ts`, `crates/core-rs/src/*`
 - Merge safety: `crates/core-rs/src/diff.rs`, `docs/06-guides/06-03-reference/rust-merge.md`, ADR‑0002
 - A11y & UI: `ui/highlighter.ts`, `ui/liveRegion.ts`, `ui/motion.ts`, `docs/a11y/wcag-checklist.md`
@@ -85,7 +85,7 @@
 
 - “Can it rewrite whole sentences?” Yes, but we discourage long spans; we prefer tiny, safe diffs that feel instant. See `docs/06-guides/06-03-reference/lm.md`.
 - “Why not just do it in React?” We keep hot logic outside React to avoid jank; React only displays.
-- “Why a band?” It’s a human‑visible bound and a safety window. It’s also predictable for tests.
+- "Why an active region?" It's a human‑visible bound and a safety window. It's also predictable for tests.
 - “What if the LM suggests garbage?” Confidence gating + rollback + rules precedence.
 
 ## Read next (suggested path)
@@ -113,7 +113,7 @@
 
 - **Human‑visible bound**: shows where we are “sure” right now.
 - **Word‑bounded**: never ends mid‑word; optimizes both UX and model prompts.
-- **Size**: 3–8 words defaults hit a sweet spot (signal vs latency). Tunable.
+- **Size**: 20 words maximum provides comprehensive context. Tunable.
 - **Line‑aware**: render range avoids crossing fresh newlines for stability.
   See `docs/06-guides/06-03-reference/active-region-policy.md`.
 
@@ -154,11 +154,11 @@ export function selectSpanAndPrompt(
   caret: number,
   cfg: LMBehaviorConfig = defaultLMBehaviorConfig,
 ): SpanAndPrompt {
-  const band = computeSimpleBand(text, caret);
-  if (!band) return { band: null, prompt: null, span: null, maxNewTokens: 0 };
-  const span = text.slice(band.start, band.end);
+  const activeRegion = computeSimpleActiveRegion(text, caret);
+  if (!activeRegion) return { activeRegion: null, prompt: null, span: null, maxNewTokens: 0 };
+  const span = text.slice(activeRegion.start, activeRegion.end);
   if (span.length < cfg.minSpanChars)
-    return { band: null, prompt: null, span: null, maxNewTokens: 0 };
+    return { activeRegion: null, prompt: null, span: null, maxNewTokens: 0 };
 ```
 
 - **Prompt template** (no stories, only the fix):
@@ -173,7 +173,7 @@ export function selectSpanAndPrompt(
   );
 ```
 
-- **Streaming**: tokens are accumulated and then merged only within the band.
+- **Streaming**: tokens are accumulated and then merged only within the active region.
 - **Abort/stale‑drop**: any new keystroke cancels the in‑flight generation.
 - **Precedence**: structural fixes (rules) beat semantic rewrites (LM) when
   they collide, because structure changes alter tokenization.
@@ -203,14 +203,14 @@ export function emitActiveRegion(_range: { start: number; end: number }) {
 - ~0–4 ms: `CorrectionScheduler` ticks, `DiffusionController.tickOnce`
 - ~4–10 ms: active region recomputed; rules propose a tiny diff (or advance frontier)
 - ~10–16 ms: `emitActiveRegion` dispatches; UI paints at next frame
-- 500 ms idle: `catchUp()` finalizes the band up to the caret
-- LM on idle: span prompt built, stream/merge happens strictly within band
+- 500 ms idle: `catchUp()` finalizes the active region up to the caret
+- LM on idle: span prompt built, stream/merge happens strictly within active region
 
 ## macOS injection (how text actually changes)
 
 - **AX APIs**: insert text diff where supported.
 - **Clipboard fallback**: copy replacement span + `Cmd‑V` if needed.
-- **Undo**: group LM/rule edits so one `Cmd‑Z` reverts the sweep.
+- **Undo**: group LM/rule edits so one `Cmd‑Z` reverts the correction cycle.
 - See `docs/06-guides/06-02-how-to/mac-app-details.md` and `docs/06-guides/06-03-reference/injector.md`.
 
 ## Security & IME (when to do nothing)
@@ -228,20 +228,20 @@ export function emitActiveRegion(_range: { start: number; end: number }) {
 ## Tuning playbook (what to tweak first)
 
 - **Typing tick (ms)**: 60–90 ms feels lively; 120 ms for reduced‑motion.
-- **Active region size**: start 3–8 words; enlarge only if LM is highly precise. The older term “tapestry” is now “active region”.
+- **Active region size**: up to 20 words maximum; optimize for precision and performance. The older term "tapestry" is now "active region".
 - **Cooldown**: 300–500 ms after a merge to avoid spam.
 
 ## How we know it works (tests you can trust)
 
 - **Unit**: caret safety, surrogate pairs, policy guards, device detection.
-- **Integration**: diffusion ticks, band trailing, catch‑up on pause.
+- **Integration**: diffusion ticks, active region trailing, catch‑up on pause.
 - **BDD**: acceptance scenarios for streamed diffusion and local LM.
 - **E2E**: web demo Playwright (soon) and macOS sample app.
 
 ## Common pitfalls (we fixed or prevented)
 
 - Mid‑word edits: banned by policy; wait for a boundary.
-- Large rewrites: token cap and span cap; stream only inside band.
+- Large rewrites: token cap and span cap; stream only inside active region.
 - Caret jumps: injector preserves caret; diffs never reach it.
 - Over‑correction: confidence gating and rules‑first precedence.
 

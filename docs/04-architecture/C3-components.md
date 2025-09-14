@@ -23,7 +23,7 @@
 - BackfillWorker (`crates/core-rs/src/workers/backfill.rs`): stable‑zone corrections.
 - DiffModule (`crates/core-rs/src/diff.rs`): replaceRange with caret safety. REQ-IME-CARETSAFE
 - DiffusionController (`crates/core-rs/src/diffusion.rs`): advances a frontier, requests word‑bounded diffs, updates the active region, catches up on pause.
-- Highlighter (`web-demo/src/components/highlighter.tsx`): active region (3–8 words behind caret) with subtle shimmer and reduced‑motion fallback; draws‑in corrections smoothly.
+- Highlighter (`web-demo/src/components/highlighter.tsx`): active region (20 words behind caret) with subtle shimmer and reduced‑motion fallback; draws‑in corrections smoothly.
   - REQ-A11Y-MOTION
 - GroupUndo (`web-demo/src/components/groupUndo.tsx`): optional grouping of host‑applied diffs. Active region/LM evolutions are excluded; they must preserve native undo behavior.
 

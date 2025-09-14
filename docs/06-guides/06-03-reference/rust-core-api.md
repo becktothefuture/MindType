@@ -154,7 +154,7 @@ pub enum CorrectionType {
     Capitalization,     // Case correction
     Grammar,            // Grammar rule
     Context,            // Context-aware fix
-    Tone,               // Tone adjustment
+    Tone,               // ToneWorker
 }
 ```
 
@@ -415,7 +415,7 @@ pub struct ErrorResponse {
 
 | Performance Mode | Latency Target | Memory Usage | Features |
 |-----------------|---------------|--------------|----------|
-| Realtime | < 5ms | < 10MB | Noise corrections only |
+| Realtime | < 5ms | < 10MB | NoiseWorker only |
 | Balanced | < 20ms | < 30MB | Noise + Grammar |
 | Quality | < 50ms | < 50MB | All corrections + LM |
 
@@ -485,19 +485,83 @@ pub fn validate_correction(correction: &Correction, text: &str, caret: usize) ->
 
 ## Grapheme-safe ranges & index mapping
 
-- Canonical units:
-  - UI layers (JS/Swift) report positions in UTF-16 code units.
-  - Rust core operates on UTF-8 byte indices.
-  - All edit ranges MUST align to Unicode grapheme cluster boundaries (UAX #29).
-- Mapping rules:
-  - Convert UI UTF-16 positions to UTF-8 byte offsets using validated helpers.
-  - Reject ranges that split grapheme clusters (e.g., ZWJ emoji, combining marks).
-  - Provide tests covering emoji with skin tones, ZWJ sequences, accented characters.
-- Implementation guidance:
-  - Use ICU/`unicode-segmentation` or platform segmenters for grapheme boundaries.
-  - Carry both caret and range metadata where helpful, but normalize to grapheme-safe byte ranges before processing.
-- Safety:
-  - If mapping fails or boundaries are invalid, return a structured error and skip edits.
+### Canonical Units & Conversion
+
+- **UI Layer Positions**: JavaScript and Swift report text positions in UTF-16 code units
+- **Rust Core Indices**: All internal processing uses UTF-8 byte indices for efficiency
+- **Boundary Requirement**: All edit ranges MUST align to Unicode grapheme cluster boundaries (UAX #29)
+
+### Mapping Rules & Validation
+
+```rust
+/// Convert UTF-16 position to UTF-8 byte offset with grapheme validation
+pub fn utf16_to_utf8_grapheme_safe(text: &str, utf16_pos: usize) -> Result<usize, MappingError> {
+    // Validate UTF-16 position is at grapheme boundary
+    // Convert to UTF-8 byte offset
+    // Return error if boundary is invalid
+}
+
+/// Validate that range aligns to grapheme boundaries
+pub fn validate_grapheme_range(text: &str, start: usize, end: usize) -> Result<(), MappingError> {
+    // Check both start and end positions
+    // Ensure no splitting of emoji, ZWJ sequences, combining marks
+}
+```
+
+### Implementation Requirements
+
+- **Boundary Detection**: Use `unicode-segmentation` crate's `GraphemeCluster` iterator
+- **Validation Points**: All text positions from UI layers must be validated before processing
+- **Error Handling**: Invalid boundaries return structured errors and skip edits safely
+- **Performance**: Cache grapheme boundaries for frequently accessed text ranges
+
+### Test Coverage Requirements
+
+- **Emoji Sequences**: Skin tone modifiers (👋🏽), gender variants (👨‍💻), family sequences (👨‍👩‍👧‍👦)
+- **ZWJ Sequences**: Zero-width joiner combinations, professional emojis
+- **Combining Characters**: Accented letters (é, ñ, 中), diacritical marks
+- **Bidirectional Text**: Arabic, Hebrew mixed with Latin scripts
+- **Edge Cases**: Text boundaries, empty strings, single-character ranges
+
+### Platform-Specific Considerations
+
+#### Web (JavaScript)
+```typescript
+// Convert JavaScript string index to grapheme-safe position
+function toGraphemeBoundary(text: string, position: number): number {
+  const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+  // Implementation details...
+}
+```
+
+#### macOS/iOS (Swift)
+```swift
+// Use NSString's enumerateSubstrings for grapheme detection
+func graphemeSafeRange(in text: String, utf16Range: NSRange) -> Range<String.Index>? {
+  // Implementation using NSString.EnumerationOptions.byComposedCharacterSequences
+}
+```
+
+### Error Types
+
+```rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum MappingError {
+    /// Position splits a grapheme cluster
+    GraphemeBoundarySplit { position: usize, cluster_info: String },
+    /// UTF-16 position is out of bounds
+    PositionOutOfBounds { position: usize, text_length: usize },
+    /// Invalid UTF-8 sequence encountered
+    InvalidUtf8Sequence { byte_offset: usize },
+}
+```
+
+### Safety Guarantees
+
+- **No Data Corruption**: Invalid mappings never modify text
+- **Graceful Degradation**: Mapping failures result in no-op, not crashes
+- **Consistent Behavior**: Same validation logic across all platforms
+- **Performance**: O(1) validation for cached boundaries, O(n) for new text
 
 ## Migration Path
 
