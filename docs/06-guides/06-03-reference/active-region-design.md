@@ -5,7 +5,7 @@ invariants:
   - Context can extend beyond render band but never crosses secure fields
   - Render range must not include caret position (REQ-IME-CARETSAFE)
 modules:
-  - core/activeRegionPolicy.ts
+  - crates/core-rs/src/active_region.rs
 -->
 
 #### In simple terms
@@ -60,3 +60,11 @@ modules:
 
 - Visual snapshots in reduced/non‑reduced motion.
 - E2E asserts overlay/flash appear and clear; caret unchanged.
+
+## Live region (ARIA) specifics
+
+- role="status", aria-live="polite" by default; avoid assertive unless explicitly requested.
+- Batch announcements within 150–250 ms window; emit one message per batch.
+- Cancel pending announcements on new input or caret movement; do not queue.
+- Keep copy short and neutral (e.g., "Text updated behind cursor").
+- Respect reduced-motion: announcements still occur, but visuals are static.

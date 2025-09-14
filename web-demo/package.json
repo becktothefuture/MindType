@@ -11,6 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/geist": "5.2.6",
+    "@fontsource/geist-mono": "5.2.6",
     "@huggingface/transformers": "^3.7.2",
     "@mindtype/core": "file:../bindings/wasm/pkg",
     "react": "^19.1.0",

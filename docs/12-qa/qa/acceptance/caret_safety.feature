@@ -9,7 +9,7 @@
 Feature: Caret-safe diffs (REQ-IME-CARETSAFE)
   Scenario: No edits when caret mid-word
     Given the text "hel|lo" with caret at position 3
-    When the tidy sweep runs
+    When the noise correction runs
     Then no edit is proposed
 
 

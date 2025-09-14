@@ -25,20 +25,20 @@
 
 ## The Mental Model (fast map)
 
-- **Keystrokes → Events**: `TypingMonitor` emits `{ text, caret, atMs }`. See `core/typingMonitor.ts`.
-- **Scheduler**: `SweepScheduler` paces streaming ticks (~60–90 ms) and catch‑up after ~500 ms idle. See `core/sweepScheduler.ts`.
-- **Diffusion**: `DiffusionController` moves a frontier toward the caret, validating word‑by‑word in a trailing band (3–8 words). See `core/diffusionController.ts` and `docs/06-guides/06-03-reference/band-policy.md`.
-- **Engines**: Rules (`engines/noiseTransformer.ts`) and LM stream. Rules fix structure (typos, spaces). LM fixes semantics via the Context transformer (`engines/contextTransformer.ts`) with dual-context windows; Tone transformer (`engines/toneTransformer.ts`) is in progress. See `docs/06-guides/06-03-reference/lm.md`.
-- **Merge**: Apply tiny diffs, never at/after the caret; Unicode‑safe. TS: `utils/diff.ts`. Rust: `docs/06-guides/06-03-reference/rust-merge.md` (target).
+- **Keystrokes → Events**: `InputMonitor` emits `{ text, caret, atMs }`. See `crates/core-rs/src/monitor.rs`.
+- **Scheduler**: `CorrectionScheduler` paces streaming ticks (~60–90 ms) and catch‑up after ~500 ms idle. See `crates/core-rs/src/scheduler.rs`.
+- **Diffusion**: `DiffusionController` moves a frontier toward the caret, validating word‑by‑word in a trailing active region (3–8 words). See `crates/core-rs/src/diffusion.rs` and `docs/06-guides/06-03-reference/active-region-policy.md`.
+- **Engines**: Rules (`crates/core-rs/src/workers/noise.rs`) and LM stream. Rules fix structure (typos, spaces). LM fixes semantics via the Context worker (`crates/core-rs/src/workers/context.rs`) with dual-context windows; Tone worker (`crates/core-rs/src/workers/tone.rs`) is in progress. See `docs/06-guides/06-03-reference/lm.md`.
+- **Merge**: Apply tiny diffs, never at/after the caret; Unicode‑safe. Rust: `crates/core-rs/src/diff.rs`. See `docs/06-guides/06-03-reference/rust-merge.md`.
 - **Host Injection**: Web updates a textarea; macOS uses Accessibility APIs. Contract in `docs/06-guides/06-03-reference/injector.md`.
 
-## Band (the trailing “safe zone”)
+## Active region (the trailing “safe zone”)
 
 - Think: a highlight a few words behind your cursor. Corrections happen inside it.
 - Size: tunable (defaults 3–8 words), moves as you type. See `config/defaultThresholds.ts`. For LM context, we use sentences: N previous sentences (2–5, default 3), active sentence excluded except prefix to caret.
 - Two uses:
-  - **Render range**: What you see as the band.
-  - **Context range**: What the LM reads around the span. See `docs/06-guides/06-03-reference/band-policy.md`.
+  - **Render range**: What you see as the active region.
+  - **Context range**: What the LM reads around the span. See `docs/06-guides/06-03-reference/active-region-policy.md`.
 
 ## Rules vs LM (who fixes what)
 
@@ -64,20 +64,20 @@
 
 ## How a character becomes correct (fast path)
 
-1. You press a key → `TypingMonitor` emits an event → `SweepScheduler` schedules a streaming tick.
+1. You press a key → `InputMonitor` emits an event → `CorrectionScheduler` schedules a streaming tick.
 2. `DiffusionController` advances one word → rules apply a tiny diff (if safe).
 3. After a pause, controller catches up to the caret. If LM is on: it selects a short span, prompts, streams, merges safely.
 4. UI shows a subtle band and highlight. Caret never moves. Undo is one step.  
-   See: `core/sweepScheduler.ts`, `core/diffusionController.ts`, `engines/noiseTransformer.ts`, `docs/06-guides/06-03-reference/lm.md`.
+   See: `crates/core-rs/src/scheduler.rs`, `crates/core-rs/src/diffusion.rs`, `crates/core-rs/src/workers/noise.rs`, `docs/06-guides/06-03-reference/lm.md`.
 
 ## Deep‑dive links (pick your lane)
 
 - Product constraints: `docs/01-prd/01-PRD.md`, `docs/adr/0003-architecture-constraints.md`
 - Architecture: `docs/04-architecture/README.md`, `docs/04-architecture/C1-context.md`, `C2-containers.md`, `C3-components.md`
 - Core engines: `engines/noiseTransformer.ts`, `engines/backfillConsistency.ts`
-- Diffusion & Band: `core/diffusionController.ts`, `docs/06-guides/06-03-reference/band-policy.md`
+- Diffusion & Band: `core/diffusionController.ts`, `docs/06-guides/06-03-reference/active-region-policy.md`
 - LM reference: `docs/06-guides/06-03-reference/lm.md`, `core/lm/policy.ts`, `crates/core-rs/src/*`
-- Merge safety: `utils/diff.ts`, `docs/06-guides/06-03-reference/rust-merge.md`, ADR‑0002
+- Merge safety: `crates/core-rs/src/diff.rs`, `docs/06-guides/06-03-reference/rust-merge.md`, ADR‑0002
 - A11y & UI: `ui/highlighter.ts`, `ui/liveRegion.ts`, `ui/motion.ts`, `docs/a11y/wcag-checklist.md`
 - macOS app: `docs/06-guides/06-02-how-to/mac-app-details.md`
 
@@ -92,7 +92,7 @@
 
 1. `docs/04-architecture/README.md` (big picture)
 2. `docs/06-guides/06-03-reference/lm.md` (span + worker + merge rules)
-3. `docs/06-guides/06-03-reference/band-policy.md` (render vs context)
+3. `docs/06-guides/06-03-reference/active-region-policy.md` (render vs context)
 4. `docs/06-guides/06-03-reference/injector.md` (how hosts apply diffs)
 5. `docs/06-guides/06-03-reference/rust-merge.md` (low‑level merge safety)
 
@@ -100,7 +100,7 @@
 
 ## Zoom in: Why “diffusion” instead of “big apply”
 
-- **Diffusion**: validate/apply one word at a time in a trailing band.
+- **Diffusion**: validate/apply one word at a time in a trailing active region.
   - **Why**: micro‑edits feel instant, are safer, and match undo semantics.
   - **Feels like**: video streaming – you get a usable picture early, it
     sharpens as data arrives.
@@ -115,7 +115,7 @@
 - **Word‑bounded**: never ends mid‑word; optimizes both UX and model prompts.
 - **Size**: 3–8 words defaults hit a sweet spot (signal vs latency). Tunable.
 - **Line‑aware**: render range avoids crossing fresh newlines for stability.
-  See `docs/06-guides/06-03-reference/band-policy.md`.
+  See `docs/06-guides/06-03-reference/active-region-policy.md`.
 
 ## Caret safety: the core invariant
 
@@ -148,7 +148,7 @@ export function replaceRange(
 
 - **Span selection**: pick a short span near the caret, end on a boundary.
 
-```41:56:core/lm/policy.ts
+```60:67:core/lm/policy.ts
 export function selectSpanAndPrompt(
   text: string,
   caret: number,
@@ -199,9 +199,9 @@ export function emitActiveRegion(_range: { start: number; end: number }) {
 
 ## Timing: a feel‑good timeline (typical)
 
-- 0 ms: keydown → `TypingMonitor.emit`
-- ~0–4 ms: `SweepScheduler` ticks, `DiffusionController.tickOnce`
-- ~4–10 ms: band recomputed; rules propose a tiny diff (or advance frontier)
+- 0 ms: keydown → `InputMonitor.emit`
+- ~0–4 ms: `CorrectionScheduler` ticks, `DiffusionController.tickOnce`
+- ~4–10 ms: active region recomputed; rules propose a tiny diff (or advance frontier)
 - ~10–16 ms: `emitActiveRegion` dispatches; UI paints at next frame
 - 500 ms idle: `catchUp()` finalizes the band up to the caret
 - LM on idle: span prompt built, stream/merge happens strictly within band
@@ -228,7 +228,7 @@ export function emitActiveRegion(_range: { start: number; end: number }) {
 ## Tuning playbook (what to tweak first)
 
 - **Typing tick (ms)**: 60–90 ms feels lively; 120 ms for reduced‑motion.
-- **Band size**: start 3–8 words; enlarge only if LM is highly precise. The older term “tapestry” is now “active region”.
+- **Active region size**: start 3–8 words; enlarge only if LM is highly precise. The older term “tapestry” is now “active region”.
 - **Cooldown**: 300–500 ms after a merge to avoid spam.
 
 ## How we know it works (tests you can trust)
@@ -256,5 +256,5 @@ export function emitActiveRegion(_range: { start: number; end: number }) {
 
 - **Active region**: trailing region where we are “confident now”.
 - **Frontier**: leftmost index not yet validated – it chases the caret.
-- **Span**: the exact sub‑range we propose to replace (inside the band).
+- **Span**: the exact sub‑range we propose to replace (inside the active region).
 - **Caret‑safe**: no change at/after the caret, Unicode boundaries respected.

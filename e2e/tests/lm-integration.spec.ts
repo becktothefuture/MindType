@@ -23,7 +23,7 @@ test('LM integration: can enable real LM and see loading state', async ({ page }
   await expect(textarea).toBeVisible();
   
   // Find and enable the LM checkbox
-  const lmCheckbox = page.getByRole('checkbox', { name: /Enable Qwen2\.5-0\.5B/ });
+  const lmCheckbox = page.getByRole('checkbox', { name: /Enable LM/i });
   await expect(lmCheckbox).toBeVisible();
   
   // Enable LM and watch console for loading messages
@@ -56,7 +56,7 @@ test('LM integration: typing with LM enabled shows active region', async ({ page
   
   // Enable LM
   // LM might already be enabled by default; attempt to locate toggle without requiring change
-  const lmCheckbox = page.getByRole('checkbox', { name: /Enable Qwen2\.5-0\.5B/ });
+  const lmCheckbox = page.getByRole('checkbox', { name: /Enable LM/i });
   if (await lmCheckbox.isChecked()) {
     // leave as-is
   } else {
@@ -94,7 +94,7 @@ test('LM integration: debug panel shows LM information when enabled', async ({ p
   await page.keyboard.press('Alt+Shift+Meta+l'); // ⌥⇧⌘L
   
   // Enable LM
-  const lmCheckbox2 = page.getByRole('checkbox', { name: /Enable Qwen2\.5-0\.5B/ });
+  const lmCheckbox2 = page.getByRole('checkbox', { name: /Enable LM/i });
   if (!(await lmCheckbox2.isChecked())) await lmCheckbox2.check();
   await page.waitForTimeout(1000);
   
@@ -131,7 +131,7 @@ test('LM integration: handles model loading gracefully', async ({ page }) => {
   });
   
   // Enable LM
-  const lmCheckbox = page.getByRole('checkbox', { name: /Enable Qwen2\.5-0\.5B/ });
+  const lmCheckbox = page.getByRole('checkbox', { name: /Enable LM/i });
   await lmCheckbox.check();
   
   // Wait for potential model loading

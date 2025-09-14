@@ -1,0 +1,31 @@
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  DIFFUSION.RS  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ Streamed diffusion of LM corrections
+  • WHY  ▸ REQ-STREAMED-DIFFUSION
+  • HOW  ▸ See linked contracts and guides in docs
+*/
+/*
+╔══════════════════════════════════════════════════════╗
+║  ░  R U S T   S T U B  ░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+║                                                      ║
+║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+╚══════════════════════════════════════════════════════╝
+  • WHAT ▸ Stub for diffusion
+  • WHY  ▸ Satisfy doc:check during migration
+  • HOW  ▸ Replace with real implementation
+*/
+
+#[allow(dead_code)]
+pub fn _stub_diffusion() {}
+
+

@@ -9,7 +9,7 @@
 | `engines/`           | Noise, Context (implemented), Tone (partial)          |
 | `utils/`             | Pure helpers (diff/caret safety)                      |
 | `ui/`                | Swap renderer, highlighter, live region (a11y)        |
-| `tests/`             | Unit tests for TS core/engines/utils                  |
+| `tests/`             | Unit tests for remaining TypeScript UI components     |
 | `tests/performance/` | Performance benchmarks and device tier tests          |
 | `crates/core-rs/`    | Rust core (compiled to WASM for the web)              |
 | `bindings/swift/`    | Swift FFI bridge for macOS integration                |
@@ -22,4 +22,4 @@
 Notes:
 
 - The demo lives in `web-demo/`.
-- The older term `tapestry` is now `active region`; see `core/activeRegion.ts`.
+- The older term `tapestry` is now `active region`; see `crates/core-rs/src/active_region.rs`.

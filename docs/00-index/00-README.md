@@ -83,7 +83,7 @@ Shortcuts:
 
 - Caret: The text insertion cursor in an editor.
 - Active region: Small neighborhood behind the caret used for safe corrections.
-- Sweep: Lightweight pass that tidies recent input without heavy model calls.
+- Correction: Lightweight pass that fixes recent input without heavy model calls.
 
 ## Conventions
 

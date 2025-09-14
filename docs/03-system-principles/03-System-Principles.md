@@ -34,10 +34,10 @@ principle links to deeper docs that hold the technical details.
 - Guidance: Keep the person in flow. Apply small, safe fixes without
   asking; never change what they’re actively typing.
 - Examples:
-  - While the person types, hold back; when they pause, tidy what was
+  - While the person types, hold back; when they pause, correct what was
     written without moving the caret.
   - If they resume typing, drop any pending idea silently.
-- See also: [PRD](../PRD.md), [Caret-safe diff (ADR)](../05-adr/0002-caret-safe-diff.md), [Active region policy](./06-guides/06-03-reference/band-policy.md), [Acceptance: caret safety](qa/acceptance/caret_safety.feature)
+- See also: [PRD](../PRD.md), [Caret-safe diff (ADR)](../05-adr/0002-caret-safe-diff.md), [Active region policy](./06-guides/06-03-reference/active-region-policy.md), [Acceptance: caret safety](qa/acceptance/caret_safety.feature)
 
 - 2. Keep the surface calm
 
@@ -68,7 +68,7 @@ principle links to deeper docs that hold the technical details.
 - Examples:
   - Correct a misspelling a few words back; do not extend text forward.
   - If a change would cross the caret, skip it.
-- See also: [Caret-safe diff (ADR)](../05-adr/0002-caret-safe-diff.md), [Band policy](./06-guides/06-03-reference/band-policy.md), [Acceptance: caret safety](qa/acceptance/caret_safety.feature)
+- See also: [Caret-safe diff (ADR)](../05-adr/0002-caret-safe-diff.md), [Active region policy](./06-guides/06-03-reference/active-region-policy.md), [Acceptance: caret safety](qa/acceptance/caret_safety.feature)
 
 5. Private by default
 
@@ -85,7 +85,7 @@ principle links to deeper docs that hold the technical details.
 - Guidance: When asked, say what changed and why, without exposing user
   content.
 - Examples:
-  - “Shortened to fit the safe band.”
+  - "Shortened to fit the safe active region."
   - “Dropped result because you kept typing.”
 - See also: [Web demo details](./06-guides/06-02-how-to/web-demo-details.md), [Implementation](../02-implementation/02-Implementation.md)
 
@@ -124,7 +124,7 @@ principle links to deeper docs that hold the technical details.
 - Examples:
   - Fix “teh quick” to “the quick,” but don’t rewrite the sentence.
   - Leave longer rephrasing to deliberate user actions.
-- See also: [Active region policy](./06-guides/06-03-reference/band-policy.md), [Caret-safe diff (ADR)](../05-adr/0002-caret-safe-diff.md)
+- See also: [Active region policy](./06-guides/06-03-reference/active-region-policy.md), [Caret-safe diff (ADR)](../05-adr/0002-caret-safe-diff.md)
 
 ### Performance & Reliability
 
@@ -156,7 +156,7 @@ principle links to deeper docs that hold the technical details.
   expansion beyond the region or caret.
 - Examples:
   - Auto-apply grammar/punctuation micro-fixes silently; never add tokens
-    at/after the caret and never expand outside the band.
+    at/after the caret and never expand outside the active region.
   - If the caret enters the active region mid-process, cancel pending merges and
     drop stale results immediately.
 
@@ -165,7 +165,7 @@ principle links to deeper docs that hold the technical details.
 - Behaviour: Maintain typing flow. Prefer micro-suggestions over blocks;
   defer heavy work during active bursts; resume in quiet gaps.
 - Examples:
-  - Skip LM calls if pause < SHORT_PAUSE_MS (300ms); rely on rules-only tidy sweep
+  - Skip LM calls if pause < SHORT_PAUSE_MS (300ms); rely on rules-only noise correction
     until a longer pause is detected.
   - Batch multiple small diffs into a single grouped undo step to keep
     rhythm and reduce cognitive churn.
@@ -209,7 +209,7 @@ principle links to deeper docs that hold the technical details.
   active region. System corrections do not enter the host undo stack.
 - Examples:
   - The merge engine clamps LM output to `ActiveRegionPolicy.range`, trimming
-    tokens that cross caret or leave the band.
+    tokens that cross caret or leave the active region.
   - No grouped undo entries are created for auto-applied corrections.
 
 6. Local-first privacy
@@ -233,8 +233,8 @@ principle links to deeper docs that hold the technical details.
 - Examples:
   - In DebugPanel, show: model tier, tokens requested, active region size, and
     reason codes (e.g., "caret-entered", "stale-result"); avoid showing raw user text.
-  - Provide a toggleable inline explainer: "Suggestion truncated to band
-    width to preserve caret safety."
+  - Provide a toggleable inline explainer: "Suggestion truncated to active region
+    to preserve caret safety."
 
 8. Fail-soft defaults
 
@@ -255,13 +255,13 @@ principle links to deeper docs that hold the technical details.
   when it improves determinism. Outputs must be plain text and
   sanitized.
 - Examples:
-  - Prompt contains only task-relevant window + band, not entire doc.
+  - Prompt contains only task-relevant window + active region, not entire doc.
   - Control-plane JSON may be included to guide the model, but outputs
     are sanitized to plain text (strip labels/guillemets; clamp length).
 
 10. Single-flight orchestration
 
-- Behaviour: Only one in-flight generation per band. New input aborts
+- Behaviour: Only one in-flight generation per active region. New input aborts
   the old request; stale responses are ignored.
 - Examples:
   - When typing resumes, immediately `abort()` the active fetch and

@@ -10,8 +10,8 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ No edits at or after the caret; Active region policy (render vs context ranges); LMAdapter streaming contract
-  • WHY  ▸ REQ-IME-CARETSAFE, CONTRACT-ACTIVE-REGION, CONTRACT-LM-ADAPTER
+  • WHAT ▸ LMAdapter streaming contract
+  • WHY  ▸ CONTRACT-LM-ADAPTER
   • HOW  ▸ See linked contracts and guides in docs
 */
 

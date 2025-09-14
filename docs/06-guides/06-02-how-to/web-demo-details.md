@@ -25,7 +25,7 @@ The demo renders luminous particle bursts under a frosted glass layer. It is des
 - Surface: `<textarea>` for editing plus an overlay `div` for active-region/highlights.
 - Overlay: CSS highlight of the active region and applied diffs; reduced-motion supported.
 - Loop: typing tick cadence (configurable) and pause catch-up.
-- Persistence: versioned settings in localStorage (tick, band size) with sane defaults.
+- Persistence: versioned settings in localStorage (tick, active region size) with sane defaults.
 
 ## Controls that influence animation
 
@@ -99,14 +99,14 @@ The demo serves three goals:
 
 Current state:
 
-- The demo uses a simple `<textarea>` and is wired to the TypeScript streaming pipeline (TypingMonitor → SweepScheduler → DiffusionController) for real‑time active region and corrections. LM integration uses the shared `core/lm/*` stack with device‑tier fallbacks.
+- The demo uses a simple `<textarea>` and is wired to the Rust core via WASM for real‑time active region and corrections. The UI layer (TypeScript) handles visual feedback while the Rust core performs all correction logic. LM integration is handled by the Rust core with device‑tier fallbacks.
 
 ## Components (what each piece does)
 
 - **App.tsx**: The demo shell; wires typing to `boot()` and renders controls.
-- **Typing/Caret handling**: `core/typingMonitor.ts` emits `TypingEvent`s; `core/security.ts` gates secure/IME.
-- **Pipeline**: `core/sweepScheduler.ts` schedules Noise during typing and Context/Tone on pause.
-- **LM stack**: `core/lm/{factory.ts,transformersClient.ts,transformersRunner.ts}` provides local LM with WebGPU→WASM→CPU fallback.
+- **Typing/Caret handling**: UI layer captures input events; Rust core handles security/IME gating.
+- **Pipeline**: Rust core scheduler handles Noise during typing and Context/Tone on pause.
+- **LM stack**: Rust core LM modules provide local LM with WebGPU→WASM→CPU fallback.
 - **UI Polish**: `ui/highlighter.ts`, `ui/swapRenderer.ts`, `ui/liveRegion.ts` for visuals and SR.
 
 ## User Flow (step-by-step)
@@ -116,7 +116,7 @@ Current state:
 3. **Live Corrections**: While typing, a typing tick (~60–90 ms) advances a trailing active region (typically 3–8 words long) behind the caret.
 4. **Rule Application**: Rules apply minimal, caret‑safe patches within that region.
 5. **LM Processing**: After ~600 ms of idle time, Context stage engages with dual-context LM processing.
-6. **Visual Feedback**: Corrections apply atomically via `replaceRange` with braille animation sweep.
+6. **Visual Feedback**: Corrections apply atomically via `replaceRange` with dot matrix wave animation.
 7. **Accessibility**: Screen reader announces "Text corrected behind cursor" for applied changes.
 
 ### How the layers talk (ASCII map)
@@ -125,10 +125,10 @@ Current state:
 [Your typing]
      |
      v
-TypingMonitor (TS) -- emits {text, caret, atMs}
+InputMonitor (Rust) -- emits {text, caret, atMs}
      |
      v         TYPING_TICK_MS (streaming) + SHORT_PAUSE_MS (600ms demo-tuned)
-SweepScheduler (TS) ──── DiffusionController ──── Noise → Context → Tone
+CorrectionScheduler (Rust) ──── DiffusionController ──── Noise → Context → Tone
      |                           |
      v                           v
  LM (local, device-tiered)   Active Region (3–8 words)

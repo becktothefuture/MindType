@@ -1,8 +1,9 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import "@fontsource/geist/index.css";
+import "@fontsource/geist-mono/index.css";
 import "./index.css";
 import App from "./App.tsx";
-import LMLab from "./lab/LMLab";
 import DemoShowcase from "./DemoShowcase.tsx";
 import { createCaretShim } from "./caretShim";
 
@@ -15,11 +16,10 @@ function Root() {
     handler();
     return () => window.removeEventListener('hashchange', handler);
   }, []);
-  const isLab = hash === '#/lab';
   const isDemos = hash === '#/demos';
   return (
     <StrictMode>
-      {isDemos ? <DemoShowcase /> : isLab ? <LMLab /> : <App />}
+      {isDemos ? <DemoShowcase /> : <App />}
     </StrictMode>
   );
 }

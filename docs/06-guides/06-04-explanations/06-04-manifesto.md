@@ -34,7 +34,7 @@ Mind::Type is a smart typing layer that quietly fixes mistakes and smooths your 
 
 ### What it does (and what it won’t)
 
-- Proposes tiny, reversible edits just behind your cursor (the “tidy sweep”).
+- Proposes tiny, reversible edits just behind your cursor (noise correction).
 - Backfills consistency across stable zones — punctuation, capitalization, names.
 - Groups fixes into a single undo step so you stay in control.
 - Honors system accessibility settings; keeps visuals subtle.
@@ -51,7 +51,7 @@ Mind::Type is a smart typing layer that quietly fixes mistakes and smooths your 
 ### Signature features
 
 - Caret‑safe diffs: Edits happen only in the stable zone behind your cursor.
-- Tidy Sweep: A forward pass that fixes small errors within a short window.
+- Noise Correction: A forward pass that fixes small errors within a short window.
 - Backfill Consistency: A reverse pass that polishes with context when you pause.
 - Local Intelligence: Small on‑device language models handle semantic and grammatical corrections, falling back gracefully to rule‑based fixes. No cloud by default, no data retention, no latency spikes. Optional remote runs via encrypted channels with explicit opt‑in. First target: Qwen2.5‑0.5B‑Instruct via Transformers.js with q4 quantization and WebGPU acceleration (privacy‑preserving, fast, text‑centric).
 - Gentle visuals: Mechanical swap only with an optional braille‑like marker at swap sites; announce once per batch via screen reader when enabled. Honors reduced‑motion with instant swaps.

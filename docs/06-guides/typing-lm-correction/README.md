@@ -32,13 +32,13 @@ the guardrails that keep edits safe around the active region (formerly
 - **User feels**: Supported, not overruled. Confidence grows as spelling and
   phrasing quietly improve. Flow is maintained by avoiding focus shifts and
   preventing edits at/after the caret.
-- **Flow originates**: From predictable cadence, band-bounded merges, and the
+- **Flow originates**: From predictable cadence, active-region-bounded merges, and the
   absence of interaction costs. The system times itself to the user, not the
   other way around.
 
 ### Principles respected
 
-- No edits at/after the caret; merges occur only within the validation band
+- No edits at/after the caret; merges occur only within the active region
   behind the caret.
 - Single‑flight LM calls with abort; stale results are dropped.
 - Device-tier aware cadence and token limits; silent degrade on errors.
@@ -53,7 +53,7 @@ flowchart TB
     A[Start typing] --> B[System observes keystrokes]
     B --> C{Short pause?}
     C -- No --> B
-    C -- Yes (>= debounce) --> D[Band armed behind caret]
+    C -- Yes (>= debounce) --> D[Active region armed behind caret]
     D --> E[Tick window opens]
     E --> F{Minimal diff exists?}
     F -- No --> G[Do nothing; keep observing]
@@ -61,7 +61,7 @@ flowchart TB
     H --> I[Single-flight LM request]
     I --> J{Result on time and relevant?}
     J -- No / stale --> G
-    J -- Yes --> K[Merge policy applies edits in band only]
+    J -- Yes --> K[Merge policy applies edits in active region only]
     K --> L[Subtle visual cue optional short fade]
     L --> M[Screen reader live region brief change summary]
     M --> N[Return to observing; user keeps typing]
@@ -81,7 +81,7 @@ Notes:
 sequenceDiagram
     participant U as User
     participant E as Editor
-    participant TM as TypingMonitor
+    participant TM as InputMonitor
     participant DC as DiffusionController
     participant LM as LMAdapter
     participant MP as MergePolicy
@@ -90,11 +90,11 @@ sequenceDiagram
     U->>E: Keypress stream
     E->>TM: caret position, text deltas
     TM->>DC: schedule tick if pause >= threshold
-    DC->>DC: compute diff within active band
+    DC->>DC: compute diff within active region
     alt has meaningful diff
-      DC->>LM: prompt with context range and band window
+      DC->>LM: prompt with context range and active region window
       LM-->>DC: candidate correction (single-flight)
-      TM-->>DC: caret moved? cancel if inside band
+      TM-->>DC: caret moved? cancel if inside active region
       DC->>MP: apply if fresh and safe
       MP->>E: text merge (no edits at/after caret)
       E->>UI: transient highlight (optional)
@@ -144,14 +144,14 @@ gantt
     section LM
     Single-flight request       : 265, 140
     section Merge
-    Merge in band (safe zone)   : 410, 40
+    Merge in active region (safe zone)   : 410, 40
     Visual cue fade             : 450, 120
 ```
 
 Guidance:
 
 - Actual durations are device-tier dependent and tuned via policy.
-- If the caret enters the band while the LM is in-flight, we abort and drop
+- If the caret enters the active region while the LM is in-flight, we abort and drop
   the result to prevent caret‑adjacent edits.
 
 ---
@@ -166,7 +166,7 @@ graph LR
       L[Live Region]
     end
     subgraph Core
-      TM[TypingMonitor]
+      TM[InputMonitor]
       DC[DiffusionController]
       MP[MergePolicy]
     end
@@ -209,7 +209,7 @@ Where hands‑off can fail, and how to improve:
   introduces a short cool‑off after merges.
 - **Semantic drift**: LM suggestions may subtly alter meaning. Clamp length,
   prefer high‑precision edits, and bias policies to spelling/grammar within
-  a narrow band by default; expand scope only when confidence is high.
+  a narrow active region by default; expand scope only when confidence is high.
 - **Caret collision**: Late LM results landing as the caret returns can feel
   jarring. Enforce strict abort on caret entry and require a fresh diff before
   any merge.
@@ -236,7 +236,7 @@ KPIs to watch:
 
 - **Predictability**: Fixed yet adaptive cadence establishes rhythm.
 - **Low salience**: Minimal, fast‑fading cues; never alter viewport or focus.
-- **Safety**: Band‑bounded merges avoid caret friction; undo is native.
+- **Safety**: Active region-bounded merges avoid caret friction; undo is native.
 - **Respect**: User remains author; corrections are suggestions expressed as
   done‑for‑you edits, not commands.
 

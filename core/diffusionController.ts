@@ -10,8 +10,8 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ Streamed diffusion of LM corrections; Context transformer with ±2 sentence look-around; Tone transformer with baseline detection and selectable tone; Confidence gating across pipeline stages; Integrate Noise → Context → Tone pipeline with staging buffer; English-only gating for full pipeline (Noise for others)
-  • WHY  ▸ REQ-STREAMED-DIFFUSION, REQ-CONTEXT-TRANSFORMER, REQ-TONE-TRANSFORMER, REQ-CONFIDENCE-GATE, REQ-THREE-STAGE-PIPELINE, REQ-LANGUAGE-GATING
+  • WHAT ▸ Context transformer with ±2 sentence look-around; Tone transformer with baseline detection and selectable tone; Confidence gating across pipeline stages; Integrate Noise → Context → Tone pipeline with staging buffer; English-only gating for full pipeline (Noise for others)
+  • WHY  ▸ REQ-CONTEXT-TRANSFORMER, REQ-TONE-TRANSFORMER, REQ-CONFIDENCE-GATE, REQ-THREE-STAGE-PIPELINE, REQ-LANGUAGE-GATING
   • HOW  ▸ See linked contracts and guides in docs
 */
 

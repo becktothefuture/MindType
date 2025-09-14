@@ -110,7 +110,7 @@ _Language: TypeScript + React + WASM_
 3. **Hooks**
    - `usePauseTimer` – Wraps PauseTimer and triggers typing ticks + pause catch-up.
    - `useMindType` – Connects diffusion → LLM → word-by-word merge.
-   - `DiffusionController` – Advances validation frontier; renders shimmer band.
+   - `DiffusionController` – Advances validation frontier; renders shimmer in active region.
 4. **Debug Panel** – React portal opened with ⌥⇧⌘L; lets you tweak settings live.
 
 ### How the layers talk (ASCII map)
@@ -119,10 +119,10 @@ _Language: TypeScript + React + WASM_
    [Your typing]
         |
         v
-   TypingMonitor (TS) -- emits {text, caret, atMs}
+   InputMonitor (Rust) -- emits {text, caret, atMs}
         |
         v         TYPING_TICK_MS (streaming) + SHORT_PAUSE_MS (catch-up)
-   SweepScheduler (TS) ──── DiffusionController ──── Noise → Context → Tone
+   CorrectionScheduler (Rust) ──── DiffusionController ──── Noise → Context → Tone
         |                           |
         v                           v
     LM (local)                 Active Region (3–8 words, shimmer)

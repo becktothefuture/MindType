@@ -43,7 +43,7 @@ See also: `core/diffusionController.ts` and `utils/diff.ts`.
 - `mindtype:activeRegion`
 - `mindtype:mechanicalSwap` (replaces legacy `mindtype:highlight`)
 
-## Undo policy
+## Undo Policy
 
-- Active region (formerly “tapestry”)/LM evolutions must preserve the platform editor's native undo stack.
-- Do not apply `groupUndo` to active‑region/LM merges; grouping (if any) is reserved for simple rule-based engine diffs and remains optional.
+- **Active Region** /LM evolutions must preserve the platform editor's native undo stack.
+- Do not apply `groupUndo` to **Active Region**/LM merges; grouping (if any) is reserved for simple rule-based engine diffs and remains optional.

@@ -25,5 +25,6 @@
 - [B A N D  S W A P   D E M O](./band-swap.md)
 - [D E M O   H E A D E R   R U L E](./demo-header.md)
 - [Cross‑Platform Matrix (v0.4)](./platform_matrix.md)
+- [T E R M I N O L O G Y   G U I D E](./terminology.md)
 - [typing-lm-correction](./typing-lm-correction/README.md)
 - [What’s New in v0.4](./whats-new-v0.4.md)

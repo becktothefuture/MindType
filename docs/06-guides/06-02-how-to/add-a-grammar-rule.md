@@ -11,9 +11,9 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ Add a safe grammar tidy rule
+    • WHAT ▸ Add a safe grammar correction rule
     • WHY  ▸ Improve fluency without changing voice
-    • HOW  ▸ Implement in `engines/noiseTransformer.ts`
+    • HOW  ▸ Implement in `crates/core-rs/src/workers/noise.rs`
 -->
 
 Checklist
