@@ -118,6 +118,10 @@ export async function contextTransform(
   lmAdapter?: LMAdapter,
   contextManager?: LMContextManager,
 ): Promise<TransformResult> {
+  // ⟢ Builds a sentence-aware window and proposes caret-safe diffs.
+  //    - Deterministic repairs first (cheap, predictable)
+  //    - Optional LM pass uses policy-driven band selection and confidence gating
+  //    - Never edits at/after caret; proposals are clamped to pre-caret span
   const { text, caret } = input;
   // Enhanced diagnostic logging for LM-501
   const diagnosticId = `ctx-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;

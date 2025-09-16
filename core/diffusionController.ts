@@ -47,6 +47,12 @@ export function createDiffusionController(
   policy?: ActiveRegionPolicy,
   getLMAdapter?: () => LMAdapter | null | undefined,
 ) {
+  // ⟢ Orchestrates the three-stage pipeline:
+  //   1) Noise: cheap, deterministic fixes within a short window behind caret
+  //   2) Context: sentence-scale repairs; may plan LM corrections
+  //   3) Tone: optional rephrasing within caret-safe pre-caret range
+  // The controller also renders the active region and applies LM streaming diffs
+  // with strict caret-safety. UndoIsolation groups system edits separately.
   // Safari/older browsers: Intl.Segmenter may be missing or partial. Provide a fallback.
   let seg: Intl.Segmenter | null = null;
   try {

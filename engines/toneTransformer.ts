@@ -57,6 +57,9 @@ export function planAdjustments(
   text: string,
   caret: number,
 ): ToneProposal[] {
+  // ⟢ Produces caret-safe style adjustments (pre-caret only).
+  //    Professional → expand contractions; Casual → introduce a few.
+  //    Keeps changes minimal and explainable; LM can later refine phrasing.
   if (target === 'None') return [];
   // Operate on last sentences before the caret only (caret-safe)
   const upto = caret;

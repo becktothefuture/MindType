@@ -20,8 +20,7 @@
 const fs = require('fs');
 const path = require('path');
 // ⟢ Deps
-const fg = require('fast-glob');
-const yaml = require('js-yaml');
+// NOTE: Avoid external deps to keep scripts runnable without install
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const DOCS_DIR = path.join(REPO_ROOT, 'docs');
@@ -40,7 +39,7 @@ function extractSpecBlocks(markdownText, filePath) {
     const kind = m[1].trim();
     const body = m[2];
     try {
-      const data = yaml.load(body);
+      const data = parseSpecYaml(body);
       if (!data || typeof data !== 'object') continue;
       data.__kind = kind;
       data.__source = filePath;
@@ -55,11 +54,152 @@ function extractSpecBlocks(markdownText, filePath) {
   return blocks;
 }
 
+/**
+ * Minimal YAML parser for SPEC blocks. Supports a safe subset:
+ * - key: value (scalars)
+ * - key: (array) with indented dash items (- item)
+ * - key: (array of objects) started with '- name:' style
+ * - special handling for 'ts: |' multiline blocks indented under a list item
+ */
+function parseSpecYaml(body) {
+  const lines = body
+    .replace(/^[\r\n]+|[\r\n]+$/g, '')
+    .split(/\r?\n/);
+  let i = 0;
+  const root = {};
+  let currentKey = null;
+  let currentArray = null;
+  let inMultiline = false;
+  let multilineIndent = 0;
+  let multilineTarget = null; // {obj, key}
+
+  function indentOf(s) {
+    let n = 0;
+    while (n < s.length && s[n] === ' ') n++;
+    return n;
+  }
+
+  function setScalar(obj, key, value) {
+    if (value === 'true') return (obj[key] = true);
+    if (value === 'false') return (obj[key] = false);
+    if (value === 'null') return (obj[key] = null);
+    // number?
+    if (/^-?\d+(?:\.\d+)?$/.test(value)) return (obj[key] = Number(value));
+    return (obj[key] = value);
+  }
+
+  while (i < lines.length) {
+    const raw = lines[i];
+    const line = raw.replace(/\t/g, '    ');
+    i++;
+    if (!line.trim()) continue;
+
+    if (inMultiline) {
+      const ind = indentOf(line);
+      if (ind < multilineIndent) {
+        // end block
+        inMultiline = false;
+        multilineIndent = 0;
+        multilineTarget = null;
+        // fallthrough to normal processing of this line
+      } else {
+        const text = line.slice(multilineIndent);
+        multilineTarget.obj[multilineTarget.key] += (multilineTarget.obj[multilineTarget.key]
+          ? '\n'
+          : '') + text;
+        continue;
+      }
+    }
+
+    const ind = indentOf(line);
+    const trimmed = line.slice(ind);
+
+    // Top-level key
+    if (ind === 0 && /:\s*/.test(trimmed) && !trimmed.startsWith('- ')) {
+      const [k, rest] = trimmed.split(/:\s*/, 2);
+      currentKey = k.trim();
+      if (rest === '') {
+        // key: (will expect list or map)
+        root[currentKey] = undefined;
+        currentArray = null;
+      } else {
+        setScalar(root, currentKey, rest.trim());
+        currentArray = null;
+      }
+      continue;
+    }
+
+    // Array items under currentKey
+    if (currentKey && ind > 0 && trimmed.startsWith('- ')) {
+      if (!Array.isArray(root[currentKey])) root[currentKey] = [];
+      currentArray = root[currentKey];
+      const afterDash = trimmed.slice(2);
+      // Object item like: "name: Foo" or scalar item
+      if (/^\w+\s*:/.test(afterDash)) {
+        const obj = {};
+        currentArray.push(obj);
+        // parse in-line first k:v
+        const [k, rest] = afterDash.split(/:\s*/, 2);
+        setScalar(obj, k.trim(), (rest || '').trim());
+        // Now parse following indented object lines
+        const baseIndent = ind + 2; // indent after '- '
+        while (i < lines.length) {
+          const peekRaw = lines[i];
+          const peek = peekRaw.replace(/\t/g, '    ');
+          const pind = indentOf(peek);
+          if (pind <= ind) break;
+          i++;
+          const ptrim = peek.slice(pind);
+          if (!/:\s*/.test(ptrim)) continue;
+          const [pk, prest] = ptrim.split(/:\s*/, 2);
+          const key = pk.trim();
+          const val = (prest || '').trim();
+          if (val === '|') {
+            // multiline block begins; consume subsequent lines with greater indent
+            obj[key] = '';
+            inMultiline = true;
+            multilineIndent = pind + 2; // expect additional indent for block content
+            multilineTarget = { obj, key };
+            break;
+          } else {
+            setScalar(obj, key, val);
+          }
+        }
+      } else {
+        // Scalar list item
+        currentArray.push(afterDash.trim());
+      }
+      continue;
+    }
+  }
+
+  return root;
+}
+
 function readAllSpecs() {
-  const files = fg.sync(['docs/**/*.md'], { cwd: REPO_ROOT, dot: false });
+  const docsRoot = path.join(REPO_ROOT, 'docs');
+  /**
+   * Recursively collect markdown files under docs/ using only fs APIs.
+   */
+  function walkMarkdownFiles(dirAbs, out) {
+    const entries = fs.readdirSync(dirAbs, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.name.startsWith('.')) continue; // skip dotfiles
+      const childAbs = path.join(dirAbs, entry.name);
+      if (entry.isDirectory()) {
+        walkMarkdownFiles(childAbs, out);
+      } else if (entry.isFile() && entry.name.toLowerCase().endsWith('.md')) {
+        out.push(childAbs);
+      }
+    }
+  }
+  const fileAbsPaths = [];
+  if (fs.existsSync(docsRoot)) {
+    walkMarkdownFiles(docsRoot, fileAbsPaths);
+  }
   const specs = [];
-  for (const rel of files) {
-    const abs = path.join(REPO_ROOT, rel);
+  for (const abs of fileAbsPaths) {
+    const rel = path.relative(REPO_ROOT, abs).split(path.sep).join('/');
     const md = fs.readFileSync(abs, 'utf8');
     const blocks = extractSpecBlocks(md, rel);
     specs.push(...blocks);
