@@ -22,13 +22,13 @@
 
 - Word segmentation via `Intl.Segmenter('word')` (TS) or ICU (Rust).
 - Newline clamp: prefer not to cross line breaks for the render range.
-- Size: defaults 3–8 words; configurable via `config/defaultThresholds.ts`.
+- Size: defaults 20 words; configurable via `config/defaultThresholds.ts`.
 - Context can be larger than render; render is always within context.
 
 ## Interfaces
 
-- TS: `ActiveRegionPolicy` with `computeRenderRange(state)` and `computeContextRange(state)`; see `core/activeRegionPolicy.ts` (used by `core/diffusionController.ts`).
-- Rust: expose equivalent helpers in `crates/core-rs` as needed.
+- Rust: `ActiveRegionPolicy` with `computeRenderRange(state)` and `computeContextRange(state)`; see `crates/core-rs/src/active_region.rs`.
+- Platform UI: consume policy via FFI/WASM bridge as needed.
 
 ## Tests
 
@@ -36,4 +36,10 @@
 - Zero‑width characters and surrogate pairs near boundaries
 - Fast typing (frontier chases caret without crossing)
 
-See also: `docs/06-guides/06-03-reference/lm-behavior.md` and `core/lm/policy.ts`.
+See also: `docs/06-guides/06-03-reference/lm-behavior.md` and `crates/core-rs/src/lm/policy.rs`.
+
+## Grapheme-safe boundaries (Unicode)
+
+- Ranges MUST align to grapheme clusters (UAX #29). Do not split emoji, ZWJ sequences, or combining marks.
+- UI positions (UTF-16) are mapped to Rust byte indices (UTF-8) via validated helpers; invalid boundaries are rejected.
+- Tests SHOULD include ZWJ emoji, skin-tone modifiers, and combining accents near range edges.

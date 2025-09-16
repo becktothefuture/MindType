@@ -68,7 +68,7 @@ See: `docs/06-guides/06-03-reference/lm.md`, `core/lm/factory.ts`, `core/lm/inde
 
 ### Integration
 
-- Core orchestrates merges; UI listens for band/highlight; injector applies diffs.
+- Core orchestrates merges; UI listens for active region/highlight; injector applies diffs.
 - Demo: remove LM scheduling from React; rely on core + worker.
 
 <!-- Alignment: LM merges stream strictly within the active region; abort on input; rollback on caret-entry. -->

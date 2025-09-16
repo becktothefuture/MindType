@@ -13,7 +13,7 @@
   ╚══════════════════════════════════════════════════════════════╝
     • WHAT ▸ Define core entities/relationships and constraints
     • WHY  ▸ Blueprint for persistence and AI reasoning
-    • HOW  ▸ TS-first types; optional persistence adapters later
+    • HOW  ▸ Rust-first types; optional persistence adapters later
 -->
 
 ### Scope
@@ -30,19 +30,19 @@ This document captures the runtime data model used by Mind::Type's core pipeline
 - **ActiveRegion**
   - Keys: implicit by `start,end`
   - Fields: `start: number`, `end: number`, `minWords: number`, `maxWords: number`
-  - Constraints: `0 ≤ start ≤ end ≤ text.length`; size targets 3–8 words; never crosses caret
+  - Constraints: `0 ≤ start ≤ end ≤ text.length`; size up to 20 words; never crosses caret
 
 - **Diff**
   - Keys: implicit by `start,end`
   - Fields: `start: number`, `end: number`, `text: string`
   - Constraints: `end ≥ start`; apply only when `end < caret` (caret-safe)
 
-- **SweepResult**
-  - Fields: `diff: Diff | null` (tidy), `diffs: Diff[]` (backfill)
+- **CorrectionResult**
+  - Fields: `diff: Diff | null` (NoiseWorker), `diffs: Diff[]` (backfill)
   - Constraints: all diffs respect caret safety and window limits
 
-- **TapestrySpan (future)**
-  - Fields: `{ original: string; corrected: string; start: number; end: number; confidence: number; appliedAtMs: number }`
+- **ActiveRegionSpan** (runtime tracking)
+  - Fields: `{ original: String, corrected: String, start: usize, end: usize, confidence: f32, applied_at_ms: u64 }`
   - Relationships: spans are ordered, non-overlapping; define the validated neighborhood behind caret
 
 - **Settings**
@@ -53,13 +53,13 @@ This document captures the runtime data model used by Mind::Type's core pipeline
 ### Relationships
 
 - `TypingSnapshot` → determines `ActiveRegion` window.
-- `SweepResult` → produces `Diff`(s) within the `ActiveRegion` trailing zone.
-- `TapestrySpan`(s) ← derived from applied diffs; drive rollback and confidence.
+- `CorrectionResult` → produces `Diff`(s) within the `ActiveRegion` trailing zone.
+- `ActiveRegionSpan`(s) ← derived from applied diffs; drive rollback and confidence.
 
 ### Constraints (Business Rules)
 
 - Caret Safety: No `Diff` may start or end at/after caret.
-- Windowing: Tidy operates within `MAX_SWEEP_WINDOW` behind caret; Backfill only in the stable zone.
+- Windowing: NoiseWorker operates within `MAX_ACTIVE_REGION` behind caret; Backfill only in the stable zone.
 - Reduced Motion: Visual feedback degrades to static when enabled.
 - Privacy: No text persistence by default; logs gated and content-free.
 
@@ -69,9 +69,9 @@ This document captures the runtime data model used by Mind::Type's core pipeline
 - Telemetry: none by default. Optional debug logs are ephemeral.
 - Text/Spans: not persisted unless an explicit feature requires it; if added, must be local-only and opt-in.
 
-### TypeScript Types (source of truth)
+### Rust Types (source of truth)
 
-See `core/typingMonitor.ts`, `core/diffusionController.ts`, `utils/diff.ts`, and `core/lm/types.ts` for canonical shapes. Keep types and this doc in sync.
+See `docs/06-guides/06-03-reference/rust-core-api.md` for canonical type definitions. The Rust core defines all data structures via `CorrectionRequest`, `CorrectionResponse`, and related types. Platform UI layers (TypeScript/Swift) mirror these types for FFI/WASM communication.
 
 ### Traceability
 

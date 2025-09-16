@@ -180,7 +180,7 @@ The system will recognize and adapt to writing context naturally without requiri
 _Primer: Clarifies this decision and why it matters._
 → Your answer:
 
-**Answer:** The primary indicator is a subtle shimmer band in the trailing validation zone behind the caret. It shows which words are currently being validated/diffused, without altering the caret itself. When `prefers-reduced-motion` is on, it degrades to a gentle static band or fade.
+**Answer:** The primary indicator is a subtle shimmer in the trailing active region behind the caret. It shows which words are currently being validated/diffused, without altering the caret itself. When `prefers-reduced-motion` is on, it degrades to a gentle static highlight or fade.
 
 No glowing cursor; we avoid invasive caret styling. No persistent status chrome. Presence remains quiet and intentional.
 

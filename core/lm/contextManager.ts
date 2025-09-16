@@ -12,6 +12,7 @@
 
 import { getSentenceContextPerSide } from '../../config/defaultThresholds';
 import { createLogger } from '../logger';
+import type { StagingBuffer, Proposal } from '../stagingBuffer';
 
 const log = createLogger('lm.context');
 
@@ -36,12 +37,21 @@ export interface LMContextManager {
   updateCloseContext(fullText: string, caretPosition: number): void;
   getContextWindow(): LMContextWindow;
   validateProposal(proposal: string, originalSpan: string): boolean;
+  validateProposalWithBuffer(proposal: string, originalSpan: string, stagingBuffer?: StagingBuffer): boolean;
   isInitialized(): boolean;
+  getPerformanceMetrics(): {
+    wideContextSize: number;
+    closeContextSize: number;
+    lastUpdateTime: number;
+    validationCalls: number;
+  };
 }
 
 export function createLMContextManager(): LMContextManager {
   let contextWindow: LMContextWindow | null = null;
   let initialized = false;
+  let validationCalls = 0;
+  let lastUpdateTime = 0;
 
   function estimateTokenCount(text: string): number {
     // Rough estimation: ~4 characters per token for English text
@@ -132,6 +142,7 @@ export function createLMContextManager(): LMContextManager {
       };
 
       initialized = true;
+      lastUpdateTime = Date.now();
       log.info('[ContextManager] Initialization complete', {
         wideTokens: contextWindow.wide.tokenCount,
         closeSentences: contextWindow.close.sentences,
@@ -142,18 +153,21 @@ export function createLMContextManager(): LMContextManager {
     updateWideContext(fullText: string): void {
       if (!contextWindow) return;
 
-      // Only update if text has changed significantly
+      // Performance optimization: only update if text has changed significantly
       if (fullText !== contextWindow.wide.text) {
+        const now = Date.now();
         log.debug('[ContextManager] Updating wide context', {
           oldLength: contextWindow.wide.text.length,
           newLength: fullText.length,
+          timeSinceLastUpdate: now - contextWindow.wide.lastUpdated,
         });
 
         contextWindow.wide = {
           text: fullText,
-          lastUpdated: Date.now(),
+          lastUpdated: now,
           tokenCount: estimateTokenCount(fullText),
         };
+        lastUpdateTime = now;
       }
     },
 
@@ -161,6 +175,7 @@ export function createLMContextManager(): LMContextManager {
       if (!contextWindow) return;
 
       const closeContext = extractSentenceContext(fullText, caretPosition);
+      const now = Date.now();
 
       log.debug('[ContextManager] Updating close context', {
         caretPosition,
@@ -179,6 +194,7 @@ export function createLMContextManager(): LMContextManager {
           ...closeContext,
           caretPosition,
         };
+        lastUpdateTime = now;
       } else {
         contextWindow.close.caretPosition = caretPosition;
       }
@@ -192,6 +208,7 @@ export function createLMContextManager(): LMContextManager {
     },
 
     validateProposal(proposal: string, originalSpan: string): boolean {
+      validationCalls++;
       if (!contextWindow) return false;
       if (typeof proposal !== 'string' || typeof originalSpan !== 'string') return false;
       if (proposal.length === 0 || originalSpan.length === 0) return false;
@@ -241,8 +258,76 @@ export function createLMContextManager(): LMContextManager {
       return true;
     },
 
+    validateProposalWithBuffer(proposal: string, originalSpan: string, stagingBuffer?: StagingBuffer): boolean {
+      // First run standard validation
+      if (!this.validateProposal(proposal, originalSpan)) {
+        return false;
+      }
+
+      // Enhanced validation with staging buffer context
+      if (stagingBuffer && contextWindow) {
+        const existingProposals = stagingBuffer.list();
+        
+        // Check for conflicting proposals in the buffer
+        for (const existing of existingProposals) {
+          if (existing.state === 'commit' || existing.state === 'hold') {
+            // Check if proposals overlap or conflict
+            const proposalStart = contextWindow.close.start;
+            const proposalEnd = contextWindow.close.end;
+            
+            if (!(proposalEnd <= existing.start || proposalStart >= existing.end)) {
+              log.debug('[ContextManager] Proposal rejected: conflicts with existing proposal', {
+                existingId: existing.id,
+                existingRange: [existing.start, existing.end],
+                proposalRange: [proposalStart, proposalEnd],
+              });
+              return false;
+            }
+          }
+        }
+
+        // Check for repetitive patterns (avoid suggesting the same fix repeatedly)
+        const recentSimilar = existingProposals.filter(p => 
+          p.text.toLowerCase().trim() === proposal.toLowerCase().trim() &&
+          Date.now() - p.createdAt < 5000 // Within last 5 seconds
+        );
+        
+        if (recentSimilar.length > 0) {
+          log.debug('[ContextManager] Proposal rejected: recently suggested', {
+            similarCount: recentSimilar.length,
+          });
+          return false;
+        }
+      }
+
+      return true;
+    },
+
     isInitialized(): boolean {
       return initialized;
+    },
+
+    getPerformanceMetrics(): {
+      wideContextSize: number;
+      closeContextSize: number;
+      lastUpdateTime: number;
+      validationCalls: number;
+    } {
+      if (!contextWindow) {
+        return {
+          wideContextSize: 0,
+          closeContextSize: 0,
+          lastUpdateTime: 0,
+          validationCalls,
+        };
+      }
+
+      return {
+        wideContextSize: contextWindow.wide.text.length,
+        closeContextSize: contextWindow.close.text.length,
+        lastUpdateTime,
+        validationCalls,
+      };
     },
   };
 }

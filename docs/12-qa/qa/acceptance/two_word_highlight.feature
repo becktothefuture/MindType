@@ -18,7 +18,7 @@ Feature: Two-word highlight (REQ-A11Y-MOTION)
     Given the user types "Mindtyper is a |"
     When streaming diffusion runs behind the caret
     Then a subtle active region is visible from two words behind up to the caret
-    And corrections apply word-by-word within that band
+    And corrections apply word-by-word within that active region
     And motion respects reduced-motion preference
 
 

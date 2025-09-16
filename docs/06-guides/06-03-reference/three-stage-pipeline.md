@@ -13,7 +13,7 @@
   ╚════════════════════════════════════════════════════════════╝
     • WHAT ▸ Noise → Context → Tone stages, confidence-gated
     • WHY  ▸ Improve text in layers without breaking flow
-    • HOW  ▸ See diffusionController, sweepScheduler; UI exposes tone controls
+    • HOW  ▸ See Rust diffusion module, correction scheduler; UI exposes tone controls
 -->
 
 # Three-Stage Pipeline (v0.4)
@@ -29,28 +29,28 @@ Scheduling: The scheduler streams Noise while typing. On a ≥500ms pause, it sc
 ## Pipeline Overview (single-keystroke journey)
 
 1. Typing event
-   - `core/typingMonitor.ts` emits `{text, caret, atMs}`
-   - `core/sweepScheduler.ts` receives `onEvent` and calls `diffusion.update`
+   - `crates/core-rs/src/monitor.rs` emits `{text, caret, atMs}`
+   - `crates/core-rs/src/scheduler.rs` receives `onEvent` and calls `diffusion.update`
    - Security/IME guard drops event if active (no timers)
 
 2. Streaming while typing
    - `diffusion.tickOnce()` advances one word behind the caret
-   - `engines/noiseTransformer.ts` proposes a caret-safe diff
-   - On apply, `ui/highlighter.ts` emits `mindtype:highlight` for UI feedback
+   - `crates/core-rs/src/workers/noise.rs` proposes a caret-safe diff
+   - On apply, Platform UI emits `mindtype:highlight` for visual feedback
 
 3. Pause catch‑up (~SHORT_PAUSE_MS, tier‑aware)
    - WebGPU = base delay, WASM ≈ 1.1×, CPU ≈ 1.3×
    - `diffusion.catchUp()` processes several words in small chunks to avoid UI stalls
 
 4. Context stage (English‑only)
-   - `engines/contextTransformer.ts` builds proposals (caret‑safe)
-   - `core/confidenceGate.ts` scores; `core/stagingBuffer.ts` records states
+   - `crates/core-rs/src/workers/context.rs` builds proposals (caret‑safe)
+   - `crates/core-rs/src/confidence.rs` scores; `crates/core-rs/src/staging_buffer.rs` records states
 
 5. Tone stage (optional)
-   - If enabled and thresholds met, `engines/toneTransformer.ts` proposes pre‑caret diffs
+   - If enabled and thresholds met, `crates/core-rs/src/workers/tone.rs` proposes pre‑caret diffs
 
 6. Conflict resolution & apply
-   - `engines/conflictResolver.ts` (precedence: Noise > Context > Tone; no overlaps)
+   - `crates/core-rs/src/conflict_resolver.rs` (precedence: Noise > Context > Tone; no overlaps)
    - `diffusion.applyExternal` applies resolved diffs; caret never crossed
 
 ## Scheduler Playbook
@@ -58,7 +58,7 @@ Scheduling: The scheduler streams Noise while typing. On a ≥500ms pause, it sc
 - Guards (drop or skip):
   - IME composition active → drop
   - Secure fields → drop
-  - Language gating (`core/languageDetection.ts`) → Context/Tone only for English
+  - Language gating (`crates/core-rs/src/language_detection.rs`) → Context/Tone only for English
 
 - Timers:
   - Typing interval (`getTypingTickMs`) streams Noise
@@ -66,18 +66,18 @@ Scheduling: The scheduler streams Noise while typing. On a ≥500ms pause, it sc
 
 - Anti‑thrash:
   - Tier‑aware debounce avoids thrash on slower devices
-  - Single‑flight LM behavior lives in `core/lm/*`
+  - Single‑flight LM behavior lives in `crates/core-rs/src/lm/*`
 
 ## Contracts / Specs
 
 - Conflict Resolution
-  - Module: `engines/conflictResolver.ts`
+  - Module: `crates/core-rs/src/conflict_resolver.rs`
   - Rule: precedence Noise > Context > Tone; longer span wins within source; no overlaps
 
 - Active Region Spans
-  - Module: `core/activeRegion.ts`
+  - Module: `crates/core-rs/src/active_region.rs`
   - Spans: `{original, corrected, confidence, appliedAt, source}`; Unicode‑safe queries
 
 - Anti‑thrash Scheduler
-  - Module: `core/sweepScheduler.ts`
+  - Module: `crates/core-rs/src/scheduler.rs`
   - Debounce: WebGPU=base; WASM≈1.1×; CPU≈1.3×; guards enforce safety

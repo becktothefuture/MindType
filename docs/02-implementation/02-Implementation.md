@@ -1,6 +1,6 @@
 <!--══════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════╗
-  ║  ░  IMPLEMENTATION PLAN (AUTO)  ░░░░░░░░░░░░░░░░░░░  ║
+  ║  ░  IMPLEMENTATION PLAN (RUST-FIRST)   ░░░░░░░░░░░░░  ║
   ║                                                      ║
   ║                                                      ║
   ║                                                      ║
@@ -11,105 +11,71 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ Auto-inserted live plan header per house rules
-    • WHY  ▸ Keep plan visible, structured, and traceable
-    • HOW  ▸ Updated by agent in PLAN_ONLY/EXECUTE modes
+    • WHAT ▸ The authoritative plan for implementing the Rust-first architecture
+    • WHY  ▸ Align all development with ADR-0005 for a consistent, performant core
+    • HOW  ▸ Sequenced stages for building the Rust core and integrating with Platform UIs
 -->
 
-# Implementation Plan (live, v0.4)
+# Implementation Plan (Rust-First v0.5)
 
-> Plan (auto) — 2025-09-03 (v0.4 alignment with master guide & architecture)
+> **Plan Status**: This document outlines the official implementation path for Mind::Type, aligning with the Rust-first architecture defined in **[ADR-0005](../05-adr/0005-rust-first-orchestrator.md)**. The previous TypeScript-based implementation plan has been archived.
 >
-> Navigation: [Back to Master](./00-index/00-README.md)
->
-> Scope: v0.4 per ` v0.4-master guide.md` and ` Prior v0.2/v0.3 content below is maintained for historical context and will be archived as needed.
->
-> Core milestones in sequence:
->
-> 1. Versioning + repo hygiene ✅
-> 2. Rust core modules (scheduler, active region (formerly tapestry), confidence, LM) ◻︎
-> 3. FFI surface + wasm bindings ◻︎
-> 4. TS host integration (injector, active region render) ◻︎
-> 5. CI updates + workerization ◻︎
-> 6. QA/BDD alignment ◻︎
+> **Navigation**: [Back to Master](../00-index/00-README.md) · [Architecture](../04-architecture/rust-first-design.md) · [Rust Core API](../06-guides/06-03-reference/rust-core-api.md)
 
-> Current status (beginner-friendly)
->
-> - We have the streaming foundation complete:
->   - ✅ TypeScript streaming pipeline: TypingMonitor → SweepScheduler → DiffusionController → TidySweep
->   - ✅ Word-by-word diffusion with Unicode segmentation and an active region (3-8 words)
->   - ✅ Caret safety enforced at all levels; comprehensive tests (23 passing)
->   - ✅ Basic rule engine with 5 common typo corrections
->   - ✅ Integration tests proving end-to-end functionality
->   - ✅ Comprehensive denoising test suite with fuzzy text regression testing (16 test cases, 50% pass rate demonstrating pipeline capabilities)
-> - What's not done yet (v0.2 deltas):
->   - 🚨 **CRITICAL BUG:** Shift of core algorithmic surface into Rust with clean FFI (ADR-0005 violation - orchestrator should be Rust, currently TypeScript)
->   - Remove demo‑side LM scheduling; centralize in core
->   - ✅ **Confidence Gating:** Mathematical scoring algorithms with 4-dimensional confidence (input fidelity, transformation quality, context coherence, temporal decay) implemented
->   - ✅ **Staging Buffer:** State machine with HOLD/COMMIT/DISCARD/ROLLBACK states implemented
->   - Add tapestry datastructure and undo buckets
->   - Workerized Transformers with memory guard
->   - Update acceptance scenarios to cover rollback and caret‑entry guard
->   - 🚨 **HIGH PRIORITY BUG:** Pipeline Integration violates documented architecture - SweepScheduler should use proper ConflictResolver → DiffusionController flow as specified in three-stage-pipeline.md:54 (currently bypasses proper flow)
->   - **Pipeline Integration:** TS pipeline wired in `index.ts`; web demo uses the TS streaming pipeline (FT‑315)
->   - ✅ **Context Transformer:** Sentence-level LM repairs with dual-context architecture implemented
->   - ✅ **Tone Transformer:** Baseline detection and tone adjustment capabilities implemented
->   - **Contextual Rules Enhancement:** Current rules cover basic patterns; need enhanced transposition detection and advanced punctuation handling
->   - **Enhanced Denoising:** Current denoising API covers basic patterns; need improved contraction handling, sentence boundary detection, and comma placement for remaining 50% of test cases
->   - **Local LM:** On‑device streaming present; prompt shaping not yet wired through adapter (see FT‑231C2)
->   - **Visual Feedback:** `emitActiveRegion()`/highlight are basic; design polish pending
->   - **Demo Integration:** Web demo connected to TS pipeline for live testing (FT‑315)
+## Current Status (Beginner-Friendly)
 
-> **How Cursor uses this file**
->
-> - Picks the **first unchecked** task from the highest active Stage.
-> - **PLAN_ONLY** may append tasks using the Task Schema; **EXECUTE** fulfils them.
-> - Keep tasks atomic; prefer many small boxes over one vague one.
-
-## 🚨 Critical Architecture Bugs (HIGH PRIORITY)
-
-**These bugs violate core architectural decisions and must be addressed:**
-
-### BUG-001: ADR-0005 Violation - Rust-First Orchestrator
-- **Issue:** Core orchestration is in TypeScript, violates ADR-0005 decision
-- **Evidence:** `core/sweepScheduler.ts` should be `crates/core-rs/src/scheduler.rs`
-- **Impact:** Architecture decision not implemented, affects performance and cross-platform goals
-- **Priority:** P1 (Critical)
-- **Docs:** `docs/adr/0005-rust-first-orchestrator.md`
-
-### BUG-002: Pipeline Flow Bypasses Documented Architecture  
-- **Issue:** ConflictResolver → DiffusionController flow not properly implemented
-- **Evidence:** `core/sweepScheduler.ts:307` calls `diffusion.applyExternal()` directly
-- **Impact:** Violates documented pipeline flow in `three-stage-pipeline.md:54`
-- **Priority:** P1 (High)
-- **Docs:** `docs/.././06-guides/reference/three-stage-pipeline.md`
-
-### BUG-003: Missing Core Module References
-- **Issue:** Some documentation references `core/activeRegion.ts` but file is `core/activeRegionPolicy.ts`
-- **Evidence:** `docs/.././06-guides/reference/three-stage-pipeline.md:78`
-- **Impact:** Documentation inconsistency, confusing for developers
-- **Priority:** P2 (Medium)
+- **The Plan:** We are building the "brain" of Mind::Type in a programming language called Rust. This will make it fast, safe, and work the same way on all platforms (like macOS and the web).
+- **Why?** Our previous approach used a different language (TypeScript) for the core logic, which was good for demos but not ideal for performance and consistency. ADR-0005 made the decision to go all-in on Rust.
+- **What's Next?** This plan lays out the steps to build the new Rust core, piece by piece, and then connect it to the user interface.
 
 ## Quality Gates & Definition of Done (RULE)
 
-For every task (especially P1), the following must be true before marking complete:
+For every task, the following must be true before marking complete:
 
-- Tests: Unit tests for new logic; at least one integration or acceptance test if user-observable behaviour changes.
-- Gates: `pnpm typecheck && pnpm lint && pnpm run -s format:check && pnpm test` all pass locally and in CI; coverage guard remains green.
-- Coverage: Maintain overall ≥90% and preserve 100% branches for `utils/**`; new surfaces aim for ≥90% branches unless justified.
-- A11y/Perf (when applicable): Reduced‑motion branches tested; p95 latency and memory constraints not regressed.
-- Docs: Update this plan and PRD traceability; note any toggles/flags.
+- **Tests**: Unit tests for new Rust logic (`cargo test`); at least one integration or acceptance test if behavior changes.
+- **Gates**: `pnpm typecheck && pnpm lint && pnpm format:check` must pass for any UI changes. `cargo clippy` and `cargo fmt --check` must pass for Rust changes.
+- **Coverage**: Maintain overall ≥90% test coverage for the Rust core.
+- **Docs**: Update this plan, the PRD, and the Rust Core API spec as needed.
 
-Task checklist template (copy into PR description):
+---
 
-- [ ] Unit tests added/updated
-- [ ] Integration/acceptance test mapped to `docs/12-qa/qa/acceptance/*` (if applicable)
-- [ ] Typecheck, lint, format:check green
-- [ ] Coverage thresholds satisfied
-- [ ] Accessibility/performance checks (if applicable)
-- [ ] `docs/02-implementation/02-Implementation.md` + PRD traceability updated
+## Stage 1 — Rust Core Foundation
 
-## Stage 1 — Foundation & Setup ✅
+This stage focuses on creating the skeleton of the Rust engine and defining the data structures for communication with the UI.
+
+- [ ] **RUST-001**: Set up the `crates/core-rs` crate structure with required dependencies (`serde`, `wasm-bindgen`, etc.).
+- [ ] **RUST-002**: Implement all API data structures (`CorrectionRequest`, `CorrectionResponse`, etc.) from the API spec in `crates/core-rs/src/api.rs`.
+- [ ] **RUST-003**: Create the main `CorrectionEngine` orchestrator in `engine.rs` with a placeholder `process_text` function.
+- [ ] **RUST-004**: Implement the FFI and WASM bridge skeletons to prove cross-platform compilation.
+
+## Stage 2 — Core Components
+
+This stage implements the foundational logic for managing text and making correction decisions.
+
+- [ ] **RUST-005**: Implement the `ActiveRegionManager` for safe text windowing.
+- [ ] **RUST-006**: Implement the `ConfidenceScorer` with the 4D mathematical model.
+- [ ] **RUST-007**: Implement the `ConflictResolver` with the correct priority order.
+- [ ] **RUST-008**: Implement the `Diff/Merge Gate` with caret-safe guards.
+
+## Stage 3 — Correction Workers
+
+This stage implements the individual correction algorithms. These can be worked on in parallel.
+
+- [ ] **RUST-009**: Implement the `NoiseWorker` for typos and spacing.
+- [ ] **RUST-010**: Implement the `GrammarWorker` for punctuation and capitalization.
+- [ ] **RUST-011**: Implement the `ContextWorker` (stubbed for now, no LM).
+- [ ] **RUST-012**: Implement the `ToneWorker` (stubbed for now).
+
+## Stage 4 — Platform Integration
+
+This stage connects the functional Rust core to the user-facing applications.
+
+- [ ] **RUST-013**: Wire the `CorrectionEngine` to the WASM module and integrate with the web demo.
+- [ ] **RUST-014**: Wire the `CorrectionEngine` to the C FFI bridge for the macOS app.
+- [ ] **RUST-015**: Implement the "dot matrix wave" animation in the web demo's Platform UI layer.
+- [ ] **RUST-016**: Create comprehensive E2E tests with Playwright to validate the full Rust-to-UI-to-correction flow.
+
+---
 
 ### Architecture Constraints (P1) ✅
 
@@ -127,14 +93,14 @@ Task checklist template (copy into PR description):
        **DependsOn:** None  
        **Source:** Project Structure Doc
 
-- [x] (P1) [FT-111] Setup TypeScript configuration  
-       **AC:** `tsconfig.json` with strict mode; ES2024 target  
+- [x] (P1) [FT-111] Setup build configuration  
+       **AC:** Rust workspace with WASM/FFI targets configured  
        **Owner:** @alex  
        **DependsOn:** FT-110  
        **Source:** README.md → Development
 
-- [x] (P1) [FT-112] Configure ESLint v9 flat config  
-       **AC:** TypeScript + Prettier integration; documented rules  
+- [x] (P1) [FT-112] Configure linting and formatting  
+       **AC:** Rust clippy + rustfmt integration; documented rules  
        **Owner:** @alex  
        **DependsOn:** FT-111  
        **Source:** README.md → Development
@@ -158,7 +124,7 @@ Task checklist template (copy into PR description):
        **Source:** PRD → Quality Gates
 
 - [x] (P1) [FT-118] Enforce coverage thresholds  
-       **AC:** Vitest config enforces ≥90% lines/statements overall; `utils/**` at 100% branches; CI fails below thresholds  
+       **AC:** Cargo tarpaulin enforces ≥90% lines/statements overall; CI fails below thresholds  
        **Owner:** @alex  
        **DependsOn:** FT-113, FT-117  
        **Source:** PRD → Testing & QA
@@ -180,13 +146,13 @@ Task checklist template (copy into PR description):
 ### Core Utils Implementation (P1) ✅
 
 - [x] (P1) [FT-120] Implement caret-safe diff core  
-       **AC:** - `utils/diff.ts` with `replaceRange` function - Never crosses caret position - Handles UTF-16 surrogate pairs - 100% test coverage
+       **AC:** - `crates/core-rs/src/diff.rs` with `replace_range` function - Never crosses caret position - Handles UTF-16 surrogate pairs - 100% test coverage
       **Owner:** @alex  
        **DependsOn:** FT-113  
        **Source:** PRD REQ-IME-CARETSAFE
 
 - [x] (P1) [FT-121] Create typing monitor  
-       **AC:** - `core/typingMonitor.ts` emits timestamped events - Event shape: `{text, caret, atMs}` - Unit tests for event emission
+       **AC:** - `crates/core-rs/src/monitor.rs` emits timestamped events - Event shape: `{text, caret, timestamp_ms}` - Unit tests for event emission
       **Owner:** @alex  
        **DependsOn:** FT-120  
        **Source:** Manifesto → Performance
@@ -204,20 +170,20 @@ Task checklist template (copy into PR description):
        **Source:** PRD → Observability
 
 - [x] (P1) [FT-124] Parameterize thresholds in `config/defaultThresholds.ts`  
-       **AC:** Expose `SHORT_PAUSE_MS`, `LONG_PAUSE_MS`, `MAX_SWEEP_WINDOW`, `TYPING_TICK_MS`, `MIN_VALIDATION_WORDS`, `MAX_VALIDATION_WORDS`; add unit tests asserting invariants and ranges; docs link to PRD  
+       **AC:** Expose `SHORT_PAUSE_MS`, `LONG_PAUSE_MS`, `MAX_ACTIVE_REGION`, `TYPING_TICK_MS`, `MIN_VALIDATION_WORDS`, `MAX_VALIDATION_WORDS`; add unit tests asserting invariants and ranges; docs link to PRD  
        **Owner:** @alex  
        **DependsOn:** FT-122  
        **Source:** PRD → Constraints / Performance
 
 - [x] (P1) [FT-125] Implement DiffusionController  
-       **AC:** `core/diffusionController.ts` with Unicode word segmentation; advances frontier word-by-word; integrates with active region renderer; catch-up on pause  
+       **AC:** `crates/core-rs/src/diffusion.rs` with Unicode word segmentation; advances frontier word-by-word; integrates with active region renderer; catch-up on pause  
        **Owner:** @alex  
        **DependsOn:** FT-124  
-       **Source:** REQ-STREAMED-DIFFUSION, REQ-VALIDATION-BAND
+       **Source:** REQ-STREAMED-DIFFUSION, REQ-ACTIVE-REGION
 
 ### Rust Core Setup (P1)
 
-- NOTE (v0.4): TS-first host is canonical until FT-133 lands. Rust WASM is compiled and staged; we will replace TS algorithmic modules behind the same interfaces with a feature flag, keeping tests unchanged.
+- NOTE (v0.5): Rust-first implementation is now canonical. All correction logic resides in Rust core with WASM/FFI interfaces for platform integration.
 
 - [ ] (P1) [FT-130] Setup Rust crate structure  
        **AC:** - `crates/core-rs` initialized - WASM target configured - Basic FFI bindings
@@ -239,25 +205,25 @@ Task checklist template (copy into PR description):
 
 - [ ] (P1) [FT-133] WebAssembly bindings and TypeScript package  
        **AC:**
-       - wasm32 target builds via wasm-bindgen; JS glue generates TS declarations
+       - wasm32 target builds via wasm-bindgen; JS glue generates TypeScript declarations
        - Publishable npm package scaffolded (private); `bindings/wasm/pkg` integrated
-       - Introduce `USE_WASM_CORE` feature flag (default off)
-       - Replace TS PauseTimer/FragmentExtractor/MergeEngine with WASM equivalents when flag=true
-       - All existing tests pass unmodified under both modes (TS-only, WASM-enabled)
+       - Rust core is the only implementation (no feature flag needed)
+       - All platform tests use Rust core via WASM/FFI
+       - Complete test parity between native and WASM builds
        - CI job runs parity suite across both modes with golden corpus
        **Owner:** @alex  
        **DependsOn:** FT-132  
-       **Source:** v0.2 architecture → Web (Browser / TypeScript)
+       **Source:** v0.5 architecture → Web (Browser / WASM)
 
 ## Stage 2 — Core Engines & Integration
 
 ### Pipeline Integration (P1) **← PRIORITY**
 
-- [x] (P1) [FT-201] Wire main pipeline in index.ts  
-       **AC:** Connect TypingMonitor → SweepScheduler → DiffusionController signals; start event loop; export unified API for host apps; unit tests verify signal flow; add minimal `LMAdapter` stub to keep API stable  
+- [x] (P1) [FT-201] Wire main pipeline in Rust core  
+       **AC:** Connect InputMonitor → CorrectionScheduler → DiffusionController signals; start event loop; export unified API for host apps; unit tests verify signal flow; add minimal `LMAdapter` stub to keep API stable  
        **Owner:** @alex  
        **DependsOn:** FT-125  
-       **Source:** index.ts TODO comment
+       **Source:** Core integration requirements
 
 - [x] (P1) [FT-202] Create integration test harness  
        **AC:** End-to-end test simulating user typing → corrections applied; verify caret safety, timing, and active‑region progression; performance baseline  
@@ -265,13 +231,13 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-201  
        **Source:** Integration requirements
 
-### Tidy Sweep Implementation (P1)
+### NoiseWorker Implementation (P1)
 
-- [x] (P1) [FT-210] Create tidy sweep engine scaffold  
-       **AC:** - Basic engine structure in `engines/noiseTransformer.ts` - Rule interface defined - Test infrastructure
+- [x] (P1) [FT-210] Create NoiseWorker engine scaffold  
+       **AC:** - Basic engine structure in `crates/core-rs/src/workers/noise.rs` - Rule interface defined - Test infrastructure
       **Owner:** @alex  
        **DependsOn:** FT-120  
-       **Source:** PRD REQ-TIDY-SWEEP
+       **Source:** PRD REQ-NOISE-CORRECTION
 
 - [x] (P1) [FT-211] Implement transposition detection  
        **AC:** - Detect common character swaps ("nto"→"not", "precsson"→"precision") - Stay within 80-char window - Return null when uncertain - Handle contextual transpositions
@@ -280,7 +246,7 @@ Task checklist template (copy into PR description):
        **Source:** User example: "mindtypr is nto a tooll" → "Mind::Type is not a tool"
 
 - [x] (P1) [FT-212] Add punctuation normalization  
-       **AC:** - Fix spacing around punctuation ("page — a sweep" formatting) - Handle quotes, apostrophes, emdashes - Language-aware rules - Sentence boundaries
+       **AC:** - Fix spacing around punctuation ("page — a correction" formatting) - Handle quotes, apostrophes, emdashes - Language-aware rules - Sentence boundaries
       **Owner:** @alex  
        **DependsOn:** FT-211  
        **Source:** User example: punctuation spacing issues
@@ -289,7 +255,7 @@ Task checklist template (copy into PR description):
        **AC:** Define confidence thresholds per rule; return `null` below threshold; unit tests cover low-confidence cases; never apply uncertain fixes  
        **Owner:** @alex  
        **DependsOn:** FT-210  
-       **Source:** PRD REQ-TIDY-SWEEP (return null when unsure)
+       **Source:** PRD REQ-NOISE-CORRECTION (return null when unsure)
 
 - [x] (P1) [FT-214] Add whitespace normalization rules  
        **AC:** Collapse multiple spaces ("mov it lstens" → "move it listens"); normalize trailing spaces in window; never cross caret; unit tests for boundary cases  
@@ -351,14 +317,14 @@ Task checklist template (copy into PR description):
 10. (P2) [FT-231G] Logging gates and resource cleanup
 
 - [x] (P1) [FT-230] Design LM adapter interface  
-       **AC:** Define `LMAdapter` interface for streaming corrections; support band-bounded context; fallback to rules when LM unavailable; caret-safe constraints. Add backend detection and a mock adapter; optional wiring into controller without behaviour change.  
+       **AC:** Define `LMAdapter` interface for streaming corrections; support active-region-bounded context; fallback to rules when LM unavailable; caret-safe constraints. Add backend detection and a mock adapter; optional wiring into controller without behaviour change.  
        **Owner:** @alex  
        **DependsOn:** FT-213  
        **Source:** User example: "raw → corrected" transformation quality  
-       **Notes:** Implemented `core/activeRegionPolicy.ts` with render/context ranges and tests; added `core/lm/factory.ts` (`createDefaultLMAdapter`) and barrel exports. Controller imports the shared policy type without behavior change.
+       **Notes:** Implemented `crates/core-rs/src/active_region.rs` with render/context ranges and tests; added `crates/core-rs/src/lm/factory.rs` with LM adapter creation. Controller uses FFI interface for policy management.
 
 - [x] (P1) [FT-231] Implement local model bootstrap  
-       **AC:** Transformers.js integration with Qwen2.5-0.5B-Instruct (q4); backend detection (WebGPU→WASM→CPU); centralized LM behavior policy (`core/lm/policy.ts`); auto-load in web demo; span-only prompting and guarded merges; single-flight generation with abort and stale-drop; debounce/cooldown to reduce requests.  
+       **AC:** Transformers.js integration with Qwen2.5-0.5B-Instruct (q4); backend detection (WebGPU→WASM→CPU); centralized LM behavior policy (`crates/core-rs/src/lm/policy.rs`); auto-load in web demo; span-only prompting and guarded merges; single-flight generation with abort and stale-drop; debounce/cooldown to reduce requests.  
        **Owner:** @alex  
        **DependsOn:** FT-230  
        **Source:** Transformers.js research + on-device processing
@@ -368,14 +334,14 @@ Task checklist template (copy into PR description):
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** Reliability/Perf  
-       **Notes:** Implemented in `core/lm/transformersRunner.ts` with singleton loader and word-boundary chunking; tests added in `tests/transformersRunner.spec.ts` verify ordering, reuse, and single ready log. All quality gates green.
+       **Notes:** Implemented LM runner interface in Rust core with singleton loader and word-boundary chunking; tests verify ordering, reuse, and single ready log. All quality gates green.
 
 - [x] (P1) [FT-231B] Abort, single-flight, and cooldown in core  
        **AC:** Implement single-flight and abort at the adapter/runner boundary (not in the demo). New requests cancel the previous; add a short cooldown after a merge. Unit tests simulate rapid typing and assert only latest output merges; stale drops are counted.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** Streaming correctness  
-       **Notes:** Implemented in `core/lm/transformersClient.ts` with non-blocking single-flight, `abort()` hook, cooldown, and stale drop stats via `getStats()`. Unit tests added/updated in `tests/transformersClient.spec.ts`. Playwright smoke test added for demo responsiveness; correction scenario will be covered after acceptance wiring.
+       **Notes:** Implemented in Rust core with non-blocking single-flight, abort hook, cooldown, and stale drop stats. Unit tests verify behavior. Playwright smoke test added for demo responsiveness; correction scenario will be covered after acceptance wiring.
 
 - [x] (P1) [FT-231C] Prompt shape + post-process hardening  
        **AC:** Switch runner input to a single strict prompt string (no chat roles). Expand output sanitization to strip guillemets/labels and clamp length robustly. Tests verify no "chatty" outputs and span-sized merges.  
@@ -383,7 +349,7 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-231  
        **Source:** LM quality
   - [x] (P1) [FT-231C1] Adopt strict single-string prompt in policy  
-         **AC:** `core/lm/policy.ts` builds a strict single-string prompt with instructions and context. Post-process remains clamped/stripped.  
+         **AC:** `crates/core-rs/src/lm/policy.rs` builds a strict single-string prompt with instructions and context. Post-process remains clamped/stripped.  
          **Owner:** @alex  
          **DependsOn:** FT-231  
          **Source:** Precision requirement
@@ -393,21 +359,21 @@ Task checklist template (copy into PR description):
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** Cross‑browser stability (Safari/Edge)  
-       **Notes:** Implemented in `core/lm/deviceTiers.ts` with WebGPU/WASM/CPU detection, performance monitoring, and adaptive policy adjustment. Tests cover device detection, memory pressure, and policy degradation.
+       **Notes:** Implemented in Rust core LM device tiers module with WebGPU/WASM/CPU detection, performance monitoring, and adaptive policy adjustment. Tests cover device detection, memory pressure, and policy degradation.
 
 - [x] (P1) [FT-231E] Local‑only asset guard  
        **AC:** When `localOnly=true`, verify model and WASM asset paths before load; surface friendly error and fall back to rules‑only if missing. Add `pnpm setup:local` preflight note in logs. Tests mock 404 and assert graceful degradation.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** Offline readiness  
-       **Notes:** Implemented in `core/lm/transformersClient.ts` with `verifyLocalAssets()` function. Graceful fallback to rules-only mode when assets unavailable. Tests verify 404 handling and degradation behavior.
+       **Notes:** Implemented in Rust core LM client module with asset verification. Graceful fallback to rules-only mode when assets unavailable. Tests verify 404 handling and degradation behavior.
 
 - [x] (P1) [FT-231F] Warm‑up and token cap safeguards  
        **AC:** One‑time warm‑up generation after load; enforce token cap `min(policy, runnerDefault)` and clamp range [8, 48] with device tiering. Tests assert first‑run latency improvement and token limits.  
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** Latency/throughput stability  
-       **Notes:** Implemented in `core/lm/transformersRunner.ts` with one-time warmup generation and device-tier token capping [8,48]. Tests verify latency improvement and token limit enforcement across device tiers.
+       **Notes:** Implemented in Rust core LM runner module with one-time warmup generation and device-tier token capping [8,48]. Tests verify latency improvement and token limit enforcement across device tiers.
 
 - [ ] (P2) [FT-231G] Logging gates and resource cleanup  
        **AC:** Gate debug logs behind a flag; ensure runner is reused and disposed when available. Tests verify no console spam by default.  
@@ -420,10 +386,10 @@ Task checklist template (copy into PR description):
        **Owner:** @alex  
        **DependsOn:** FT-231  
        **Source:** REQ-STREAMED-DIFFUSION + LM quality  
-       **Notes:** Policy implemented but LM proposal collection was missing from sweepScheduler. Added in latest update along with diagnostic mode.
+       **Notes:** Policy implemented but LM proposal collection was missing from correction scheduler. Added in latest update along with diagnostic mode.
 
-- [x] (P1) [FT-232C] Wire LM proposal collection in sweep scheduler  
-       **AC:** Call getLMAdapter()?.stream() during pause sweeps; collect LM proposals with confidence scoring; add to collected array for conflict resolution; ensure async generator cleanup.  
+- [x] (P1) [FT-232C] Wire LM proposal collection in correction scheduler  
+       **AC:** Call getLMAdapter()?.stream() during pause corrections; collect LM proposals with confidence scoring; add to collected array for conflict resolution; ensure async generator cleanup.  
        **Owner:** @alex  
        **DependsOn:** FT-232  
        **Source:** Core integration requirement  
@@ -469,7 +435,7 @@ Task checklist template (copy into PR description):
 ### Backfill Implementation (P2)
 
 - [ ] (P2) [FT-220] Create backfill consistency engine  
-       **AC:** - Engine structure in `engines/backfillConsistency.ts` - Stable zone detection - Test framework
+       **AC:** - Engine structure in `crates/core-rs/src/workers/backfill.rs` - Stable zone detection - Test framework
       **Owner:** @alex  
        **DependsOn:** FT-210  
        **Source:** Manifesto → Features
@@ -487,7 +453,7 @@ Task checklist template (copy into PR description):
        **Source:** PRD → Consistency
 
 - [ ] (P2) [FT-223] Enforce stable-zone boundaries  
-       **AC:** No edits at/after caret; clamp edits ≥ MAX_SWEEP_WINDOW behind caret; unit tests for off-by-one bounds  
+       **AC:** No edits at/after caret; clamp edits ≥ MAX_ACTIVE_REGION behind caret; unit tests for off-by-one bounds  
        **Owner:** @alex  
        **DependsOn:** FT-220, FT-124  
        **Source:** PRD → Constraints
@@ -497,7 +463,7 @@ Task checklist template (copy into PR description):
 ### Visual Feedback (P1)
 
 - [x] (P1) [FT-310] Implement highlighter core  
-       **AC:** - Active region (3–8 words) trailing behind caret with DOM manipulation - Subtle shimmer animation; fade/static when reduced‑motion - Applied correction highlights - Minimal, non-intrusive UI
+       **AC:** - Active region (20 words) trailing behind caret with DOM manipulation - Subtle shimmer animation; fade/static when reduced‑motion - Applied correction highlights - Minimal, non-intrusive UI
       **Owner:** @alex  
        **DependsOn:** FT-201  
        **Source:** PRD REQ-A11Y-MOTION + REQ-ACTIVE-REGION
@@ -516,8 +482,8 @@ Task checklist template (copy into PR description):
 
 ### Live Demo Integration (P1) **← PRIORITY**
 
-- [x] (P1) [FT-315] Wire TypeScript pipeline to web demo  
-       **AC:** Replace WASM usage with TS streaming pipeline; connect textarea events to TypingMonitor; render active region and corrections in real-time; add parameter controls (tick, region size)  
+- [x] (P1) [FT-315] Wire UI layer to web demo  
+       **AC:** Wire Rust core via WASM to UI layer; connect textarea events to input monitoring; render active region and corrections in real-time; add parameter controls (tick, region size)  
        **Owner:** @alex  
        **DependsOn:** FT-310, FT-201  
        **Source:** Web demo needs live testing capability
@@ -577,10 +543,10 @@ Task checklist template (copy into PR description):
        **Source:** CONTRACT-LM-STREAM
 
 - [ ] (P1) [LM‑LAB‑TYPES] Add LM stream event types + mock adapter  
-       **AC:** Extend `core/lm/types.ts` (non‑breaking) with event type exports for lab/tests; add `core/lm/mockStreamAdapter.ts` emitting JSONL transcript; keep main pipeline behavior unchanged.
+       **AC:** Extend Rust core LM types (non‑breaking) with event type exports for lab/tests; add mock stream adapter emitting JSONL transcript; keep main pipeline behavior unchanged.
       **Owner:** @alex  
        **DependsOn:** LM‑LAB‑SPEC  
-       **Modules:** core/lm/types.ts, core/lm/mockStreamAdapter.ts
+       **Modules:** crates/core-rs/src/lm/types.rs, crates/core-rs/src/lm/mock_stream_adapter.rs
 
 - [ ] (P1) [LM‑LAB‑DEMO] Build LM Lab web demo route with rules panel + stream monitor  
        **AC:** Second demo accessible under the web demo app via hash route `#/lab` or a dedicated `demo/lm-lab`; inputs: fuzzy text textarea; controls: tone (None/Casual/Professional), thresholds sliders; right‑aligned collapsible rules panel (5vh margins, keyboard toggle); live JSONL event monitor; final outputs for context and tone. Respect reduced‑motion.
@@ -589,10 +555,10 @@ Task checklist template (copy into PR description):
        **Modules:** web-demo/src/lab/\*_/_, web-demo/src/App.tsx (router stub)
 
 - [ ] (P1) [LM‑LAB‑UNIT] Unit tests for two‑pass LM stream application  
-       **AC:** `tests/lm_stream.spec.ts` parses sample transcript(s), applies diffs to a band buffer, verifies commit ordering (context before tone) and final outputs; covers overlapping diffs, missing commit, malformed event.
+       **AC:** `crates/core-rs/tests/lm_stream.rs` parses sample transcript(s), applies diffs to an active region buffer, verifies commit ordering (context before tone) and final outputs; covers overlapping diffs, missing commit, malformed event.
       **Owner:** @alex  
        **DependsOn:** LM‑LAB‑TYPES  
-       **Modules:** tests/lm_stream.spec.ts
+       **Modules:** crates/core-rs/tests/lm_stream.rs
 
 - [ ] (P1) [LM‑LAB‑E2E] Playwright e2e for LM Lab  
        **AC:** Visit `/#/lab`; type/paste fuzzy text; observe event sequence (`meta → stage(context) → diff → commit → stage(tone) → diff → commit → done`); verify output matches mock; rules panel toggles impact output deterministically; reduced‑motion respected.
@@ -619,7 +585,7 @@ Task checklist template (copy into PR description):
 ### Undo Integration (P2)
 
 - [ ] (P2) [FT-320] Implement undo grouping  
-       **AC:** - Group changes per sweep - Single undo step - Preserve caret position  
+       **AC:** - Group changes per correction cycle - Single undo step - Preserve caret position  
        **Owner:** @alex  
        **DependsOn:** FT-310  
        **Source:** Manifesto → Features
@@ -636,7 +602,7 @@ Task checklist template (copy into PR description):
        **DependsOn:** FT-321  
        **Source:** BDD suite
   - [ ] (P2) [FT-323] Update acceptance specs to active region semantics  
-         **AC:** Review and update all `docs/12-qa/qa/acceptance/*.feature` files to replace band with active region; add caret-entry rollback scenario; ensure PRD/traceability links are updated.  
+         **AC:** Review and update all `docs/12-qa/qa/acceptance/*.feature` files to ensure active region terminology; add caret-entry rollback scenario; ensure PRD/traceability links are updated.  
          **Owner:** @alex  
          **DependsOn:** FT-232A  
          **Source:** v0.2 terminology and rollback behavior
@@ -740,7 +706,7 @@ Task checklist template (copy into PR description):
 
 - REQ-IME-CARETSAFE → FT-120, FT-223, FT-134, FT-318A
 - REQ-SECURE-FIELDS → FT-115, FT-116, FT-420 (iOS secure fields bypass)
-- REQ-TIDY-SWEEP → FT-210, FT-211, FT-212, FT-213, FT-214, FT-215
+- REQ-NOISE-CORRECTION → FT-210, FT-211, FT-212, FT-213, FT-214, FT-215
 - REQ-STREAMED-DIFFUSION → FT-125, FT-201, FT-232, FT-232A, FT-232B, FT-243
 - REQ-ACTIVE-REGION → FT-310, FT-315, FT-318
 - REQ-A11Y-MOTION → FT-312 (and reduced‑motion branches in FT-310)
@@ -750,7 +716,7 @@ Task checklist template (copy into PR description):
 ## Documentation To‑Do (created/updated in this PR)
 
 - [x] `docs/ADHD-docs.md` — approachable deep dive; links across system
-- [x] `docs/.././06-guides/reference/band-policy.md` — ActiveRegionPolicy design & API
+- [x] `docs/.././06-guides/reference/active-region-policy.md` — ActiveRegionPolicy design & API
 - [x] `docs/.././06-guides/reference/injector.md` — Injector contract + hosts
 - [x] `docs/.././06-guides/reference/lm-worker.md` — Worker protocol & memory guard
 - [x] `docs/.././06-guides/reference/rust-merge.md` — Caret‑safe merge in Rust/FFI
@@ -824,7 +790,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
     - Emits states {typing, pause, caret_entered_active_region}
     - Pause detection 350–600 ms, configurable
     - Event stream timestamped; debounced; cancellable on new input
-  output: core/caretMonitor.ts, tests/core/caretMonitor.spec.ts
+  output: crates/core-rs/src/caret_monitor.rs, crates/core-rs/tests/caret_monitor.rs
 
 - id: FT-302
   title: Implement Diff/Merge Gate in Rust with caret safety
@@ -845,36 +811,36 @@ All docs follow house comment header style; stubs will be filled as tasks land.
     - While typing: Noise runs; Context in shadow; Tone off
     - On pause: Context then Tone commit; one undo bucket
     - New input aborts in-flight job; stale results dropped
-  output: core/scheduler.ts, tests/core/scheduler.spec.ts
+  output: crates/core-rs/src/scheduler.rs, crates/core-rs/tests/scheduler.rs
 
 - id: FT-304
-  title: Implement NoiseTransformer
+  title: Implement NoiseWorker
   priority: P1
   dependsOn: [FT-303]
   acceptance:
     - Weighted DL + keyboard neighbor graph; repeat-trim; split/merge
     - High-confidence auto-apply (<15 ms) with reason codes
     - Emits TransformResult with per-span confidence
-  output: engines/noise/index.ts, tests/engines/noise.spec.ts
+  output: crates/core-rs/src/workers/noise.rs, crates/core-rs/tests/noise.rs
 
 - id: FT-305
-  title: Implement ContextTransformer with local LM
+  title: Implement ContextWorker with local LM
   priority: P1
   dependsOn: [FT-303]
   acceptance:
     - Sentence repair within Active Region only; constrained infill
     - Abort on caret entry; clamp merges via FT-302
     - WebGPU→WASM→CPU fallback; outputs plain text
-  output: engines/context/index.ts, core/lm/{policy.ts,runner.ts}, tests/engines/context.spec.ts
+  output: crates/core-rs/src/workers/context.rs, crates/core-rs/src/lm/{policy.rs,runner.rs}, crates/core-rs/tests/context.rs
 
 - id: FT-306
-  title: Implement ToneTransformer (light consistency)
+  title: Implement ToneWorker (light consistency)
   priority: P1
   dependsOn: [FT-305]
   acceptance:
     - Punctuation spacing, capitalization, quote normalisation
     - No semantic changes; only after Context commit
-  output: engines/tone/index.ts, tests/engines/tone.spec.ts
+  output: crates/core-rs/src/workers/tone.rs, crates/core-rs/tests/tone.rs
 
 - id: FT-307
   title: UI Renderer for mechanical swap (no underline/highlight)
@@ -883,7 +849,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   acceptance:
     - Marker glyph (default '⠿') at swap sites; reduced-motion = instant
     - SR announcement "text updated behind cursor" once per batch
-  output: ui/swapRenderer.ts, tests/ui/swapRenderer.spec.ts
+  output: web-demo/src/components/swapRenderer.tsx, e2e/tests/swap-renderer.spec.ts
 
 - id: FT-308
   title: Platform bindings
@@ -901,7 +867,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   dependsOn: [FT-301, FT-302, FT-303, FT-307]
   acceptance:
     - Unit + integration pass; Playwright e2e: "Hello teh"→"Hello the"
-    - Abort+rollback when caret enters band mid-merge
+    - Abort+rollback when caret enters active region mid-merge
   output: tests/{unit,integration,e2e}/**, playwright config
 
 - id: FT-310
@@ -910,7 +876,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   dependsOn: [FT-301, FT-302, FT-303, FT-304, FT-305, FT-306, FT-307, FT-308, FT-309]
   acceptance:
     - messaging.md, system_principles.md, implementation.md, mindtyper_manifesto.md, project_structure.md, PRD.md, versioning.md reflect v0.3 only
-    - No mention of underline/highlight/TidySweep/Backfill
+    - No mention of underline/highlight/NoiseCorrection/Backfill
   output: docs/* updated with traceability notes
 ```
 
@@ -937,7 +903,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
 
 > Beginner-friendly summary
 >
-> We are upgrading from a single-stage "tidy sweep" into a 3-stage pipeline: Noise → Context → Tone. We'll also add a confidence-scoring system and a staging buffer so only high-quality edits are applied. Finally, we add English-only gating and tone controls in the demo.
+> We are upgrading from a single-stage NoiseWorker into a 3-stage pipeline: NoiseWorker → ContextWorker → ToneWorker. We'll also add a confidence-scoring system and a staging buffer so only high-quality edits are applied. Finally, we add English-only gating and tone controls in the demo.
 
 ```yaml
 - id: FT-401
@@ -945,61 +911,61 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   priority: P1
   dependsOn: [FT-232]
   acceptance:
-    - engines/contextTransformer.ts with ±2 sentence look-around
+    - crates/core-rs/src/workers/context.rs with ±2 sentence look-around
     - Grammar, syntax, semantics correction
     - Integration with confidence gating (τ_input ≥ 0.65)
     - Never edits at/after caret
     - Unit tests for context window and lookahead gate
-  output: engines/contextTransformer.ts, tests/contextTransformer.spec.ts
+  output: crates/core-rs/src/workers/context.rs, crates/core-rs/tests/context.rs
 
 - id: FT-402
   title: Implement Tone Transformer
   priority: P1
   dependsOn: [FT-401]
   acceptance:
-    - engines/toneTransformer.ts with baseline tone detection
+    - crates/core-rs/src/workers/tone.rs with baseline tone detection
     - Options: None (pass-through), Casual, Professional
     - Scope: last N sentences (CPU:10, WebGPU/WASM:20)
     - Gating: τ_tone (0.85) AND τ_commit to apply
     - Toggle control with in-flight completion
     - Unit tests for tone detection and minimal-diff rewrites
-  output: engines/toneTransformer.ts, tests/toneTransformer.spec.ts
+  output: crates/core-rs/src/workers/tone.rs, crates/core-rs/tests/tone.rs
 
 - id: FT-403
   title: Implement Confidence Gating System
   priority: P1
   dependsOn: [FT-241]
   acceptance:
-    - core/confidenceGate.ts with mathematical scoring
+    - crates/core-rs/src/confidence.rs with mathematical scoring
     - Four dimensions: input fidelity, transform quality, context coherence, temporal decay
     - Threshold enforcement: τ_input, τ_commit, τ_tone, τ_discard
     - Integration with staging buffer
     - Unit tests for scoring algorithms and threshold behavior
-  output: core/confidenceGate.ts, tests/confidenceGate.spec.ts
+  output: crates/core-rs/src/confidence.rs, crates/core-rs/tests/confidence.rs
 
 - id: FT-404
   title: Implement Staging Buffer State Machine
   priority: P1
   dependsOn: [FT-403]
   acceptance:
-    - core/stagingBuffer.ts with HOLD/COMMIT/DISCARD/ROLLBACK states
+    - crates/core-rs/src/staging_buffer.rs with HOLD/COMMIT/DISCARD/ROLLBACK states
     - State transition logic triggered by confidence scores
     - Memory management and stale proposal cleanup
     - Caret movement triggers and rollback handling
     - Unit tests for state machine and edge cases
-  output: core/stagingBuffer.ts, tests/stagingBuffer.spec.ts
+  output: crates/core-rs/src/staging_buffer.rs, crates/core-rs/tests/staging_buffer.rs
 
 - id: FT-405
   title: Integrate Three-Stage Pipeline
   priority: P1
   dependsOn: [FT-401, FT-402, FT-403, FT-404]
   acceptance:
-    - Update core/diffusionController.ts for Noise → Context → Tone flow
+    - Update crates/core-rs/src/diffusion.rs for Noise → Context → Tone flow
     - Replace simple frontier with staging buffer
     - Add confidence gating before edits
     - Rollback triggers on caret entry
     - Integration tests for full pipeline
-  output: Updated core/diffusionController.ts, tests/integration.spec.ts
+  output: crates/core-rs/src/diffusion.rs, crates/core-rs/tests/integration.rs
 
 - id: FT-406
   title: Add Language Detection and English-Only Gating
@@ -1010,7 +976,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
     - Full pipeline (Context + Tone) only for English
     - Noise-only for non-English (future multilingual support)
     - Unit tests for language gating behavior
-  output: core/languageDetection.ts, tests/languageDetection.spec.ts
+  output: crates/core-rs/src/language_detection.rs, crates/core-rs/tests/language_detection.rs
 
 - id: FT-407
   title: Update Web Demo for v0.4 Controls
@@ -1048,20 +1014,20 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   dependsOn: [FT-232, FT-232C]
   acceptance:
     - contextTransform always receives active LMAdapter + LMContextManager
-    - Band selection yields non-empty span strictly behind caret
+    - Active region selection yields non-empty span strictly behind caret
     - "LM runs" counter > 0 during live typing in demo
     - Visible corrections appear in demo without breaking caret safety
-  output: engines/contextTransformer.ts, core/sweepScheduler.ts, core/lm/contextManager.ts, core/lm/types.ts
+  output: crates/core-rs/src/workers/context.rs, crates/core-rs/src/scheduler.rs, crates/core-rs/src/lm/context_manager.rs, crates/core-rs/src/lm/types.rs
 
 - id: OBS-LOG-001
   title: Targeted LM diagnostics and counters
   priority: P1
   dependsOn: [LM-FLOW-001]
   acceptance:
-    - Logs: "ContextTransformer: LM start/end, chunk_count, final_merge"
+    - Logs: "ContextWorker: LM start/end, chunk_count, final_merge"
     - Gauge(s): total_lm_runs, aborted_runs, stale_drops
     - Workbench LM tab shows these metrics
-  output: engines/contextTransformer.ts (logs), web-demo/src/App.tsx (metrics render)
+  output: crates/core-rs/src/workers/context.rs (logs), web-demo/src/App.tsx (metrics render)
 
 - id: UX-STREAM-001
   title: Stabilize streaming UX (abort, throttling, quiet logs)
@@ -1079,7 +1045,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   dependsOn: [UX-STREAM-001]
   acceptance:
     - Tests cover: timeout triggers cleanup; abort cancels in-flight; error propagates to host
-  output: tests/resilientAdapter.spec.ts, tests/workerAdapter.spec.ts
+  output: crates/core-rs/tests/resilient_adapter.rs, crates/core-rs/tests/worker_adapter.rs
 
 - id: TEST-UNIT-002
   title: Unit: transformers runner wasmPaths config
@@ -1088,7 +1054,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   acceptance:
     - CDN path used when localOnly=false; /wasm/ used when localOnly=true
     - Mocks verify correct assignment to env.backends.onnx.wasm.wasmPaths
-  output: tests/transformersRunner.spec.ts
+  output: crates/core-rs/tests/transformers_runner.rs
 
 - id: TEST-E2E-001
   title: E2E: LM correctness golden cases
@@ -1163,16 +1129,16 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   acceptance:
     - "LM runs > 0" during typing
     - Demo visibly improves sample sentences behind caret
-  output: engines/contextTransformer.ts, core/sweepScheduler.ts
+  output: crates/core-rs/src/workers/context.rs, crates/core-rs/src/scheduler.rs
 
 - id: PROMPT-MERGE-001
   title: Prompt & merge guardrails for fuzzy text
   priority: P1
   dependsOn: [MODEL-001]
   acceptance:
-    - Reject off-band / too-long outputs; clamp by char/token; allow small rewording within band
+    - Reject off-region / too-long outputs; clamp by char/token; allow small rewording within active region
     - Unit tests for guardrails; e2e golden cases remain stable
-  output: core/lm/policy.ts, engines/contextTransformer.ts, tests/contextTransformer.spec.ts
+  output: crates/core-rs/src/lm/policy.rs, crates/core-rs/src/workers/context.rs, crates/core-rs/tests/context.rs
 
 - id: DEVICE-001
   title: Device-tier tuning for responsiveness
@@ -1180,7 +1146,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   dependsOn: []
   acceptance:
     - Lower token caps and longer cooldowns on WASM/CPU; no UI jank in slow path tests
-  output: core/lm/deviceTiers.ts, tests/performance/benchmarks.spec.ts
+  output: crates/core-rs/src/lm/device_tiers.rs, crates/core-rs/tests/performance/benchmarks.rs
 
 - id: DATA-LOOP-001
   title: Quality data loop with evaluation report
@@ -1212,10 +1178,10 @@ All docs follow house comment header style; stubs will be filled as tasks land.
   dependsOn: [LM-FLOW-001]
   acceptance:
     - Repeated manual runs produce LM runs > 0 and visible improvements
-  output: engines/contextTransformer.ts, core/sweepScheduler.ts (final wiring)
+  output: crates/core-rs/src/workers/context.rs, crates/core-rs/src/scheduler.rs (final wiring)
 
 - id: FINAL-001
-  title: Final sweep checklist for first typing demo
+  title: Final checklist for first typing demo
   priority: P1
   dependsOn: [CONTEXT-APPLY-001, TEST-TRUST-001]
   acceptance:
@@ -1237,7 +1203,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
     - Separate from user undo stack
     - Internal rollback API
     - Unit tests for bucket management
-  output: core/undoIsolation.ts, tests/undoIsolation.spec.ts
+  output: crates/core-rs/src/undo_isolation.rs, crates/core-rs/tests/undo_isolation.rs
 
 - id: FT-502
   title: Enhanced Visual Feedback
@@ -1249,7 +1215,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
     - Reduced-motion compliance (instant swaps)
     - Timing coordination with confidence system
     - Cross-browser compatibility
-  output: Updated ui/swapRenderer.ts, tests/ui/swapRenderer.spec.ts
+  output: web-demo/src/components/swapRenderer.tsx, e2e/tests/swap-renderer.spec.ts
 
 - id: FT-503
   title: Performance Optimization by Device Tier ✅ COMPLETE
@@ -1260,7 +1226,7 @@ All docs follow house comment header style; stubs will be filled as tasks land.
     - ✅ Token limits and cooldowns per tier
     - ✅ Memory pressure monitoring and degradation
     - ✅ Performance benchmarks and regression tests
-  output: ✅ Updated core/lm/deviceTiers.ts, tests/performance/deviceTiers.spec.ts, tests/performance/benchmarks.spec.ts
+  output: ✅ Updated crates/core-rs/src/lm/device_tiers.rs, crates/core-rs/tests/performance/device_tiers.rs, crates/core-rs/tests/performance/benchmarks.rs
   notes: Implemented comprehensive device tier system with PerformanceMonitor class, memory pressure detection, adaptive policy adjustment, and full benchmark suite.
 
 - id: FT-504
@@ -1287,7 +1253,7 @@ modules:
 acceptance:
   - docs/12-qa/qa/acceptance/context_transformer.feature#SCEN-CONTEXT-001
 tests:
-  - tests/contextTransformer.spec.ts
+  - crates/core-rs/tests/context.rs
 invariants:
   - Never edits at/after caret (REQ-IME-CARETSAFE)
 -->
@@ -1302,7 +1268,7 @@ modules:
 acceptance:
   - docs/12-qa/qa/acceptance/tone_transformer.feature#SCEN-TONE-001
 tests:
-  - tests/toneTransformer.spec.ts
+  - crates/core-rs/tests/tone.rs
 invariants:
   - Never edits at/after caret (REQ-IME-CARETSAFE)
 -->
@@ -1318,8 +1284,8 @@ modules:
 acceptance:
   - docs/12-qa/qa/acceptance/confidence_gate.feature#SCEN-CONFIDENCE-001
 tests:
-  - tests/confidenceGate.spec.ts
-  - tests/stagingBuffer.spec.ts
+  - crates/core-rs/tests/confidence.rs
+  - crates/core-rs/tests/staging_buffer.rs
 -->
 
 <!-- SPEC:REQ
@@ -1328,11 +1294,11 @@ title: Integrate Noise → Context → Tone pipeline with staging buffer
 status: active
 modules:
   - core/diffusionController.ts
-  - core/sweepScheduler.ts
+  - crates/core-rs/src/scheduler.rs
 acceptance:
   - docs/12-qa/qa/acceptance/three_stage_pipeline.feature#SCEN-PIPELINE-001
 tests:
-  - tests/integration.spec.ts
+  - crates/core-rs/tests/integration.rs
 -->
 
 <!-- SPEC:REQ
@@ -1342,11 +1308,11 @@ status: active
 modules:
   - core/languageDetection.ts
   - core/diffusionController.ts
-  - core/sweepScheduler.ts
+  - crates/core-rs/src/scheduler.rs
 acceptance:
   - docs/12-qa/qa/acceptance/language_gating.feature#SCEN-LANG-001
 tests:
-  - tests/languageDetection.spec.ts
+  - crates/core-rs/tests/language_detection.rs
 -->
 
 <!-- SPEC:REQ
@@ -1390,7 +1356,7 @@ tests:
 - **Noise Transformer**: 5 sophisticated rules (transposition, punctuation, whitespace, capitalization)
 - **Context Transformer**: ±2 sentence look-around with grammar repairs
 - **Tone Transformer**: Baseline detection with Casual/Professional/None modes
-- **Integration**: Fully wired in `sweepScheduler.ts` with proper sequencing
+- **Integration**: Fully wired in Rust scheduler with proper sequencing
 
 #### ✅ **Confidence Gating System** (REQ-CONFIDENCE-GATE)
 
@@ -1462,7 +1428,7 @@ tests:
     - Braille marker positioning and timing
     - Reduced-motion instant swaps
     - Integration with confidence system timing
-  files: ui/swapRenderer.ts, tests/ui/swapRenderer.spec.ts
+  files: web-demo/src/components/swapRenderer.tsx, e2e/tests/swap-renderer.spec.ts
 
 - id: FT-V4-002
   title: Implement Backfill Consistency Engine
@@ -1472,7 +1438,7 @@ tests:
     - Punctuation spacing in stable zone
     - Context-aware confidence scoring
     - Stable zone boundary enforcement
-  files: engines/backfillConsistency.ts, tests/backfillConsistency.spec.ts
+  files: crates/core-rs/src/workers/backfill.rs, crates/core-rs/tests/backfill.rs
 
 - id: FT-V4-003
   title: Enhance Group Undo Integration
@@ -1482,7 +1448,7 @@ tests:
     - Time-bucketed rollback API
     - Integration tests with web demo
     - macOS/iOS undo semantics preparation
-  files: core/undoIsolation.ts, ui/groupUndo.ts, tests/undoIsolation.spec.ts
+  files: crates/core-rs/src/undo_isolation.rs, web-demo/src/components/groupUndo.tsx, crates/core-rs/tests/undo_isolation.rs
 
 # MEDIUM PRIORITY (Platform Expansion)
 
@@ -1592,3 +1558,18 @@ The remaining tasks are polish and platform expansion—the **core functionality
 ---
 
 _Updated: 2025-01-09 with post-v0.4 stabilization and enhancement roadmap_
+
+<details>
+<summary>Archived v0.4 TypeScript Implementation Plan</summary>
+
+### Architecture Constraints (P1) ✅
+
+- [x] (P1) [FT-105] Document architecture constraints
+// ... existing code ...
+- [x] (P1) [FT-125] Implement DiffusionController
+       **AC:** `core/diffusionController.ts` with Unicode word segmentation; advances frontier word-by-word; integrates with active region renderer; catch-up on pause
+       **Owner:** @alex
+       **DependsOn:** FT-124
+       **Source:** REQ-STREAMED-DIFFUSION, REQ-ACTIVE-REGION
+
+</details>

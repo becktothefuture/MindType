@@ -15,7 +15,7 @@
 
 - Core orchestrates LM usage inside the Context stage. UI is thin.
 - We select a short span behind the caret, build a context‑aware prompt,
-  stream tokens, then merge only within the band. Never at/after caret.
+  stream tokens, then merge only within the active region. Never at/after caret.
 - Dual‑context windowing is used: Close (2–5 nearby sentences, active excluded) and Wide (document‑level) for coherence validation.
 - In the web demo, Transformers.js runs in a Web Worker for smooth UI.
 
@@ -25,7 +25,7 @@
 export interface LMStreamParams {
   text: string;
   caret: number;
-  band: { start: number; end: number };
+  active_region: { start: number; end: number };
   settings?: Record<string, unknown> & {
     prompt?: string;
     maxNewTokens?: number;
@@ -36,7 +36,7 @@ export interface LMStreamParams {
 Invariants:
 
 - Caret safety (REQ‑IME‑CARETSAFE): never emit/merge edits at/after the caret.
-- Band‑bounded merges only; no cross‑band writes.
+- Active-region-bounded merges only; no cross‑region writes.
 
 ## Behavior policy (selection → prompt → post‑process)
 
@@ -45,7 +45,7 @@ Invariants:
   - Context window is sentence‑based: include N previous sentences (N∈[2,5], default 3), active sentence excluded except prefix up to caret.
   - Dual‑context validation: proposals from Close context are checked for coherence against the Wide context before commit.
 - Prompt template is minimal: “return corrected Span only.”
-- Post‑process trims artifacts, rejects oversized or off‑band outputs.
+- Post‑process trims artifacts, rejects oversized or off‑region outputs.
 
 References: `core/lm/policy.ts`, `core/activeRegionPolicy.ts`,
 `config/defaultThresholds.ts`.

@@ -1,0 +1,146 @@
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  STYLES  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ Dot-matrix wave animation demo
+  • WHY  ▸ REQ-DOT-MATRIX-WAVE
+  • HOW  ▸ See linked contracts and guides in docs
+*/
+
+/* Demo container */
+#demo-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Text display area */
+#text-display {
+  position: relative;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+/* Dot matrix animation styles */
+.dot-matrix-correction {
+  position: relative;
+  display: inline-block;
+}
+
+.dot-matrix-char {
+  display: inline-block;
+  transition: all 0.02s ease-out;
+  transform-origin: center;
+}
+
+.dot-matrix-char.transitioning {
+  animation: dotMatrixFlip 0.3s ease-in-out;
+}
+
+@keyframes dotMatrixFlip {
+  0% {
+    transform: rotateX(0deg) scale(1);
+    opacity: 1;
+  }
+  40% {
+    transform: rotateX(90deg) scale(0.95);
+    opacity: 0.6;
+  }
+  60% {
+    transform: rotateX(-90deg) scale(0.95);
+    opacity: 0.6;
+  }
+  100% {
+    transform: rotateX(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+.dot-matrix-wave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(100, 200, 255, 0.1) 50%,
+    transparent 100%
+  );
+  animation: wavePropagate 0.4s ease-in-out;
+}
+
+@keyframes wavePropagate {
+  from {
+    width: 0;
+    left: 0;
+  }
+  to {
+    width: 100%;
+    left: 100%;
+  }
+}
+
+/* Controls */
+#controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+button {
+  padding: 0.75rem 1.5rem;
+  border: 1px solid #3cc5cc;
+  background: white;
+  color: #3cc5cc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background: #3cc5cc;
+  color: white;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .dot-matrix-char {
+    animation: none !important;
+    transition: opacity 0.1s ease-in-out;
+  }
+  
+  .dot-matrix-char.transitioning {
+    opacity: 0.8;
+  }
+  
+  .dot-matrix-wave {
+    display: none;
+  }
+  
+  button {
+    transition: none;
+  }
+}

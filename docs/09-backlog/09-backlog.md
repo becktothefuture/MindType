@@ -20,7 +20,7 @@
 
 ## Sentence-aware, confidence-gated context growth
 
-- Problem: sometimes the band is too short to be certain. Solution: grow the LM context window to the sentence (or previous sentence) when uncertainty is high, but still merge only the small span.
+- Problem: sometimes the active region is too short to be certain. Solution: grow the LM context window to the sentence (or previous sentence) when uncertainty is high, but still merge only the small span.
 - Acceptance: when span-only fixes produce low-confidence results, the system retries with sentence context and improves precision without chatty outputs.
 
 ## Conflict resolver and rollback mid-stream

@@ -10,8 +10,8 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ Band-swap noise-cluster animation demo; Band-swap animation tokens
-  • WHY  ▸ REQ-BAND-SWAP, CONTRACT-BAND-SWAP
+  • WHAT ▸ Band-swap animation tokens
+  • WHY  ▸ CONTRACT-BAND-SWAP
   • HOW  ▸ See linked contracts and guides in docs
 */
 

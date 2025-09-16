@@ -17,7 +17,7 @@ _Primer: Clarifies this decision and why it matters._
 - Typing/engine core: Rust library for all performance‑critical text processing (tokenization, context window management, caches, heuristics). Expose a C ABI via cbindgen (or UniFFI) and call from Swift.
 - Data & storage: SQLite (via GRDB or Core Data) for local preferences/dictionaries; UserDefaults for simple flags.
 - Interop/build: SwiftPM for app modules; Cargo for Rust crates; reproducible builds pinned via lockfiles.
-- Web demo: Lightweight vanilla JS + Vite (no framework) to keep the “aha” demo simple and fast; optional TypeScript later if we grow the demo.
+- Web demo: TypeScript + React + Vite for the interactive demo with live corrections, parameter controls, and visual feedback.
 - Testing: XCTest for app, cargo test for Rust, golden‑corpus tests for the engine, and UI tests for the Caps‑Lock modal.
 - CI/CD: GitHub Actions (macOS runners) for build, unit tests, performance regression checks, and notarized releases.
 

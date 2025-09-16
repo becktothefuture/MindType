@@ -16,7 +16,7 @@
     • HOW  ▸ Source `config/defaultThresholds.ts`
 -->
 
-- SWEEP_WINDOW_MAX: 80 chars behind CARET (tidy sweep).
+- ACTIVE_REGION_MAX: 80 chars behind CARET (NoiseWorker).
 - HIGHLIGHT_FADE_MS: ≤ 250 ms; respects reduced motion.
 - DEBOUNCE_MS: 8–12 ms for keystrokes.
 
@@ -24,9 +24,9 @@ Runtime thresholds and defaults (source: `config/defaultThresholds.ts`):
 
 - SHORT_PAUSE_MS: 300 ms (minimum pause before LM catch‑up runs)
 - LONG_PAUSE_MS: 2000 ms
-- MAX_SWEEP_WINDOW: 80 chars (behind caret)
+- MAX_ACTIVE_REGION: 80 chars (behind caret)
 - TYPING_TICK_MS: default 75 ms (range 60–90 ms typical)
-- VALIDATION_BAND_WORDS: min=5, max=5 (fixed band size)
+- VALIDATION_REGION_WORDS: min=5, max=5 (fixed active region size)
 
 LM execution & privacy defaults:
 

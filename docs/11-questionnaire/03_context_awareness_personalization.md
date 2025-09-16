@@ -96,11 +96,11 @@ These refinements are applied automatically, within a confidence threshold and i
 
 ---
 
-**30. Should MindTyper handle grammar correction (e.g. verb tense, subject–verb agreement)?**
+**30. Should MindTyper handle GrammarWorker (e.g. verb tense, subject–verb agreement)?**
 _Primer: Clarifies this decision and why it matters._
 → Your answer:
 
-**Answer:** Yes—MindTyper will automatically handle grammar correction as part of its denoising stream. This includes things like verb tense, subject–verb agreement, passive voice cleanup, and punctuation alignment. All corrections happen invisibly and in real time—no prompts, no confirmations, no grading.
+**Answer:** Yes—MindTyper will automatically handle GrammarWorker as part of its denoising stream. This includes things like verb tense, subject–verb agreement, passive voice cleanup, and punctuation alignment. All corrections happen invisibly and in real time—no prompts, no confirmations, no grading.
 
 The goal is to make users feel like their writing is simply clearer and more precise, not corrected or critiqued. Grammar support is there to amplify fluency, never to make the user feel watched or wrong.
 

@@ -20,7 +20,7 @@
 
 - FT-115 Secure field detection
   - Unit: `tests/secureFields.spec.ts` covers IME + secure inputs; extend with more field types
-  - Integration: Pipeline drops events when secure; no band render
+  - Integration: Pipeline drops events when secure; no active region render
   - Acceptance: Scenario doc in `docs/12-qa/qa/acceptance/caret_safety.feature` (add secure-field scenario)
 
 - FT-123 Minimal logging
@@ -37,7 +37,7 @@
 
 - FT-315/316/317 Demo integration
   - Unit: Config persistence; toggle wiring
-  - E2E: Playwright smoke for band rendering and controls
+  - E2E: Playwright smoke for active region rendering and controls
 
 - FT-230/231/232 LM track (later)
   - Contract: Mock `LMAdapter` streaming; merge policy respects caret
@@ -68,7 +68,7 @@ Keep this file short and link to detailed specs in `docs/02-implementation/02-Im
 
 - Principles → QA: Each acceptance test cites the governing principle in `docs/system_principles.md` (PRIN‑IDs).
 - ADRs → QA: ADRs define non‑negotiables that acceptance scenarios must validate (e.g., caret safety).
-- Guides → QA: Reference docs (band policy, injector, LM behavior) define the behaviors under test.
+- Guides → QA: Reference docs (active region policy, injector, LM behavior) define the behaviors under test.
 
 ### Traceability Fields (per scenario)
 

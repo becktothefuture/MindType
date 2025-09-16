@@ -27,7 +27,7 @@ Mind::Type is a quiet, system‑wide typing utility that converts noisy input in
 
 ### Goals (MUST) / Non‑Goals (WON'T)
 
-- MUST: on‑device inference by default; p95 keystroke→correction ≤ 15 ms; caret‑safe edits; granular undo via host stack; reduced‑motion compliance; encrypted remote channel support behind explicit opt‑in; tone adjustment optional, off by default.
+- MUST: on‑device inference by default; p95 keystroke→correction ≤ 15 ms; caret‑safe edits; granular undo via host stack; reduced‑motion compliance; encrypted remote channel support behind explicit opt‑in; ToneWorker optional, off by default.
 - WON'T: silent cloud text processing; heavy suggestions UI; collaborative prefs; background data retention.
 
 ### Success Metrics
@@ -40,20 +40,20 @@ Mind::Type is a quiet, system‑wide typing utility that converts noisy input in
 ### Functional Requirements
 
 - REQ-IME-CARETSAFE: The engine MUST NEVER apply edits at/after the caret.
-- REQ-TIDY-SWEEP: The engine MUST propose minimal diffs within ≤ 80 chars
+- REQ-NOISE-CORRECTION: The engine MUST propose minimal corrections within ≤ 80 chars
   behind the caret; return null when unsure.
 - REQ-A11Y-MOTION: Visual feedback MUST honor `prefers-reduced-motion`.
 - REQ-SECURE-FIELDS: The system MUST disable in secure fields and during
   active IME composition.
 - REQ-STREAMED-DIFFUSION: Corrections MUST stream word‑by‑word behind the caret during typing; on pause (~500 ms), diffusion MUST catch up until the active region reaches the caret.
-- REQ-ACTIVE-REGION: Processing MUST be limited to an active region behind the caret (typically 3–8 words) as the only editable span. The UI is not required to render this band.
-- REQ-VISUAL-SWAP: The UI MUST use mechanical letter‑swap only for applied corrections, with an optional braille‑like marker ('⠿') at swap sites. No underlines/highlights for applied edits. A subtle active‑region overlay for debugging/demo is permissible, provided it does not alter applied‑edit visuals. Reduced‑motion MUST perform instant swaps. Announce once per batch via the live region when enabled.
+- REQ-ACTIVE-REGION: Processing MUST be limited to an active region behind the caret (20 words) as the only editable span. The UI is not required to render this active region.
+- REQ-VISUAL-SWAP: The UI MUST use a mechanical, word-by-word "dot matrix wave" animation for applied corrections, with an optional braille‑like marker ('⠿') at swap sites. No underlines/highlights for applied edits. A subtle active‑region overlay for debugging/demo is permissible, provided it does not alter applied‑edit visuals. Reduced‑motion MUST perform instant swaps. Announce once per batch via the live region when enabled.
 - REQ-LOCAL-LM-INTEGRATION: The system MUST support on-device language model integration for semantic and grammatical corrections; MUST fallback gracefully to rule-based corrections when LM unavailable; MUST maintain <150MB typical memory footprint including model. Target initial integration: Transformers.js with Qwen2.5‑0.5B‑Instruct (q4, WebGPU) for text‑centric quality.
 - REQ-CONTEXTUAL-CORRECTIONS: Beyond word substitutions, the engine MUST handle transpositions, punctuation spacing, capitalization, and semantic coherence using broader context while maintaining caret safety.
 
 ### Scenarios (BDD)
 
-- Caret safety: Given caret sits mid‑word, When sweep runs, Then no edit
+- Caret safety: Given caret sits mid‑word, When correction runs, Then no edit
   occurs. (maps: docs/12-qa/qa/acceptance/caret_safety.feature)
 - Streamed diffusion: Given active typing, When diffusion runs, Then the active region trails behind the caret word‑by‑word; on pause, the region catches up. (maps: docs/12-qa/qa/acceptance/streamed_diffusion.feature)
 - Visual feedback: Given corrections apply, Then text is replaced via mechanical swap (no highlight), optionally marked with '⠿', and a single screen‑reader announcement "text updated behind cursor" is emitted per batch. (maps: docs/12-qa/qa/acceptance/two_word_highlight.feature)
@@ -89,11 +89,11 @@ Appendix — Traceability Map (starter)
 
 | REQ-ID                   | Principles                   | ADRs     | QA Scenarios       | Modules/Guides                                                                           |
 | ------------------------ | ---------------------------- | -------- | ------------------ | ---------------------------------------------------------------------------------------- |
-| REQ-IME-CARETSAFE        | PRIN-SAFETY-04               | ADR-0002 | SCEN-CARETS-001    | utils/diff.ts; band-policy.md                                                            |
-| REQ-STREAMED-DIFFUSION   | PRIN-HUMAN-01, PRIN-LOGIC-10 | —        | SCEN-DIFFUSION-001 | core/diffusionController.ts; lm-behavior.md                                              |
-| REQ-VISUAL-SWAP          | PRIN-HUMAN-02, PRIN-HUMAN-03 | —        | SCEN-DIFFUSION-001 | ui/swapRenderer.ts; a11y/wcag-checklist.md                                               |
-| REQ-A11Y-MOTION          | PRIN-HUMAN-03                | —        | SCEN-HILITE-001    | a11y/wcag-checklist.md; ui/motion.ts                                                     |
-| REQ-LOCAL-LM-INTEGRATION | PRIN-SAFETY-05, PRIN-PERF-11 | ADR-0005 | SCEN-LMLOCAL-001   | lm-behavior.md; core/lm/factory.ts; ./06-guides/reference/lm-worker.md; crates/core-rs/\* |
+| REQ-IME-CARETSAFE        | PRIN-SAFETY-04               | ADR-0002 | SCEN-CARETS-001    | crates/core-rs/src/diff.rs; active-region-policy.md                                      |
+| REQ-STREAMED-DIFFUSION   | PRIN-HUMAN-01, PRIN-LOGIC-10 | —        | SCEN-DIFFUSION-001 | crates/core-rs/src/diffusion.rs; lm-behavior.md                                          |
+| REQ-VISUAL-SWAP          | PRIN-HUMAN-02, PRIN-HUMAN-03 | —        | SCEN-DIFFUSION-001 | web-demo/src/swapRenderer.tsx; a11y/wcag-checklist.md                                    |
+| REQ-A11Y-MOTION          | PRIN-HUMAN-03                | —        | SCEN-HILITE-001    | a11y/wcag-checklist.md; web-demo/src/motion.tsx                                          |
+| REQ-LOCAL-LM-INTEGRATION | PRIN-SAFETY-05, PRIN-PERF-11 | ADR-0005 | SCEN-LMLOCAL-001   | lm-behavior.md; crates/core-rs/src/lm/*; ./06-guides/reference/lm-worker.md              |
 
 ### Stakeholders
 
@@ -103,7 +103,7 @@ Appendix — Traceability Map (starter)
 
 ### Tech Stack Summary
 
-- Core: TypeScript (orchestration) + Rust (WASM‑ready primitives)
+- Core: Rust (complete correction engine via WASM/FFI)
 - Web: Vite + React demo; Playwright E2E
 - LM: Transformers.js targeting WebGPU → WASM → CPU fallback
 - Tooling: pnpm, Vitest, ESLint v9 flat config, Prettier
@@ -114,7 +114,7 @@ Appendix — Traceability Map (starter)
 
 ### Release Criteria (MVP)
 
-- Functionality: Caret‑safe tidy sweeps within window; pause catch‑up; active region visuals; secure fields/IME handling
+- Functionality: Caret‑safe NoiseWorker within window; pause catch‑up; active region visuals; secure fields/IME handling
 - Usability: Reduced‑motion compliance; minimal unobtrusive UI
 - Reliability: p95 latency targets met on M‑series in demo; unit/integration tests green; coverage guard passes
 - Supportability: Local‑only default; clear setup script `pnpm setup:local`; logs gated; docs updated (PRD, implementation, QA mapping)
@@ -124,13 +124,13 @@ id: REQ-STREAMED-DIFFUSION
 title: Streamed diffusion of LM corrections
 status: active
 modules:
-  - core/diffusionController.ts
-  - core/lm/mergePolicy.ts
+  - crates/core-rs/src/diffusion.rs
+  - crates/core-rs/src/lm/merge.rs
 acceptance:
   - docs/12-qa/qa/acceptance/streamed_diffusion.feature#SCEN-DIFFUSION-001
 tests:
-  - tests/diffusionController.spec.ts
-  - tests/diffusionController_lm_branches.spec.ts
+  - crates/core-rs/tests/diffusion.rs
+  - crates/core-rs/tests/lm_merge.rs
 -->
 
 <!-- SPEC:REQ
@@ -138,13 +138,13 @@ id: REQ-IME-CARETSAFE
 title: No edits at or after the caret
 status: active
 modules:
-  - utils/diff.ts
-  - core/activeRegionPolicy.ts
+  - crates/core-rs/src/diff.rs
+  - crates/core-rs/src/active_region.rs
 acceptance:
   - docs/12-qa/qa/acceptance/caret_safety.feature#SCEN-CARETS-001
 tests:
-  - tests/diff.spec.ts
-  - tests/policy.spec.ts
+  - crates/core-rs/tests/diff.rs
+  - crates/core-rs/tests/active_region.rs
 -->
 
 <!-- SPEC:REQ
@@ -152,8 +152,8 @@ id: REQ-A11Y-MOTION
 title: Respect reduced-motion; single announcement; mechanical swap
 status: active
 modules:
-  - ui/motion.ts
-  - ui/liveRegion.ts
+  - web-demo/src/motion.tsx
+  - web-demo/src/liveRegion.tsx
 acceptance:
   - docs/12-qa/qa/acceptance/two_word_highlight.feature#SCEN-HILITE-001
 tests:
@@ -166,13 +166,12 @@ id: REQ-LOCAL-LM-INTEGRATION
 title: On-device LM integration with graceful fallback
 status: active
 modules:
-  - core/lm/factory.ts
-  - core/lm/transformersClient.ts
+  - crates/core-rs/src/lm/factory.rs
+  - crates/core-rs/src/lm/client.rs
 acceptance:
   - docs/12-qa/qa/acceptance/local_lm_integration.feature#SCEN-LMLOCAL-001
 tests:
-  - tests/transformersClient.spec.ts
-  - tests/transformersClient_factory.spec.ts
+  - crates/core-rs/tests/lm.rs
 -->
 
 ### In simple terms
@@ -181,16 +180,16 @@ tests:
 - **How to use**: Add a SPEC block like above when you add/change a requirement. Our tool syncs file headers and the traceability map.
 
 <!-- SPEC:REQ
-id: REQ-BAND-SWAP
-title: Band-swap noise-cluster animation demo
+id: REQ-DOT-MATRIX-WAVE
+title: Dot-matrix wave animation demo
 status: active
 modules:
-  - web-demo/public/demo/band-swap/index.html
-  - web-demo/public/demo/band-swap/main.js
-  - web-demo/public/demo/band-swap/styles.css
+  - demo/dot-matrix-wave/index.html
+  - demo/dot-matrix-wave/main.js
+  - demo/dot-matrix-wave/styles.css
   - contracts/animTokens.ts
 acceptance:
-  - docs/12-qa/qa/acceptance/mechanical_swap.feature#SCEN-BAND-SWAP-001
+  - docs/12-qa/qa/acceptance/mechanical_swap.feature#SCEN-DOT-MATRIX-WAVE-001
 tests:
-  - e2e/tests/demo-band-swap.spec.ts
+  - e2e/tests/demo-dot-matrix-wave.spec.ts
 -->

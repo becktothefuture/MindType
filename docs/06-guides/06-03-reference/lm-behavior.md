@@ -7,7 +7,7 @@ types:
       export interface LMStreamParams {
         text: string;
         caret: number;
-        band: { start: number; end: number };
+        active_region: { start: number; end: number };
         settings?: Record<string, unknown>;
       }
 invariants:
@@ -121,10 +121,10 @@ Implementation notes:
 8. Selecting a range: LM disabled while selection exists; no changes until collapsed.
 9. Typing fast bursts: abort stale, single-flight ensures latest run only.
 10. Frequent tiny pauses (<300ms): cooldown prevents spam; active region shows but no LM merge.
-11. Typing at document start: band within bounds; prompt uses available left context.
-12. Typing at line start after newline: newline-safety clamp avoids band jumping across lines.
+11. Typing at document start: active region within bounds; prompt uses available left context.
+12. Typing at line start after newline: newline-safety clamp avoids active region jumping across lines.
 13. Undo/redo: active region updates; LM waits for pause; merges only span; system corrections do not enter undo stack.
-14. Deleting characters: band updates; LM only after boundary and pause.
+14. Deleting characters: active region updates; LM only after boundary and pause.
 15. Replacing a word (backspace + type): treated as new span; LM after pause.
 16. Holding key (repeat): no LM until release+pause.
 17. IME composing: LM disabled during composition; resumes after compositionend.
@@ -136,7 +136,7 @@ Implementation notes:
 23. High-latency first run (warm-up): later runs faster; UI shows the active region regardless.
 24. Rule-only mode: LM off; rules apply; can toggle LM on and load.
 25. Local-only assets missing: LM remains off; show guidance to run setup; remote allowed only on explicit opt‑in.
-26. Slow network: small prompts/outputs minimize bandwidth; still span-only merges.
+26. Slow network: small prompts/outputs minimize bandwidth; still region-only merges.
 27. Very long word: span cap blocks LM; rules may still apply.
 28. Mixed case/punctuation errors: prompt + post-process keep output short and span-sized.
 29. Multiline input: newline clamp ensures the active region stays in current line when needed.

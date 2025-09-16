@@ -21,7 +21,7 @@ alwaysApply: true
 #  7.  Inline comments later in file → prefix with "⟢" (arrow-dot) for quick scan.
 #  8.  Never exceed ~50% comment density in code files.
 #  9.  Markdown docs use HTML comments with same grid.
-# 10. Glossary keywords → UPPER-SNAKE (CARET, DIFF, SWEEP) on first mention.
+# 10. Glossary keywords → UPPER-SNAKE (CARET, DIFF, ACTIVE_REGION) on first mention.
 #
 #  TEMPLATES ────────────────────────────────────────────────────────────────
 #  • TypeScript / JS / Swift / Java / Kotlin
@@ -73,7 +73,7 @@ alwaysApply: true
 #    # HOW  ▸ ...
 #
 #  INLINE EXAMPLE ──────────────────────────────────────────────────────────
-#    ⟢ Guard: skip sweep if pause < SHORT_PAUSE_MS
+#    ⟢ Guard: skip correction if pause < SHORT_PAUSE_MS
 #
 #  END OF GUIDE ────────────────────────────────────────────────────────────
  #  LIB_TOUCH Example:

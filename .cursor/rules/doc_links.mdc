@@ -11,19 +11,19 @@ Links to critical files by name for Cursor memory and quick reference.
 - [Project Structure](docs/14-project-structure/14-project_structure.md)
 - [Glossary](docs/00-index/00-README.md#glossary)
 - [Project Overview](docs/00-index/00-README.md)
-- [System Principles](docs/system_principles.md)
+- [System Principles](docs/03-system-principles/03-System-Principles.md)
 
 ## Key Directories
-- [Core Logic](core/)
-- [Engines](engines/)
+- [Core Logic](crates/core-rs/src/)
+- [Bindings](bindings/)
 - [UI Components](ui/)
 - [Utilities](utils/)
 - [Tests](tests/)
- - [Architecture](docs/04-architecture/)
- - [ADRs](docs/adr/)
- - [Acceptance (BDD)](docs/qa/acceptance/)
- - [Guides](docs/06-guides/)
- - [Accessibility](docs/a11y/)
+- [Architecture](docs/04-architecture/)
+- [ADRs](docs/05-adr/)
+- [Acceptance (BDD)](docs/12-qa/qa/acceptance/)
+- [Guides](docs/06-guides/)
+- [Accessibility](docs/08-a11y/)
 
 ## Entry Point
 - [Main Index](index.ts)

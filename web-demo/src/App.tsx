@@ -17,7 +17,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import "./App.css";
 import "./braille-animation.css";
-import { SCENARIOS } from "./scenarios";
+// import { SCENARIOS } from "./scenarios"; // deprecated in unified demo
 import { replaceRange } from "../../utils/diff";
 import { boot } from "../../index";
 import { createWorkerLMAdapter } from "../../core/lm/workerAdapter";
@@ -65,12 +65,20 @@ function App() {
   // Core state
   const [text, setText] = useState(DEFAULT_PRESET.text);
   const [currentPreset, setCurrentPreset] = useState<DemoPreset>(DEFAULT_PRESET);
-  const [scenarioId, setScenarioId] = useState<string | null>(null);
-  const [stepIndex, setStepIndex] = useState<number>(0);
+  // Deprecated scenario state (unified demo uses autopilot)
+  // const [scenarioId, setScenarioId] = useState<string | null>(null);
+  // const [stepIndex, setStepIndex] = useState<number>(0);
   const [tickMs, setTickMs] = useState<number>(getTypingTickMs());
+  const defaultAutoTyping = (() => {
+    try { return !(typeof navigator !== 'undefined' && (navigator as any).webdriver); } catch { return true; }
+  })();
+  const [autoTyping, setAutoTyping] = useState<boolean>(defaultAutoTyping);
+  const [fuzziness, setFuzziness] = useState<number>(25);
+  const [typingCps, setTypingCps] = useState<number>(8);
+  const [correctionDelayMs, setCorrectionDelayMs] = useState<number>(180);
   const [minBand] = useState<number>(getMinValidationWords());
   const [maxBand, setMaxBand] = useState<number>(getMaxValidationWords());
-  const [bandRange] = useState<{ start: number; end: number } | null>(null);
+  const [bandRange, setBandRange] = useState<{ start: number; end: number } | null>(null);
   const [lastHighlight] = useState<{ start: number; end: number } | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   
@@ -115,11 +123,21 @@ function App() {
   const [sensitivity, setSensitivity] = useState<number>(Math.max(getConfidenceSensitivity(), 1.6));
   
   // UI state
-  const [showMarkers, setShowMarkers] = useState<boolean>(false);
+  const [showMarkers, setShowMarkers] = useState<boolean>(true);
   const [caretState] = useState<CaretSnapshot | null>(null);
   const [eps] = useState<number>(0);
   const [stats] = useState<any>(null);
   const [systemStatuses, setSystemStatuses] = useState<Record<string, boolean>>({});
+  const primaryStatus = (() => {
+    const s = systemStatuses;
+    if (s.LONG_PAUSE) return 'LONG_PAUSE';
+    if (s.SHORT_PAUSE) return 'SHORT_PAUSE';
+    if (s.SELECTION_ACTIVE) return 'SELECTION_ACTIVE';
+    if (s.TYPING) return 'TYPING';
+    if (s.PASTED) return 'PASTED';
+    if (s.CARET_JUMP) return 'CARET_JUMP';
+    return 'ACTIVE_IDLE';
+  })();
   const [ignoreGating, setIgnoreGating] = useState<boolean>(true);
   const [diagnosticMode, setDiagnosticMode] = useState<boolean>(false);
   const [activeWorkbenchTab, setActiveWorkbenchTab] = useState<'diagnostics' | 'lm' | 'logs'>('diagnostics');
@@ -129,6 +147,10 @@ function App() {
   const [previewNoise, setPreviewNoise] = useState<string>("");
   const [previewContext, setPreviewContext] = useState<string>("");
   const [previewTone, setPreviewTone] = useState<string>("");
+  // Overlay rects for context/buffer visualization
+  const [overlayBand, setOverlayBand] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+  const [overlayClose, setOverlayClose] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+  const [overlayWide, setOverlayWide] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
   
   // Logs & Diagnostics
   const [logs, setLogs] = useState<Array<{ ts: number; type: string; msg: string }>>([]);
@@ -144,6 +166,8 @@ function App() {
   const caretRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
   const typingTimeoutRef = useRef<number | null>(null);
+  const autopilotTimerRef = useRef<number | null>(null);
+  const autopilotIdxRef = useRef<number>(0);
   const pausedBySelectionRef = useRef<boolean>(false);
   const pausedByBlurRef = useRef<boolean>(false);
   
@@ -223,34 +247,110 @@ function App() {
     };
   }, [lmEnabled, diagnosticMode]);
 
-  // ⟢ Initialize caret position on app load
+  // ⟢ Autopilot typing simulator (starts on load; can pause)
   useEffect(() => {
-    // Set initial caret to end of default text (with delay to ensure textarea is ready)
-    const initializeCaret = () => {
-      const initialCaret = DEFAULT_PRESET.text.length;
-      caretRef.current = initialCaret;
-      
-      const ta = textareaRef.current;
-      if (ta) {
-        ta.value = DEFAULT_PRESET.text; // Ensure text is set
-        ta.setSelectionRange(initialCaret, initialCaret);
-        // Don't auto-focus to avoid interrupting user
-      }
-      
-      console.log('[App] Initial caret set:', { 
-        preset: DEFAULT_PRESET.name,
-        textLength: DEFAULT_PRESET.text.length, 
-        caret: initialCaret,
-        textPreview: DEFAULT_PRESET.text.slice(0, 50) + '...'
-      });
-    };
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const SOURCE = (
+      "The keyboard evolved from early telegraph and typewriter experiments. " +
+      "In the nineteenth century, inventors refined key arrangements to reduce jams and to pace the movement of the fingers across rows. " +
+      "Christopher Latham Sholes and collaborators produced one of the first practical typing machines, which introduced the QWERTY layout to stagger common digraphs. " +
+      "As typists learned touch techniques, their fingers flowed in repeating arcs from home row to reach numbers, punctuation, and shifted characters. " +
+      "The motion became a choreography: index fingers leading into frequent letters, thumbs releasing the space bar like a metronome, and pinkies reaching for modifiers. " +
+      "Modern computer keyboards preserved that muscle memory while swapping mechanical levers for switches and circuits. " +
+      "Typing itself became a dialogue between intent and correction, where a stream of fuzzy inputs is gradually clarified into words by context and habit."
+    );
 
-    // Small delay to ensure DOM is ready
+    function qwertyNeighbors(ch: string): string[] {
+      const rows = ["`1234567890-=", "qwertyuiop[]\\", "asdfghjkl;'", "zxcvbnm,./"]; 
+      const lower = ch.toLowerCase();
+      for (const row of rows) {
+        const i = row.indexOf(lower);
+        if (i !== -1) return [row[i - 1], row[i + 1]].filter(Boolean) as string[];
+      }
+      return [];
+    }
+
+    function applyFuzzy(ch: string, intensity01: number): string {
+      if (ch === ' ' || ch === '\n') return ch;
+      const r = Math.random();
+      if (r < intensity01 * 0.5) {
+        const n = qwertyNeighbors(ch);
+        if (n.length) return (n[Math.floor(Math.random() * n.length)] ?? ch);
+      }
+      if (r < intensity01 * 0.7) {
+        const flip = Math.random() < 0.5;
+        return flip ? (/[a-z]/.test(ch) ? ch.toUpperCase() : ch.toLowerCase()) : ch;
+      }
+      if (r < intensity01 * 0.85) {
+        return '';
+      }
+      if (r < intensity01) {
+        const n = qwertyNeighbors(ch);
+        const ins = n.length ? n[0] : ch;
+        return ins + ch;
+      }
+      return ch;
+    }
+
+    function scheduleNextTick() {
+      const cps = Math.max(1, Math.min(20, Math.round(typingCps)));
+      const delay = Math.max(10, Math.round(1000 / cps));
+      autopilotTimerRef.current = window.setTimeout(() => {
+        if (!autoTyping || pausedBySelectionRef.current || pausedByBlurRef.current) {
+          scheduleNextTick();
+          return;
+        }
+        const i = autopilotIdxRef.current;
+        if (i >= SOURCE.length) return;
+        const rawCh = SOURCE[i];
+        const noisy = applyFuzzy(rawCh, Math.max(0, Math.min(1, fuzziness / 100)));
+        const nextText = text + noisy;
+        setText(nextText);
+        const ta2 = textareaRef.current;
+        if (ta2) {
+          const newCaret = nextText.length;
+          ta2.value = nextText;
+          ta2.setSelectionRange(newCaret, newCaret);
+          caretRef.current = newCaret;
+          lmContextManagerRef.current?.updateWideContext(nextText);
+          lmContextManagerRef.current?.updateCloseContext(nextText, newCaret);
+        }
+        pipelineRef.current?.ingest(nextText, caretRef.current);
+        autopilotIdxRef.current = i + 1;
+        scheduleNextTick();
+      }, delay);
+    }
+
+    // init empty text and caret 0
+    if (autopilotIdxRef.current === 0 && text.length === 0) {
+      if (lmContextManagerRef.current && !lmContextInitialized) {
+        lmContextManagerRef.current.initialize('', 0);
+        setLmContextInitialized(true);
+      }
+    }
+    if (autopilotTimerRef.current) clearTimeout(autopilotTimerRef.current);
+    scheduleNextTick();
+    return () => { if (autopilotTimerRef.current) clearTimeout(autopilotTimerRef.current); };
+  }, [autoTyping, typingCps, fuzziness, lmContextInitialized, text]);
+
+  // ⟢ Initialize caret position on app load (respect current text; no preset injection)
+  useEffect(() => {
+    const initializeCaret = () => {
+      const ta = textareaRef.current;
+      const initialCaret = (ta?.value?.length ?? text.length);
+      caretRef.current = initialCaret;
+      if (ta) {
+        ta.setSelectionRange(initialCaret, initialCaret);
+      }
+      console.log('[App] Initial caret set', { textLength: ta?.value?.length ?? text.length, caret: initialCaret });
+    };
     setTimeout(initializeCaret, 100);
   }, []);
 
-  // ⟢ Load saved preset from localStorage on startup
+  // ⟢ Load saved preset (disabled during unified autopilot mode)
   useEffect(() => {
+    if (autoTyping) return; // unified demo ignores saved presets
     try {
       const savedPresetName = localStorage.getItem('mindtype-demo-preset');
       if (savedPresetName) {
@@ -260,15 +360,11 @@ function App() {
           setText(savedPreset.text);
           const newCaret = savedPreset.text.length;
           caretRef.current = newCaret;
-          
-          // Update textarea
           const ta = textareaRef.current;
           if (ta) {
             ta.value = savedPreset.text;
             ta.setSelectionRange(newCaret, newCaret);
           }
-          
-          // Re-initialize LM context with saved preset
           if (lmContextManagerRef.current) {
             lmContextManagerRef.current.initialize(savedPreset.text, newCaret);
             setLmContextInitialized(true);
@@ -278,7 +374,7 @@ function App() {
     } catch (e) {
       console.warn('[App] Failed to load preset from localStorage:', e);
     }
-  }, []);
+  }, [autoTyping]);
 
   // ⟢ Update configuration
   useEffect(() => {
@@ -303,8 +399,73 @@ function App() {
   
   // ⟢ Swap renderer config
   useEffect(() => {
-    setSwapConfig({ showMarker: showMarkers });
-  }, [showMarkers]);
+    setSwapConfig({ showMarker: showMarkers, swapDurationMs: Math.max(0, correctionDelayMs) });
+  }, [showMarkers, correctionDelayMs]);
+
+  // ⟢ Reflect active region/band into local state for previews
+  useEffect(() => {
+    const onActiveRegion = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { start: number; end: number };
+      if (detail && typeof detail.start === 'number' && typeof detail.end === 'number') {
+        setBandRange({ start: detail.start, end: detail.end });
+        // Log ACTIVE_REGION for tests
+        setLogs(prev => [...prev.slice(-100), { ts: Date.now(), type: 'info', msg: `ACTIVE_REGION ${detail.start}..${detail.end}` }]);
+      }
+    };
+    const onCaretSnap = () => setLogs(prev => [...prev.slice(-100), { ts: Date.now(), type: 'trace', msg: 'SNAP' }]);
+    document.addEventListener('mindtype:activeRegion', onActiveRegion);
+    window.addEventListener('mindtype:caretSnapshots', onCaretSnap as any);
+    return () => {
+      document.removeEventListener('mindtype:activeRegion', onActiveRegion);
+      window.removeEventListener('mindtype:caretSnapshots', onCaretSnap as any);
+    };
+  }, []);
+
+  // ⟢ Map text indices to approximate textarea coordinates
+  const computeRectForRange = useCallback((start: number, end: number) => {
+    const ta = textareaRef.current;
+    if (!ta) return null;
+    const value = ta.value;
+    const safeStart = Math.max(0, Math.min(start, value.length));
+    const safeEnd = Math.max(safeStart, Math.min(end, value.length));
+    const before = value.substring(0, safeStart);
+    const lines = before.split('\n');
+    const lineIndex = lines.length - 1;
+    const col = lines[lineIndex]?.length ?? 0;
+    const charWidth = 9;
+    const lineHeight = 24;
+    const padding = 16;
+    const left = Math.max(0, col * charWidth - ta.scrollLeft + padding);
+    const top = Math.max(0, lineIndex * lineHeight - ta.scrollTop + padding);
+    const width = Math.max(2, (safeEnd - safeStart) * charWidth);
+    const height = lineHeight;
+    return { left, top, width, height };
+  }, []);
+
+  // ⟢ Recompute overlays when inputs change
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    // Buffer/band (validation window)
+    if (bandRange) setOverlayBand(computeRectForRange(bandRange.start, bandRange.end));
+    else setOverlayBand(null);
+    // Close context from LM context manager
+    try {
+      const cw = lmContextManagerRef.current?.getContextWindow?.();
+      if (cw?.close) setOverlayClose(computeRectForRange(cw.close.start, cw.close.end));
+      else setOverlayClose(null);
+      if (cw?.wide) {
+        // Show a trailing slice of wide context near caret for visibility
+        const caret = caretRef.current;
+        const sliceStart = Math.max(0, caret - 120);
+        const sliceEnd = caret;
+        setOverlayWide(computeRectForRange(sliceStart, sliceEnd));
+      } else setOverlayWide(null);
+    } catch {
+      setOverlayClose(null);
+      setOverlayWide(null);
+    }
+  }, [text, bandRange, lmContextInitialized, computeRectForRange]);
 
   // ⟢ Handle text changes
   const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -366,6 +527,9 @@ function App() {
     const spanLength = end - start;
     const sweepDistance = Math.min(spanLength * charWidth, 40);
     indicator.style.setProperty('--sweep-distance', `${sweepDistance}px`);
+    // Tune animation duration from correctionDelayMs
+    const seconds = Math.max(0.2, (correctionDelayMs || 180) / 1000);
+    indicator.style.animationDuration = `${seconds}s`;
 
     // Add to textarea container
     const container = textarea.parentElement;
@@ -385,7 +549,7 @@ function App() {
         }
       }, instant ? 300 : 800);
     }
-  }, []);
+  }, [correctionDelayMs]);
 
   // ⟢ Handle preset changes
   const handlePresetChange = useCallback((preset: DemoPreset) => {
@@ -487,7 +651,13 @@ function App() {
 
     const onStatus = (e: Event) => {
       const detail = (e as CustomEvent).detail as { statuses?: Record<string, boolean> };
-      if (detail?.statuses) setSystemStatuses(detail.statuses);
+      const st = detail?.statuses;
+      if (st) {
+        setSystemStatuses(st);
+        // Log STATUS for tests
+        const on = Object.keys(st).filter(k => (st as Record<string, boolean>)[k]).join(',');
+        setLogs(prev => [...prev.slice(-100), { ts: Date.now(), type: 'debug', msg: `STATUS ${on}` }]);
+      }
     };
 
     const onMindtypeBlocked = (e: Event) => {
@@ -583,74 +753,11 @@ function App() {
   }, [text, bandRange, toneEnabled, toneTarget]);
 
   // ⟢ Scenario handling
-  const loadScenario = useCallback((id: string) => {
-    const scenario = SCENARIOS.find(s => s.id === id);
-    if (!scenario) return;
-    
-    setScenarioId(id);
-    setStepIndex(0);
-    setText(scenario.steps[0].text);
-    
-    const ta = textareaRef.current;
-    if (ta) {
-      ta.value = scenario.steps[0].text;
-      const caret = scenario.steps[0].caretAfter || scenario.steps[0].text.length;
-      ta.setSelectionRange(caret, caret);
-      caretRef.current = caret;
-      pipelineRef.current?.ingest(scenario.steps[0].text, caret);
-    }
-  }, []);
-
-  const nextScenarioStep = useCallback(() => {
-    if (!scenarioId) return;
-    
-    const scenario = SCENARIOS.find(s => s.id === scenarioId);
-    if (!scenario) return;
-    
-    const nextIdx = stepIndex + 1;
-    if (nextIdx >= scenario.steps.length) {
-      setScenarioId(null);
-      setStepIndex(0);
-      return;
-    }
-    
-    setStepIndex(nextIdx);
-    const step = scenario.steps[nextIdx];
-    setText(step.text);
-    
-    const ta = textareaRef.current;
-    if (ta) {
-      ta.value = step.text;
-      const caret = step.caretAfter || step.text.length;
-      ta.setSelectionRange(caret, caret);
-      caretRef.current = caret;
-      pipelineRef.current?.ingest(step.text, caret);
-    }
-  }, [scenarioId, stepIndex]);
-
-  // ⟢ LM Lab presets
-  const applyLMLabPreset = useCallback((preset: string) => {
-    const presets: Record<string, string> = {
-      typo: "Hello wrold! This is a simple tpyo test.",
-      context: "The cat sat on the mat. The cta was very happy.",
-      grammar: "She don't know nothing about that issue yesterday.",
-      mixed: "I cant beleive its already Wendesday. Time flys when your having fun!",
-    };
-    
-    const presetText = presets[preset];
-    if (!presetText) return;
-    
-    setText(presetText);
-    const ta = textareaRef.current;
-    if (ta) {
-      ta.value = presetText;
-      const caret = presetText.length;
-      ta.setSelectionRange(caret, caret);
-      caretRef.current = caret;
-      pipelineRef.current?.ingest(presetText, caret);
-    }
-  }, []);
-
+  // Deprecated scenario loader (replaced by unified autopilot demo)
+  
+  
+  
+  
   return (
     <div className="App">
       {/* Pause banner */}
@@ -679,13 +786,13 @@ function App() {
       height: '100vh', 
       padding: '8px', 
       background: '#0b0f12',
-      fontFamily: 'Inter, system-ui, sans-serif',
+      fontFamily: 'Geist, Inter, system-ui, sans-serif',
       color: 'rgba(245, 246, 248, 0.92)',
       overflow: 'hidden'
     }}>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-        <h1 style={{ margin: 0, fontSize: '1.8em', fontWeight: '600' }}>Mind::Type Web Demo</h1>
+        <h1 style={{ margin: 0, fontSize: '1.8em', fontWeight: '600', fontFamily: 'Geist, system-ui, sans-serif' }}>Mind::Type — Unified Typing Lab</h1>
         <div style={{ marginTop: '8px' }}>
           <a 
             href="/#/demos" 
@@ -807,96 +914,45 @@ function App() {
           padding: '12px',
             overflow: 'auto'
           }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '0.9em', color: '#0c8' }}>Scenarios</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
-              {SCENARIOS.map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => loadScenario(s.id)}
-                  style={{
-                    padding: '6px 8px',
-                    background: scenarioId === s.id ? '#0c8' : 'rgba(255,255,255,0.1)',
-                    color: scenarioId === s.id ? '#000' : '#fff',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '0.75em',
-                    cursor: 'pointer',
-                    textAlign: 'left'
-                  }}
-                >
-                  {s.name}
-                </button>
-              ))}
-              {scenarioId && (
-                <button
-                  onClick={nextScenarioStep}
-              style={{ 
-                    padding: '6px 8px',
-                    background: '#f90',
-                    color: '#000',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '0.75em',
-                    cursor: 'pointer',
-                    marginTop: '4px'
-                  }}
-                >
-                  Next Step ({stepIndex + 1}/{SCENARIOS.find(s => s.id === scenarioId)?.steps.length || 0})
-                </button>
-            )}
-          </div>
-
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '0.9em', color: '#0c8' }}>LM Lab Presets</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <button onClick={() => applyLMLabPreset('typo')} style={{
-                padding: '6px 8px',
-                background: 'rgba(255,255,255,0.1)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '0.75em',
-                cursor: 'pointer',
-                textAlign: 'left'
-              }}>
-                Simple Typos
-              </button>
-              <button onClick={() => applyLMLabPreset('context')} style={{
-                padding: '6px 8px',
-                background: 'rgba(255,255,255,0.1)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '0.75em',
-                cursor: 'pointer',
-                textAlign: 'left'
-              }}>
-                Context Errors
-              </button>
-              <button onClick={() => applyLMLabPreset('grammar')} style={{
-                padding: '6px 8px',
-                background: 'rgba(255,255,255,0.1)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '0.75em',
-                cursor: 'pointer',
-                textAlign: 'left'
-              }}>
-                Grammar Issues
-              </button>
-              <button onClick={() => applyLMLabPreset('mixed')} style={{
-                padding: '6px 8px',
-                background: 'rgba(255,255,255,0.1)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '0.75em',
-                cursor: 'pointer',
-                textAlign: 'left'
-              }}>
-                Mixed Errors
-              </button>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '0.9em', color: '#0c8' }}>Autopilot</h3>
+            <div style={{ display: 'grid', gap: 8, fontSize: '0.8em', marginBottom: '12px' }}>
+              <label>Auto‑typing
+                <input type="checkbox" checked={autoTyping} onChange={(e) => setAutoTyping(e.target.checked)} style={{ marginLeft: 8 }} />
+              </label>
+              <label>Speed (chars/sec): {typingCps}
+                <input type="range" min="1" max="20" step="1" value={typingCps} onChange={(e) => setTypingCps(Number(e.target.value))} style={{ width: '100%' }} />
+              </label>
+              <label>Fuzziness: {fuzziness}%
+                <input type="range" min="0" max="100" step="1" value={fuzziness} onChange={(e) => setFuzziness(Number(e.target.value))} style={{ width: '100%' }} />
+              </label>
+              <label>Correction delay: {correctionDelayMs}ms
+                <input type="range" min="0" max="600" step="10" value={correctionDelayMs} onChange={(e) => setCorrectionDelayMs(Number(e.target.value))} style={{ width: '100%' }} />
+              </label>
             </div>
+            {lmContextInitialized && lmContextManagerRef.current && (
+              <div style={{ marginTop: 12 }}>
+                <h3 style={{ margin: '0 0 8px 0', fontSize: '0.9em', color: '#0c8' }}>Context Windows</h3>
+                {(() => {
+                  try {
+                    const cw = lmContextManagerRef.current!.getContextWindow();
+                    return (
+                      <div style={{ fontSize: '0.75em', fontFamily: 'Geist Mono, ui-monospace, SFMono-Regular, Menlo, monospace' }}>
+                        <div style={{ marginBottom: 6 }}>
+                          <div style={{ color: '#7ce0b8', fontWeight: 600 }}>Wide ({cw.wide.tokenCount} tokens)</div>
+                          <div style={{ background: 'rgba(124, 224, 184, 0.1)', padding: 6, borderRadius: 4, maxHeight: 80, overflow: 'auto' }}>{cw.wide.text.slice(-240)}{cw.wide.text.length > 240 ? '…' : ''}</div>
+                        </div>
+                        <div>
+                          <div style={{ color: '#4db8ff', fontWeight: 600 }}>Close</div>
+                          <div style={{ background: 'rgba(77, 184, 255, 0.1)', padding: 6, borderRadius: 4, maxHeight: 80, overflow: 'auto' }}>{cw.close.text}</div>
+                        </div>
+                      </div>
+                    );
+                  } catch (e) {
+                    return <div style={{ fontSize: '0.75em', color: '#f66' }}>Context error: {String(e)}</div>;
+                  }
+                })()}
+              </div>
+            )}
         </div>
 
           {/* CENTER - Main Textarea */}
@@ -926,9 +982,21 @@ function App() {
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '8px',
               resize: 'none', 
-                fontFamily: 'Inter, system-ui, sans-serif'
+                fontFamily: 'Geist Mono, ui-monospace, SFMono-Regular, Menlo, monospace'
             }} 
           />
+          {/* Overlays for context/buffer zones */}
+          <div aria-hidden="true" style={{ position: 'relative', height: 0 }}>
+            {overlayBand && (
+              <div style={{ position: 'absolute', left: overlayBand.left, top: overlayBand.top, width: overlayBand.width, height: overlayBand.height, border: '2px dashed rgba(255,255,255,0.25)', borderRadius: 4, pointerEvents: 'none' }} title="Validation band (buffer)" />
+            )}
+            {overlayClose && (
+              <div style={{ position: 'absolute', left: overlayClose.left, top: overlayClose.top, width: overlayClose.width, height: overlayClose.height, background: 'rgba(77, 184, 255, 0.15)', border: '1px solid rgba(77, 184, 255, 0.5)', borderRadius: 4, pointerEvents: 'none' }} title="Close context" />
+            )}
+            {overlayWide && (
+              <div style={{ position: 'absolute', left: overlayWide.left, top: overlayWide.top, width: overlayWide.width, height: overlayWide.height, background: 'rgba(124, 224, 184, 0.12)', border: '1px solid rgba(124, 224, 184, 0.4)', borderRadius: 4, pointerEvents: 'none' }} title="Wide context (trailing slice)" />
+            )}
+          </div>
         </div>
 
           {/* RIGHT PANEL - Controls */}
@@ -1113,7 +1181,9 @@ function App() {
             padding: '4px',
             overflow: 'hidden'
           }}>
-            <span>Caret: {caretState?.caret ?? 0}</span>
+            <span data-testid="caret-primary">{primaryStatus}</span>
+            <span>•</span>
+            <span data-testid="active-region-label">Caret: {caretState?.caret ?? 0}</span>
             <span>•</span>
             <span>Band: {bandRange ? `${bandRange.start}–${bandRange.end}` : 'none'}</span>
             <span>•</span>
@@ -1158,6 +1228,7 @@ function App() {
                   fontSize: '0.75em',
                   cursor: 'pointer'
                 }}
+                data-testid="workbench-tab-presets"
               >
                 Diagnostics
               </button>
@@ -1186,6 +1257,7 @@ function App() {
                   fontSize: '0.75em',
                   cursor: 'pointer'
                 }}
+                data-testid="workbench-tab-logs"
               >
                 Logs
             </button>
@@ -1209,12 +1281,12 @@ function App() {
                     </div>
                   </div>
 
-                  {/* NOISE */}
+                  {/* TRANSFORMER DIFFS: NOISE */}
                   <div style={{ background: 'rgba(255,153,0,0.08)', padding: '6px', borderRadius: 6 }}>
-                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Noise Transformer</div>
-                    <div style={{ color: '#888' }}>Band sample</div>
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: 4, marginBottom: 6 }}>{previewBuffer || '—'}</div>
-                    <div style={{ color: '#888' }}>Output</div>
+                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Noise</div>
+                    <div style={{ color: '#888' }}>Before</div>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: 4, marginBottom: 4 }}>{previewBuffer || '—'}</div>
+                    <div style={{ color: '#888' }}>After</div>
                     <div style={{ background: 'rgba(255,153,0,0.15)', padding: '4px', borderRadius: 4 }}>{previewNoise || '—'}</div>
                     <div style={{ marginTop: 6, color: '#888' }}>Recent evaluations</div>
                     <div style={{ maxHeight: 100, overflow: 'auto', fontFamily: 'monospace', fontSize: '0.7em', background: 'rgba(0,0,0,0.2)', padding: 6, borderRadius: 4 }}>
@@ -1228,7 +1300,7 @@ function App() {
                     </div>
                   </div>
 
-                  {/* CONTEXT / LM */}
+                  {/* TRANSFORMER DIFFS: CONTEXT / LM */}
                   <div style={{ background: 'rgba(0,204,136,0.08)', padding: '6px', borderRadius: 6 }}>
                     <div style={{ fontWeight: 600, marginBottom: 6 }}>Context / LM</div>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
@@ -1241,7 +1313,9 @@ function App() {
                       <span>Chunks: {(globalThis as any).__mtLmStats?.chunksLast || 0}</span>
                       <span>Latency: {lmMetrics.at(-1)?.latency || 0}ms</span>
                     </div>
-                    <div style={{ color: '#888' }}>Output</div>
+                    <div style={{ color: '#888' }}>Before</div>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: 4, marginBottom: 4 }}>{previewBuffer || '—'}</div>
+                    <div style={{ color: '#888' }}>After</div>
                     <div style={{ background: 'rgba(0,204,136,0.15)', padding: '4px', borderRadius: 4 }}>{previewContext || '—'}</div>
                     <div style={{ marginTop: 6, color: '#888' }}>LM wire (recent)</div>
                     <div style={{ maxHeight: 100, overflow: 'auto', fontFamily: 'monospace', fontSize: '0.7em', background: 'rgba(0,0,0,0.2)', padding: 6, borderRadius: 4 }}>
@@ -1251,12 +1325,14 @@ function App() {
                     </div>
                   </div>
 
-                  {/* TONE */}
+                  {/* TRANSFORMER DIFFS: TONE */}
                   <div style={{ background: 'rgba(255,0,255,0.08)', padding: '6px', borderRadius: 6 }}>
                     <div style={{ fontWeight: 600, marginBottom: 6 }}>Tone</div>
                     <div>Enabled: {toneEnabled ? 'Yes' : 'No'}</div>
                     <div>Target: {toneTarget}</div>
-                    <div style={{ color: '#888', marginTop: 6 }}>Output</div>
+                    <div style={{ color: '#888', marginTop: 6 }}>Before</div>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: 4, marginBottom: 4 }}>{previewBuffer || '—'}</div>
+                    <div style={{ color: '#888' }}>After</div>
                     <div style={{ background: 'rgba(255,0,255,0.15)', padding: '4px', borderRadius: 4 }}>{previewTone || '—'}</div>
                   </div>
                 </div>
@@ -1378,7 +1454,7 @@ function App() {
             )}
             
               {activeWorkbenchTab === 'logs' && (
-                <div style={{ fontSize: '0.7em', fontFamily: 'monospace', color: '#ddd' }}>
+                <div style={{ fontSize: '0.7em', fontFamily: 'monospace', color: '#ddd' }} data-testid="process-log">
                   {logs.slice(-8).map((l, i) => (
                     <div key={`${l.ts}-${i}`}>[{new Date(l.ts).toLocaleTimeString()}] {l.type}: {l.msg}</div>
                   ))}

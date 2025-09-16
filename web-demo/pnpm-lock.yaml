@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@fontsource/geist':
+        specifier: 5.2.6
+        version: 5.2.6
+      '@fontsource/geist-mono':
+        specifier: 5.2.6
+        version: 5.2.6
       '@huggingface/transformers':
         specifier: ^3.7.2
         version: 3.7.2
@@ -390,6 +396,12 @@ packages:
   '@eslint/plugin-kit@0.3.3':
     resolution: {integrity: sha512-1+WqvgNMhmlAambTvT3KPtCl/Ibr68VldY2XY40SL1CE0ZXiakFR/cbTspaF5HsnpDMvcYYoJHfl4980NBjGag==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@fontsource/geist-mono@5.2.6':
+    resolution: {integrity: sha512-I3hsRP+8Gmhk35cwlPAR4w5xqk7e5pro2F1o51ZmB+lN+dPcwN3jYHKN+u0E5AMuiQKpTdkrqfEpvBjzQax3cQ==}
+
+  '@fontsource/geist@5.2.6':
+    resolution: {integrity: sha512-HKRFUn4fApQr9iGaVLUWG5vs+QYFqhKa5X7AFpT6Gey0Kx0ibvpFceMbMDDdlzzqPiGkvCuvYRUN55rvqXgibg==}
 
   '@huggingface/jinja@0.5.1':
     resolution: {integrity: sha512-yUZLld4lrM9iFxHCwFQ7D1HW2MWMwSbeB7WzWqFYDWK+rEb+WldkLdAJxUPOmgICMHZLzZGVcVjFh3w/YGubng==}
@@ -2121,6 +2133,10 @@ snapshots:
     dependencies:
       '@eslint/core': 0.15.1
       levn: 0.4.1
+
+  '@fontsource/geist-mono@5.2.6': {}
+
+  '@fontsource/geist@5.2.6': {}
 
   '@huggingface/jinja@0.5.1': {}
 

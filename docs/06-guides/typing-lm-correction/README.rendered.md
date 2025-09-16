@@ -32,13 +32,13 @@ the guardrails that keep edits safe around the active region (formerly
 - **User feels**: Supported, not overruled. Confidence grows as spelling and
   phrasing quietly improve. Flow is maintained by avoiding focus shifts and
   preventing edits at/after the caret.
-- **Flow originates**: From predictable cadence, band-bounded merges, and the
+- **Flow originates**: From predictable cadence, active-region-bounded merges, and the
   absence of interaction costs. The system times itself to the user, not the
   other way around.
 
 ### Principles respected
 
-- No edits at/after the caret; merges occur only within the validation band
+- No edits at/after the caret; merges occur only within the active region
   behind the caret.
 - Single‑flight LM calls with abort; stale results are dropped.
 - Device-tier aware cadence and token limits; silent degrade on errors.
@@ -77,7 +77,7 @@ Notes:
 Guidance:
 
 - Actual durations are device-tier dependent and tuned via policy.
-- If the caret enters the band while the LM is in-flight, we abort and drop
+- If the caret enters the active region while the LM is in-flight, we abort and drop
   the result to prevent caret‑adjacent edits.
 
 ---
@@ -111,7 +111,7 @@ Where hands‑off can fail, and how to improve:
   introduces a short cool‑off after merges.
 - **Semantic drift**: LM suggestions may subtly alter meaning. Clamp length,
   prefer high‑precision edits, and bias policies to spelling/grammar within
-  a narrow band by default; expand scope only when confidence is high.
+  a narrow active region by default; expand scope only when confidence is high.
 - **Caret collision**: Late LM results landing as the caret returns can feel
   jarring. Enforce strict abort on caret entry and require a fresh diff before
   any merge.
@@ -138,7 +138,7 @@ KPIs to watch:
 
 - **Predictability**: Fixed yet adaptive cadence establishes rhythm.
 - **Low salience**: Minimal, fast‑fading cues; never alter viewport or focus.
-- **Safety**: Band‑bounded merges avoid caret friction; undo is native.
+- **Safety**: Active-region-bounded merges avoid caret friction; undo is native.
 - **Respect**: User remains author; corrections are suggestions expressed as
   done‑for‑you edits, not commands.
 

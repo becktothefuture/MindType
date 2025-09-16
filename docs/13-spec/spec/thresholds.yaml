@@ -10,7 +10,7 @@ timing:
   LONG_PAUSE_MS: 2000
   TYPING_TICK_MS: 75
 
-band:
+active_region:
   MIN_VALIDATION_WORDS: 5
   MAX_VALIDATION_WORDS: 5
   SENTENCE_CONTEXT_PER_SIDE: 3 # range 2–5

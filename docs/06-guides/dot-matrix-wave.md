@@ -1,6 +1,6 @@
 <!--══════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════╗
-  ║  ░  B A N D  S W A P   D E M O  ░░░░░░░░░░░░░░░░░░░  ║
+  ║  ░  D O T - M A T R I X   W A V E   D E M O  ░░░░░░  ║
   ║                                                      ║
   ║                                                      ║
   ║                                                      ║
@@ -11,21 +11,21 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ Band-swap noise cluster sweeping text
-    • WHY  ▸ Visualize a controlled distortion band
+    • WHAT ▸ Dot-matrix wave animation for corrections
+    • WHY  ▸ Visualize word-by-word corrections elegantly
     • HOW  ▸ Canvas overlay; reduced-motion static
 -->
 
 <!-- SPEC:CONTRACT
-id: CONTRACT-BAND-SWAP
-title: Band-swap animation tokens
+id: CONTRACT-DOT-MATRIX-WAVE
+title: Dot-matrix wave animation tokens
 types:
   - name: AnimTokens
     ts: |
       export interface AnimTokens {
-        bandSpeed: number;
-        bandSpread: number;
-        bandMix: number; // 0..100
+        waveSpeed: number;
+        waveSpread: number;
+        waveMix: number; // 0..100
         symbolSet: string[];
         autoplay: boolean;
         playhead: number; // 0..100
@@ -38,14 +38,15 @@ types:
       ] as const;
 modules:
   - contracts/animTokens.ts
-  - web-demo/public/demo/band-swap/main.js
+  - demo/dot-matrix-wave/main.js
 invariants:
   - Preserve layout: no per-char DOM mutations; overlay only
-  - Reduced-motion: static band highlight, no rAF
+  - Reduced-motion: static correction highlight, no rAF
 -->
 
 ### In simple terms
 
-- The band is a moving window that temporarily replaces letters with braille-style symbols, creating a sweeping noise cluster.
+- The wave is a moving animation that temporarily replaces letters with braille-style symbols, creating a visual feedback for corrections.
 - You can control speed, spread (width), and mix (how many letters vs symbols).
-- Behind the band, text returns to normal; ahead, it stays unchanged.
+- Behind the wave, text shows the corrected version; ahead, it stays unchanged.
+- This creates an elegant word-by-word replacement animation as specified in the PRD.

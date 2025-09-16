@@ -14,6 +14,13 @@ pub mod confidence;
 pub mod tapestry;
 pub mod ffi;
 pub mod caret_monitor;
+pub mod diffusion;
+pub mod diff;
+pub mod active_region;
+pub mod language_detection;
+pub mod scheduler;
+pub mod lm;
+pub mod workers;
 
 #[wasm_bindgen]
 pub fn init_logger() {

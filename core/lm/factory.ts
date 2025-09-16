@@ -10,8 +10,8 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ On-device LM integration with graceful fallback; LMAdapter streaming contract
-  • WHY  ▸ REQ-LOCAL-LM-INTEGRATION, CONTRACT-LM-ADAPTER
+  • WHAT ▸ LMAdapter streaming contract
+  • WHY  ▸ CONTRACT-LM-ADAPTER
   • HOW  ▸ See linked contracts and guides in docs
 */
 

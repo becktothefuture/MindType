@@ -1,4 +1,4 @@
-<!-- ⚡  W O R K F L O W . M D C  — MindTyper  ⚡
+<!-- ⚡  W O R K F L O W . M D C  — Mind::Type  ⚡
 ╔═══════════════════════════════════════════════════════════════════╗
 ║ Modes: PLAN_ONLY • EXECUTE • LIB_TOUCH                           ║
 ║ Promise: Small diffs • Fast loops • Grounded APIs • Green tests  ║
@@ -36,14 +36,37 @@
 ### B. EXECUTE (make changes)
 1) Open/create target file(s); add comment header if missing.  
 2) **Context discipline:** if imports/SDKs are involved, call **Context7** for `name@version` before coding; include doc refs in the commit body.  
-3) Implement **code and tests together** (Vitest).  
-4) **Quality gates must pass locally** (FT-100 wires these scripts):
-   - `pnpm typecheck` (TS) — until FT-100, use `pnpm run build`
-   - `pnpm test` (Vitest)
-   - `pnpm lint` and `pnpm format:check` (ESLint + Prettier)
-5) **Self-review (Google check):** Correctness • Simplicity • Readability • Tests cover the change.  
+3) Implement **code and tests together** (Vitest for TS UI, Cargo for Rust).  
+4) **Quality gates must pass locally**:
+   - Rust: `cargo clippy -- -D warnings` • `cargo test`
+   - TS UI/Demos: `pnpm -s test` • `pnpm lint` • `pnpm format:check`
+5) **Self-review:** Correctness • Simplicity • Readability • Tests cover the change.  
 6) Commit with **Conventional Commits** + optional feature tag, e.g.:  
-   `feat(engine): add caret-safe window diff [FT-123]`.
+   `feat(core-rs): add caret-safe region diff [FT-123]`.
+
+## 2.1) Thoroughness (apply before claiming Done)
+- Docs-first → Update SPEC/REQ/CONTRACT where behavior changes; run `pnpm doc:check` then `pnpm doc:sync`.
+- Implement minimal change set with tests.
+- Gates: Rust (`cargo clippy -- -D warnings`, `cargo test`); TS UI/Demos (`pnpm -s test`, lint, format).
+- Clean sweep: run a broad variant search across docs/rules for legacy terms/paths (e.g., band/sweep; `core/*.ts`, `engines/*.ts`) and fix.
+- Proof-of-done: brief result summary (what changed, why, how validated).
+
+## 2.2) LM Operating Guidelines (Cursor)
+- Single goal per turn: restate the objective, acceptance criteria, and scope.
+- Always start with Todo2: create task(s), add research_with_links, then proceed.
+- Parallelize reads/search: batch 3–5 tool calls when independent; sequence only when outputs are prerequisites.
+- Search strategy: semantic search for exploration; grep for exact symbols/paths; include Unicode/variant patterns.
+- Command hygiene: use non-interactive flags; avoid pagers; background long-running tasks.
+- Code edits: read_file shortly before apply_patch; keep diffs minimal; preserve formatting.
+- Self-critique: run a variant sweep (terms/paths), then produce a short proof-of-done summary.
+ - Failure fallback: on edit failure, re-read target, narrow diff, retry once.
+
+## 2.3) Ingenuity & Autonomy Toolkit (safe exploration)
+- Options first: generate 2–3 approaches (brief bullets) that satisfy the ACs.
+- Time-box a spike (≤ 30 min): prototype the most promising option with the smallest viable test.
+- Measure: use tests/benchmarks/logs or UX heuristics to compare outcomes quickly.
+- Decide: pick the simplest option that meets ACs; defer ambitious ideas as follow-up todos.
+- Stay in scope: create a new task instead of expanding the current one if effort grows.
 
 ### C. LIB_TOUCH (explicit library work)
 - Always run Context7 with `{library, version, topics}` to ground APIs; summarise constraints obeyed in code comments and PR body.

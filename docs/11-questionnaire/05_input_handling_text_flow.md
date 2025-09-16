@@ -58,7 +58,7 @@ If the user doesn't add breaks or prefers dense, casual flow, MindTyper respects
 _Primer: Clarifies this decision and why it matters._
 → Your answer:
 
-**Answer:** Corrections stream word‑by‑word behind the caret even while typing. A short pause (~500 ms) simply allows diffusion to catch up faster until the band reaches the caret. We never edit at/after the caret, so drafting remains uninterrupted.
+**Answer:** Corrections stream word‑by‑word behind the caret even while typing. A short pause (~500 ms) simply allows diffusion to catch up faster until the active region reaches the caret. We never edit at/after the caret, so drafting remains uninterrupted.
 
 ---
 
