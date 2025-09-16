@@ -23,6 +23,7 @@ interface MinimalGlobal {
 }
 
 export function renderHighlight(_range: { start: number; end: number; text?: string }) {
+  // ⟢ Host-agnostic event to visualize applied changes (e.g., underline, flash)
   const g = globalThis as unknown as MinimalGlobal;
   if (g.dispatchEvent && g.CustomEvent) {
     const event = new g.CustomEvent('mindtype:highlight', {

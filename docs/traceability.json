@@ -198,35 +198,6 @@
     "types": [],
     "source": "docs/02-implementation/02-Implementation.md"
   },
-  "CONTRACT-DOT-MATRIX-WAVE": {
-    "kind": "CONTRACT",
-    "title": "Dot-matrix wave animation tokens",
-    "modules": [
-      "contracts/animTokens.ts",
-      "demo/dot-matrix-wave/main.js"
-    ],
-    "acceptance": [],
-    "tests": [],
-    "invariants": [
-      {
-        "Preserve layout": "no per-char DOM mutations; overlay only"
-      },
-      {
-        "Reduced-motion": "static correction highlight, no rAF"
-      }
-    ],
-    "types": [
-      {
-        "name": "AnimTokens",
-        "ts": "export interface AnimTokens {\n  waveSpeed: number;\n  waveSpread: number;\n  waveMix: number; // 0..100\n  symbolSet: string[];\n  autoplay: boolean;\n  playhead: number; // 0..100\n}\n"
-      },
-      {
-        "name": "DEFAULT_SYMBOLS",
-        "ts": "export const DEFAULT_SYMBOLS = [\n  '\\u2800','\\u2802','\\u2804','\\u2806','\\u2810','\\u2812','\\u2814','\\u2816',\n  '\\u2820','\\u2822','\\u2824','\\u2826','\\u2830','\\u2832','\\u2834','\\u2836',\n] as const;\n"
-      }
-    ],
-    "source": "docs/06-guides/dot-matrix-wave.md"
-  },
   "CONTRACT-ACTIVE-REGION": {
     "kind": "CONTRACT",
     "title": "Active region policy (render vs context ranges)",
@@ -258,7 +229,7 @@
     "types": [
       {
         "name": "LMStreamParams",
-        "ts": "export interface LMStreamParams {\n  text: string;\n  caret: number;\n  active_region: { start: number; end: number };\n  settings?: Record<string, unknown>;\n}\n"
+        "ts": "export interface LMStreamParams {\n  text: string;\n  caret: number;\n  active_region: { start: number; end: number };\n  settings?: Record<string, unknown>;\n}"
       }
     ],
     "source": "docs/06-guides/06-03-reference/lm-behavior.md"
@@ -282,5 +253,30 @@
     ],
     "types": [],
     "source": "docs/06-guides/06-03-reference/lm-stream.md"
+  },
+  "CONTRACT-DOT-MATRIX-WAVE": {
+    "kind": "CONTRACT",
+    "title": "Dot-matrix wave animation tokens",
+    "modules": [
+      "contracts/animTokens.ts",
+      "demo/dot-matrix-wave/main.js"
+    ],
+    "acceptance": [],
+    "tests": [],
+    "invariants": [
+      "Preserve layout: no per-char DOM mutations; overlay only",
+      "Reduced-motion: static correction highlight, no rAF"
+    ],
+    "types": [
+      {
+        "name": "AnimTokens",
+        "ts": "export interface AnimTokens {\n  waveSpeed: number;\n  waveSpread: number;\n  waveMix: number; // 0..100\n  symbolSet: string[];\n  autoplay: boolean;\n  playhead: number; // 0..100\n}"
+      },
+      {
+        "name": "DEFAULT_SYMBOLS",
+        "ts": "export const DEFAULT_SYMBOLS = [\n  '\\u2800','\\u2802','\\u2804','\\u2806','\\u2810','\\u2812','\\u2814','\\u2816',\n  '\\u2820','\\u2822','\\u2824','\\u2826','\\u2830','\\u2832','\\u2834','\\u2836',\n] as const;"
+      }
+    ],
+    "source": "docs/06-guides/dot-matrix-wave.md"
   }
 }

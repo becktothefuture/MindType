@@ -330,6 +330,9 @@ const RULES: NoiseRule[] = [
 export function noiseTransform(input: NoiseInput): NoiseResult {
   const { text, caret } = input;
 
+  // ⟢ Fast path: run a small set of rules in priority order and return
+  //   the rightmost safe diff behind the caret. This keeps the UI snappy
+  //   and avoids changing text near the user's current typing position.
   console.log('[Noise] Processing:', { text, caret });
 
   // Safety check: never edit at or after the caret
