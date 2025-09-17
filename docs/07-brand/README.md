@@ -22,3 +22,5 @@
 - [guide](./guide/)
 - [B R A N D   M E S S A G I N G](./messaging.md)
 - [specs](./specs/)
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:46:38Z -->

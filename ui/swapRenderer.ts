@@ -1,17 +1,18 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  M E C H A N I C A L   S W A P   R E N D E R E R  ░░░░░░░  ║
-  ║                                                              ║
-  ║   Renders corrections via mechanical letter-swap animation   ║
-  ║   with optional braille marker. Replaces highlight system.  ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Mechanical swap renderer with braille markers and SR announcements
-  • WHY  ▸ REQ-VISUAL-SWAP, FT-307
-  • HOW  ▸ Listens for corrections; animates character swaps; respects reduced-motion
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  SWAPRENDERER  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ Correction Marker visual system with two-mode operation
+  • WHY  ▸ REQ-CORRECTION-MARKER
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 interface MinimalCustomEventCtor {

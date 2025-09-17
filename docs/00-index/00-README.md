@@ -31,8 +31,8 @@ Tip (for the parents): If you only read two docs to grasp the build, read this p
 ## Folder purposes
 
 - Root (this folder)
-  - Canonical top‑level docs and indices: `PRD.md`, `implementation.md`, `system_principles.md`, `project_structure.md`, `backlog.md`.
-  - Versioning policy: `versioning.md`. As of v0.4+, canonical content lives here and under `architecture/`, `guide/`, `qa/`. Any mirrors exist only for export.
+  - Canonical top‑level docs and indices: `PRD.md`, `implementation.md`, `system_principles.md`, `project_structure.md`.
+  - Versioning policy: `versioning.md`. As of v0.6+, canonical content lives here and under `architecture/`, `guide/`, `qa/`. Any mirrors exist only for export.
 
 - `architecture/`
   - System design and C4 views. Use `README.md` for the overview; `C1-context.md`, `C2-containers.md`, `C3-components.md` for deeper levels. ADRs live separately under `adr/`.
@@ -43,7 +43,7 @@ Tip (for the parents): If you only read two docs to grasp the build, read this p
 - `guide/`
   - Developer‑facing guidance using Diátaxis:
     - `how-to/` — step‑by‑step tasks (web demo server, mac app details, etc.)
-    - `tutorials/` — learn by doing (try Mind::Type in 5 min)
+    - `tutorials/` — learn by doing (try MindType in 5 min)
     - `reference/` — APIs and contracts (active region policy, injector, LM behavior, worker, rust merge, config flags)
     - `explanations/` — deeper rationale (e.g., why caret‑safe diffs)
 
@@ -55,10 +55,8 @@ Tip (for the parents): If you only read two docs to grasp the build, read this p
 
 - `brand/`
   - Brand assets, specs, and guides (visual identity, tone, motion). Not product behavior.
-  - See `brand/messaging.md` for the Vision Pitch (Mind::Type) and long‑form messaging.
+  - See `brand/messaging.md` for the Vision Pitch (MindType) and long‑form messaging.
 
-- `questionnaire/`
-  - Product questionnaire sections and live `questions.md` (clarifications). Treat as the primary Q&A surface; deprecated `questions-incomplete.md` has been removed.
 
 ### Cross‑links (everything ↔ Master)
 
@@ -77,13 +75,18 @@ Shortcuts:
 
 ### Naming note
 
-- Public‑facing name in messaging: “Mind::Type”. Internal code and tests previously used “MindTyper”; docs now use Mind::Type consistently.
+- Public‑facing name in messaging: “MindType”. Internal code and tests previously used “MindTyper”; docs now use MindType consistently.
 
 ## Glossary
 
-- Caret: The text insertion cursor in an editor.
-- Active region: Small neighborhood behind the caret used for safe corrections.
-- Correction: Lightweight pass that fixes recent input without heavy model calls.
+- **Correction Marker**: Revolutionary visual system showing AI intelligence working alongside human creativity
+- **Burst-Pause-Correct**: Natural typing rhythm where rapid bursts are followed by intelligent correction
+- **Active Region**: Small neighborhood behind the caret (20 words) used for safe corrections
+- **Listening Mode**: Correction Marker pulses with hypnotic braille animation while user types
+- **Correction Mode**: Marker travels through text applying corrections with speed adaptation
+- **Velocity Mode**: Revolutionary speed enhancement enabling 180+ WPM typing
+- **Thought-Speed Typing**: Cognitive augmentation where users operate at the speed of neural firing
+- **Seven Scenarios**: Revolutionary usage patterns from academic to speed typing to data analysis
 
 ## Conventions
 
@@ -101,9 +104,22 @@ Shortcuts:
 
 ## Orientation (plain language)
 
-Mind::Type improves what you type, silently and safely. It fixes small slips immediately (Noise), repairs sentences when you pause (Context), and can adjust tone on demand (Tone). It never edits at or after your caret.
+**MindType transforms typing from a mechanical skill into fluid expression of thought.** Through our revolutionary **Correction Marker** system, users achieve **thought-speed typing** with unprecedented accuracy and flow state preservation. 
+
+The **Correction Marker** acts as an intelligent visual worker that travels through your text, applying corrections behind your cursor while you maintain unbroken typing rhythm. Experience the **Burst-Pause-Correct** methodology that trains your muscle memory for optimal typing flow.
+
+**Seven Revolutionary Scenarios** demonstrate MindType's transformative power:
+- **Academic Excellence**: PhD students with dyslexia achieve 50% faster writing
+- **Multilingual Mastery**: Business analysts create documents 40% faster across languages  
+- **Accessibility Champion**: Visually impaired researchers experience 60% fewer interruptions
+- **Creative Flow**: Novelists increase daily word count by 35% with maintained quality
+- **Professional Polish**: Working parents achieve 90% professional tone automatically
+- **Speed Demon**: Former stenographers unlock 180+ WPM on standard keyboards
+- **Data Whisperer**: Analysts process data 5× faster with intelligent formatting
 
 - How it works: see Architecture overview → [`./04-architecture/README.md`](./04-architecture/README.md)
 - Safety rules: see [`03-System-Principles.md`](./03-system-principles/03-System-Principles.md)
 - Try it quickly: see Tutorial → [`./06-guides/06-01-tutorials/try-mindtype-in-5-min.md`](./06-guides/06-01-tutorials/try-mindtype-in-5-min.md)
 
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

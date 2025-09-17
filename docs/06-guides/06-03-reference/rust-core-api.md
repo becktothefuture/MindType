@@ -20,7 +20,7 @@
 
 ## Overview
 
-This document defines the complete API contract between the Mind::Type Rust core and platform UI layers (JavaScript/Swift). The Rust core handles ALL text correction logic. UI layers only capture input and render results.
+This document defines the complete API contract between the MindType Rust core and platform UI layers (JavaScript/Swift). The Rust core handles ALL text correction logic. UI layers only capture input and render results.
 
 ## Core API Surface
 
@@ -598,3 +598,5 @@ return rustEngine.process_text(text, caret);
 - ✅ Performance: Meets latency targets
 - ✅ Accessibility: Supports screen readers
 - ✅ Cross-platform: Same behavior everywhere
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

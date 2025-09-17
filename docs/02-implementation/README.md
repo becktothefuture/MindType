@@ -18,4 +18,6 @@
 
 # 02-implementation — Folder Index
 
-- [Implementation Plan (live, v0.4)](./02-Implementation.md)
+- [Revolutionary Implementation Guide (v0.6+)](./02-Implementation.md)
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

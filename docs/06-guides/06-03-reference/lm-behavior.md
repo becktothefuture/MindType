@@ -146,3 +146,5 @@ Implementation notes:
 
 - The policy is implemented in `core/lm/policy.ts` and consumed by hosts.
 - Tune thresholds in one place; hosts (e.g., web demo) should avoid duplicating logic.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

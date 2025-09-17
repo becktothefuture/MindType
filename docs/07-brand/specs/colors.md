@@ -49,3 +49,5 @@
 - [Typography](./typography.md)
 - [Imagery & Photography](./imagery.md)
 - [Motion & Interaction](./motion.md)
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:46:38Z -->

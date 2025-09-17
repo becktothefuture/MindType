@@ -20,7 +20,7 @@
 
 ## Overview
 
-This document specifies the Foreign Function Interface (FFI) and WebAssembly (WASM) bridge design that enables the Mind::Type Rust core to be used from JavaScript, Swift, and other platform languages.
+This document specifies the Foreign Function Interface (FFI) and WebAssembly (WASM) bridge design that enables the MindType Rust core to be used from JavaScript, Swift, and other platform languages.
 
 ## Architecture
 
@@ -688,10 +688,10 @@ void test_text_processing() {
 Pod::Spec.new do |s|
   s.name         = "MindTypeCore"
   s.version      = "1.0.0"
-  s.summary      = "Mind::Type correction engine"
+  s.summary      = "MindType correction engine"
   s.homepage     = "https://mindtype.app"
   s.license      = { :type => "MIT" }
-  s.author       = { "Mind::Type" => "hello@mindtype.app" }
+  s.author       = { "MindType" => "hello@mindtype.app" }
   s.source       = { :git => "https://github.com/mindtype/core.git", :tag => s.version }
   s.vendored_frameworks = "MindTypeCore.xcframework"
   s.platforms    = { :ios => "13.0", :osx => "11.0" }
@@ -741,3 +741,5 @@ let package = Package(
 - ✅ Thread-safe operations
 - ✅ Cross-platform consistency
 - ✅ 100% API compatibility
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

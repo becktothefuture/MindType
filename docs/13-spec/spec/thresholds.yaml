@@ -1,5 +1,5 @@
 #╔════════════════════════════════════════════════════════════╗
-#║  █  T H R E S H O L D S   S P E C   ( v0.4 )  █░░░░░░░░░░  ║
+#║  █  T H R E S H O L D S   S P E C   ( v0.6+ )  █░░░░░░░░░░  ║
 #╚════════════════════════════════════════════════════════════╝
 # WHAT ▸ Authoritative thresholds used to generate config/defaultThresholds.ts
 # WHY  ▸ Keep a single doc source; code is generated via scripts/doc2code.cjs

@@ -16,19 +16,19 @@
 
 ## Brand name
 
-Always write the name as “Mind::Type” — double colon, capital M and T,
-no spaces: `Mind::Type`. Do not alter capitalization or punctuation.
+Always write the name as “MindType” — double colon, capital M and T,
+no spaces: `MindType`. Do not alter capitalization or punctuation.
 
 ### The name (essence)
 
-Mind::Type is the moment between thought and text — a direct, deliberate
+MindType is the moment between thought and text — a direct, deliberate
 link from mental intent to written clarity. The double colon is the bridge,
 the pause, the transfer. It speaks without shouting, reveals without
 intrusion, and defines without spectacle.
 
 ## Logo design
 
-Primary logo: wordmark “Mind::Type” set in Geist Sans. The typography
+Primary logo: wordmark “MindType” set in Geist Sans. The typography
 conveys the brand. A future logomark may emerge (e.g., abstract key or
 dialogue form), but the wordmark is the core identifier. The ® symbol may
 appear in formal contexts.
@@ -71,3 +71,5 @@ graphics, not in running body copy.
 - [Typography](./typography.md)
 - [Color Palette](./colors.md)
 - [Imagery & Photography](./imagery.md)
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:46:38Z -->

@@ -11,185 +11,257 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ PRD for Mind::Type (MVP scope)
-    • WHY  ▸ Align teams on MUST/WON'T and success
-    • HOW  ▸ Backed by questionnaire, linked to C4/ADR/BDD
+    • WHAT ▸ PRD for MindType: Revolutionary Typing Intelligence
+    • WHY  ▸ Enable thought-speed typing through cognitive augmentation
+    • HOW  ▸ Seven Scenarios + Correction Marker + streamlined architecture
 -->
 
-### Summary
+# MindType: Revolutionary Typing Intelligence
 
-Mind::Type is a quiet, system‑wide typing utility that converts noisy input into clean, well‑formed text in real time. It stays invisible until it helps, respects performance, and preserves your voice. Processing is on‑device by default; remote is optional, encrypted, and explicitly opted‑in. Target uplift: 3× effective WPM at ≥95% semantic accuracy.
+## Executive Summary
 
-### Problem & Audience
+MindType transforms typing from a mechanical skill into **fluid expression of thought**. Through our revolutionary **Correction Marker** system and **Burst-Pause-Correct** methodology, users achieve thought-speed typing with unprecedented accuracy and flow state preservation.
 
-- Writers/knowledge workers lose flow correcting typos/grammar.
-- Non‑native speakers want clarity without changing voice.
+**Core Innovation**: The Correction Marker—an intelligent visual worker that travels through text, applying corrections behind the cursor while users maintain unbroken typing rhythm.
 
-### Goals (MUST) / Non‑Goals (WON'T)
+**Target Impact**: 3× effective WPM increase, 95%+ semantic accuracy, with users reporting "typing at the speed of thought."
+## The Seven Revolutionary Scenarios
 
-- MUST: on‑device inference by default; p95 keystroke→correction ≤ 15 ms; caret‑safe edits; granular undo via host stack; reduced‑motion compliance; encrypted remote channel support behind explicit opt‑in; ToneWorker optional, off by default.
-- WON'T: silent cloud text processing; heavy suggestions UI; collaborative prefs; background data retention.
+### Scenario 1: Academic Excellence - Maya (Graduate Student with Dyslexia)
+**Context**: PhD in Environmental Science, struggles with dyslexia and complex terminology  
+**Challenge**: Academic writing requires precision but dyslexia causes frequent letter transpositions  
+**MindType Solution**: Three-stage pipeline (Noise → Context → Tone) with academic vocabulary support  
+**Key Requirements**:
+- Scientific terminology correction
+- Real-time transposition fixes ("resarch" → "research")
+- Privacy-first on-device processing for unpublished research
+- Screen reader compatibility for accessibility
 
-### Success Metrics
+### Scenario 2: Professional Productivity - Carlos (Multilingual Business Analyst)
+**Context**: International consulting, switches between English/Spanish/Portuguese  
+**Challenge**: Mixed-language errors, keyboard mapping confusion, professional credibility  
+**MindType Solution**: Context-aware language detection with cross-linguistic error correction  
+**Key Requirements**:
+- Mixed-language error detection ("finacial analisys shows que")
+- 15ms latency to match 85 WPM typing speed
+- Professional tone consistency across languages
+- Cultural context preservation
 
-- Latency: p95 ≤ 15 ms (M‑series), ≤ 30 ms (Intel). Memory: typical ≤
-  150 MB, cap ≤ 200 MB.
-- Undo rate (false‑positive proxy) ≤ 0.5% of edits.
-- Activation ≥ 70% in week 1; NPS ≥ 50 (writers segment).
+### Scenario 3: Accessibility Champion - Dr. Sarah Chen (Legally Blind Researcher)
+**Context**: Biomedical researcher with diabetic retinopathy, relies on screen readers  
+**Challenge**: Audio feedback for corrections disrupts concentration  
+**MindType Solution**: Silent corrections with single batch announcements  
+**Key Requirements**:
+- Caret-safe editing (never disrupts screen reader position)
+- Single announcement per correction batch: "text updated behind cursor"
+- High-contrast Correction Marker for low vision users
+- Scientific terminology accuracy for grant writing
 
-### Functional Requirements
+### Scenario 4: Creative Flow State - James (Novelist & Screenwriter)
+**Context**: Professional writer seeking uninterrupted creative flow  
+**Challenge**: Stopping to correct typos breaks creative momentum  
+**MindType Solution**: Stream-of-consciousness typing with background refinement  
+**Key Requirements**:
+- Real-time streaming corrections during rapid writing bursts
+- Narrative coherence maintenance across long passages
+- Creative voice preservation (minimal tone interference)
+- Musical rhythm of Correction Marker enhances flow
 
-- REQ-IME-CARETSAFE: The engine MUST NEVER apply edits at/after the caret.
-- REQ-NOISE-CORRECTION: The engine MUST propose minimal corrections within ≤ 80 chars
-  behind the caret; return null when unsure.
-- REQ-A11Y-MOTION: Visual feedback MUST honor `prefers-reduced-motion`.
-- REQ-SECURE-FIELDS: The system MUST disable in secure fields and during
-  active IME composition.
-- REQ-STREAMED-DIFFUSION: Corrections MUST stream word‑by‑word behind the caret during typing; on pause (~500 ms), diffusion MUST catch up until the active region reaches the caret.
-- REQ-ACTIVE-REGION: Processing MUST be limited to an active region behind the caret (20 words) as the only editable span. The UI is not required to render this active region.
-- REQ-VISUAL-SWAP: The UI MUST use a mechanical, word-by-word "dot matrix wave" animation for applied corrections, with an optional braille‑like marker ('⠿') at swap sites. No underlines/highlights for applied edits. A subtle active‑region overlay for debugging/demo is permissible, provided it does not alter applied‑edit visuals. Reduced‑motion MUST perform instant swaps. Announce once per batch via the live region when enabled.
-- REQ-LOCAL-LM-INTEGRATION: The system MUST support on-device language model integration for semantic and grammatical corrections; MUST fallback gracefully to rule-based corrections when LM unavailable; MUST maintain <150MB typical memory footprint including model. Target initial integration: Transformers.js with Qwen2.5‑0.5B‑Instruct (q4, WebGPU) for text‑centric quality.
-- REQ-CONTEXTUAL-CORRECTIONS: Beyond word substitutions, the engine MUST handle transpositions, punctuation spacing, capitalization, and semantic coherence using broader context while maintaining caret safety.
+### Scenario 5: Everyday Efficiency - Emma (Working Parent)
+**Context**: Marketing professional juggling work and parenting  
+**Challenge**: Typing in stolen moments with fatigue-induced errors  
+**MindType Solution**: Seamless professional polish without conscious effort  
+**Key Requirements**:
+- Invisible enhancement ("campain" → "campaign" without user awareness)
+- Professional tone for business communications
+- Quick burst typing support (emails during soccer practice)
+- Battery-efficient processing for mobile devices
 
-### Scenarios (BDD)
+### Scenario 6: Speed Demon - Marcus (Professional Stenographer Turned Digital)
+**Context**: Former court stenographer achieving 225 WPM on stenotype, limited to ~100 WPM on QWERTY  
+**Challenge**: Fingers know the speed but traditional keyboards can't keep up  
+**MindType Solution**: **Velocity Mode** - Revolutionary speed unlocking through trust-based typing  
+**Key Requirements**:
+- Sub-15ms correction latency to support 180+ WPM
+- Phonetic shorthand understanding ("Th defdnt clamd tht th contrct ws invld")
+- Complete trust interface - user never slows down for accuracy
+- Real-time legal terminology correction
+- **Breakthrough**: Thought-to-text at neural firing speed
 
-- Caret safety: Given caret sits mid‑word, When correction runs, Then no edit
-  occurs. (maps: docs/12-qa/qa/acceptance/caret_safety.feature)
-- Streamed diffusion: Given active typing, When diffusion runs, Then the active region trails behind the caret word‑by‑word; on pause, the region catches up. (maps: docs/12-qa/qa/acceptance/streamed_diffusion.feature)
-- Visual feedback: Given corrections apply, Then text is replaced via mechanical swap (no highlight), optionally marked with '⠿', and a single screen‑reader announcement "text updated behind cursor" is emitted per batch. (maps: docs/12-qa/qa/acceptance/two_word_highlight.feature)
+### Scenario 7: Data Whisperer - Priya (Quantitative Research Analyst)
+**Context**: Hedge fund analyst processing massive datasets with rapid annotations  
+**Challenge**: Traditional forms/dropdowns too slow for analytical flow  
+**MindType Solution**: Stream-of-consciousness data entry with intelligent formatting  
+**Key Requirements**:
+- Custom "data dialect" understanding ("hgh rvn grwth tch stk +sent")
+- Domain-specific expansion (biotech, financial terminology)
+- 5× speed increase over traditional data entry methods
+- Analytical flow preservation - brain stays in pure analysis mode
+- **Innovation**: Human-AI collaboration for rapid insight capture
 
-### Constraints
+## The Correction Marker System
 
-- Privacy: On‑device by default; no input content leaves device unless explicitly opted‑in per session. No data retention. Any remote path uses encrypted transport.
-- Accessibility: WCAG 2.2 AA; screen reader announcements for changes.
-- IME: Wait until composition ends; secure fields disabled.
+### Revolutionary Paradigm: Burst-Pause-Correct
+**Muscle Memory Training**: Users develop unconscious rhythm:
+1. **Burst Phase**: Rapid, uninhibited typing (trust the system)
+2. **Pause Recognition**: Natural breathing moment (0.5-2 seconds)
+3. **Correction Anticipation**: Subconscious expectation of refinement
+4. **Flow Resumption**: Seamless continuation with enhanced confidence
 
-### Risks
+### Two-Mode Operation
 
-- Latency budget on Intel Macs; mitigation: slim model, heuristics fallback.
-- Perceived over‑correction; mitigation: confidence gating, undo grouping.
+#### Listening Mode: The Digital Pulse
+- **Visual**: Hypnotic braille symbol rotation (⠂ → ⠄ → ⠆ → ⠠ → ⠢ → ⠤ → ⠦ → ⠰ → ⠲ → ⠴ → ⠶)
+- **Behavior**: Marker holds position at last correction point, pulsing with anticipation
+- **Timing**: 200ms per symbol, 2.4-second complete cycle
+- **Purpose**: Visual feedback that system is actively listening
 
-### References
+#### Correction Mode: The Intelligent Worker
+- **Trigger**: User pause >500ms
+- **Motion**: Accelerates from waiting position toward cursor
+- **Speed Adaptation**:
+  - Noise corrections: 50ms/word (simple typos)
+  - Context analysis: 150ms/word (grammar/flow)
+  - Tone processing: 300ms/word (style refinement)
+- **Visual**: Dynamic braille patterns indicating processing complexity
 
-- C4: ./04-architecture/C1-context.md, C2-containers.md, C3-components.md
-- ADRs: ./05-adr
-- BDD: ../docs/12-qa/qa/acceptance
-- Guides (Diátaxis): ./06-guides
+### Visual Experience
+- **Whoosh Effect**: Marker flows like liquid intelligence with trailing effect
+- **Processing Indicators**: Different braille patterns for correction types
+- **Wake Effect**: Corrected words briefly highlight with 85% opacity fade
+- **Accessibility**: High contrast, reduced-motion compliance, screen reader integration
 
-### Traceability
+## Core Technical Requirements
 
-IDs:
+### Performance Targets
+- **Latency**: p95 ≤ 15ms (WebGPU), ≤ 30ms (WASM/CPU)
+- **Memory**: ≤150MB typical, ≤200MB maximum
+- **Accuracy**: ≥95% semantic accuracy
+- **Speed Enhancement**: 3× effective WPM increase
 
-- Requirements: REQ-\*
-- Principles: PRIN-\*
-- ADRs: ADR-\*
-- Scenarios: SCEN-\*
+### Safety & Privacy
+- **Caret-Safe Guarantee**: No corrections at/after cursor position
+- **On-Device Processing**: Default local-only, optional encrypted remote
+- **Secure Context Detection**: Disabled in password fields, IME composition
+- **Privacy**: No user text persistence, session-only opt-ins
 
-Appendix — Traceability Map (starter)
+### Three-Stage Pipeline
+1. **Noise Transformer**: Immediate typo fixes (sub-millisecond)
+2. **Context Transformer**: Grammar and coherence (English-only, LM-powered)
+3. **Tone Transformer**: Optional style adjustment (None/Casual/Professional)
 
-| REQ-ID                   | Principles                   | ADRs     | QA Scenarios       | Modules/Guides                                                                           |
-| ------------------------ | ---------------------------- | -------- | ------------------ | ---------------------------------------------------------------------------------------- |
-| REQ-IME-CARETSAFE        | PRIN-SAFETY-04               | ADR-0002 | SCEN-CARETS-001    | crates/core-rs/src/diff.rs; active-region-policy.md                                      |
-| REQ-STREAMED-DIFFUSION   | PRIN-HUMAN-01, PRIN-LOGIC-10 | —        | SCEN-DIFFUSION-001 | crates/core-rs/src/diffusion.rs; lm-behavior.md                                          |
-| REQ-VISUAL-SWAP          | PRIN-HUMAN-02, PRIN-HUMAN-03 | —        | SCEN-DIFFUSION-001 | web-demo/src/swapRenderer.tsx; a11y/wcag-checklist.md                                    |
-| REQ-A11Y-MOTION          | PRIN-HUMAN-03                | —        | SCEN-HILITE-001    | a11y/wcag-checklist.md; web-demo/src/motion.tsx                                          |
-| REQ-LOCAL-LM-INTEGRATION | PRIN-SAFETY-05, PRIN-PERF-11 | ADR-0005 | SCEN-LMLOCAL-001   | lm-behavior.md; crates/core-rs/src/lm/*; ./06-guides/reference/lm-worker.md              |
+### Device Tier Optimization
+- **WebGPU**: 48 token limit, fastest processing
+- **WASM**: 24 token limit, balanced performance
+- **CPU**: 16 token limit, graceful degradation
 
-### Stakeholders
+### Primary KPIs
+- **Speed**: 3× effective WPM increase across all scenarios
+- **Accuracy**: ≥95% semantic accuracy maintained
+- **Flow State**: ≥80% of users report "thought-speed typing"
+- **Adoption**: ≥70% activation in week 1
 
-- Product: @alex
-- Engineering: Core (TS/Rust) — @alex; Demo/Web — @alex
-- QA: Owner per `docs/12-qa/qa/README.md`
+### Scenario-Specific Metrics
+- **Maya**: 50% reduction in academic writing time
+- **Carlos**: 40% faster multilingual document creation
+- **Dr. Chen**: 60% fewer audio interruptions during writing
+- **James**: 35% increase in daily word count with maintained quality
+- **Emma**: 90% of communications achieve professional tone automatically
+- **Marcus**: 180+ WPM sustained speed on standard keyboard
+- **Priya**: 5× faster data annotation with maintained analytical accuracy
 
-### Tech Stack Summary
+## Implementation Priorities
 
-- Core: Rust (complete correction engine via WASM/FFI)
-- Web: Vite + React demo; Playwright E2E
-- LM: Transformers.js targeting WebGPU → WASM → CPU fallback
-- Tooling: pnpm, Vitest, ESLint v9 flat config, Prettier
+### Phase 1: Foundation (Weeks 1-4)
+- Correction Marker visual system
+- Burst-Pause-Correct timing engine
+- Basic three-stage pipeline
+- Caret-safe editing guarantee
 
-### Data Model & Persistence
+### Phase 2: Intelligence (Weeks 5-8)
+- Advanced Context Transformer
+- Scenario-specific optimizations
+- Device tier adaptation
+- Accessibility compliance
 
-- See `./04-architecture/data_model.md` for entities, constraints, and persistence approach. No user text is persisted by default; settings only.
+### Phase 3: Refinement (Weeks 9-12)
+- Velocity Mode for speed scenarios
+- Domain-specific vocabularies
+- Advanced visual feedback
+- Performance optimization
 
-### Release Criteria (MVP)
-
-- Functionality: Caret‑safe NoiseWorker within window; pause catch‑up; active region visuals; secure fields/IME handling
-- Usability: Reduced‑motion compliance; minimal unobtrusive UI
-- Reliability: p95 latency targets met on M‑series in demo; unit/integration tests green; coverage guard passes
-- Supportability: Local‑only default; clear setup script `pnpm setup:local`; logs gated; docs updated (PRD, implementation, QA mapping)
+## SPEC Blocks for Traceability
 
 <!-- SPEC:REQ
-id: REQ-STREAMED-DIFFUSION
-title: Streamed diffusion of LM corrections
-status: active
+id: REQ-CORRECTION-MARKER
+title: Correction Marker visual system with two-mode operation
+status: planned
 modules:
-  - crates/core-rs/src/diffusion.rs
-  - crates/core-rs/src/lm/merge.rs
+  - ui/swapRenderer.ts
+  - core/sweepScheduler.ts
 acceptance:
-  - docs/12-qa/qa/acceptance/streamed_diffusion.feature#SCEN-DIFFUSION-001
+  - docs/12-qa/qa/acceptance/mechanical_swap.feature
 tests:
-  - crates/core-rs/tests/diffusion.rs
-  - crates/core-rs/tests/lm_merge.rs
+  - tests/swapRenderer.spec.ts
 -->
 
 <!-- SPEC:REQ
-id: REQ-IME-CARETSAFE
-title: No edits at or after the caret
-status: active
+id: REQ-BURST-PAUSE-CORRECT
+title: Muscle memory training through burst-pause-correct cycles
+status: planned
 modules:
-  - crates/core-rs/src/diff.rs
-  - crates/core-rs/src/active_region.rs
+  - core/sweepScheduler.ts
+  - core/typingMonitor.ts
 acceptance:
-  - docs/12-qa/qa/acceptance/caret_safety.feature#SCEN-CARETS-001
+  - docs/12-qa/qa/acceptance/streamed_diffusion.feature
 tests:
-  - crates/core-rs/tests/diff.rs
-  - crates/core-rs/tests/active_region.rs
+  - tests/sweepScheduler.spec.ts
 -->
 
 <!-- SPEC:REQ
-id: REQ-A11Y-MOTION
-title: Respect reduced-motion; single announcement; mechanical swap
-status: active
+id: REQ-VELOCITY-MODE
+title: Speed enhancement mode for 180+ WPM typing
+status: planned
 modules:
-  - web-demo/src/motion.tsx
-  - web-demo/src/liveRegion.tsx
+  - engines/noiseTransformer.ts
+  - engines/contextTransformer.ts
 acceptance:
-  - docs/12-qa/qa/acceptance/two_word_highlight.feature#SCEN-HILITE-001
+  - docs/12-qa/qa/acceptance/streamed_diffusion.feature
 tests:
-  - tests/motion.spec.ts
-  - tests/liveRegion.spec.ts
+  - tests/noiseTransformer.spec.ts
+  - tests/contextTransformer.spec.ts
 -->
 
 <!-- SPEC:REQ
-id: REQ-LOCAL-LM-INTEGRATION
-title: On-device LM integration with graceful fallback
-status: active
+id: REQ-SEVEN-SCENARIOS
+title: Support for all seven revolutionary usage scenarios
+status: planned
 modules:
-  - crates/core-rs/src/lm/factory.rs
-  - crates/core-rs/src/lm/client.rs
+  - core/sweepScheduler.ts
+  - engines/noiseTransformer.ts
+  - engines/contextTransformer.ts
+  - engines/toneTransformer.ts
 acceptance:
-  - docs/12-qa/qa/acceptance/local_lm_integration.feature#SCEN-LMLOCAL-001
+  - docs/12-qa/qa/acceptance/streamed_diffusion.feature
+  - docs/12-qa/qa/acceptance/caret_safety.feature
+  - docs/12-qa/qa/acceptance/mechanical_swap.feature
 tests:
-  - crates/core-rs/tests/lm.rs
+  - tests/sweepScheduler.spec.ts
+  - tests/noiseTransformer.spec.ts
+  - tests/contextTransformer.spec.ts
+  - tests/toneTransformer.spec.ts
 -->
 
-### In simple terms
+## Stakeholders & Success Criteria
 
-- **What this section is for**: It lists our requirements and where to find their code and tests.
-- **How to use**: Add a SPEC block like above when you add/change a requirement. Our tool syncs file headers and the traceability map.
+**Product Owner**: Revolutionary typing experience that feels like cognitive augmentation  
+**Engineering**: Clean, performant architecture supporting all scenarios  
+**Design**: Intuitive Correction Marker that enhances rather than distracts  
+**Accessibility**: Full WCAG 2.2 AA compliance with innovative accommodations  
+**Users**: "This is how typing should have always worked"
 
-<!-- SPEC:REQ
-id: REQ-DOT-MATRIX-WAVE
-title: Dot-matrix wave animation demo
-status: active
-modules:
-  - demo/dot-matrix-wave/index.html
-  - demo/dot-matrix-wave/main.js
-  - demo/dot-matrix-wave/styles.css
-  - contracts/animTokens.ts
-acceptance:
-  - docs/12-qa/qa/acceptance/mechanical_swap.feature#SCEN-DOT-MATRIX-WAVE-001
-tests:
-  - e2e/tests/demo-dot-matrix-wave.spec.ts
--->
+---
+
+*MindType doesn't just correct typing—it unlocks human potential at the intersection of thought and text.*
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

@@ -196,3 +196,5 @@ Planned improvements include:
 - [Context Transformer Reference](./context-transformer.md)
 - [Testing Guidelines](../how-to/testing.md)
 - [Pipeline Integration](./pipeline.md)
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

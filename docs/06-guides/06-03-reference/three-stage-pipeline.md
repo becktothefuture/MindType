@@ -81,3 +81,5 @@ Scheduling: The scheduler streams Noise while typing. On a ≥500ms pause, it sc
 - Anti‑thrash Scheduler
   - Module: `crates/core-rs/src/scheduler.rs`
   - Debounce: WebGPU=base; WASM≈1.1×; CPU≈1.3×; guards enforce safety
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

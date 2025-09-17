@@ -72,3 +72,5 @@ See: `docs/06-guides/06-03-reference/lm.md`, `core/lm/factory.ts`, `core/lm/inde
 - Demo: remove LM scheduling from React; rely on core + worker.
 
 <!-- Alignment: LM merges stream strictly within the active region; abort on input; rollback on caret-entry. -->
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

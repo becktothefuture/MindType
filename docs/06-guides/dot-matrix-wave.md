@@ -50,3 +50,5 @@ invariants:
 - You can control speed, spread (width), and mix (how many letters vs symbols).
 - Behind the wave, text shows the corrected version; ahead, it stays unchanged.
 - This creates an elegant word-by-word replacement animation as specified in the PRD.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

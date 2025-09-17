@@ -45,3 +45,5 @@ Captures: focusin/out, selectionchange, keydown, beforeinput, input, composition
 ### Thresholds
 
 short_pause_ms, long_pause_ms, decay_ms, jump_threshold_chars, delete_burst_window_ms, delete_burst_min.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

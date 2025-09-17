@@ -53,3 +53,5 @@
 - [Logo & Identity](./logo-identity.md)
 - [Color Palette](./colors.md)
 - [Usage Examples & Applications](./usage-examples.md)
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:46:38Z -->

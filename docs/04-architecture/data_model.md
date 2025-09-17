@@ -16,11 +16,63 @@
     • HOW  ▸ Rust-first types; optional persistence adapters later
 -->
 
-### Scope
+# MindType Revolutionary Data Model
 
-This document captures the runtime data model used by Mind::Type's core pipeline. Today, data is in-memory only; future hosts may persist settings and logs locally. No user text leaves the device.
+## 🚀 **Revolutionary Data Architecture**
 
-### Entities
+This document defines the data model for MindType's **revolutionary Correction Marker system** and **Seven Usage Scenarios**. The architecture supports **thought-speed typing** through cognitive augmentation while maintaining absolute privacy (no user text persistence).
+
+## 🎆 **Core Revolutionary Entities**
+
+### **Correction Marker State**
+```typescript
+interface CorrectionMarker {
+  mode: 'listening' | 'correcting' | 'idle';
+  position: number;              // Character index in text
+  targetPosition: number;        // Where marker needs to travel
+  animationState: BrailleSymbol; // Current braille symbol
+  processingIntensity: 'light' | 'medium' | 'heavy';
+  lastCorrectionTime: number;    // For burst-pause detection
+}
+
+type BrailleSymbol = '⠂' | '⠄' | '⠆' | '⠠' | '⠢' | '⠤' | '⠦' | '⠰' | '⠲' | '⠴' | '⠶';
+```
+
+### **Burst-Pause-Correct Engine**
+```typescript
+interface BurstState {
+  isActive: boolean;
+  startTime: number;
+  keystrokes: number;
+  averageInterval: number;
+  currentWPM: number;
+}
+
+interface PauseEvent {
+  duration: number;
+  triggerCorrection: boolean;
+  markerAction: 'hold' | 'advance';
+  confidenceThreshold: number;
+}
+```
+
+### **Seven Scenario Contexts**
+```typescript
+interface ScenarioContext {
+  activeScenario: 'academic' | 'multilingual' | 'accessibility' | 'creative' | 'professional' | 'speed' | 'data';
+  domainVocabulary: Map<string, string>;
+  confidenceAdjustments: ConfidenceProfile;
+  performanceOptimizations: DeviceTierConfig;
+}
+
+interface ConfidenceProfile {
+  noiseThreshold: number;    // Maya: lower for transpositions
+  contextThreshold: number;  // Dr. Chen: higher for silent operation
+  speedThreshold: number;    // Marcus: optimized for 180+ WPM
+}
+```
+
+### Legacy Entities (Enhanced)
 
 - **TypingSnapshot**
   - Keys: `atMs`
@@ -78,3 +130,5 @@ See `docs/06-guides/06-03-reference/rust-core-api.md` for canonical type definit
 - PRD: REQ-IME-CARETSAFE, REQ-STREAMED-DIFFUSION, REQ-ACTIVE-REGION, REQ-LOCAL-LM-INTEGRATION
 - ADRs: ADR-0002 (caret-safe diffs), ADR-0003 (architecture constraints)
 - QA: `docs/12-qa/qa/acceptance/*.feature` scenarios map to caret safety and active region behavior
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

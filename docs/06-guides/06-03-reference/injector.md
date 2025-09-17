@@ -47,3 +47,5 @@ See also: `core/diffusionController.ts` and `utils/diff.ts`.
 
 - **Active Region** /LM evolutions must preserve the platform editor's native undo stack.
 - Do not apply `groupUndo` to **Active Region**/LM merges; grouping (if any) is reserved for simple rule-based engine diffs and remains optional.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

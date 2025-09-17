@@ -20,7 +20,7 @@
 
 ## Overview
 
-The dot matrix wave animation provides subtle visual feedback when Mind::Type applies corrections. It creates a wave-like effect that propagates through corrected words, giving users gentle awareness of improvements without disrupting their flow.
+The dot matrix wave animation provides subtle visual feedback when MindType applies corrections. It creates a wave-like effect that propagates through corrected words, giving users gentle awareness of improvements without disrupting their flow.
 
 ## Visual Design
 
@@ -326,3 +326,5 @@ The dot matrix wave animation was chosen because it:
 - Maintains readability during animation
 - Works across all platforms with consistent appearance
 - Degrades gracefully for accessibility and performance
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

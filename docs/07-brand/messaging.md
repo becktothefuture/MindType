@@ -16,21 +16,22 @@
     • HOW  ▸ Progressive explanations; claims in three lengths
 -->
 
-## Purpose (a new way to type)
+## Purpose (revolutionary cognitive augmentation)
 
-- Type forward; the line behind you gets better. That’s the shift.
-- Fewer micro‑stops, more finished thoughts. Your voice, just clearer.
-- Help lives where you write—quiet, instant, and private on your device.
+- **Transform typing from mechanical skill into fluid expression of thought**
+- Experience **thought-speed typing** where your mind operates at the speed of neural firing
+- The **Correction Marker** becomes your cognitive partner, working alongside human creativity
+- **Burst-Pause-Correct** methodology trains muscle memory for optimal flow state
 
 ## Brand claim (primary)
 
-- Type forward. The line behind you gets better.
+- **Typing at the speed of thought. Revolutionary.**
 
 ## Vision pitch (v0.2)
 
 ### Simple
 
-I’m building a smart typing system for your computer, tablet, and phone that quietly fixes mistakes and smooths your words as you write — for anyone who types, especially neurodivergent thinkers, who want a faster, more natural way to express themselves.
+I'm building a revolutionary typing intelligence system that transforms typing from a mechanical skill into **fluid expression of thought**. Through the **Correction Marker** and **Burst-Pause-Correct** methodology, users achieve **thought-speed typing** with unprecedented accuracy—enabling everyone from PhD students with dyslexia to former stenographers to type at speeds previously impossible.
 
 ### A world beyond backspaces
 
@@ -38,11 +39,11 @@ Think about the last time your fingers couldn’t keep up with your thoughts. Yo
 
 ### Why it exists
 
-Mind::Type was created because we believe typing should feel as natural as thinking. People connect with the why behind a product, not just the what. Our purpose is to remove friction and make writing calmer and more human‑centred, whether you’re a professional seeking flow or someone who finds conventional typing a challenge.
+MindType was created because we believe typing should unlock human potential, not limit it. The **Correction Marker** represents a breakthrough in human-computer collaboration—where AI intelligence works alongside human creativity to achieve **thought-speed typing**. Our purpose is cognitive augmentation: removing the mechanical barriers between thought and text.
 
 ### What it does
 
-Mind::Type is a quiet layer between your keyboard and your screen. It turns noisy keystrokes into clean, well‑formed sentences that still sound like you. The aim is not to be noticed, but to free you to focus on ideas. True simplicity comes from clarifying the purpose of a product, and here that purpose is to let your voice come through without distraction.
+MindType introduces the revolutionary **Correction Marker**—an intelligent visual worker that travels through your text, applying corrections behind your cursor while you maintain unbroken typing rhythm. Through **Seven Revolutionary Scenarios**, from academic excellence to speed mastery, MindType transforms typing from a skill into an extension of thought itself.
 
 ### How it works
 
@@ -50,11 +51,11 @@ Behind the calm interface is an AI diffusion model for text. As you type, it ref
 
 ### Addressing concerns
 
-An effective pitch anticipates objections. Mind::Type doesn’t spy on you; it doesn’t save your data or slow you down. It’s not another assistant; it’s a utility that works quietly in the background. Everything runs under your control, with privacy and security baked in.
+An effective pitch anticipates objections. MindType doesn’t spy on you; it doesn’t save your data or slow you down. It’s not another assistant; it’s a utility that works quietly in the background. Everything runs under your control, with privacy and security baked in.
 
 ### A new form of interaction
 
-By eliminating friction, we’re not just fixing typos. We’re creating a new way to interact with your machine, one where the keyboard becomes an extension of your thoughts. When technology works intuitively it feels almost magical. That’s the experience Mind::Type aims to deliver.
+By eliminating friction, we’re not just fixing typos. We’re creating a new way to interact with your machine, one where the keyboard becomes an extension of your thoughts. When technology works intuitively it feels almost magical. That’s the experience MindType aims to deliver.
 
 ## Pitch (three lengths)
 
@@ -64,11 +65,11 @@ By eliminating friction, we’re not just fixing typos. We’re creating a new w
 
 ### Medium
 
-- Mind::Type makes typing feel like thinking. While you move forward, it quietly improves the line just behind your cursor so your thoughts land cleanly—fewer typos, tidier sentences, calmer edits. No pop‑ups, no tab‑hopping, and your text stays on your device.
+- MindType makes typing feel like thinking. While you move forward, it quietly improves the line just behind your cursor so your thoughts land cleanly—fewer typos, tidier sentences, calmer edits. No pop‑ups, no tab‑hopping, and your text stays on your device.
 
 ### Long
 
-- Mind::Type removes human–computer friction so your attention stays on the idea. It keeps a short strip of text behind your cursor “active,” gently cleaning and clarifying it while you type. Older text is safe; nothing jumps; control is always yours. It works right where you write, keeps your text on your device, and adapts to your computer so it always feels smooth.
+- MindType removes human–computer friction so your attention stays on the idea. It keeps a short strip of text behind your cursor “active,” gently cleaning and clarifying it while you type. Older text is safe; nothing jumps; control is always yours. It works right where you write, keeps your text on your device, and adapts to your computer so it always feels smooth.
 
 ## Main selling points
 
@@ -84,11 +85,11 @@ By eliminating friction, we’re not just fixing typos. We’re creating a new w
 - Small, on‑device models and rules make light, reversible edits.
 - No interruptions—just type forward.
 
-## Ten ways to explain Mind::Type (beginner → expert)
+## Ten ways to explain MindType (beginner → expert)
 
 1. Beginner (what it does)
 
-- Mind::Type quietly cleans and improves what you just typed so it reads right, without pop‑ups or pauses.
+- MindType quietly cleans and improves what you just typed so it reads right, without pop‑ups or pauses.
 
 2. Beginner+ (how it feels)
 
@@ -138,13 +139,13 @@ By eliminating friction, we’re not just fixing typos. We’re creating a new w
 
 ### Medium
 
-- Mind::Type is a live human–computer interaction utility for text. As you
+- MindType is a live human–computer interaction utility for text. As you
   type, a small active region just behind your cursor receives
   streaming, on‑device improvements—grammar, clarity, tone—without
   interrupts or mode switches. It’s reversible, private by default, and
   tuned to your hardware for a calm, coherent writing loop.
 
-- Mind::Type eliminates human–computer friction so you can think at full
+- MindType eliminates human–computer friction so you can think at full
   bandwidth. It pairs your forward intent with a constrained, on‑device
   model that edits only where it’s safe: a short, visible active region
   behind the caret. A Rust‑first core orchestrates streaming merges with
@@ -153,7 +154,7 @@ By eliminating friction, we’re not just fixing typos. We’re creating a new w
   Windows) render understated cues from events like `mindtype:activeRegion`
   and `highlight`, while device‑tier policies adapt cadence and token
   budgets across WebGPU, WASM, or CPU. The result is a live, closed‑loop
-  writing aid: you move forward; Mind::Type quietly lifts the text behind
+  writing aid: you move forward; MindType quietly lifts the text behind
   you.
 
 ## Glossary (plain words)
@@ -187,7 +188,7 @@ By eliminating friction, we’re not just fixing typos. We’re creating a new w
 
 ## The three whys (asked backwards)
 
-1. Why Mind::Type? To remove typing friction so progress feels
+1. Why MindType? To remove typing friction so progress feels
    continuous.
 2. Why remove friction? To protect attention and working memory—the
    scarce resource.
@@ -205,7 +206,7 @@ By eliminating friction, we’re not just fixing typos. We’re creating a new w
   explicit, per‑session opt‑in.
 - Will it change my voice? You set intensity and domains; the system
   favors clarity over style unless asked.
-- Why not Grammarly? Different goal: Mind::Type is live HMI for thinking
+- Why not Grammarly? Different goal: MindType is live HMI for thinking
   while typing, not a post‑hoc checker.
 
 ## Reasons to believe (proof points)
@@ -227,3 +228,5 @@ By eliminating friction, we’re not just fixing typos. We’re creating a new w
 - Flow, not friction
 - Real‑time text clarity
 - A world beyond backspaces
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:46:38Z -->

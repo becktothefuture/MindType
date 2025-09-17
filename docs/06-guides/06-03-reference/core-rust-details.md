@@ -1,6 +1,6 @@
 # Rust Core Details (`crates/core-rs`)
 
-This document explains the Rust part of Mind::Type in plain language, with examples. It complements the high‑level spec and the README. Acronyms are expanded when first used.
+This document explains the Rust part of MindType in plain language, with examples. It complements the high‑level spec and the README. Acronyms are expanded when first used.
 
 ## Crate Layout
 
@@ -125,3 +125,5 @@ Run `cargo test` for correctness. When we add benchmarks we’ll use Criterion (
 If you see time/clock errors when building for WASM (due to `chrono`), we’ll switch to the browser clock via `js_sys::Date::now()` for WASM builds and keep `chrono` for native.
 
 <!-- Alignment: Rust core uses Tokio for async, wasm-bindgen for web, and cbindgen/UniFFI for C/Swift bindings. -->
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

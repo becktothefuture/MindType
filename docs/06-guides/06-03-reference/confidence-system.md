@@ -34,3 +34,5 @@
 - All functions are in `core/confidenceGate.ts`.
 - The staging buffer (`core/stagingBuffer.ts`) tracks proposal states and applies the decisions.
 - Keep caret safety in mind: proposals must never touch or cross the caret.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

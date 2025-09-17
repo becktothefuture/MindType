@@ -75,3 +75,5 @@ Keep this file short and link to detailed specs in `docs/02-implementation/02-Im
 - REQ‑IDs (from PRD), PRIN‑IDs (from Principles), ADR‑IDs (from ADRs)
 - Modules involved (e.g., `core/diffusionController.ts`)
 - Link to unit/integration tests when applicable
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:46:38Z -->

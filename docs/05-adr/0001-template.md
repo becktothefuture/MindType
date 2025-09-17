@@ -24,3 +24,5 @@ Decision
 Consequences
 Alternatives considered
 Links (PRD REQs, code paths)
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

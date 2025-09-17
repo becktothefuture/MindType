@@ -48,3 +48,5 @@
 
 - Snapshot: light/dark/high‑contrast; reduced‑motion on/off
 - Accessibility: VoiceOver phrases; keyboard‑only flows
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

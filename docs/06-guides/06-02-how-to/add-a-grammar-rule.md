@@ -21,3 +21,5 @@ Checklist
 - Never cross CARET; operate ≤ 80 chars behind it.
 - Confidence gate; return null if unsure.
 - Add unit tests in `tests/noiseTransformer.spec.ts`.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

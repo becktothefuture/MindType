@@ -55,3 +55,5 @@ If not provided, the script uses the `<title>` or the URL path.
 ### Editor Automation
 
 - `.cursorrules` ensures the header pattern is applied to `demo/**/index.html`. It injects meta tags, CSS, and JS includes using the current `package.json` version and the current timestamp.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

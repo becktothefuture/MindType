@@ -10,8 +10,8 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ No edits at or after the caret; Active region policy (render vs context ranges)
-  • WHY  ▸ REQ-IME-CARETSAFE, CONTRACT-ACTIVE-REGION
+  • WHAT ▸ Active region policy (render vs context ranges)
+  • WHY  ▸ CONTRACT-ACTIVE-REGION
   • HOW  ▸ See linked contracts and guides in docs
 */
 

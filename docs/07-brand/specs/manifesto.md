@@ -2,7 +2,7 @@
   ╔══════════════════════════════════════════════════════╗
   ║  ░  BRAND MANIFESTO & VISION  ░░░░░░░░░░░░░░░░░░░░░  ║
   ║                                                      ║
-  ║  The purpose and promise of Mind::Type. A north      ║
+  ║  The purpose and promise of MindType. A north      ║
   ║  star for design, product, and community decisions.  ║
   ║                                                      ║
   ║                                                      ║
@@ -14,13 +14,11 @@
     • HOW  ▸ Guides choices in design, copy, and motion
 -->
 
-## Vision
+## Revolutionary Vision
 
-Typing should feel as seamless and quietly intuitive as thinking. In a
-world of constant communication, Mind::Type represents a calm revolution:
-improving typing without fanfare, empowering effortless expression.
+**Typing should unlock human potential, not limit it.** MindType represents a **cognitive revolution**: transforming typing from a mechanical skill into **fluid expression of thought**. Through the revolutionary **Correction Marker** and **Seven Usage Scenarios**, we enable **thought-speed typing** where the boundary between human intention and digital execution dissolves.
 
-> Mind::Type Brand Style Guide & Manifesto (Task 2)
+> MindType Brand Style Guide & Manifesto (Task 2)
 >
 > This guide resonates with tech consumers in 2025–2026. It defines a
 > baseline for an amazing art direction we will refine. The guiding theme
@@ -31,15 +29,15 @@ improving typing without fanfare, empowering effortless expression.
 ## Manifesto
 
 We believe in tools, not toys. We build technology that serves the mind —
-augmenting thought instead of distracting from it. Mind::Type gently evolves
+augmenting thought instead of distracting from it. MindType gently evolves
 how we type: faster, smarter, more comfortable, and always in the
-background. Like a natural conversation, typing with Mind::Type flows with
+background. Like a natural conversation, typing with MindType flows with
 minimal friction.
 
 We are open-source at heart. Transparency, collaboration, and collective
 innovation shape the product. This openness is identity, not tactic.
 Everyone is invited to participate so the tool grows to meet real needs.
-By 2026 and beyond, Mind::Type aims to be the everyday typing companion —
+By 2026 and beyond, MindType aims to be the everyday typing companion —
 instantly familiar, not just for power users.
 
 Our tone is humble, optimistic, and inclusive. High‑tech can be quietly
@@ -49,7 +47,7 @@ speed, ease. The best technology feels almost invisible — it just works.
 
 ## Outcomes and projection
 
-By 2026 and beyond Mind::Type aims to be the everyday typing companion that
+By 2026 and beyond MindType aims to be the everyday typing companion that
 anyone can adopt instantly and feel at home with — not just power users.
 
 ## See also
@@ -58,3 +56,5 @@ anyone can adopt instantly and feel at home with — not just power users.
 - [Voice & Tone](./voice-tone.md)
 - [Usage Examples & Applications](./usage-examples.md)
 - [Brand One‑Pager](../guide/brand-one-pager.md)
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:46:38Z -->

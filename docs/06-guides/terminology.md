@@ -11,23 +11,30 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ Standardized terminology for Mind::Type
+    • WHAT ▸ Standardized terminology for MindType
     • WHY  ▸ Consistency across documentation and code
     • HOW  ▸ Use these terms everywhere, no exceptions
 -->
 
-# Mind::Type Terminology Guide
+# MindType Terminology Guide
 
-This document defines the official terminology for Mind::Type. **Use these terms consistently across all documentation, code, and communications.**
+This document defines the official terminology for MindType. **Use these terms consistently across all documentation, code, and communications.**
 
-## Core Concepts
+## Revolutionary Concepts
 
-### Product & System
+### Product & Revolutionary System
 
 | ✅ **USE THIS** | ❌ **NOT THIS** | **Definition** |
 |-----------------|----------------|----------------|
-| **Mind::Type** | MindTyper, MindType, MT | The product name (always with double colon) |
-| **Correction** | Sweep, Transform, Fix, Edit | A change made to improve text |
+| **MindType** | MindType, MindTyper, MT | The revolutionary cognitive augmentation product |
+| **Correction Marker** | Wave, Marker, Indicator | The intelligent visual worker that travels through text |
+| **Burst-Pause-Correct** | Pause detection, Rhythm | The revolutionary methodology for muscle memory training |
+| **Thought-Speed Typing** | Fast typing, Speed enhancement | Cognitive augmentation enabling typing at neural firing speed |
+| **Seven Scenarios** | Use cases, User stories | The revolutionary usage patterns that define our vision |
+| **Listening Mode** | Idle mode, Waiting | Correction Marker state with hypnotic braille pulse |
+| **Correction Mode** | Active mode, Processing | Marker traveling through text applying corrections |
+| **Velocity Mode** | Speed mode, Fast mode | Revolutionary speed enhancement for 180+ WPM typing |
+| **Cognitive Augmentation** | AI assistance, Smart typing | Revolutionary enhancement of human capability |
 | **Correction Engine** | Pipeline, Transformer, Processor | The Rust core that performs corrections |
 
 ### Text & Position
@@ -80,3 +87,5 @@ This document defines the official terminology for Mind::Type. **Use these terms
 | **Local LM** | On-device model, Offline model | Language model running locally |
 | **LM adapter** | Model interface, AI connector | Interface to language model |
 | **Token** | Chunk, Piece | Unit of text from language model |
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

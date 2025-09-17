@@ -56,3 +56,5 @@ The Workbench is a collapsible panel in the web demo for monitoring and testing 
 - All components have `data-testid` attributes
 - Workbench state persists across sessions
 - Export includes full context for reproduction
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

@@ -3,7 +3,7 @@
   ║  ░  MIND::TYPE — BRAND STYLE GUIDE & MANIFESTO  ░░░  ║
   ║                                                      ║
   ║  Master guide to intent, visuals, words, and motion  ║
-  ║  for Mind::Type. Start here; deep‑dive via sections. ║
+  ║  for MindType. Start here; deep‑dive via sections. ║
   ║                                                      ║
   ║                                                      ║
   ║                                                      ║
@@ -16,7 +16,7 @@
 
 ## Introduction
 
-Mind::Type is the quiet evolution of typing — tools, not toys. The brand
+MindType is the quiet evolution of typing — tools, not toys. The brand
 expresses clarity without spectacle, a bridge from mind → type. This master
 document introduces principles and points to focused references for design,
 product, and communication.
@@ -96,3 +96,5 @@ This keeps depth shallow (≤ 2 levels) and subfolder count to three.
 This is a living guide. Propose changes via PR with rationale and before/after
 examples. Maintain accessibility, contrast, and cross‑links. Tag releases in
 sync with product milestones.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:46:38Z -->

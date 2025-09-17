@@ -36,3 +36,5 @@ The macOS app shares philosophy with the web demo but integrates deeply with the
 - Link the Rust static library (`libmindtype.a`) and call its FFI functions for `PauseTimer`, `FragmentExtractor`, `MergeEngine`.
 - Wrap the Accessibility APIs in `MacInjector` and unit test injection in a sandboxed sample app before integrating system wide.
 - A 5-kB stub `grammar_stub.mlmodelc` is bundled for development; CI replaces it with the full quantised model during the release build.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

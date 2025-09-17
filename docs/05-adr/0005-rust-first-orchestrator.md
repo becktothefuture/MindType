@@ -24,7 +24,7 @@
 
 ## Context
 
-Mind::Type requires consistent, high-performance text correction across all platforms (web, macOS, iOS, future Windows/Linux). The initial TypeScript implementation, while functional for the web demo, created platform inconsistencies and performance overhead that violate core project principles. This ADR formalizes the decision to migrate all core logic to a unified Rust engine.
+MindType requires consistent, high-performance text correction across all platforms (web, macOS, iOS, future Windows/Linux). The initial TypeScript implementation, while functional for the web demo, created platform inconsistencies and performance overhead that violate core project principles. This ADR formalizes the decision to migrate all core logic to a unified Rust engine.
 
 ## Decision
 
@@ -109,7 +109,7 @@ defer { mt_free_response(response) }
 
 ## Related Documents
 
-- Architecture: `docs/04-architecture/rust-first-design.md`
+- Architecture: `docs/04-architecture/revolutionary-architecture.mmd`
 - Implementation: `crates/core-rs/README.md`
 - Migration Plan: `docs/02-implementation/02-Implementation.md`
 - API Specification: `docs/06-guides/06-03-reference/rust-api.md`
@@ -121,3 +121,5 @@ defer { mt_free_response(response) }
 - ✅ < 50MB memory footprint
 - ✅ 100% platform consistency
 - ✅ Zero TypeScript correction code
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

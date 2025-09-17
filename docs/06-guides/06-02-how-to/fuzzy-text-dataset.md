@@ -18,7 +18,7 @@
 
 ### Overview
 
-This document defines the English fuzzy‑text dataset used to fine‑tune Qwen for Mind::Type, aligned with `docs/06-guides/06-02-how-to/fine-tune-qwen.md`.
+This document defines the English fuzzy‑text dataset used to fine‑tune Qwen for MindType, aligned with `docs/06-guides/06-02-how-to/fine-tune-qwen.md`.
 
 - Span‑bounded: the model must return only the corrected Span.
 - Short contexts: keep `ctx_before` and `ctx_after` ≤ 60 chars each.
@@ -151,3 +151,5 @@ Evaluation reminder:
 - Keystroke/noise only: fix typos, spacing, quotes/parentheses, dashes, OCR/confusables, zero‑width/BOM, ligatures, units/currency formatting, URL/email spacing, and casing.
 - Full‑sentence denoise is allowed when the Span is the entire sentence (contexts empty).
 - Assistant output must be exactly the cleaned Span; no extra words or explanations.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

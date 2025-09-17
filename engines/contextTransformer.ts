@@ -10,8 +10,8 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ Context transformer with ±2 sentence look-around
-  • WHY  ▸ REQ-CONTEXT-TRANSFORMER
+  • WHAT ▸ Speed enhancement mode for 180+ WPM typing; Support for all seven revolutionary usage scenarios
+  • WHY  ▸ REQ-VELOCITY-MODE, REQ-SEVEN-SCENARIOS
   • HOW  ▸ See linked contracts and guides in docs
 */
 

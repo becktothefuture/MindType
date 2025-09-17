@@ -57,3 +57,5 @@ export default app;
 This server is intentionally trivial. It can run locally or be deployed to a small VPS. Authentication and rate limiting are unnecessary for the early demo, but HTTPS should still be enabled in production.
 
 The goal is to reduce friction for developers wanting to try the full pipeline. Having a predefined backend makes it clear how the front-end connects and what data is expected.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

@@ -11,21 +11,18 @@
     • HOW  ▸ Prioritized roadmap with concrete recommendations
 -->
 
-# MindType Development Roadmap - Next Phases
+# MindType Revolutionary Development Roadmap
 
-## 🎯 Current Status (v0.4 Complete)
+## 🚀 Revolutionary Vision (v0.6+)
 
-**✅ ACHIEVED:**
+**🎯 TRANSFORMATION ACHIEVED:**
 
-- Sentence-based context window (2-5 sentences, configurable)
-- Context transformer landed with dual-context support; wired via scheduler
-- Worker-based LM integration with local-first policy and graceful fallback
-- Staging buffer and confidence gate scaffolds implemented; wiring in progress
-- Undo isolation implemented and used by `DiffusionController`
-- Comprehensive testing platform with integrated workbench
-- Professional documentation with single sources of truth
-- Cross-browser E2E validation (42+ tests passing)
-- Production-ready architecture with core-owned orchestration
+- **Complete Documentation Overhaul**: Revolutionary vision with Seven Usage Scenarios and Correction Marker system
+- **Cognitive Augmentation Focus**: Transformed from typing utility to thought-speed typing enablement
+- **Scenario-Driven Development**: Clear path to enable Academic Excellence, Speed Mastery, Data Analysis, and more
+- **Correction Marker Specification**: Complete visual system design with Burst-Pause-Correct methodology
+- **Implementation-Ready Architecture**: Streamlined 3-phase development plan with clear technical specifications
+- **Revolutionary Principles**: System principles aligned with cognitive augmentation and human potential unlocking
 
 **📊 METRICS:**
 
@@ -36,17 +33,17 @@
 
 ---
 
-## 🚀 Phase 1: LM Reliability & Performance (Immediate - 2 weeks)
+## 🎆 Phase 1: Correction Marker Foundation (Immediate - 4 weeks)
 
-### 🎯 **Priority 1A: LM Streaming Stability**
+### 🎯 **Priority 1A: Revolutionary Visual System**
 
-**Problem:** Intermittent empty LM outputs observed in some environments
-**Solution:**
+**Objective:** Implement the Correction Marker with two-mode operation
+**Revolutionary Features:**
 
-- Investigate worker message passing reliability
-- Add LM warmup sequence and backend detection logging
-- Implement graceful degradation when models fail to load
-- Add real-time LM health monitoring in workbench
+- **Listening Mode**: Hypnotic braille pulse animation (⠂ → ⠄ → ⠆ → ⠠ → ⠢ → ⠤ → ⠦ → ⠰ → ⠲ → ⠴ → ⠶)
+- **Correction Mode**: Intelligent worker traveling through text with speed adaptation
+- **Burst-Pause-Correct Engine**: 500ms pause detection with muscle memory training
+- **Visual Experience**: Whoosh effect, processing indicators, wake highlighting
 
 **Impact:** ⭐⭐⭐⭐⭐ Critical for user experience
 
@@ -210,3 +207,5 @@ The v0.4 implementation establishes a **solid foundation** for both web and nati
 **Recommended Focus:** Prioritize LM reliability and performance optimization to ensure the core value proposition (seamless, accurate text correction) is rock-solid before expanding to additional platforms or advanced features.
 
 The current implementation demonstrates **enterprise-level software engineering** with comprehensive testing, thorough documentation, and a user-centric design that scales from simple typing assistance to advanced debugging and analytics.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:46:38Z -->

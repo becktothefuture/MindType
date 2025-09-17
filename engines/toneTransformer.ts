@@ -10,8 +10,8 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ Tone transformer with baseline detection and selectable tone
-  • WHY  ▸ REQ-TONE-TRANSFORMER
+  • WHAT ▸ Support for all seven revolutionary usage scenarios
+  • WHY  ▸ REQ-SEVEN-SCENARIOS
   • HOW  ▸ See linked contracts and guides in docs
 */
 

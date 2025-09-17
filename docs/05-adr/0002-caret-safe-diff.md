@@ -37,6 +37,8 @@ Links (Traceability)
 
 - PRD: `docs/01-prd/01-PRD.md#functional-requirements`
 - Principles: `docs/system_principles.md#4-caret-safe-never-risky`
-- Architecture: `docs/04-architecture/C3-components.md`
+- Architecture: `docs/04-architecture/correction-marker-architecture.md`
 - Code: `utils/diff.ts`, `engines/noiseTransformer.ts`
 - Tests: `tests/diff.spec.ts`, `tests/noiseTransformer.spec.ts`
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

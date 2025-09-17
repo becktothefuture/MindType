@@ -10,8 +10,8 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ Dot-matrix wave animation demo; Dot-matrix wave animation tokens
-  • WHY  ▸ REQ-DOT-MATRIX-WAVE, CONTRACT-DOT-MATRIX-WAVE
+  • WHAT ▸ Dot-matrix wave animation tokens
+  • WHY  ▸ CONTRACT-DOT-MATRIX-WAVE
   • HOW  ▸ See linked contracts and guides in docs
 */
 

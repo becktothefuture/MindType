@@ -43,3 +43,5 @@ See also: `docs/06-guides/06-03-reference/lm-behavior.md` and `crates/core-rs/sr
 - Ranges MUST align to grapheme clusters (UAX #29). Do not split emoji, ZWJ sequences, or combining marks.
 - UI positions (UTF-16) are mapped to Rust byte indices (UTF-8) via validated helpers; invalid boundaries are rejected.
 - Tests SHOULD include ZWJ emoji, skin-tone modifiers, and combining accents near range edges.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

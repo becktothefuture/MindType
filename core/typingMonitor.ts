@@ -1,17 +1,18 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  T Y P I N G   M O N I T O R  ░░░░░░░░░░░░░░░░░░░░░░░░░  ║
-  ║                                                              ║
-  ║   Observes keystrokes and emits timestamped events to        ║
-  ║   downstream schedulers/engines. Host apps subscribe here.   ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Provides a minimal observable API for typing events
-  • WHY  ▸ Decouples input capture from processing
-  • HOW  ▸ Notifies SweepScheduler; consumed by engines indirectly
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  TYPINGMONITOR  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ Muscle memory training through burst-pause-correct cycles
+  • WHY  ▸ REQ-BURST-PAUSE-CORRECT
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 export interface TypingEvent {

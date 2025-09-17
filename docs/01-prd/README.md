@@ -19,3 +19,5 @@
 # 01-prd — Folder Index
 
 - [P R O D U C T   R E Q U I R E M E N T S](./01-PRD.md)
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

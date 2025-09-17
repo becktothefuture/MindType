@@ -51,3 +51,5 @@ tests:
 - Start with the REQ or CONTRACT ID if you have one.
 - Say what changed in the doc and ask to run `pnpm doc:sync`.
 - If adding a new feature, ask to draft a SPEC block and place it in the right doc.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

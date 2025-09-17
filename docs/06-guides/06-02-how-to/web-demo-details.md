@@ -172,3 +172,5 @@ Apply diff (caret‑safe) → Braille Animation → SR Announce
 - **FFI (Foreign Function Interface)**: Lets native apps like Swift/SwiftUI call Rust.
 - **Fragment**: The last complete sentence to the left of the caret.
 - **Token**: Typically a word or subword emitted by a model; we use words for the stub stream.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

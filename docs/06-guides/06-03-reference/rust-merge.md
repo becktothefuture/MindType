@@ -28,3 +28,5 @@
 - Large strings performance vs TS `replaceRange`
 
 See also: `utils/diff.ts`, ADR‑0002.
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

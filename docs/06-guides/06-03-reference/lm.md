@@ -93,3 +93,5 @@ References: `web-demo/src/worker/lmWorker.ts`, `core/lm/workerAdapter.ts`,
 - Intl.Segmenter (sentence): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter
 - Transformers.js (browser): https://huggingface.co/docs/transformers.js/index
 - ONNX Runtime Web (WASM paths): https://onnxruntime.ai/docs/execution-providers/JavaScript-API.html#webassembly-ep
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

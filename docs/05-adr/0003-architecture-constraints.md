@@ -20,7 +20,7 @@ Title: Architecture Constraints
 Date: 2025‑08‑09
 
 Context
-MindTyper prioritises privacy, trust, and low latency. The PRD
+MindType prioritises privacy, trust, and low latency. The PRD
 mandates on‑device processing and prohibits heavy or intrusive UI.
 
 Decision
@@ -54,3 +54,5 @@ Links
 
 - PRD: `docs/01-prd/01-PRD.md` → Goals (MUST/WON'T), Constraints
 - Related: `docs/adr/0002-caret-safe-diff.md`
+
+<!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

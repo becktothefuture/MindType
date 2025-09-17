@@ -1,17 +1,18 @@
-/*╔══════════════════════════════════════════════════════════════╗
-  ║  ░  N O I S E   T R A N S F O R M E R  ░░░░░░░░░░░░░░░░░░░  ║
-  ║                                                              ║
-  ║   Forward cleanup (<80 chars) with caret-safe diffs.         ║
-  ║   Works on the live TYPING ZONE just behind the caret.       ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ║                                                              ║
-  ╚══════════════════════════════════════════════════════════════╝
-  • WHAT ▸ Computes minimal DIFF proposals behind the caret
-  • WHY  ▸ Keeps text clean in real time without crossing CARET
-  • HOW  ▸ Receives keystream from TypingMonitor; returns one diff
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  NOISETRANSFORMER  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ Speed enhancement mode for 180+ WPM typing; Support for all seven revolutionary usage scenarios
+  • WHY  ▸ REQ-VELOCITY-MODE, REQ-SEVEN-SCENARIOS
+  • HOW  ▸ See linked contracts and guides in docs
 */
 
 import { MAX_SWEEP_WINDOW } from '../config/defaultThresholds';

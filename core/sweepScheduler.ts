@@ -10,8 +10,8 @@
   ║                                                            ║
   ║                                                            ║
   ╚══════════════════════════════════════════════════════════╝
-  • WHAT ▸ Integrate Noise → Context → Tone pipeline with staging buffer; English-only gating for full pipeline (Noise for others)
-  • WHY  ▸ REQ-THREE-STAGE-PIPELINE, REQ-LANGUAGE-GATING
+  • WHAT ▸ Correction Marker visual system with two-mode operation; Muscle memory training through burst-pause-correct cycles; Support for all seven revolutionary usage scenarios
+  • WHY  ▸ REQ-CORRECTION-MARKER, REQ-BURST-PAUSE-CORRECT, REQ-SEVEN-SCENARIOS
   • HOW  ▸ See linked contracts and guides in docs
 */
 
