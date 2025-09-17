@@ -11,20 +11,20 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ MindTyper context, users, externals
+    • WHAT ▸ Mind⠶Flow context, users, externals
     • WHY  ▸ Shared view for stakeholders
     • HOW  ▸ Links to containers/components
 -->
 
-# MindType Revolutionary System Context
+# Mind⠶Flow Revolutionary System Context
 
 ## 🚀 **Revolutionary Vision**
 
-**MindType transforms typing from a mechanical skill into fluid expression of thought** through our revolutionary **Correction Marker** system. The system enables **thought-speed typing** across **Seven Revolutionary Scenarios**, from academic excellence to speed mastery.
+**Mind⠶Flow transforms typing from a mechanical skill into fluid expression of thought** through our revolutionary **Correction Marker** system. The system enables **thought-speed typing** across **Seven Revolutionary Scenarios**, from academic excellence to speed mastery.
 
 ## 🌍 **System Context Overview**
 
-MindType operates as a **cognitive augmentation layer** between human thought and digital text. The **Correction Marker** acts as an intelligent visual worker that travels through text, applying corrections behind the cursor while users maintain unbroken typing rhythm.
+Mind⠶Flow operates as a **cognitive augmentation layer** between human thought and digital text. The **Correction Marker** acts as an intelligent visual worker that travels through text, applying corrections behind the cursor while users maintain unbroken typing rhythm.
 
 ### **Core Revolutionary Components:**
 - **Correction Marker System**: Two-mode operation (Listening → Correction)

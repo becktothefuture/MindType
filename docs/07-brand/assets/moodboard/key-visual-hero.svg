@@ -9,7 +9,7 @@
 ║  HOW  ▸ Radial gradients + turbulence noise overlay   ║
 ╚══════════════════════════════════════════════════════╝
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Mind::Type key visual — teal glow with grain">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Mind⠶Flow key visual — teal glow with grain">
   <defs>
     <radialGradient id="glow" cx="50%" cy="50%" r="60%">
       <stop offset="0%" stop-color="#29D3DA" stop-opacity="0.95"/>
@@ -45,7 +45,7 @@
 
   <!-- Optional caption placement guide (hidden by default) -->
   <g opacity="0">
-    <text x="30%" y="52%" text-anchor="middle" fill="#FFFFFF" font-size="48" font-family="system-ui">Mind::Type</text>
+    <text x="30%" y="52%" text-anchor="middle" fill="#FFFFFF" font-size="48" font-family="system-ui">Mind⠶Flow</text>
     <text x="70%" y="52%" text-anchor="middle" fill="#FFFFFF" font-size="36" font-family="system-ui">approaching in 2026</text>
   </g>
 </svg>

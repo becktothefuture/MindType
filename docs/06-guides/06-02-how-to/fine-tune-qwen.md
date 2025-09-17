@@ -11,7 +11,7 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ How to fine‑tune Qwen for MindType's active-region-bounded
+    • WHAT ▸ How to fine‑tune Qwen for Mind⠶Flow's active-region-bounded
              grammar/clarity corrections
     • WHY  ▸ Improve accuracy and determinism while preserving
              latency and caret safety
@@ -19,7 +19,7 @@
              ONNX q4 → load via Transformers.js
 -->
 
-### Fine‑tuning Qwen for MindType
+### Fine‑tuning Qwen for Mind⠶Flow
 
 In plain words: we’ll teach a small open‑source model (Qwen) to be a
 great “micro‑editor.” You highlight a small bit of text (the Span), and
@@ -27,7 +27,7 @@ the model returns only the fixed version of that Span. We keep it fast
 and stable so it works in your browser.
 
 This guide explains how we fine‑tune a small Qwen variant to follow
-MindType’s constraints: correct only the selected Span, never add extra
+Mind⠶Flow’s constraints: correct only the selected Span, never add extra
 words, and remain deterministic and low‑latency on WebGPU/WASM.
 
 #### Before you start: a quick glossary
@@ -247,7 +247,7 @@ python -m optimum.onnxruntime.quantize --model ./onnx-out --per_channel --reduce
 
 3. Publish to a HF repo (e.g., `your-org/qwen2.5-0.5b-span-q4-onxx`).
 
-4. Point MindType to the model by setting `modelId` or hosting locally:
+4. Point Mind⠶Flow to the model by setting `modelId` or hosting locally:
 
 - Remote: configure the worker to load your `modelId` (Transformers.js).
 - Local hosting: serve the model dir and pass `localOnly: true` and
@@ -313,7 +313,7 @@ In plain words: do these steps in order.
 1. Curate JSONL dataset (train/eval) per schema above.
 2. Run SFT with LoRA/QLoRA; monitor eval exact‑match and chrF.
 3. Merge LoRA and export to ONNX; quantize to q4.
-4. Publish the model; plug `modelId` into MindType.
+4. Publish the model; plug `modelId` into Mind⠶Flow.
 5. Run automated eval; compare vs baseline and enforce gates.
 6. Iterate on data (hard cases), hyper‑params, and prompt policy.
 

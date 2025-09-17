@@ -3,7 +3,7 @@
   ║  ░  MIND::TYPE — BRAND STYLE GUIDE & MANIFESTO  ░░░  ║
   ║                                                      ║
   ║  Master guide to intent, visuals, words, and motion  ║
-  ║  for MindType. Start here; deep‑dive via sections. ║
+  ║  for Mind⠶Flow. Start here; deep‑dive via sections. ║
   ║                                                      ║
   ║                                                      ║
   ║                                                      ║
@@ -16,7 +16,7 @@
 
 ## Introduction
 
-MindType is the quiet evolution of typing — tools, not toys. The brand
+Mind⠶Flow is the quiet evolution of typing — tools, not toys. The brand
 expresses clarity without spectacle, a bridge from mind → type. This master
 document introduces principles and points to focused references for design,
 product, and communication.

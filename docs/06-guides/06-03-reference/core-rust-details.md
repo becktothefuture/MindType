@@ -1,6 +1,6 @@
 # Rust Core Details (`crates/core-rs`)
 
-This document explains the Rust part of MindType in plain language, with examples. It complements the high‑level spec and the README. Acronyms are expanded when first used.
+This document explains the Rust part of Mind⠶Flow in plain language, with examples. It complements the high‑level spec and the README. Acronyms are expanded when first used.
 
 ## Crate Layout
 

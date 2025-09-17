@@ -18,7 +18,7 @@
 
 ### The Revolutionary Cognitive Augmentation Tool
 
-**MindType transforms typing from a mechanical skill into fluid expression of thought.** Through our revolutionary **Correction Marker** system and **Burst-Pause-Correct** methodology, users achieve **thought-speed typing** with unprecedented accuracy and flow state preservation.
+**Mind⠶Flow transforms typing from a mechanical skill into fluid expression of thought.** Through our revolutionary **Correction Marker** system and **Burst-Pause-Correct** methodology, users achieve **thought-speed typing** with unprecedented accuracy and flow state preservation.
 
 The **Correction Marker**—an intelligent visual worker that travels through text—represents a breakthrough in human-computer collaboration, enabling everything from PhD students with dyslexia to former stenographers to unlock typing speeds previously impossible.
 

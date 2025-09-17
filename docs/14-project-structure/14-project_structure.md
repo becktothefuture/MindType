@@ -1,4 +1,4 @@
-# MindType Project Structure (Revolutionary v0.6+)
+# Mind⠶Flow Project Structure (Revolutionary v0.6+)
 
 [Back to Master](./00-index/00-README.md) · [Implementation Guide](./02-implementation/02-Implementation.md) · [Revolutionary Architecture](./04-architecture/README.md)
 
@@ -43,6 +43,6 @@
 
 ---
 
-*MindType transforms typing from mechanical skill into fluid expression of thought through revolutionary cognitive augmentation.*
+*Mind⠶Flow transforms typing from mechanical skill into fluid expression of thought through revolutionary cognitive augmentation.*
 
 <!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:46:38Z -->

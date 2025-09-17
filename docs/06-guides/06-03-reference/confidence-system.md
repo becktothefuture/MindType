@@ -16,7 +16,9 @@
     • HOW  ▸ See core/confidenceGate.ts; staging buffer applies decisions
 -->
 
-# Confidence System (v0.4)
+# Confidence System (v0.6+)
+
+**Revolutionary Context**: Confidence gating enables **Correction Marker** decision-making and **Burst-Pause-Correct** timing.
 
 - Plainly: We score each proposal in four ways (was the input clear? was the change good? does it fit nearby text? is it fresh?). We mix those into one number and compare to thresholds. If it’s not strong enough, we hold. If it’s great, we commit. If it’s very weak, we discard.
 - The Tone stage needs extra confidence: it must pass both τ_tone and τ_commit so we don’t rephrase text without being sure.

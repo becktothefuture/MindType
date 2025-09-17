@@ -20,7 +20,7 @@ Title: Architecture Constraints
 Date: 2025‑08‑09
 
 Context
-MindType prioritises privacy, trust, and low latency. The PRD
+Mind⠶Flow prioritises privacy, trust, and low latency. The PRD
 mandates on‑device processing and prohibits heavy or intrusive UI.
 
 Decision

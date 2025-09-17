@@ -12,19 +12,19 @@
   ║                                                              ║
   ╚══════════════════════════════════════════════════════════════╝
     • WHAT ▸ Principles that elevate human nature and input
-    • WHY  ▸ Align UX + code with MindTyper’s purpose at all times
+    • WHY  ▸ Align UX + code with Mind⠶Flow’s purpose at all times
     • HOW  ▸ Subcategories → principles → behaviours → examples
 -->
 
-# MindType System Principles
+# Mind⠶Flow System Principles
 
 ## Purpose
 
-Transform typing from mechanical skill into **fluid expression of thought**. MindType amplifies human capability through the revolutionary **Correction Marker** system, enabling **thought-speed typing** while preserving authorship, privacy, and flow state.
+Transform typing from mechanical skill into **fluid expression of thought**. Mind⠶Flow amplifies human capability through the revolutionary **Correction Marker** system, enabling **thought-speed typing** while preserving authorship, privacy, and flow state.
 
 ## Core Philosophy: Cognitive Augmentation
 
-MindType doesn't just correct errors—it **unlocks latent human potential** by removing the cognitive overhead of mechanical accuracy. Users operate at the speed of thought, trusting MindType to handle the translation between rapid human intent and polished communication.
+Mind⠶Flow doesn't just correct errors—it **unlocks latent human potential** by removing the cognitive overhead of mechanical accuracy. Users operate at the speed of thought, trusting Mind⠶Flow to handle the translation between rapid human intent and polished communication.
 
 ## Revolutionary Principles
 
@@ -57,7 +57,7 @@ MindType doesn't just correct errors—it **unlocks latent human potential** by 
 - Emma (Professional): Invisible enhancement without conscious awareness
 
 ### 3. Scenario-Driven Intelligence
-**Philosophy**: One size fits none—MindType adapts to specific user contexts and needs.
+**Philosophy**: One size fits none—Mind⠶Flow adapts to specific user contexts and needs.
 
 **Behavior**:
 - **Academic Mode**: Scientific terminology, transposition priority, privacy-first
@@ -147,6 +147,6 @@ Principles are validated through user transformation:
 
 ---
 
-*These principles transform MindType from a typing tool into a cognitive prosthetic—extending human capability at the intersection of thought and text.*
+*These principles transform Mind⠶Flow from a typing tool into a cognitive prosthetic—extending human capability at the intersection of thought and text.*
 
 <!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

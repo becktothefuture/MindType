@@ -2,7 +2,7 @@
   ╔══════════════════════════════════════════════════════╗
   ║  ░  BRAND MANIFESTO & VISION  ░░░░░░░░░░░░░░░░░░░░░  ║
   ║                                                      ║
-  ║  The purpose and promise of MindType. A north      ║
+  ║  The purpose and promise of Mind⠶Flow. A north      ║
   ║  star for design, product, and community decisions.  ║
   ║                                                      ║
   ║                                                      ║
@@ -16,9 +16,9 @@
 
 ## Revolutionary Vision
 
-**Typing should unlock human potential, not limit it.** MindType represents a **cognitive revolution**: transforming typing from a mechanical skill into **fluid expression of thought**. Through the revolutionary **Correction Marker** and **Seven Usage Scenarios**, we enable **thought-speed typing** where the boundary between human intention and digital execution dissolves.
+**Typing should unlock human potential, not limit it.** Mind⠶Flow represents a **cognitive revolution**: transforming typing from a mechanical skill into **fluid expression of thought**. Through the revolutionary **Correction Marker** and **Seven Usage Scenarios**, we enable **thought-speed typing** where the boundary between human intention and digital execution dissolves.
 
-> MindType Brand Style Guide & Manifesto (Task 2)
+> Mind⠶Flow Brand Style Guide & Manifesto (Task 2)
 >
 > This guide resonates with tech consumers in 2025–2026. It defines a
 > baseline for an amazing art direction we will refine. The guiding theme
@@ -29,15 +29,15 @@
 ## Manifesto
 
 We believe in tools, not toys. We build technology that serves the mind —
-augmenting thought instead of distracting from it. MindType gently evolves
+augmenting thought instead of distracting from it. Mind⠶Flow gently evolves
 how we type: faster, smarter, more comfortable, and always in the
-background. Like a natural conversation, typing with MindType flows with
+background. Like a natural conversation, typing with Mind⠶Flow flows with
 minimal friction.
 
 We are open-source at heart. Transparency, collaboration, and collective
 innovation shape the product. This openness is identity, not tactic.
 Everyone is invited to participate so the tool grows to meet real needs.
-By 2026 and beyond, MindType aims to be the everyday typing companion —
+By 2026 and beyond, Mind⠶Flow aims to be the everyday typing companion —
 instantly familiar, not just for power users.
 
 Our tone is humble, optimistic, and inclusive. High‑tech can be quietly
@@ -47,7 +47,7 @@ speed, ease. The best technology feels almost invisible — it just works.
 
 ## Outcomes and projection
 
-By 2026 and beyond MindType aims to be the everyday typing companion that
+By 2026 and beyond Mind⠶Flow aims to be the everyday typing companion that
 anyone can adopt instantly and feel at home with — not just power users.
 
 ## See also

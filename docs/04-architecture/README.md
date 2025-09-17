@@ -16,7 +16,7 @@
     • HOW  ▸ Auto-generated; edit children, not this list
 -->
 
-# MindType Revolutionary Architecture
+# Mind⠶Flow Revolutionary Architecture
 
 ## 🚀 **Revolutionary Vision (v0.6+)**
 
@@ -32,5 +32,7 @@
 ### Architectural Decisions
 
 - **[ADR-0005: Complete Rust Orchestration](../05-adr/0005-rust-first-orchestrator.md)** (Authoritative Decision)
+- **[ADR-0002: Caret-Safe Diffs](../05-adr/0002-caret-safe-diff.md)** (Safety Foundation)
+- **[ADR-0003: Architecture Constraints](../05-adr/0003-architecture-constraints.md)** (Privacy-First Design)
 
 <!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

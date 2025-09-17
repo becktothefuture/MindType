@@ -35,7 +35,7 @@ Tip (for the parents): If you only read two docs to grasp the build, read this p
   - Versioning policy: `versioning.md`. As of v0.6+, canonical content lives here and under `architecture/`, `guide/`, `qa/`. Any mirrors exist only for export.
 
 - `architecture/`
-  - System design and C4 views. Use `README.md` for the overview; `C1-context.md`, `C2-containers.md`, `C3-components.md` for deeper levels. ADRs live separately under `adr/`.
+  - Revolutionary system design. Use `README.md` for overview; `revolutionary-architecture.mmd` for visual diagram; `C1-context.md` for system context; `correction-marker-architecture.md` and `seven-scenarios-architecture.md` for detailed specs. ADRs live separately under `adr/`.
 
 - `adr/`
   - Architectural Decision Records. Each ADR is a permanent, numbered record that links PRD requirements to code paths and consequences.
@@ -43,7 +43,7 @@ Tip (for the parents): If you only read two docs to grasp the build, read this p
 - `guide/`
   - Developer‑facing guidance using Diátaxis:
     - `how-to/` — step‑by‑step tasks (web demo server, mac app details, etc.)
-    - `tutorials/` — learn by doing (try MindType in 5 min)
+    - `tutorials/` — learn by doing (try Mind⠶Flow in 5 min)
     - `reference/` — APIs and contracts (active region policy, injector, LM behavior, worker, rust merge, config flags)
     - `explanations/` — deeper rationale (e.g., why caret‑safe diffs)
 
@@ -55,7 +55,7 @@ Tip (for the parents): If you only read two docs to grasp the build, read this p
 
 - `brand/`
   - Brand assets, specs, and guides (visual identity, tone, motion). Not product behavior.
-  - See `brand/messaging.md` for the Vision Pitch (MindType) and long‑form messaging.
+  - See `brand/messaging.md` for the Vision Pitch (Mind⠶Flow) and long‑form messaging.
 
 
 ### Cross‑links (everything ↔ Master)
@@ -71,11 +71,11 @@ Shortcuts:
 
 - Back to Master (this page): `docs/00-index/00-README.md`
 - Master Tasks: [`02-Implementation.md`](./02-implementation/02-Implementation.md)
-- What’s New: [`06-guides/whats-new-v0.4.md`](./06-guides/whats-new-v0.4.md)
+- Revolutionary Roadmap: [`10-roadmap/10-roadmap-next-phases.md`](./10-roadmap/10-roadmap-next-phases.md)
 
 ### Naming note
 
-- Public‑facing name in messaging: “MindType”. Internal code and tests previously used “MindTyper”; docs now use MindType consistently.
+- Public‑facing name in messaging: “Mind⠶Flow”. Internal code and tests previously used “Mind⠶Flow”; docs now use Mind⠶Flow consistently.
 
 ## Glossary
 
@@ -104,11 +104,11 @@ Shortcuts:
 
 ## Orientation (plain language)
 
-**MindType transforms typing from a mechanical skill into fluid expression of thought.** Through our revolutionary **Correction Marker** system, users achieve **thought-speed typing** with unprecedented accuracy and flow state preservation. 
+**Mind⠶Flow transforms typing from a mechanical skill into fluid expression of thought.** Through our revolutionary **Correction Marker** system, users achieve **thought-speed typing** with unprecedented accuracy and flow state preservation. 
 
 The **Correction Marker** acts as an intelligent visual worker that travels through your text, applying corrections behind your cursor while you maintain unbroken typing rhythm. Experience the **Burst-Pause-Correct** methodology that trains your muscle memory for optimal typing flow.
 
-**Seven Revolutionary Scenarios** demonstrate MindType's transformative power:
+**Seven Revolutionary Scenarios** demonstrate Mind⠶Flow's transformative power:
 - **Academic Excellence**: PhD students with dyslexia achieve 50% faster writing
 - **Multilingual Mastery**: Business analysts create documents 40% faster across languages  
 - **Accessibility Champion**: Visually impaired researchers experience 60% fewer interruptions

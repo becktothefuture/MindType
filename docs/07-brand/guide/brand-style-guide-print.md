@@ -14,7 +14,7 @@
     • HOW  ▸ Concise composition of subsections
 -->
 
-# MindType — Brand Style Guide & Manifesto
+# Mind⠶Flow — Brand Style Guide & Manifesto
 
 For navigation, see the live master guide: `guide/brand-style-guide.md`.
 
@@ -23,7 +23,7 @@ For navigation, see the live master guide: `guide/brand-style-guide.md`.
 ## Preface (Audience & Intent)
 
 This document consolidates the written style guide and brand manifesto for
-MindType. It is intended for an average tech consumer in 2025–2026 and
+Mind⠶Flow. It is intended for an average tech consumer in 2025–2026 and
 establishes a baseline for a refined art direction. The theme is a “quiet
 evolution of typing.” The brand is professional and minimalist — tools, not
 toys — with an open‑source spirit of collaboration. Elements from
@@ -33,7 +33,7 @@ typography to imagery and motion ensure consistency and clarity.
 
 Typing should be as seamless and quietly intuitive as thinking. Tools, not
 toys. Open‑source at heart — collaborative, transparent, inclusive. By 2026,
-MindType is the everyday typing companion.
+Mind⠶Flow is the everyday typing companion.
 
 → Full: `../specs/manifesto.md`
 
@@ -41,7 +41,7 @@ MindType is the everyday typing companion.
 
 ## Logo & Identity (Summary)
 
-Wordmark: “MindType” in Geist Sans. Clear space ≥ “M” height; min size 24px
+Wordmark: “Mind⠶Flow” in Geist Sans. Clear space ≥ “M” height; min size 24px
 screen/0.25in print. Black on light; white on dark. No distortion, effects,
 or recoloring beyond palette.
 
@@ -132,22 +132,22 @@ structure.
 ### Brand Manifesto & Vision
 
 Typing should be as seamless and quietly intuitive as thinking. In a world
-where digital communication is constant, MindType represents a calm
+where digital communication is constant, Mind⠶Flow represents a calm
 revolution — a shift that improves the typing experience without fanfare or
 fuss, empowering users to express themselves effortlessly.
 
 We believe in tools, not toys. We craft technology that serves the user’s
-mind, augmenting thoughts instead of distracting from them. MindType
+mind, augmenting thoughts instead of distracting from them. Mind⠶Flow
 exists to gently evolve the way we type — making it faster, smarter, and
 more comfortable, all while staying in the background. Like a natural
-conversation, typing through MindType flows with minimal friction.
+conversation, typing through Mind⠶Flow flows with minimal friction.
 
 We are open‑source at heart — a community‑driven approach where
 transparency, collaboration, and collective innovation shape the product.
-This openness is identity, not just a development model. MindType invites
+This openness is identity, not just a development model. Mind⠶Flow invites
 everyone to participate in its evolution, ensuring that the tool grows to
 meet real needs of everyday tech users. By 2026 and beyond, our goal is for
-MindType to be the typing companion that anyone — not just power users —
+Mind⠶Flow to be the typing companion that anyone — not just power users —
 can adopt instantly and feel right at home.
 
 Our tone is humble, optimistic, and inclusive. We champion the idea that
@@ -158,7 +158,7 @@ best technology feels almost invisible — it just works.
 
 ### Logo & Identity
 
-Brand Name: Always “MindType” with a double colon; capital M and T; no
+Brand Name: Always “Mind⠶Flow” with a double colon; capital M and T; no
 spaces. The punctuation reflects a link between mind and typing.
 
 Logo Design: Primary logo is a wordmark set in Geist Sans. Minimalistic and

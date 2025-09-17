@@ -11,7 +11,9 @@
     • HOW  ▸ Core‑owned policy + Web Worker runner + gated merges
 -->
 
-## Overview (v0.4)
+## Overview (v0.6+)
+
+**Revolutionary Context**: LM integration supports the **Correction Marker** system and **Seven Scenarios** through device-tier optimization.
 
 - Core orchestrates LM usage inside the Context stage. UI is thin.
 - We select a short span behind the caret, build a context‑aware prompt,

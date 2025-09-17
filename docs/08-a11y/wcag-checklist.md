@@ -16,7 +16,7 @@
     • HOW  ▸ Verify before each release
 -->
 
-# MindType Revolutionary Accessibility (WCAG 2.2 AA+)
+# Mind⠶Flow Revolutionary Accessibility (WCAG 2.2 AA+)
 
 ## Correction Marker Accessibility Excellence
 
@@ -54,12 +54,12 @@
 - ✅ **Visual**: High contrast markers; customizable sizes; pattern-based indicators
 
 ### **Revolutionary Accessibility Scenarios**
-- **Dr. Chen (Legally Blind)**: Silent corrections preserve screen reader flow
-- **Maya (Dyslexia)**: Transposition corrections support learning differences
+- **Dr. Chen (Legally Blind)**: Silent corrections preserve screen reader flow → [Architecture Details](../04-architecture/seven-scenarios-architecture.md#scenario-3-accessibility-champion---dr-sarah-chen-legally-blind-researcher)
+- **Maya (Dyslexia)**: Transposition corrections support learning differences → [Architecture Details](../04-architecture/seven-scenarios-architecture.md#scenario-1-academic-excellence---maya-graduate-student-with-dyslexia)
 - **All Users**: Reduced motion compliance with instant correction application
 
 ---
 
-*MindType's accessibility isn't just compliance—it's revolutionary accommodation that enhances human capability for all users.*
+*Mind⠶Flow's accessibility isn't just compliance—it's revolutionary accommodation that enhances human capability for all users.*
 
 <!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:46:38Z -->

@@ -24,7 +24,7 @@
 
 ## Context
 
-MindType requires consistent, high-performance text correction across all platforms (web, macOS, iOS, future Windows/Linux). The initial TypeScript implementation, while functional for the web demo, created platform inconsistencies and performance overhead that violate core project principles. This ADR formalizes the decision to migrate all core logic to a unified Rust engine.
+Mind⠶Flow requires consistent, high-performance text correction across all platforms (web, macOS, iOS, future Windows/Linux). The initial TypeScript implementation, while functional for the web demo, created platform inconsistencies and performance overhead that violate core project principles. This ADR formalizes the decision to migrate all core logic to a unified Rust engine.
 
 ## Decision
 
@@ -63,9 +63,9 @@ User Input → Platform UI → Rust Core → Corrections → Visual Application
 ### Web (WASM)
 ```typescript
 // Simple TypeScript wrapper
-import { MindTypeCore } from './mindtype_core_wasm';
+import { Mind⠶FlowCore } from './mindtype_core_wasm';
 
-const core = new MindTypeCore(config);
+const core = new Mind⠶FlowCore(config);
 const corrections = core.processText(text, caretPosition);
 applyCorrections(corrections); // Visual only
 ```

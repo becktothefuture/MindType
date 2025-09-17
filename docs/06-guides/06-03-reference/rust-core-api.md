@@ -20,7 +20,7 @@
 
 ## Overview
 
-This document defines the complete API contract between the MindType Rust core and platform UI layers (JavaScript/Swift). The Rust core handles ALL text correction logic. UI layers only capture input and render results.
+This document defines the complete API contract between the Mind⠶Flow Rust core and platform UI layers (JavaScript/Swift). The Rust core handles ALL text correction logic. UI layers only capture input and render results.
 
 ## Core API Surface
 
@@ -218,17 +218,17 @@ pub struct ConfidenceDetails {
 ```rust
 /// WASM bindings for web platform
 #[wasm_bindgen]
-pub struct MindTypeCore {
+pub struct Mind⠶FlowCore {
     engine: CorrectionEngine,
 }
 
 #[wasm_bindgen]
-impl MindTypeCore {
+impl Mind⠶FlowCore {
     /// Create new instance with configuration
     #[wasm_bindgen(constructor)]
-    pub fn new(config: JsValue) -> Result<MindTypeCore, JsValue> {
+    pub fn new(config: JsValue) -> Result<Mind⠶FlowCore, JsValue> {
         let settings: CorrectionSettings = serde_wasm_bindgen::from_value(config)?;
-        Ok(MindTypeCore {
+        Ok(Mind⠶FlowCore {
             engine: CorrectionEngine::new(settings),
         })
     }
@@ -289,13 +289,13 @@ void mt_engine_destroy(MTEngine* engine);
 
 ```typescript
 // TypeScript wrapper for WASM
-import { MindTypeCore } from '@mindtype/core-wasm';
+import { Mind⠶FlowCore } from '@mindtype/core-wasm';
 
-class MindType {
-  private core: MindTypeCore;
+class Mind⠶Flow {
+  private core: Mind⠶FlowCore;
   
   constructor(settings: CorrectionSettings) {
-    this.core = new MindTypeCore(settings);
+    this.core = new Mind⠶FlowCore(settings);
   }
   
   processText(text: string, caretPosition: number): CorrectionResponse {
@@ -334,7 +334,7 @@ class MindType {
 // Swift wrapper for C FFI
 import Foundation
 
-class MindTypeCore {
+class Mind⠶FlowCore {
     private let engine: OpaquePointer
     
     init(settings: CorrectionSettings) throws {
@@ -342,7 +342,7 @@ class MindTypeCore {
         let settingsString = String(data: settingsJSON, encoding: .utf8)!
         
         guard let engine = mt_engine_create(settingsString) else {
-            throw MindTypeError.initializationFailed
+            throw Mind⠶FlowError.initializationFailed
         }
         self.engine = engine
     }
@@ -360,7 +360,7 @@ class MindTypeCore {
         let requestString = String(data: requestJSON, encoding: .utf8)!
         
         guard let responsePtr = mt_process_text(engine, requestString) else {
-            throw MindTypeError.processingFailed
+            throw Mind⠶FlowError.processingFailed
         }
         
         let responseString = String(cString: responsePtr)
@@ -382,7 +382,7 @@ class MindTypeCore {
 
 ```rust
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum MindTypeError {
+pub enum Mind⠶FlowError {
     /// Invalid UTF-16 position
     InvalidPosition { position: usize, text_length: usize },
     
@@ -405,7 +405,7 @@ pub enum MindTypeError {
 ```rust
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorResponse {
-    pub error: MindTypeError,
+    pub error: Mind⠶FlowError,
     pub request_id: Option<String>,
     pub timestamp_ms: u64,
 }

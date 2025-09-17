@@ -11,16 +11,16 @@
   ║                                                              ║
   ║                                                              ║
   ╚══════════════════════════════════════════════════════════════╝
-    • WHAT ▸ Implementation roadmap for MindType revolutionary features
+    • WHAT ▸ Implementation roadmap for Mind⠶Flow revolutionary features
     • WHY  ▸ Enable 7 scenarios + Correction Marker with precise execution
     • HOW  ▸ Phase-based development with scenario-driven milestones
 -->
 
-# MindType Implementation Guide
+# Mind⠶Flow Implementation Guide
 
 ## Executive Summary
 
-This guide outlines the implementation of MindType's revolutionary typing intelligence system, focusing on the **Correction Marker** and **Seven Usage Scenarios**. Development follows a streamlined, scenario-driven approach prioritizing core functionality over complex abstractions.
+This guide outlines the implementation of Mind⠶Flow's revolutionary typing intelligence system, focusing on the **Correction Marker** and **Seven Usage Scenarios**. Development follows a streamlined, scenario-driven approach prioritizing core functionality over complex abstractions.
 
 ## Implementation Philosophy
 
@@ -41,6 +41,7 @@ This guide outlines the implementation of MindType's revolutionary typing intell
 ### 1.1 Correction Marker System
 **Priority**: Critical  
 **Scenarios Enabled**: All  
+**Tasks**: IMPL-01  
 
 #### Core Components
 ```typescript
@@ -71,6 +72,7 @@ const CORRECTING_PATTERNS = {
 ### 1.2 Burst-Pause-Correct Engine
 **Priority**: Critical  
 **Scenarios Enabled**: Marcus (Speed), James (Creative), Priya (Data)  
+**Tasks**: IMPL-02  
 
 #### Core Components
 ```typescript
@@ -101,6 +103,7 @@ interface PauseEvent {
 ### 2.1 Three-Stage Pipeline Enhancement
 **Priority**: High  
 **Scenarios Enabled**: Maya (Academic), Carlos (Multilingual), Dr. Chen (Accessibility)  
+**Tasks**: IMPL-03  
 
 #### Enhanced Transformers
 ```typescript
@@ -121,6 +124,7 @@ interface NoiseTransformer {
 ### 2.2 Scenario-Specific Optimizations
 **Priority**: High  
 **Scenarios Enabled**: Individual scenario enhancements  
+**Tasks**: IMPL-04, IMPL-05, IMPL-06  
 
 #### Scenario Modules
 ```typescript
@@ -144,6 +148,7 @@ interface VelocityMode {
 ### 3.1 Advanced Visual Feedback
 **Priority**: Medium  
 **Scenarios Enabled**: All (Enhanced UX)  
+**Tasks**: IMPL-07, IMPL-08, IMPL-09, IMPL-10  
 
 #### Enhanced Marker System
 ```typescript

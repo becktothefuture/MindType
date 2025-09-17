@@ -1,6 +1,6 @@
 <!--══════════════════════════════════════════════════
   ╔══════════════════════════════════════════════════════╗
-  ║  ░  E T H E R E A L   T Y P I N G   D E M O  ░░░░░░░  ║
+  ║  ░  M I N D ⠶ F L O W   P L A Y G R O U N D  ░░░░░░░  ║
   ║                                                      ║
   ║                                                      ║
   ║                                                      ║
@@ -87,7 +87,7 @@ The demo renders luminous particle bursts under a frosted glass layer. It is des
 
 # Web Demo Walkthrough (v0.4)
 
-This document paints a picture of the interactive demo found at `/web-demo`. It explains how the web version of MindType behaves and how it showcases the core technology.
+This document paints a picture of the interactive demo found at `/web-demo`. It explains how the web version of Mind⠶Flow behaves and how it showcases the core technology.
 
 ## Purpose
 

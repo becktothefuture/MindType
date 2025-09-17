@@ -39,11 +39,11 @@ Think about the last time your fingers couldn’t keep up with your thoughts. Yo
 
 ### Why it exists
 
-MindType was created because we believe typing should unlock human potential, not limit it. The **Correction Marker** represents a breakthrough in human-computer collaboration—where AI intelligence works alongside human creativity to achieve **thought-speed typing**. Our purpose is cognitive augmentation: removing the mechanical barriers between thought and text.
+Mind⠶Flow was created because we believe typing should unlock human potential, not limit it. The **Correction Marker** represents a breakthrough in human-computer collaboration—where AI intelligence works alongside human creativity to achieve **thought-speed typing**. Our purpose is cognitive augmentation: removing the mechanical barriers between thought and text.
 
 ### What it does
 
-MindType introduces the revolutionary **Correction Marker**—an intelligent visual worker that travels through your text, applying corrections behind your cursor while you maintain unbroken typing rhythm. Through **Seven Revolutionary Scenarios**, from academic excellence to speed mastery, MindType transforms typing from a skill into an extension of thought itself.
+Mind⠶Flow introduces the revolutionary **Correction Marker**—an intelligent visual worker that travels through your text, applying corrections behind your cursor while you maintain unbroken typing rhythm. Through **Seven Revolutionary Scenarios**, from academic excellence to speed mastery, Mind⠶Flow transforms typing from a skill into an extension of thought itself.
 
 ### How it works
 
@@ -51,11 +51,11 @@ Behind the calm interface is an AI diffusion model for text. As you type, it ref
 
 ### Addressing concerns
 
-An effective pitch anticipates objections. MindType doesn’t spy on you; it doesn’t save your data or slow you down. It’s not another assistant; it’s a utility that works quietly in the background. Everything runs under your control, with privacy and security baked in.
+An effective pitch anticipates objections. Mind⠶Flow doesn’t spy on you; it doesn’t save your data or slow you down. It’s not another assistant; it’s a utility that works quietly in the background. Everything runs under your control, with privacy and security baked in.
 
 ### A new form of interaction
 
-By eliminating friction, we’re not just fixing typos. We’re creating a new way to interact with your machine, one where the keyboard becomes an extension of your thoughts. When technology works intuitively it feels almost magical. That’s the experience MindType aims to deliver.
+By eliminating friction, we’re not just fixing typos. We’re creating a new way to interact with your machine, one where the keyboard becomes an extension of your thoughts. When technology works intuitively it feels almost magical. That’s the experience Mind⠶Flow aims to deliver.
 
 ## Pitch (three lengths)
 
@@ -65,11 +65,11 @@ By eliminating friction, we’re not just fixing typos. We’re creating a new w
 
 ### Medium
 
-- MindType makes typing feel like thinking. While you move forward, it quietly improves the line just behind your cursor so your thoughts land cleanly—fewer typos, tidier sentences, calmer edits. No pop‑ups, no tab‑hopping, and your text stays on your device.
+- Mind⠶Flow makes typing feel like thinking. While you move forward, it quietly improves the line just behind your cursor so your thoughts land cleanly—fewer typos, tidier sentences, calmer edits. No pop‑ups, no tab‑hopping, and your text stays on your device.
 
 ### Long
 
-- MindType removes human–computer friction so your attention stays on the idea. It keeps a short strip of text behind your cursor “active,” gently cleaning and clarifying it while you type. Older text is safe; nothing jumps; control is always yours. It works right where you write, keeps your text on your device, and adapts to your computer so it always feels smooth.
+- Mind⠶Flow removes human–computer friction so your attention stays on the idea. It keeps a short strip of text behind your cursor “active,” gently cleaning and clarifying it while you type. Older text is safe; nothing jumps; control is always yours. It works right where you write, keeps your text on your device, and adapts to your computer so it always feels smooth.
 
 ## Main selling points
 
@@ -85,11 +85,11 @@ By eliminating friction, we’re not just fixing typos. We’re creating a new w
 - Small, on‑device models and rules make light, reversible edits.
 - No interruptions—just type forward.
 
-## Ten ways to explain MindType (beginner → expert)
+## Ten ways to explain Mind⠶Flow (beginner → expert)
 
 1. Beginner (what it does)
 
-- MindType quietly cleans and improves what you just typed so it reads right, without pop‑ups or pauses.
+- Mind⠶Flow quietly cleans and improves what you just typed so it reads right, without pop‑ups or pauses.
 
 2. Beginner+ (how it feels)
 
@@ -139,13 +139,13 @@ By eliminating friction, we’re not just fixing typos. We’re creating a new w
 
 ### Medium
 
-- MindType is a live human–computer interaction utility for text. As you
+- Mind⠶Flow is a live human–computer interaction utility for text. As you
   type, a small active region just behind your cursor receives
   streaming, on‑device improvements—grammar, clarity, tone—without
   interrupts or mode switches. It’s reversible, private by default, and
   tuned to your hardware for a calm, coherent writing loop.
 
-- MindType eliminates human–computer friction so you can think at full
+- Mind⠶Flow eliminates human–computer friction so you can think at full
   bandwidth. It pairs your forward intent with a constrained, on‑device
   model that edits only where it’s safe: a short, visible active region
   behind the caret. A Rust‑first core orchestrates streaming merges with
@@ -154,7 +154,7 @@ By eliminating friction, we’re not just fixing typos. We’re creating a new w
   Windows) render understated cues from events like `mindtype:activeRegion`
   and `highlight`, while device‑tier policies adapt cadence and token
   budgets across WebGPU, WASM, or CPU. The result is a live, closed‑loop
-  writing aid: you move forward; MindType quietly lifts the text behind
+  writing aid: you move forward; Mind⠶Flow quietly lifts the text behind
   you.
 
 ## Glossary (plain words)
@@ -188,7 +188,7 @@ By eliminating friction, we’re not just fixing typos. We’re creating a new w
 
 ## The three whys (asked backwards)
 
-1. Why MindType? To remove typing friction so progress feels
+1. Why Mind⠶Flow? To remove typing friction so progress feels
    continuous.
 2. Why remove friction? To protect attention and working memory—the
    scarce resource.
@@ -206,7 +206,7 @@ By eliminating friction, we’re not just fixing typos. We’re creating a new w
   explicit, per‑session opt‑in.
 - Will it change my voice? You set intensity and domains; the system
   favors clarity over style unless asked.
-- Why not Grammarly? Different goal: MindType is live HMI for thinking
+- Why not Grammarly? Different goal: Mind⠶Flow is live HMI for thinking
   while typing, not a post‑hoc checker.
 
 ## Reasons to believe (proof points)

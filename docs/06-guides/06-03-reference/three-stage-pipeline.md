@@ -16,7 +16,9 @@
     • HOW  ▸ See Rust diffusion module, correction scheduler; UI exposes tone controls
 -->
 
-# Three-Stage Pipeline (v0.4)
+# Three-Stage Pipeline (v0.6+)
+
+**Revolutionary Context**: The pipeline powers **Correction Marker** intelligence across **Seven Scenarios** with device-tier adaptation.
 
 - Noise: fast local cleanup of keystrokes (typos, spacing). Always behind the caret.
 - Context: sentence-level fixes using ±2 sentences (S−1=1.0, S−2=0.5). Runs on pause when input fidelity ≥ τ_input.

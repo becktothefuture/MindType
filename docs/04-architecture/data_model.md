@@ -16,11 +16,11 @@
     • HOW  ▸ Rust-first types; optional persistence adapters later
 -->
 
-# MindType Revolutionary Data Model
+# Mind⠶Flow Revolutionary Data Model
 
 ## 🚀 **Revolutionary Data Architecture**
 
-This document defines the data model for MindType's **revolutionary Correction Marker system** and **Seven Usage Scenarios**. The architecture supports **thought-speed typing** through cognitive augmentation while maintaining absolute privacy (no user text persistence).
+This document defines the data model for Mind⠶Flow's **revolutionary Correction Marker system** and **Seven Usage Scenarios**. The architecture supports **thought-speed typing** through cognitive augmentation while maintaining absolute privacy (no user text persistence).
 
 ## 🎆 **Core Revolutionary Entities**
 

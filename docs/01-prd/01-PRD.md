@@ -11,16 +11,16 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ PRD for MindType: Revolutionary Typing Intelligence
+    • WHAT ▸ PRD for Mind⠶Flow: Revolutionary Typing Intelligence
     • WHY  ▸ Enable thought-speed typing through cognitive augmentation
     • HOW  ▸ Seven Scenarios + Correction Marker + streamlined architecture
 -->
 
-# MindType: Revolutionary Typing Intelligence
+# Mind⠶Flow: Revolutionary Typing Intelligence
 
 ## Executive Summary
 
-MindType transforms typing from a mechanical skill into **fluid expression of thought**. Through our revolutionary **Correction Marker** system and **Burst-Pause-Correct** methodology, users achieve thought-speed typing with unprecedented accuracy and flow state preservation.
+Mind⠶Flow transforms typing from a mechanical skill into **fluid expression of thought**. Through our revolutionary **Correction Marker** system and **Burst-Pause-Correct** methodology, users achieve thought-speed typing with unprecedented accuracy and flow state preservation.
 
 **Core Innovation**: The Correction Marker—an intelligent visual worker that travels through text, applying corrections behind the cursor while users maintain unbroken typing rhythm.
 
@@ -30,57 +30,67 @@ MindType transforms typing from a mechanical skill into **fluid expression of th
 ### Scenario 1: Academic Excellence - Maya (Graduate Student with Dyslexia)
 **Context**: PhD in Environmental Science, struggles with dyslexia and complex terminology  
 **Challenge**: Academic writing requires precision but dyslexia causes frequent letter transpositions  
-**MindType Solution**: Three-stage pipeline (Noise → Context → Tone) with academic vocabulary support  
+**Mind⠶Flow Solution**: Three-stage pipeline (Noise → Context → Tone) with academic vocabulary support  
 **Key Requirements**:
 - Scientific terminology correction
 - Real-time transposition fixes ("resarch" → "research")
 - Privacy-first on-device processing for unpublished research
 - Screen reader compatibility for accessibility
 
+→ **Architecture Details**: [Seven Scenarios Architecture](../04-architecture/seven-scenarios-architecture.md#scenario-1-academic-excellence---maya-graduate-student-with-dyslexia)
+
 ### Scenario 2: Professional Productivity - Carlos (Multilingual Business Analyst)
 **Context**: International consulting, switches between English/Spanish/Portuguese  
 **Challenge**: Mixed-language errors, keyboard mapping confusion, professional credibility  
-**MindType Solution**: Context-aware language detection with cross-linguistic error correction  
+**Mind⠶Flow Solution**: Context-aware language detection with cross-linguistic error correction  
 **Key Requirements**:
 - Mixed-language error detection ("finacial analisys shows que")
 - 15ms latency to match 85 WPM typing speed
 - Professional tone consistency across languages
 - Cultural context preservation
 
+→ **Architecture Details**: [Seven Scenarios Architecture](../04-architecture/seven-scenarios-architecture.md#scenario-2-professional-productivity---carlos-multilingual-business-analyst)
+
 ### Scenario 3: Accessibility Champion - Dr. Sarah Chen (Legally Blind Researcher)
 **Context**: Biomedical researcher with diabetic retinopathy, relies on screen readers  
 **Challenge**: Audio feedback for corrections disrupts concentration  
-**MindType Solution**: Silent corrections with single batch announcements  
+**Mind⠶Flow Solution**: Silent corrections with single batch announcements  
 **Key Requirements**:
 - Caret-safe editing (never disrupts screen reader position)
 - Single announcement per correction batch: "text updated behind cursor"
 - High-contrast Correction Marker for low vision users
 - Scientific terminology accuracy for grant writing
 
+→ **Architecture Details**: [Seven Scenarios Architecture](../04-architecture/seven-scenarios-architecture.md#scenario-3-accessibility-champion---dr-sarah-chen-legally-blind-researcher)
+
 ### Scenario 4: Creative Flow State - James (Novelist & Screenwriter)
 **Context**: Professional writer seeking uninterrupted creative flow  
 **Challenge**: Stopping to correct typos breaks creative momentum  
-**MindType Solution**: Stream-of-consciousness typing with background refinement  
+**Mind⠶Flow Solution**: Stream-of-consciousness typing with background refinement  
 **Key Requirements**:
 - Real-time streaming corrections during rapid writing bursts
 - Narrative coherence maintenance across long passages
 - Creative voice preservation (minimal tone interference)
 - Musical rhythm of Correction Marker enhances flow
 
+→ **Architecture Details**: [Seven Scenarios Architecture](../04-architecture/seven-scenarios-architecture.md#scenario-4-creative-flow-state---james-novelist--screenwriter)
+
 ### Scenario 5: Everyday Efficiency - Emma (Working Parent)
 **Context**: Marketing professional juggling work and parenting  
 **Challenge**: Typing in stolen moments with fatigue-induced errors  
-**MindType Solution**: Seamless professional polish without conscious effort  
+**Mind⠶Flow Solution**: Seamless professional polish without conscious effort  
 **Key Requirements**:
 - Invisible enhancement ("campain" → "campaign" without user awareness)
 - Professional tone for business communications
 - Quick burst typing support (emails during soccer practice)
 - Battery-efficient processing for mobile devices
 
+→ **Architecture Details**: [Seven Scenarios Architecture](../04-architecture/seven-scenarios-architecture.md#scenario-5-everyday-efficiency---emma-working-parent)
+
 ### Scenario 6: Speed Demon - Marcus (Professional Stenographer Turned Digital)
 **Context**: Former court stenographer achieving 225 WPM on stenotype, limited to ~100 WPM on QWERTY  
 **Challenge**: Fingers know the speed but traditional keyboards can't keep up  
-**MindType Solution**: **Velocity Mode** - Revolutionary speed unlocking through trust-based typing  
+**Mind⠶Flow Solution**: **Velocity Mode** - Revolutionary speed unlocking through trust-based typing  
 **Key Requirements**:
 - Sub-15ms correction latency to support 180+ WPM
 - Phonetic shorthand understanding ("Th defdnt clamd tht th contrct ws invld")
@@ -88,16 +98,20 @@ MindType transforms typing from a mechanical skill into **fluid expression of th
 - Real-time legal terminology correction
 - **Breakthrough**: Thought-to-text at neural firing speed
 
+→ **Architecture Details**: [Seven Scenarios Architecture](../04-architecture/seven-scenarios-architecture.md#scenario-6-speed-demon---marcus-professional-stenographer-turned-digital)
+
 ### Scenario 7: Data Whisperer - Priya (Quantitative Research Analyst)
 **Context**: Hedge fund analyst processing massive datasets with rapid annotations  
 **Challenge**: Traditional forms/dropdowns too slow for analytical flow  
-**MindType Solution**: Stream-of-consciousness data entry with intelligent formatting  
+**Mind⠶Flow Solution**: Stream-of-consciousness data entry with intelligent formatting  
 **Key Requirements**:
 - Custom "data dialect" understanding ("hgh rvn grwth tch stk +sent")
 - Domain-specific expansion (biotech, financial terminology)
 - 5× speed increase over traditional data entry methods
 - Analytical flow preservation - brain stays in pure analysis mode
 - **Innovation**: Human-AI collaboration for rapid insight capture
+
+→ **Architecture Details**: [Seven Scenarios Architecture](../04-architecture/seven-scenarios-architecture.md#scenario-7-data-whisperer---priya-quantitative-research-analyst)
 
 ## The Correction Marker System
 
@@ -262,6 +276,6 @@ tests:
 
 ---
 
-*MindType doesn't just correct typing—it unlocks human potential at the intersection of thought and text.*
+*Mind⠶Flow doesn't just correct typing—it unlocks human potential at the intersection of thought and text.*
 
 <!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:45:45Z -->

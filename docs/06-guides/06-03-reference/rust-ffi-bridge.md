@@ -20,7 +20,7 @@
 
 ## Overview
 
-This document specifies the Foreign Function Interface (FFI) and WebAssembly (WASM) bridge design that enables the MindType Rust core to be used from JavaScript, Swift, and other platform languages.
+This document specifies the Foreign Function Interface (FFI) and WebAssembly (WASM) bridge design that enables the Mind⠶Flow Rust core to be used from JavaScript, Swift, and other platform languages.
 
 ## Architecture
 
@@ -57,15 +57,15 @@ use crate::engine::{CorrectionEngine, CorrectionRequest, CorrectionResponse};
 
 /// Main WASM interface for web platform
 #[wasm_bindgen]
-pub struct MindTypeWasm {
+pub struct Mind⠶FlowWasm {
     engine: CorrectionEngine,
 }
 
 #[wasm_bindgen]
-impl MindTypeWasm {
+impl Mind⠶FlowWasm {
     /// Create new instance with JSON configuration
     #[wasm_bindgen(constructor)]
-    pub fn new(config_json: &str) -> Result<MindTypeWasm, JsValue> {
+    pub fn new(config_json: &str) -> Result<Mind⠶FlowWasm, JsValue> {
         // Parse configuration
         let config: CorrectionSettings = serde_json::from_str(config_json)
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
@@ -74,7 +74,7 @@ impl MindTypeWasm {
         let engine = CorrectionEngine::new(config)
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
         
-        Ok(MindTypeWasm { engine })
+        Ok(Mind⠶FlowWasm { engine })
     }
     
     /// Process text and return corrections as JSON
@@ -162,13 +162,13 @@ export interface CorrectionResponse {
   debug_info?: DebugInfo;
 }
 
-export class MindTypeCore {
-  private wasm: MindTypeWasm;
+export class Mind⠶FlowCore {
+  private wasm: Mind⠶FlowWasm;
   private settings: CorrectionSettings;
   
   constructor(settings: CorrectionSettings) {
     this.settings = settings;
-    this.wasm = new MindTypeWasm(JSON.stringify(settings));
+    this.wasm = new Mind⠶FlowWasm(JSON.stringify(settings));
   }
   
   processText(text: string, caretPosition: number): CorrectionResponse {
@@ -427,12 +427,12 @@ char* mt_get_version(void);
 #endif // MINDTYPE_H
 ```
 
-### Swift Wrapper (`bindings/swift/MindType.swift`)
+### Swift Wrapper (`bindings/swift/Mind⠶Flow.swift`)
 
 ```swift
 import Foundation
 
-public class MindTypeCore {
+public class Mind⠶FlowCore {
     private let engine: OpaquePointer
     private var settings: CorrectionSettings
     
@@ -446,9 +446,9 @@ public class MindTypeCore {
             if let errorPtr = mt_get_last_error() {
                 let error = String(cString: errorPtr)
                 mt_free_string(errorPtr)
-                throw MindTypeError.initialization(error)
+                throw Mind⠶FlowError.initialization(error)
             }
-            throw MindTypeError.initialization("Unknown error")
+            throw Mind⠶FlowError.initialization("Unknown error")
         }
         
         self.engine = engine
@@ -470,9 +470,9 @@ public class MindTypeCore {
             if let errorPtr = mt_get_last_error() {
                 let error = String(cString: errorPtr)
                 mt_free_string(errorPtr)
-                throw MindTypeError.processing(error)
+                throw Mind⠶FlowError.processing(error)
             }
-            throw MindTypeError.processing("Unknown error")
+            throw Mind⠶FlowError.processing("Unknown error")
         }
         
         let responseString = String(cString: responsePtr)
@@ -492,15 +492,15 @@ public class MindTypeCore {
             if let errorPtr = mt_get_last_error() {
                 let error = String(cString: errorPtr)
                 mt_free_string(errorPtr)
-                throw MindTypeError.settings(error)
+                throw Mind⠶FlowError.settings(error)
             }
-            throw MindTypeError.settings("Failed to update settings")
+            throw Mind⠶FlowError.settings("Failed to update settings")
         }
     }
     
     public func getMetrics() throws -> PerformanceMetrics {
         guard let metricsPtr = mt_get_metrics(engine) else {
-            throw MindTypeError.metrics("Failed to get metrics")
+            throw Mind⠶FlowError.metrics("Failed to get metrics")
         }
         
         let metricsString = String(cString: metricsPtr)
@@ -515,7 +515,7 @@ public class MindTypeCore {
     }
 }
 
-public enum MindTypeError: Error {
+public enum Mind⠶FlowError: Error {
     case initialization(String)
     case processing(String)
     case settings(String)
@@ -604,11 +604,11 @@ codegen-units = 1   # Single codegen unit
 ### WASM Tests
 ```typescript
 // Jest test example
-describe('MindTypeCore WASM', () => {
-  let core: MindTypeCore;
+describe('Mind⠶FlowCore WASM', () => {
+  let core: Mind⠶FlowCore;
   
   beforeEach(() => {
-    core = new MindTypeCore(defaultSettings);
+    core = new Mind⠶FlowCore(defaultSettings);
   });
   
   afterEach(() => {
@@ -686,14 +686,14 @@ void test_text_processing() {
 ### CocoaPods (iOS/macOS)
 ```ruby
 Pod::Spec.new do |s|
-  s.name         = "MindTypeCore"
+  s.name         = "Mind⠶FlowCore"
   s.version      = "1.0.0"
-  s.summary      = "MindType correction engine"
+  s.summary      = "Mind⠶Flow correction engine"
   s.homepage     = "https://mindtype.app"
   s.license      = { :type => "MIT" }
-  s.author       = { "MindType" => "hello@mindtype.app" }
+  s.author       = { "Mind⠶Flow" => "hello@mindtype.app" }
   s.source       = { :git => "https://github.com/mindtype/core.git", :tag => s.version }
-  s.vendored_frameworks = "MindTypeCore.xcframework"
+  s.vendored_frameworks = "Mind⠶FlowCore.xcframework"
   s.platforms    = { :ios => "13.0", :osx => "11.0" }
 end
 ```
@@ -702,14 +702,14 @@ end
 ```swift
 // Package.swift
 let package = Package(
-    name: "MindTypeCore",
+    name: "Mind⠶FlowCore",
     products: [
-        .library(name: "MindTypeCore", targets: ["MindTypeCore"])
+        .library(name: "Mind⠶FlowCore", targets: ["Mind⠶FlowCore"])
     ],
     targets: [
         .binaryTarget(
-            name: "MindTypeCore",
-            path: "MindTypeCore.xcframework"
+            name: "Mind⠶FlowCore",
+            path: "Mind⠶FlowCore.xcframework"
         )
     ]
 )

@@ -11,14 +11,14 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ Try MindType via web demo
-    • WHY  ▸ Experience the first “aha” in minutes
-    • HOW  ▸ Use `web-demo/` with local engine stubs
+    • WHAT ▸ Try Mind⠶Flow via playground
+    • WHY  ▸ Experience the first "aha" in minutes
+    • HOW  ▸ Use `playground/` with local engine stubs
 -->
 
 Steps
 
-1. `pnpm --filter web-demo i && pnpm --filter web-demo dev`
+1. `pnpm --filter playground i && pnpm --filter playground dev`
 2. Open the dev URL; type fast; observe gentle cleanup.
 3. Toggle reduced motion in OS to see motion compliance.
 

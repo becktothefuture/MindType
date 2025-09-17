@@ -11,7 +11,7 @@
   ║                                                              ║
   ║                                                              ║
   ╚══════════════════════════════════════════════════════════════╝
-    • WHAT ▸ Repository versioning, tags, and branches for MindType
+    • WHAT ▸ Repository versioning, tags, and branches for Mind⠶Flow
     • WHY  ▸ Keep legacy archived and advance v0.6+ revolutionary vision cleanly
     • HOW  ▸ Lightweight semantic tags + long‑lived archive and dev branches
 -->
@@ -36,8 +36,9 @@
 - `docs/` root reflects v0.6+ revolutionary vision. Prior versions remain discoverable via archive branch.
 - Demo lives at `playground/` (renamed from `web-demo/` for revolutionary positioning).
 
-### Cursor workflow notes
+### Implementation workflow notes
 
-- Keep `docs/02-implementation/02-Implementation.md` aligned with `docs/v0.4/MindType v0.4-master guide.md` and the v0.4 architecture. Use doc citations to avoid stale snippets.
+- Use `docs/02-implementation/02-Implementation.md` as the canonical source for implementation tasks and phases.
+- Maintain alignment between PRD scenarios and architecture specifications via cross-links.
 
 <!-- DOC META: VERSION=1.0 | UPDATED=2025-09-17T20:46:38Z -->

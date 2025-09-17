@@ -11,14 +11,14 @@
   ║                                                      ║
   ║                                                      ║
   ╚══════════════════════════════════════════════════════╝
-    • WHAT ▸ Standardized terminology for MindType
+    • WHAT ▸ Standardized terminology for Mind⠶Flow
     • WHY  ▸ Consistency across documentation and code
     • HOW  ▸ Use these terms everywhere, no exceptions
 -->
 
-# MindType Terminology Guide
+# Mind⠶Flow Terminology Guide
 
-This document defines the official terminology for MindType. **Use these terms consistently across all documentation, code, and communications.**
+This document defines the official terminology for Mind⠶Flow. **Use these terms consistently across all documentation, code, and communications.**
 
 ## Revolutionary Concepts
 
@@ -26,7 +26,7 @@ This document defines the official terminology for MindType. **Use these terms c
 
 | ✅ **USE THIS** | ❌ **NOT THIS** | **Definition** |
 |-----------------|----------------|----------------|
-| **MindType** | MindType, MindTyper, MT | The revolutionary cognitive augmentation product |
+| **Mind⠶Flow** | Mind⠶Flow, Mind⠶Flow, MT | The revolutionary cognitive augmentation product |
 | **Correction Marker** | Wave, Marker, Indicator | The intelligent visual worker that travels through text |
 | **Burst-Pause-Correct** | Pause detection, Rhythm | The revolutionary methodology for muscle memory training |
 | **Thought-Speed Typing** | Fast typing, Speed enhancement | Cognitive augmentation enabling typing at neural firing speed |

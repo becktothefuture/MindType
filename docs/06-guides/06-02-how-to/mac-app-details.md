@@ -4,7 +4,7 @@ This document outlines how the menu‑bar application operates and highlights so
 
 -## User Experience
 
-- When launched, a small pencil icon appears in the menu bar. Clicking it toggles MindType on or off. The app never records audio; the icon simply represents writing assistance.
+- When launched, a small pencil icon appears in the menu bar. Clicking it toggles Mind⠶Flow on or off. The app never records audio; the icon simply represents writing assistance.
 - The first launch triggers an Accessibility permission prompt so the app can monitor and edit text fields.
 - Preferences include sliders for idle timeout and aggressiveness, plus a switch between Cloud and Local mode.
 - A debug overlay (⌥⇧⌘L) shows live latency and token count for diagnostics.
@@ -19,7 +19,7 @@ This document outlines how the menu‑bar application operates and highlights so
 
 ## Why a Menu-Bar App?
 
-- **Always Available** – Users can enable MindType system‑wide without cluttering the dock.
+- **Always Available** – Users can enable Mind⠶Flow system‑wide without cluttering the dock.
 - **Minimal Footprint** – A menu‑bar presence keeps the UI simple while still allowing quick access to settings.
 - **Avoiding Sandboxing** – Distribution outside the Mac App Store simplifies access to the Accessibility API and custom models.
 
