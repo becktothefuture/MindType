@@ -28,13 +28,14 @@ describe('config/defaultThresholds clamps', () => {
 
   it('setValidationBandWords enforces min/max and ordering', () => {
     setValidationBandWords(0, 100);
-    expect(getMinValidationWords()).toBe(1);
-    expect(getMaxValidationWords()).toBe(12);
+    // v0.6: both return the same Active Region size (clamped to 50)
+    expect(getMinValidationWords()).toBe(50);
+    expect(getMaxValidationWords()).toBe(50);
 
     setValidationBandWords(6, 2);
-    // Clamped to min≥1, max≥3, and ordered
-    expect(getMinValidationWords()).toBe(3);
-    expect(getMaxValidationWords()).toBe(5);
+    // v0.6: uses max(6,2) = 6 for single Active Region
+    expect(getMinValidationWords()).toBe(6);
+    expect(getMaxValidationWords()).toBe(6);
 
     // restore defaults for other tests
     setValidationBandWords(5, 5);

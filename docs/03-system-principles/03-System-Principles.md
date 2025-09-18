@@ -111,18 +111,18 @@ Mind⠶Flow doesn't just correct errors—it **unlocks latent human potential** 
 - Marcus: Velocity Mode adapts to device capability while maintaining speed
 - All scenarios: Consistent experience regardless of hardware
 
-### 7. Fail-Soft Reliability
-**Philosophy**: Any error should degrade gracefully, never block the user's typing flow.
+### 7. Predictable Failure & Explicit Recovery (Developer-Facing)
+**Philosophy**: When the LM cannot initialize, corrections stop predictably; we surface a clear developer-facing error and provide a restart path.
 
 **Behavior**:
-- Timeouts cancel work and defer until next pause
-- Missing local models → rules-only mode with setup guidance
-- GPU unavailable → WASM fallback → CPU fallback
-- Network errors → local-only operation
+- If local LM assets fail to load or initialize, set state to "Correction unavailable" (no background corrections, no rules fallback).
+- Surface an error indicator in developer builds (web Playground banner; macOS status menu message).
+- Provide an explicit restart control that re-initializes the LM and resumes corrections on success.
+- Device-tier adaptation (WebGPU → WASM → CPU) remains allowed; no rules-only mode.
 
 **Examples**:
-- All scenarios: Users never experience typing interruption due to system failures
-- Priya: Data entry continues even if advanced processing fails
+- All scenarios: No partial/hidden behavior—either corrections work or are clearly disabled until restart.
+- Developers: Can quickly diagnose model path/memory issues and recover via restart.
 
 ## Implementation Impact
 

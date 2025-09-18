@@ -33,8 +33,9 @@ describe('defaultThresholds', () => {
   it('enforces active region word limits and ordering', () => {
     // Values beyond allowed range should be clamped
     setValidationBandWords(0, 100);
-    expect(getMinValidationWords()).toBeGreaterThanOrEqual(1);
-    expect(getMaxValidationWords()).toBeLessThanOrEqual(12);
+    // v0.6: single Active Region size, clamped to 50 max
+    expect(getMinValidationWords()).toBe(50);
+    expect(getMaxValidationWords()).toBe(50);
 
     // When min > max, function should reorder to min ≤ max
     setValidationBandWords(8, 3);
@@ -42,7 +43,8 @@ describe('defaultThresholds', () => {
 
     // In-range values should be set exactly
     setValidationBandWords(3, 8);
-    expect(getMinValidationWords()).toBe(3);
+    // v0.6: uses max(3,8) = 8 for single Active Region
+    expect(getMinValidationWords()).toBe(8);
     expect(getMaxValidationWords()).toBe(8);
   });
 });

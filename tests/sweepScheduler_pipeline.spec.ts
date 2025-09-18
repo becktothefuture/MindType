@@ -15,11 +15,9 @@ import { createTypingMonitor } from '../core/typingMonitor';
 
 // Keep engines quiet
 vi.mock('../engines/noiseTransformer', () => ({
-  noiseTransform: vi.fn(() => ({ diff: null })),
+  noiseTransformSync: vi.fn(() => ({ diff: null })),
 }));
-vi.mock('../engines/backfillConsistency', () => ({
-  backfillConsistency: vi.fn(() => ({ diffs: [] })),
-}));
+// v0.6: backfillConsistency removed
 
 // Diffusion controller mock with applyExternal
 let state = { text: '', caret: 0, frontier: 0 };

@@ -16,8 +16,8 @@
 */
 
 import { SHORT_PAUSE_MS, getTypingTickMs } from '../config/defaultThresholds';
-import { noiseTransform } from '../engines/noiseTransformer';
-import { backfillConsistency } from '../engines/backfillConsistency';
+import { noiseTransformSync } from '../engines/noiseTransformer';
+// v0.6: backfillConsistency removed (LM-only single Active Region)
 import type { TypingMonitor, TypingEvent } from './typingMonitor';
 import { createDiffusionController } from './diffusionController';
 import type { LMAdapter } from './lm/types';
@@ -158,7 +158,7 @@ export function createSweepScheduler(
       log.warn('catchUp threw; continuing');
     }
     // Collect proposals from engines for deterministic resolution
-    const noise = noiseTransform({ text: lastEvent.text, caret: lastEvent.caret });
+    const noise = noiseTransformSync({ text: lastEvent.text, caret: lastEvent.caret });
     const collected: ResolvedInput[] = [];
     if (noise.diff) {
       collected.push({ ...noise.diff, source: 'noise' });
@@ -171,7 +171,7 @@ export function createSweepScheduler(
         (globalThis as unknown as { __mtStagePreview?: unknown }).__mtStagePreview = { noise: preview } as unknown;
       } catch {}
     }
-    backfillConsistency({ text: lastEvent.text, caret: lastEvent.caret });
+    // v0.6: backfillConsistency removed (LM-only single Active Region)
 
     // v0.4 pipeline: Context → Tone (English-only) under confidence gating
     try {

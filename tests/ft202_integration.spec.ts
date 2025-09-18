@@ -29,22 +29,20 @@ vi.mock('../ui/highlighter', () => ({
 
 // Spy on engines to ensure they run on pause catch-up
 vi.mock('../engines/noiseTransformer', () => ({
-  noiseTransform: vi.fn(() => ({ diff: null })),
+  noiseTransformSync: vi.fn(() => ({ diff: null })),
 }));
-vi.mock('../engines/backfillConsistency', () => ({
-  backfillConsistency: vi.fn(() => ({ diffs: [] })),
-}));
+// v0.6: backfillConsistency removed
 
-import { noiseTransform } from '../engines/noiseTransformer';
-import { backfillConsistency } from '../engines/backfillConsistency';
+import { noiseTransformSync } from '../engines/noiseTransformer';
+// v0.6: backfillConsistency removed
 
 describe('FT-202 Integration Harness', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     regionCalls.length = 0;
     highlights.length = 0;
-    (noiseTransform as unknown as { mockClear?: () => void }).mockClear?.();
-    (backfillConsistency as unknown as { mockClear?: () => void }).mockClear?.();
+    (noiseTransformSync as unknown as { mockClear?: () => void }).mockClear?.();
+    // v0.6: backfillConsistency removed
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -80,8 +78,8 @@ describe('FT-202 Integration Harness', () => {
     expect(afterPauseRegion.end).toBe(15);
 
     // Engines invoked as part of pause processing
-    expect(noiseTransform).toHaveBeenCalled();
-    expect(backfillConsistency).toHaveBeenCalled();
+    expect(noiseTransformSync).toHaveBeenCalled();
+    // v0.6: backfillConsistency removed
 
     // Any highlights produced must be strictly behind the caret (caret safety)
     for (const h of highlights) {

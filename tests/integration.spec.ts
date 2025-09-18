@@ -14,7 +14,7 @@ import { createTypingMonitor } from '../core/typingMonitor';
 import { createSweepScheduler } from '../core/sweepScheduler';
 import { createDiffusionController } from '../core/diffusionController';
 import type { LMAdapter } from '../core/lm/types';
-import { noiseTransform } from '../engines/noiseTransformer';
+import { noiseTransformSync } from '../engines/noiseTransformer';
 
 // Mock the UI calls for clean testing
 vi.mock('../ui/highlighter', () => ({
@@ -26,7 +26,7 @@ vi.mock('../ui/swapRenderer', () => ({
 }));
 
 describe('Streaming Diffusion Integration', () => {
-  it('demonstrates the complete flow from typing to correction', () => {
+  it('demonstrates the flow without rule corrections (v0.6 LM-only stub)', () => {
     // Set up the pipeline
     const monitor = createTypingMonitor();
     createSweepScheduler(monitor);
@@ -49,20 +49,14 @@ describe('Streaming Diffusion Integration', () => {
     diffusion.getState();
     const hint = { start: 5, end: 10 }; // " teh " with spaces
 
-    // Test 4: TidySweep engine processes the hint
-    const sweepResult = noiseTransform({
+    // Test 4: Noise transformer (rules removed in v0.6) does not propose a rule-based diff
+    const sweepResult = noiseTransformSync({
       text,
       caret,
-      hint,
     });
 
-    expect(sweepResult.diff).not.toBeNull();
-    expect(sweepResult.diff!.start).toBe(5); // Start of " teh "
-    expect(sweepResult.diff!.end).toBe(10); // End of " teh "
-    expect(sweepResult.diff!.text).toBe(' the ');
-
-    // Test 5: Verify caret safety
-    expect(sweepResult.diff!.end).toBeLessThanOrEqual(caret);
+    expect(sweepResult.diff).toBeNull();
+    // Caret safety remains guaranteed elsewhere; no rule-based changes here.
   });
 
   it('handles streaming tick-by-tick progression', () => {
@@ -114,7 +108,7 @@ describe('Streaming Diffusion Integration', () => {
     const text = 'I was typing teh wrong word here';
     const caretPosition = 32; // At end
 
-    const result = noiseTransform({
+    const result = noiseTransformSync({
       text,
       caret: caretPosition,
     });
@@ -129,7 +123,7 @@ describe('Streaming Diffusion Integration', () => {
     }
   });
 
-  it('verifies the rule system finds multiple correction types', () => {
+  it('skips rule-based corrections in v0.6 (LM-only)', () => {
     const testCases = [
       { text: 'Hello teh world', expected: 'the' },
       { text: 'cats adn dogs', expected: 'and' },
@@ -137,14 +131,12 @@ describe('Streaming Diffusion Integration', () => {
       { text: 'fix yuor code works', expected: 'your' },
     ];
 
-    testCases.forEach(({ text, expected }) => {
-      const result = noiseTransform({
+    testCases.forEach(({ text }) => {
+      const result = noiseTransformSync({
         text,
         caret: text.length,
       });
-
-      expect(result.diff).not.toBeNull();
-      expect(result.diff!.text).toContain(expected);
+      expect(result.diff).toBeNull();
     });
   });
 });

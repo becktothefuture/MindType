@@ -20,7 +20,7 @@ import {
   getMinValidationWords,
   getMaxValidationWords,
 } from '../config/defaultThresholds';
-import { noiseTransform } from '../engines/noiseTransformer';
+import { noiseTransformSync } from '../engines/noiseTransformer';
 import { replaceRange } from '../utils/diff';
 import type { LMAdapter } from './lm/types';
 import type { ActiveRegionPolicy } from './activeRegionPolicy';
@@ -28,7 +28,7 @@ import { emitActiveRegion } from '../ui/highlighter';
 import { renderHighlight } from '../ui/swapRenderer';
 import { createLogger } from './logger';
 import { streamMerge } from './lm/mergePolicy';
-import { UndoIsolation } from './undoIsolation';
+// v0.6: undo is external; internal grouping removed.
 
 export interface DiffusionState {
   text: string;
@@ -55,7 +55,8 @@ export function createDiffusionController(
     seg = null;
   }
   const log = createLogger('diffusion');
-  const undo = new UndoIsolation(150);
+  // v0.6: internal undo isolation removed; hosts own undo. Wave rollback is implemented in Phase 4.
+  const undo = null as unknown as { addEdit: (...args: unknown[]) => void; popLastGroup: () => unknown };
 
   let state: DiffusionState = { text: '', caret: 0, frontier: 0 };
   // Throttle rendering to avoid UI storms (esp. Safari). ~60fps ceiling.
@@ -149,7 +150,7 @@ export function createDiffusionController(
   function tickOnce() {
     const r = nextWordRange();
     if (!r) return;
-    const res = noiseTransform({ text: state.text, caret: state.caret, hint: r });
+    const res = noiseTransformSync({ text: state.text, caret: state.caret });
     if (res.diff) {
       // Do not log user text per privacy policy
       log.debug('diff', {
@@ -275,15 +276,7 @@ export function createDiffusionController(
         // Emit highlight so hosts (web demo) apply the visible replacement
         renderHighlight({ start: diff.start, end: diff.end, text: diff.text });
       } catch {}
-      try {
-        undo.addEdit({
-          start: diff.start,
-          end: newEnd,
-          before,
-          after: diff.text,
-          appliedAt: Date.now(),
-        });
-      } catch {}
+      // v0.6: no internal undo tracking
       return true;
     } catch {
       // Safety guards failed; ignore external diff
@@ -292,24 +285,7 @@ export function createDiffusionController(
   }
 
   function rollbackLastSystemGroup(): void {
-    const g = undo.popLastGroup();
-    if (!g || g.edits.length === 0) return;
-    for (let i = g.edits.length - 1; i >= 0; i--) {
-      const e = g.edits[i];
-      try {
-        const updated = replaceRange(
-          state.text,
-          e.start,
-          e.start + e.after.length,
-          e.before,
-          state.caret,
-        );
-        state.text = updated;
-        state.frontier = Math.min(state.frontier, e.start);
-      } catch {}
-    }
-    clampFrontier();
-    maybeRender();
+    // v0.6: rollback will be handled by host (Phase 4). No-op here.
   }
 
   return {

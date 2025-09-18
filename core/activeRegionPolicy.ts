@@ -16,18 +16,23 @@
 */
 
 import {
-  getMinValidationWords,
-  getMaxValidationWords,
+  getActiveRegionWords,
 } from '../config/defaultThresholds';
 import { defaultLMBehaviorConfig } from './lm/policy';
+import { alignToGraphemeBoundaries, isCaretSafe } from '../utils/grapheme';
 
 export interface DiffusionStateLike {
   text: string;
   caret: number;
   frontier: number;
+  // v0.6: burst growth tracking
+  lastTypingTime?: number;
+  burstStartTime?: number;
+  burstKeyCount?: number;
 }
 
 export interface ActiveRegionPolicy {
+  // v0.6: Single Active Region (no separate render/context ranges)
   computeRenderRange(state: DiffusionStateLike): { start: number; end: number };
   computeContextRange(state: DiffusionStateLike): { start: number; end: number };
 }
@@ -69,23 +74,43 @@ function computeRenderRangeInternal(state: DiffusionStateLike): {
   start: number;
   end: number;
 } {
-  const startBound = state.frontier;
   const endBound = state.caret;
-  if (startBound >= endBound) return { start: endBound, end: endBound };
+  if (endBound <= 0) return { start: 0, end: 0 };
 
-  const words = iterateWordSegments(state.text, startBound, endBound);
-  const minWords = getMinValidationWords();
-  const maxWords = getMaxValidationWords();
-  const take = Math.min(Math.max(words.length, minWords), maxWords);
-  const start =
-    words.length > 0 ? words[Math.max(0, words.length - take)].start : startBound;
-  let renderStart = start;
-  const lastNewline = state.text.lastIndexOf('\n', endBound - 1);
-  if (lastNewline >= 0 && lastNewline >= renderStart) {
-    // Prefer not to cross newline for the render range
-    renderStart = Math.max(renderStart, lastNewline + 1);
+  // v0.6: Work backwards from caret to find N words regardless of frontier
+  const searchStart = Math.max(0, endBound - 1000); // Reasonable search window
+  const words = iterateWordSegments(state.text, searchStart, endBound);
+  
+  let maxWords = getActiveRegionWords();
+  
+  // v0.6: Burst growth logic - expand region during typing bursts
+  if (state.lastTypingTime && state.burstStartTime && state.burstKeyCount) {
+    const now = Date.now();
+    const timeSinceLastKey = now - state.lastTypingTime;
+    const burstDuration = now - state.burstStartTime;
+    
+    // Detect active burst: recent typing (< 200ms since last key) and sustained activity
+    if (timeSinceLastKey < 200 && burstDuration > 500 && state.burstKeyCount > 5) {
+      // Grow region modestly during bursts (up to 1.5x base size)
+      maxWords = Math.min(Math.floor(maxWords * 1.5), 30);
+    }
   }
-  return { start: renderStart, end: endBound };
+  
+  const take = Math.min(words.length, maxWords);
+  const renderStart = take > 0 ? words[Math.max(0, words.length - take)].start : endBound;
+  
+  // Prefer not to cross newline for the render range
+  const lastNewline = state.text.lastIndexOf('\n', endBound - 1);
+  const finalStart = (lastNewline >= 0 && lastNewline >= renderStart) 
+    ? Math.max(renderStart, lastNewline + 1) 
+    : renderStart;
+  
+  // Ensure grapheme-safe boundaries and caret safety
+  const aligned = alignToGraphemeBoundaries(state.text, finalStart, endBound);
+  if (!isCaretSafe(aligned.start, aligned.end, state.caret)) {
+    return { start: state.caret, end: state.caret }; // Empty range if not caret-safe
+  }
+  return aligned;
 }
 
 function computeContextRangeInternal(
@@ -104,7 +129,7 @@ export const defaultActiveRegionPolicy: ActiveRegionPolicy = {
     return computeRenderRangeInternal(state);
   },
   computeContextRange(state) {
-    const render = computeRenderRangeInternal(state);
-    return computeContextRangeInternal(state, render);
+    // v0.6: Same range for render and context (single Active Region)
+    return computeRenderRangeInternal(state);
   },
 };

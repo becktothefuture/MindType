@@ -13,12 +13,11 @@
 
 ## Overview (v0.6+)
 
-**Revolutionary Context**: LM integration supports the **Correction Marker** system and **Seven Scenarios** through device-tier optimization.
+**Revolutionary Context**: LM integration supports the **Correction Marker** and **Seven Scenarios** with a single Active Region.
 
-- Core orchestrates LM usage inside the Context stage. UI is thin.
-- We select a short span behind the caret, build a context‑aware prompt,
-  stream tokens, then merge only within the active region. Never at/after caret.
-- Dual‑context windowing is used: Close (2–5 nearby sentences, active excluded) and Wide (document‑level) for coherence validation.
+- Core orchestrates LM usage; UI remains thin.
+- We select a short span behind the caret, build a concise prompt, stream tokens, then merge only within the Active Region. Never at/after the caret.
+- Context is sentence‑aware but bounded by the Active Region; no separate render/context ranges, and no wide/document‑level validation step.
 - In the web demo, Transformers.js runs in a Web Worker for smooth UI.
 
 ## Contract (adapter)

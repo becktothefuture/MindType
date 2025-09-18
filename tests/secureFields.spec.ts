@@ -13,7 +13,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { boot } from '../index';
 
 vi.mock('../engines/noiseTransformer', () => ({
-  noiseTransform: vi.fn(() => ({ diff: null })),
+  noiseTransformSync: vi.fn(() => ({ diff: null })),
 }));
 vi.mock('../engines/backfillConsistency', () => ({
   backfillConsistency: vi.fn(() => ({ diffs: [] })),

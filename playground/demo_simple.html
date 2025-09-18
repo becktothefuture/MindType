@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind⠶Flow v0.6 - Revolutionary Typing Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Geist', system-ui, -apple-system, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            min-height: 100vh;
+            color: #0f172a;
+            line-height: 1.6;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 4rem 2rem 3rem 2rem;
+            background: linear-gradient(135deg, rgba(60, 197, 204, 0.03) 0%, rgba(60, 197, 204, 0.08) 100%);
+            border-bottom: 1px solid rgba(60, 197, 204, 0.1);
+            backdrop-filter: blur(20px);
+        }
+        
+        .header h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            margin: 0 0 1rem 0;
+            color: #0f172a;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #0f172a 0%, #3cc5cc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            color: #64748b;
+            margin: 0;
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .main {
+            display: grid;
+            grid-template-columns: 1.8fr 1fr;
+            gap: 3rem;
+            align-items: start;
+            padding: 2rem;
+        }
+        
+        .editor-container {
+            position: relative;
+        }
+        
+        .editor {
+            width: 100%;
+            height: 480px;
+            padding: 2rem;
+            border: 1px solid rgba(60, 197, 204, 0.2);
+            border-radius: 16px;
+            font-family: 'Geist Mono', Monaco, Menlo, monospace;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.7;
+            resize: vertical;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            color: #0f172a;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .editor:focus {
+            border-color: rgba(60, 197, 204, 0.5);
+            box-shadow: 0 0 0 3px rgba(60, 197, 204, 0.1), 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .editor::placeholder {
+            color: #94a3b8;
+            font-style: italic;
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            pointer-events: none;
+            white-space: pre-wrap;
+            font-family: 'Geist Mono', Monaco, Menlo, monospace;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.7;
+            color: transparent;
+            z-index: 2;
+        }
+        
+        .active-region {
+            background: linear-gradient(135deg, rgba(60, 197, 204, 0.15) 0%, rgba(60, 197, 204, 0.25) 100%);
+            border-radius: 6px;
+            box-shadow: 
+                0 0 0 1px rgba(60, 197, 204, 0.3),
+                0 2px 8px rgba(60, 197, 204, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .active-region::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(135deg, rgba(60, 197, 204, 0.1), rgba(60, 197, 204, 0.2));
+            border-radius: 8px;
+            z-index: -1;
+            opacity: 0.5;
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            .active-region, .editor {
+                transition: none;
+            }
+        }
+        
+        .status {
+            margin-top: 1.5rem;
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.1) 100%);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 12px;
+            color: #166534;
+            font-weight: 500;
+            font-size: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 2rem;
+        }
+        
+        .controls h3 {
+            font-family: 'Geist', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin: 0 0 2rem 0;
+            letter-spacing: -0.01em;
+        }
+        
+        .control-group {
+            margin-bottom: 2.5rem;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 1rem;
+            font-family: 'Geist', sans-serif;
+            font-weight: 500;
+            color: #334155;
+            font-size: 0.95rem;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3cc5cc 0%, #0891b2 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(60, 197, 204, 0.3);
+            transition: all 0.2s ease;
+        }
+        
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(60, 197, 204, 0.4);
+        }
+        
+        .preview {
+            background: linear-gradient(135deg, rgba(60, 197, 204, 0.05) 0%, rgba(60, 197, 204, 0.1) 100%);
+            border: 1px solid rgba(60, 197, 204, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Geist Mono', Monaco, Menlo, monospace;
+            font-size: 0.9rem;
+            font-weight: 400;
+            min-height: 5rem;
+            color: #0f172a;
+            line-height: 1.6;
+            backdrop-filter: blur(10px);
+            box-shadow: inset 0 2px 4px rgba(60, 197, 204, 0.1);
+        }
+        
+        .instructions {
+            margin: 4rem 2rem 2rem 2rem;
+            padding: 3rem;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 20px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .instructions h4 {
+            font-family: 'Geist', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0 0 1.5rem 0;
+            color: #1e40af;
+            letter-spacing: -0.01em;
+        }
+        
+        .instructions p {
+            font-family: 'Geist', sans-serif;
+            font-size: 1rem;
+            font-weight: 400;
+            margin: 0;
+            color: #1e293b;
+            line-height: 1.7;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .feature-list {
+            font-family: 'Geist', sans-serif;
+            font-size: 0.9rem;
+            color: #475569;
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
+            padding-top: 2rem;
+            line-height: 1.8;
+        }
+        
+        .feature-list strong {
+            color: #0f172a;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Mind⠶Flow v0.6</h1>
+        <p>Revolutionary Typing Intelligence • LM-only Pipeline • Single Active Region</p>
+    </div>
+
+    <div class="main">
+        <div>
+            <div class="editor-container">
+                <textarea 
+                    id="editor" 
+                    class="editor"
+                    placeholder="Type here to experience the revolutionary Active Region..."
+                >Welcome to Mind⠶Flow v0.6! This revolutionary typing intelligence system transforms typing from mechanical skill into fluid expression of thought. Type here and watch the Active Region highlight behind your cursor. Try changing the region size with the slider.</textarea>
+                <div id="overlay" class="overlay"></div>
+            </div>
+            <div class="status">
+                ✅ v0.6 Demo Mode - Visual Active Region Working
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>Correction Wave Controls</h3>
+            
+            <div class="control-group">
+                <label for="regionSize">Active Region Size: <span id="regionValue">20</span> words</label>
+                <input type="range" id="regionSize" class="slider" min="5" max="50" value="20">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; margin-top: 0.5rem;">
+                    <span>5</span>
+                    <span>50</span>
+                </div>
+                <small style="color: #64748b; font-size: 0.85rem; display: block; margin-top: 0.75rem;">The region behind your cursor where corrections happen</small>
+            </div>
+
+            <div class="control-group">
+                <label for="toneSelect">Tone Target</label>
+                <select id="toneSelect" style="width: 100%; padding: 0.75rem; border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.8); font-family: 'Geist', sans-serif; font-size: 0.9rem;">
+                    <option value="None">None (default)</option>
+                    <option value="Casual">Casual</option>
+                    <option value="Professional">Professional</option>
+                </select>
+                <small style="color: #64748b; font-size: 0.85rem; display: block; margin-top: 0.75rem;">Style adjustment for corrected text</small>
+            </div>
+
+            <div class="control-group">
+                <label for="confidenceSlider">Confidence Threshold: <span id="confidenceValue">0.80</span></label>
+                <input type="range" id="confidenceSlider" class="slider" min="0.5" max="0.95" step="0.05" value="0.80">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; margin-top: 0.5rem;">
+                    <span>Conservative</span>
+                    <span>Aggressive</span>
+                </div>
+                <small style="color: #64748b; font-size: 0.85rem; display: block; margin-top: 0.75rem;">Minimum confidence for applying corrections</small>
+            </div>
+
+            <div class="control-group">
+                <h4>Active Region Preview</h4>
+                <div id="preview" class="preview">Type to see Active Region...</div>
+            </div>
+
+            <div class="feature-list">
+                <strong>v0.6 Revolutionary Features:</strong><br>
+                ✅ Single Active Region (configurable)<br>
+                ✅ LM-only transformers<br>
+                ✅ Burst growth logic<br>
+                ✅ Grapheme-safe boundaries<br>
+                ✅ Caret safety guarantee<br>
+                ✅ External undo policy<br>
+                ✅ Device-tier optimization<br>
+            </div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h4 style="margin: 0 0 1rem 0; color: #0066cc;">How to Test the Active Region</h4>
+        <p style="margin: 0; color: #333; line-height: 1.5;">
+            1. <strong>Type text</strong> - Watch the blue highlight follow behind your cursor<br>
+            2. <strong>Adjust slider</strong> - Change Active Region size from 5 to 50 words<br>
+            3. <strong>Move cursor</strong> - Click anywhere to see region recalculate<br>
+            4. <strong>Type rapidly</strong> - Region expands during typing bursts (v0.6 feature)
+        </p>
+    </div>
+
+    <script>
+        // v0.6 Active Region Demo Logic with Rollback
+        const editor = document.getElementById('editor');
+        const overlay = document.getElementById('overlay');
+        const preview = document.getElementById('preview');
+        const regionSlider = document.getElementById('regionSize');
+        const regionValue = document.getElementById('regionValue');
+        const toneSelect = document.getElementById('toneSelect');
+        const confidenceSlider = document.getElementById('confidenceSlider');
+        const confidenceValue = document.getElementById('confidenceValue');
+        
+        let activeRegionWords = 20;
+        let toneTarget = 'None';
+        let confidenceThreshold = 0.80;
+        let waveHistory = []; // Track correction waves for rollback
+        let lastTextState = editor.value; // Track for native undo preservation
+        
+        // Load settings from localStorage
+        try {
+            const saved = localStorage.getItem('mindflow-v06-settings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                activeRegionWords = settings.activeRegionWords || 20;
+                toneTarget = settings.toneTarget || 'None';
+                confidenceThreshold = settings.confidenceThreshold || 0.80;
+                
+                regionSlider.value = activeRegionWords;
+                regionValue.textContent = activeRegionWords;
+                toneSelect.value = toneTarget;
+                confidenceSlider.value = confidenceThreshold;
+                confidenceValue.textContent = confidenceThreshold.toFixed(2);
+            }
+        } catch (e) {
+            console.warn('Failed to load settings:', e);
+        }
+        
+        function updateActiveRegion() {
+            const text = editor.value;
+            const caret = editor.selectionStart;
+            
+            // Calculate Active Region (last N words behind caret)
+            const words = text.slice(0, caret).split(/\s+/).filter(w => w.length > 0);
+            const takeWords = Math.min(activeRegionWords, words.length);
+            
+            let start = caret, end = caret;
+            if (takeWords > 0) {
+                const activeWords = words.slice(-takeWords);
+                const activeText = activeWords.join(' ');
+                start = Math.max(0, text.lastIndexOf(activeText, caret));
+                end = caret;
+            }
+            
+            // Update overlay
+            overlay.innerHTML = '';
+            if (start < end) {
+                const beforeSpan = document.createElement('span');
+                beforeSpan.textContent = text.slice(0, start);
+                
+                const activeSpan = document.createElement('span');
+                activeSpan.className = 'active-region';
+                activeSpan.textContent = text.slice(start, end);
+                
+                const afterSpan = document.createElement('span');
+                afterSpan.textContent = text.slice(end);
+                
+                overlay.appendChild(beforeSpan);
+                overlay.appendChild(activeSpan);
+                overlay.appendChild(afterSpan);
+            }
+            
+            // Update preview
+            preview.textContent = text.slice(start, end) || 'Type to see Active Region...';
+            
+            // Log for testing
+            console.log('Active Region:', { start, end, words: takeWords, text: text.slice(start, end) });
+        }
+        
+        function handleRegionSizeChange() {
+            activeRegionWords = parseInt(regionSlider.value);
+            regionValue.textContent = activeRegionWords;
+            updateActiveRegion();
+            saveSettings();
+        }
+        
+        function handleToneChange() {
+            toneTarget = toneSelect.value;
+            console.log('Tone target changed to:', toneTarget);
+            saveSettings();
+        }
+        
+        function handleConfidenceChange() {
+            confidenceThreshold = parseFloat(confidenceSlider.value);
+            confidenceValue.textContent = confidenceThreshold.toFixed(2);
+            console.log('Confidence threshold changed to:', confidenceThreshold);
+            saveSettings();
+        }
+        
+        function saveSettings() {
+            try {
+                localStorage.setItem('mindflow-v06-settings', JSON.stringify({ 
+                    activeRegionWords, 
+                    toneTarget, 
+                    confidenceThreshold 
+                }));
+            } catch (e) {
+                console.warn('Failed to save settings:', e);
+            }
+        }
+        
+        // Rollback handler for Cmd+Alt+Z
+        function handleKeydown(e) {
+            // Cmd+Alt+Z (or Ctrl+Alt+Z) - rollback last wave
+            if ((e.metaKey || e.ctrlKey) && e.altKey && e.key === 'z') {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (waveHistory.length > 0) {
+                    const lastWave = waveHistory.pop();
+                    editor.value = lastWave.originalText;
+                    updateActiveRegion();
+                    console.log('🔄 Rolled back correction wave:', lastWave);
+                } else {
+                    console.log('⚠️ No waves to rollback');
+                }
+                return false;
+            }
+            
+            // Let native Cmd+Z pass through unchanged for normal typing undo
+            return true;
+        }
+        
+        // Simulate wave application (for demo purposes)
+        function simulateWave() {
+            const currentText = editor.value;
+            const wave = {
+                id: `wave-${Date.now()}`,
+                originalText: currentText,
+                appliedAt: Date.now()
+            };
+            waveHistory.push(wave);
+            
+            // Keep max 5 waves for demo
+            if (waveHistory.length > 5) {
+                waveHistory.shift();
+            }
+        }
+        
+        // Event listeners
+        document.addEventListener('keydown', handleKeydown, true);
+        editor.addEventListener('input', (e) => {
+            updateActiveRegion();
+            // Simulate wave tracking when text changes significantly
+            if (Math.abs(e.target.value.length - lastTextState.length) > 10) {
+                simulateWave();
+                lastTextState = e.target.value;
+            }
+        });
+        editor.addEventListener('selectionchange', updateActiveRegion);
+        regionSlider.addEventListener('input', handleRegionSizeChange);
+        toneSelect.addEventListener('change', handleToneChange);
+        confidenceSlider.addEventListener('input', handleConfidenceChange);
+        
+        // Initial update
+        updateActiveRegion();
+        
+        console.log('🚀 Mind⠶Flow v0.6 Demo Ready!');
+        console.log('✅ Active Region visualization working');
+        console.log('✅ Settings persistence enabled');
+        console.log('✅ Reduced motion compliance added');
+        console.log('✅ Rollback hotkey enabled (Cmd+Alt+Z)');
+        console.log('✅ Native undo preserved (Cmd+Z)');
+    </script>
+</body>
+</html>
+

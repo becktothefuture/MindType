@@ -12,11 +12,9 @@ vi.mock('../config/defaultThresholds', () => ({
 
 // Mock engines to assert they still run after catchUp throws
 vi.mock('../engines/noiseTransformer', () => ({
-  noiseTransform: vi.fn(() => ({ diff: null })),
+  noiseTransformSync: vi.fn(() => ({ diff: null })),
 }));
-vi.mock('../engines/backfillConsistency', () => ({
-  backfillConsistency: vi.fn(() => ({ diffs: [] })),
-}));
+// v0.6: backfillConsistency removed
 
 const tickOnce = vi.fn();
 const catchUp = vi.fn(async () => {
@@ -34,15 +32,15 @@ vi.mock('../core/diffusionController', () => ({
 
 import { createTypingMonitor } from '../core/typingMonitor';
 import { createSweepScheduler } from '../core/sweepScheduler';
-import { noiseTransform } from '../engines/noiseTransformer';
-import { backfillConsistency } from '../engines/backfillConsistency';
+import { noiseTransformSync } from '../engines/noiseTransformer';
+// v0.6: backfillConsistency removed
 import { SHORT_PAUSE_MS } from '../config/defaultThresholds';
 
 describe('SweepScheduler catchUp error branch', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    (noiseTransform as unknown as { mockClear?: () => void }).mockClear?.();
-    (backfillConsistency as unknown as { mockClear?: () => void }).mockClear?.();
+    (noiseTransformSync as unknown as { mockClear?: () => void }).mockClear?.();
+    // v0.6: backfillConsistency removed
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -58,7 +56,7 @@ describe('SweepScheduler catchUp error branch', () => {
     await vi.runOnlyPendingTimersAsync();
     await Promise.resolve();
 
-    expect(noiseTransform).toHaveBeenCalled();
-    expect(backfillConsistency).toHaveBeenCalled();
+    expect(noiseTransformSync).toHaveBeenCalled();
+    // v0.6: backfillConsistency removed
   });
 });

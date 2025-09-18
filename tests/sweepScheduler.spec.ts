@@ -27,11 +27,9 @@ import { SHORT_PAUSE_MS, getTypingTickMs } from '../config/defaultThresholds';
 
 // Mock engines to observe calls after pause catch-up
 vi.mock('../engines/noiseTransformer', () => ({
-  noiseTransform: vi.fn(() => ({ diff: null })),
+  noiseTransformSync: vi.fn(() => ({ diff: null })),
 }));
-vi.mock('../engines/backfillConsistency', () => ({
-  backfillConsistency: vi.fn(() => ({ diffs: [] })),
-}));
+// v0.6: backfillConsistency removed
 
 // Mock DiffusionController to track tick/catchUp invocations and state
 const tickOnce = vi.fn();
@@ -52,16 +50,16 @@ vi.mock('../core/diffusionController', () => ({
 
 // Import after mocks are in place
 import { createSweepScheduler } from '../core/sweepScheduler';
-import { noiseTransform } from '../engines/noiseTransformer';
-import { backfillConsistency } from '../engines/backfillConsistency';
+import { noiseTransformSync } from '../engines/noiseTransformer';
+// v0.6: backfillConsistency removed
 
 describe('SweepScheduler', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     tickOnce.mockClear();
     catchUp.mockClear();
-    (noiseTransform as unknown as { mockClear?: () => void }).mockClear?.();
-    (backfillConsistency as unknown as { mockClear?: () => void }).mockClear?.();
+    (noiseTransformSync as unknown as { mockClear?: () => void }).mockClear?.();
+    // v0.6: backfillConsistency removed
     state = { text: '', caret: 0, frontier: 0 };
   });
 
@@ -97,8 +95,8 @@ describe('SweepScheduler', () => {
     await Promise.resolve();
 
     expect(catchUp).toHaveBeenCalled();
-    expect(noiseTransform).toHaveBeenCalled();
-    expect(backfillConsistency).toHaveBeenCalled();
+    expect(noiseTransformSync).toHaveBeenCalled();
+    // v0.6: backfillConsistency removed
 
     scheduler.stop();
   });
@@ -118,8 +116,8 @@ describe('SweepScheduler', () => {
     await Promise.resolve();
     expect(tickOnce).not.toHaveBeenCalled();
     expect(catchUp).not.toHaveBeenCalled();
-    expect(noiseTransform).not.toHaveBeenCalled();
-    expect(backfillConsistency).not.toHaveBeenCalled();
+    expect(noiseTransformSync).not.toHaveBeenCalled();
+    // v0.6: backfillConsistency removed
 
     scheduler.stop();
   });

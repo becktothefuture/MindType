@@ -82,9 +82,9 @@ describe('DiffusionController branches', () => {
       },
     }));
 
-    // Mock noiseTransform to return a diff so we hit the try/catch path
+    // Mock noiseTransformSync to return a diff so we hit the try/catch path
     vi.doMock('../engines/noiseTransformer', () => ({
-      noiseTransform: () => ({ diff: { start: 0, end: 3, text: 'the' } }),
+      noiseTransformSync: () => ({ diff: { start: 0, end: 3, text: 'the' } }),
     }));
 
     const { createDiffusionController } = await import('../core/diffusionController');

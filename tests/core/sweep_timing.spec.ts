@@ -20,7 +20,7 @@ vi.mock('../../engines/contextTransformer', () => ({
 }));
 
 vi.mock('../../engines/noiseTransformer', () => ({
-  noiseTransform: vi.fn(() => ({ diff: null })),
+  noiseTransformSync: vi.fn(() => ({ diff: null })),
 }));
 
 describe('Sweep Timing Behavior', () => {

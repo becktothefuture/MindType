@@ -18,6 +18,11 @@
 export interface LMCapabilities {
   backend: 'webgpu' | 'wasm' | 'cpu' | 'unknown';
   maxContextTokens?: number;
+  tokenCaps: {
+    webgpu: number;
+    wasm: number;
+    cpu: number;
+  };
   features?: {
     webgpu?: boolean;
     wasmSimd?: boolean;
@@ -33,8 +38,11 @@ export interface LMInitOptions {
 export interface LMStreamParams {
   text: string;
   caret: number;
-  band: { start: number; end: number };
-  settings?: Record<string, unknown>;
+  activeRegion: { start: number; end: number }; // v0.6: renamed from 'band'
+  settings?: Record<string, unknown> & {
+    maxNewTokens?: number;
+    deviceTier?: 'webgpu' | 'wasm' | 'cpu';
+  };
 }
 
 export interface LMAdapter {
