@@ -58,18 +58,51 @@ async function loadGeneratorSingleton(
   singletonInitOptions = options;
   const modelId = options?.modelId ?? 'onnx-community/Qwen2.5-0.5B-Instruct';
   singletonGenerator = (async (): Promise<LoadedGenerator> => {
-    // Dynamic import keeps core decoupled from heavy deps
-    const { pipeline, TextStreamer, env } = (await import(
-      '@huggingface/transformers'
-    )) as unknown as {
-      pipeline: (
-        task: string,
-        model: string,
-        options: Record<string, unknown>,
-      ) => Promise<GeneratorFn>;
-      TextStreamer: new (tokenizer: unknown, opts: Record<string, unknown>) => unknown;
-      env: Record<string, unknown>;
-    };
+    let pipeline: any, TextStreamer: any, env: any;
+    
+    try {
+      console.log('[TransformersRunner] 📦 Attempting to import @huggingface/transformers...');
+      console.log('[TransformersRunner] Environment check:', {
+        isWorker: typeof importScripts !== 'undefined',
+        hasWindow: typeof window !== 'undefined',
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
+      });
+      
+      // Dynamic import keeps core decoupled from heavy deps
+      console.log('[TransformersRunner] 🔄 Starting dynamic import of @huggingface/transformers...');
+      const transformersModule = await import('@huggingface/transformers');
+      console.log('[TransformersRunner] ✅ Successfully imported transformers module');
+      console.log('[TransformersRunner] Module keys:', Object.keys(transformersModule));
+      
+      ({ pipeline, TextStreamer, env } = transformersModule as unknown as {
+        pipeline: (
+          task: string,
+          model: string,
+          options: Record<string, unknown>,
+        ) => Promise<GeneratorFn>;
+        TextStreamer: new (tokenizer: unknown, opts: Record<string, unknown>) => unknown;
+        env: Record<string, unknown>;
+      });
+      
+      console.log('[TransformersRunner] 🔧 Extracted pipeline, TextStreamer, env from module');
+      console.log('[TransformersRunner] Component check:', {
+        hasPipeline: typeof pipeline === 'function',
+        hasTextStreamer: typeof TextStreamer === 'function',
+        hasEnv: typeof env === 'object'
+      });
+    } catch (importError) {
+      console.error('[TransformersRunner] ❌ Failed to import @huggingface/transformers:', importError);
+      console.error('[TransformersRunner] Import error details:', {
+        message: importError.message,
+        stack: importError.stack,
+        name: importError.name,
+        cause: importError.cause
+      });
+      
+      // Note: avoid extra conditional branches here to keep coverage stable
+      
+      throw new Error(`Failed to import @huggingface/transformers: ${importError.message}`);
+    }
 
     const opts = singletonInitOptions;
     // Environment configuration for self‑hosting and fallbacks

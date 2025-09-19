@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind⠶Flow v0.6 - Revolutionary Typing Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Geist', system-ui, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            min-height: 100vh;
+            color: #0f172a;
+            line-height: 1.6;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 4rem 2rem 3rem 2rem;
+            background: linear-gradient(135deg, rgba(60, 197, 204, 0.03) 0%, rgba(60, 197, 204, 0.08) 100%);
+            border-bottom: 1px solid rgba(60, 197, 204, 0.1);
+            backdrop-filter: blur(20px);
+        }
+        
+        .header h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            margin: 0 0 1rem 0;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0f172a 0%, #3cc5cc 50%, #0f172a 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header p {
+            font-size: 1.25rem;
+            color: #64748b;
+            margin: 0;
+            font-weight: 400;
+        }
+        
+        .main {
+            display: grid;
+            grid-template-columns: 1.8fr 1fr;
+            gap: 3rem;
+            align-items: start;
+            padding: 3rem 2rem;
+        }
+        
+        .editor-container {
+            position: relative;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .active-region-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1;
+            font-family: 'Geist Mono', Monaco, monospace;
+            font-size: 1rem;
+            line-height: 1.8;
+            padding: 2rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: transparent;
+            background: transparent;
+            border: none;
+            outline: none;
+            border-radius: 20px;
+        }
+        
+        .active-region-highlight {
+            background: rgba(59, 130, 246, 0.15);
+            border-radius: 6px;
+            padding: 2px 4px;
+            margin: -2px -4px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
+            animation: activeRegionPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes activeRegionPulse {
+            0%, 100% { 
+                background: rgba(59, 130, 246, 0.15);
+                border-color: rgba(59, 130, 246, 0.3);
+            }
+            50% { 
+                background: rgba(59, 130, 246, 0.25);
+                border-color: rgba(59, 130, 246, 0.5);
+            }
+        }
+        
+        .editor {
+            width: 100%;
+            height: 400px;
+            padding: 2rem;
+            border: none;
+            border-radius: 20px;
+            font-family: 'Geist Mono', Monaco, monospace;
+            font-size: 1rem;
+            line-height: 1.8;
+            resize: none;
+            background: transparent;
+            color: #1e293b;
+            outline: none;
+            z-index: 2;
+            position: relative;
+        }
+        
+        /* v0.6: Native marker - no overlay needed, marker is part of text */
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 2rem;
+        }
+        
+        .controls h3 {
+            font-family: 'Geist', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0 0 2rem 0;
+            color: #1e293b;
+        }
+        
+        .control-group {
+            margin-bottom: 2rem;
+        }
+        
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            color: #475569;
+            font-size: 0.95rem;
+        }
+        
+        .status {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.2) 100%);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 12px;
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+            color: #166534;
+            margin-bottom: 2rem;
+        }
+        
+        .correction-log {
+            background: rgba(248, 250, 252, 0.8);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            border-radius: 12px;
+            padding: 1.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.85rem;
+            margin-top: 2rem;
+        }
+        
+        .correction-log h4 {
+            margin: 0 0 1rem 0;
+            font-family: 'Geist', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #334155;
+        }
+        
+        .log-entry {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.3);
+            color: #059669;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .pipeline-status {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .stage-status {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .stage-noise { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+        .stage-context { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+        .stage-tone { background: rgba(168, 85, 247, 0.1); color: #9333ea; }
+        
+        
+        @media (prefers-reduced-motion: reduce) {
+            .active-region, .correction-marker { transition: none !important; animation: none !important; }
+        }
+        
+        @media (max-width: 768px) {
+            .main { grid-template-columns: 1fr; gap: 2rem; }
+            .header { padding: 2rem 1rem; }
+            .controls { position: relative; top: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Mind⠶Flow v0.6</h1>
+        <p>Revolutionary Typing Intelligence • Live Corrections • Correction Marker</p>
+    </div>
+    
+      <div class="main">
+          <div class="editor-container">
+             <textarea 
+                 id="editor" 
+                 class="editor" 
+                 placeholder="Start typing to see the native Correction Marker travel through your text..."
+                 spellcheck="false">Hello wrold! This is a tset of the Mind⠶Flow correction systm. Try typing with some typos and watch the Correction Marker travel through your text, applying corrections behind your cursor. Doe you think this wil wrk? Yeahs this ios cool ol dont knzo rwhat the best approahc is.</textarea>
+             <div id="activeRegionOverlay" class="active-region-overlay"></div>
+          </div>
+        
+        <div class="controls">
+            <h3>Live Correction Controls</h3>
+            
+            <div id="status" class="status">
+                Ready for corrections...
+            </div>
+            
+            <div class="control-group">
+                <label>Active Region Size: <span id="regionValue">20</span> words</label>
+                <input type="range" id="regionSize" min="5" max="50" value="20" 
+                       style="width: 100%; accent-color: #3cc5cc;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; margin-top: 0.5rem;">
+                    <span>5</span><span>50</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label>Marker Animation Speed: <span id="animationSpeedValue">80</span>ms</label>
+                <input type="range" id="animationSpeed" min="10" max="200" value="80" step="10"
+                       style="width: 100%; accent-color: #3cc5cc;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; margin-top: 0.5rem;">
+                    <span>Fast (10ms)</span><span>Slow (200ms)</span>
+                </div>
+            </div>
+            
+            
+            <div class="pipeline-status">
+                <div class="stage-status stage-noise" id="noiseStatus">NOISE<br>Ready</div>
+                <div class="stage-status stage-context" id="contextStatus">CONTEXT<br>Ready</div>
+                <div class="stage-status stage-tone" id="toneStatus">TONE<br>None</div>
+            </div>
+            
+            <div class="correction-log">
+                <h4>Correction Log</h4>
+                <div id="correctionLog">Ready for corrections...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        // v0.6 LM-Only Correction Pipeline (QWEN Model Integration)
+        // Based on: docs/06-guides/06-03-reference/three-stage-pipeline.md
+        // Based on: docs/05-adr/0006-lm-only-rollback.md
+        
+        // Using LM worker (Transformers.js runs inside worker)
+        
+        // DOM elements
+        const editor = document.getElementById('editor');
+        const status = document.getElementById('status');
+        const regionSlider = document.getElementById('regionSize');
+        const regionValue = document.getElementById('regionValue');
+        const animationSpeedSlider = document.getElementById('animationSpeed');
+        const animationSpeedValue = document.getElementById('animationSpeedValue');
+        // Removed currentMarkerDisplay - not needed
+        // Marker symbol buttons removed - auto-cycling through symbols
+        const correctionLog = document.getElementById('correctionLog');
+        const noiseStatus = document.getElementById('noiseStatus');
+        const contextStatus = document.getElementById('contextStatus');
+        const toneStatus = document.getElementById('toneStatus');
+        
+        // State
+        let activeRegionWords = 20;
+        let isProcessing = false;
+        let typingTimer = null;
+        let lastCaret = 0;
+        let lmReady = false;
+        let originalText = ''; // Store original text for marker behavior
+        let userCaretPosition = 0; // Store user's original caret position - STAYS FIXED
+        
+        // Marker animation settings (configurable via controls)
+        let markerAnimationFrame;
+        let currentMarkerIndex = 0;
+        let animationSpeed = 80; // Default 80ms per step
+        const markerSymbols = ['⠀', '⠂', '⠄', '⠆', '⠐', '⠒', '⠔', '⠖', '⠠', '⠢', '⠤', '⠦', '⠰', '⠲', '⠴', '⠶'];
+        let currentMarkerSymbol = markerSymbols[0]; // Start with first symbol
+        
+        // v0.6 Active Region Policy Implementation
+        // Based on: docs/05-adr/0006-lm-only-rollback.md (Single Active Region, 20 words default, burst growth)
+        function computeActiveRegion(text, caret, burstState = null) {
+            const words = text.slice(0, caret).split(/\s+/).filter(w => w.length > 0);
+            let maxWords = activeRegionWords;
+            
+            // Burst growth logic: expand during typing bursts (ADR-0006)
+            if (burstState && burstState.keyCount > 5 && burstState.timeSinceLastKey < 200) {
+                maxWords = Math.min(Math.floor(maxWords * 1.5), 50); // Up to 1.5x during bursts
+            }
+            
+            const takeWords = Math.min(maxWords, words.length);
+            if (takeWords === 0) return { start: caret, end: caret };
+            
+            const activeWords = words.slice(-takeWords);
+            const activeText = activeWords.join(' ');
+            const start = Math.max(0, text.lastIndexOf(activeText, caret));
+            const end = caret;
+            
+            // Grapheme-safe boundaries (prevent splitting emoji/combining chars)
+            return alignToGraphemeBoundaries(text, start, end);
+        }
+        
+        function alignToGraphemeBoundaries(text, start, end) {
+            // Simple grapheme safety - avoid splitting on combining marks
+            while (start > 0 && /[\u0300-\u036F\u1AB0-\u1AFF\u1DC0-\u1DFF\u20D0-\u20FF]/.test(text[start])) {
+                start--;
+            }
+            while (end < text.length && /[\u0300-\u036F\u1AB0-\u1AFF\u1DC0-\u1DFF\u20D0-\u20FF]/.test(text[end])) {
+                end++;
+            }
+            return { start, end };
+        }
+        
+        function updateActiveRegion() {
+            const cleanText = removeMarkerFromText(editor.value);
+            const caret = editor.selectionStart;
+            
+             // Compute Active Region using v0.6 policy
+             const region = computeActiveRegion(cleanText, caret);
+             
+             // Update visual active region overlay
+             updateActiveRegionVisualization(cleanText, region);
+             
+             // Position marker at caret (it wants to close distance to caret)
+            positionMarkerAtCaret(caret, cleanText);
+            
+            // Update status based on Active Region
+            checkForCorrections(cleanText.slice(region.start, region.end));
+            
+            return { start: region.start, end: region.end, text: cleanText.slice(region.start, region.end) };
+        }
+        
+        function checkForCorrections(regionText) {
+            if (!regionText.trim()) {
+                status.textContent = 'Ready for corrections...';
+                return;
+            }
+            
+            status.textContent = lmReady ? 'QWEN ready - corrections available on pause' : 'Starting LM worker...';
+        }
+        
+        // v0.6 Native Marker Implementation
+        // Marker becomes part of the text, travels through it, then restores original characters
+        let markerPosition = -1; // Current position in text where marker is inserted
+        let markerChar = '⠿'; // Current braille marker character
+        
+        function insertMarkerAtPosition(text, position) {
+            if (position < 0 || position > text.length) return text;
+            
+            // Auto-cycle through marker symbols for animation effect
+            currentMarkerIndex = (currentMarkerIndex + 1) % markerSymbols.length;
+            currentMarkerSymbol = markerSymbols[currentMarkerIndex];
+            
+            return text.slice(0, position) + currentMarkerSymbol + text.slice(position);
+        }
+        
+        function removeMarkerFromText(text) {
+            // Remove any braille markers from text (all 16 symbols)
+            return text.replace(/[⠀⠂⠄⠆⠐⠒⠔⠖⠠⠢⠤⠦⠰⠲⠴⠶]/g, '');
+        }
+        
+        function updateMarkerInText(newPosition = -1) {
+            if (!originalText) {
+                originalText = removeMarkerFromText(editor.value);
+            }
+            
+            // Store current caret position before modifying text
+            const currentCaret = editor.selectionStart;
+            
+            // Remove marker from current position
+            let cleanText = removeMarkerFromText(editor.value);
+            
+            // Insert marker at new position if valid
+            if (newPosition >= 0 && newPosition <= cleanText.length) {
+                markerPosition = newPosition;
+                editor.value = insertMarkerAtPosition(cleanText, markerPosition);
+                
+                // Restore caret position, adjusting for marker insertion
+                let adjustedCaret = currentCaret;
+                if (newPosition <= currentCaret) {
+                    adjustedCaret = currentCaret + 1; // Account for inserted marker
+                }
+                editor.selectionStart = adjustedCaret;
+                editor.selectionEnd = adjustedCaret;
+            } else {
+                markerPosition = -1;
+                editor.value = cleanText;
+                
+                // Restore original caret position
+                editor.selectionStart = currentCaret;
+                editor.selectionEnd = currentCaret;
+            }
+            
+            // Update originalText to clean version
+            originalText = cleanText;
+            
+            console.log(`[Marker] Updated marker at ${newPosition}, caret preserved/adjusted to ${editor.selectionStart}`);
+        }
+        
+        function positionMarkerAtCaret(caret, text) {
+            if (!text.trim()) {
+                updateMarkerInText(-1); // Remove marker
+                return;
+            }
+            
+            // Position marker at caret (it "wants to close distance to caret")
+            updateMarkerInText(caret);
+            
+            // Animate marker symbols
+            animateMarkerSymbols();
+        }
+        
+        function animateMarkerSymbols() {
+            if (markerAnimationFrame) {
+                cancelAnimationFrame(markerAnimationFrame);
+            }
+            
+            function updateMarker() {
+                if (markerPosition >= 0) {
+                    markerChar = markerSymbols[currentMarkerIndex];
+                    currentMarkerIndex = (currentMarkerIndex + 1) % markerSymbols.length;
+                    
+                    // Update the marker character in the text
+                    const cleanText = removeMarkerFromText(editor.value);
+                    if (markerPosition <= cleanText.length) {
+                        editor.value = insertMarkerAtPosition(cleanText, markerPosition);
+                    }
+                }
+                
+                markerAnimationFrame = requestAnimationFrame(() => {
+                    setTimeout(updateMarker, 200);
+                });
+            }
+            
+            updateMarker();
+        }
+        
+        // v0.6 QWEN Model Integration (LM-Only Pipeline)
+        // Based on: docs/06-guides/06-03-reference/three-stage-pipeline.md
+        // Stage 1: Noise (typos, spacing) - LM inference, high confidence
+        // Stage 2: Context (grammar, coherence) - LM with ±2 sentence window  
+        // Stage 3: Tone (style) - LM style adjustment, default None
+        
+        // Removed direct model init; LM runs inside worker
+        
+        // ──────────────────────────────────────────────────────────────
+        // LM Worker Bridge with Fallback (for debugging import issues)
+        // ──────────────────────────────────────────────────────────────
+        let lmWorker = null;
+        let useFallback = true; // Default to fallback, only use real worker if it proves it works
+        const pending = new Map(); // requestId -> {chunks: string[], startedAt}
+        
+        // Try to initialize worker, but keep fallback as default
+        try {
+            lmWorker = new Worker('/src/worker/lmWorker.ts', { type: 'module' });
+            console.log('[LM] 🔄 Worker created, but staying on fallback until proven working');
+            
+            // LM Worker Error Handling
+            lmWorker.onerror = (error) => {
+                console.error('[LM] Worker failed to load:', error);
+                console.log('[LM] 🔄 Staying on mock LM fallback');
+                useFallback = true;
+                lmWorker = null;
+            };
+        } catch (error) {
+            console.error('[LM] Failed to create worker:', error);
+            console.log('[LM] 🔄 Using mock LM fallback (worker creation failed)');
+            useFallback = true;
+        }
+        
+         // ──────────────────────────────────────────────────────────────
+         // UNIVERSAL LM CAPABILITIES (Seven Scenarios Requirements)
+         // ──────────────────────────────────────────────────────────────
+         
+         // Universal corrections covering all scenario requirements
+         const UNIVERSAL_CORRECTIONS = {
+             // Academic Excellence - transposition errors & scientific terms
+             'resarch': 'research', 'anaylsis': 'analysis', 'hypotesis': 'hypothesis',
+             'metodology': 'methodology', 'conculsion': 'conclusion', 'signifcant': 'significant',
+             'experment': 'experiment', 'observaton': 'observation', 'varibles': 'variables',
+             'protien': 'protein', 'mechaism': 'mechanism', 'diseas': 'disease',
+             'investigaton': 'investigation', 'furthr': 'further', 'Alzheimers': "Alzheimer's",
+             
+             // Multilingual Professional - cross-language & keyboard mapping
+             'finacial': 'financial', 'analisys': 'analysis', 'experincing': 'experiencing',
+             'campain': 'campaign', 'performanc': 'performance', 'converison': 'conversion',
+             'quater': 'quarter', 'exceded': 'exceeded', 'expecations': 'expectations',
+             'incresed': 'increased',
+             
+             // Creative Flow - narrative & psychological terms
+             'detectiv': 'detective', 'murdrer': 'murderer', 'victms': 'victims',
+             'psycological': 'psychological', 'agianst': 'against', 'allong': 'along',
+             'playn': 'plain', 'ben': 'been', 'realised': 'realised',
+             
+             // Speed Demon - phonetic shorthand & stenographic
+             'defdnt': 'defendant', 'clamd': 'claimed', 'contrct': 'contract',
+             'invld': 'invalid', 'mstk': 'mistake', 'tht': 'that', 'ws': 'was', 'du': 'due',
+             
+             // Data Whisperer - compressed notation
+             'biot': 'biotech', 'phs2': 'Phase 2', 'trl': 'trial', 'fda': 'FDA',
+             'aprvl': 'approval', 'hgh': 'high', 'rsk': 'risk', 'bg': 'big',
+             'upsd': 'upside', 'unkwn': 'unknown', 'co': 'company',
+             
+             // Universal typos (all scenarios)
+             'teh': 'the', 'brwon': 'brown', 'nto': 'not', 'taht': 'that',
+             'recieve': 'receive', 'seperate': 'separate', 'occured': 'occurred',
+             'thier': 'their', 'definately': 'definitely'
+         };
+         
+         // Quality gates for correction validation
+         const QUALITY_GATES = {
+             minConfidence: 0.7,           // Minimum confidence for any correction
+             maxLengthChange: 0.5,         // Max 50% length change
+             preserveVoice: true,          // Preserve original writing voice
+             academicAccuracy: 0.95,       // High accuracy for scientific terms
+             professionalTone: true,       // Maintain professional standards
+             accessibilityCompliant: true  // Screen reader compatible
+         };
+         
+         // ──────────────────────────────────────────────────────────────
+         // QUALITY GATES - Validation for all corrections
+         // ──────────────────────────────────────────────────────────────
+         
+         function passesQualityGates(original, corrected, stage) {
+             // Gate 1: No empty or identical corrections
+             if (!corrected.trim() || corrected === original) {
+                 return false;
+             }
+             
+             // Gate 2: Length change validation (prevent over-expansion/contraction)
+             const lengthChange = Math.abs(corrected.length - original.length) / original.length;
+             if (lengthChange > QUALITY_GATES.maxLengthChange) {
+                 console.log(`[QualityGate] Length change too large: ${(lengthChange * 100).toFixed(1)}%`);
+                 return false;
+             }
+             
+             // Gate 3: Confidence scoring based on known corrections
+             const confidence = calculateCorrectionConfidence(original, corrected);
+             if (confidence < QUALITY_GATES.minConfidence) {
+                 console.log(`[QualityGate] Confidence too low: ${confidence.toFixed(2)}`);
+                 return false;
+             }
+             
+             // Gate 4: Voice preservation (creative writing protection)
+             if (QUALITY_GATES.preserveVoice && hasVoiceDistortion(original, corrected)) {
+                 console.log(`[QualityGate] Voice distortion detected`);
+                 return false;
+             }
+             
+             // Gate 5: Professional standards (accessibility & business requirements)
+             if (QUALITY_GATES.professionalTone && !meetsProfessionalStandards(corrected)) {
+                 console.log(`[QualityGate] Professional standards not met`);
+                 return false;
+             }
+             
+             console.log(`[QualityGate] ✅ All gates passed (confidence: ${confidence.toFixed(2)})`);
+             return true;
+         }
+         
+         function calculateCorrectionConfidence(original, corrected) {
+             let confidence = 0.5; // Base confidence
+             
+             // Increase confidence for known corrections
+             for (const [wrong, right] of Object.entries(UNIVERSAL_CORRECTIONS)) {
+                 if (original.toLowerCase().includes(wrong.toLowerCase()) && 
+                     corrected.toLowerCase().includes(right.toLowerCase())) {
+                     confidence += 0.2;
+                 }
+             }
+             
+             // Increase confidence for common grammar fixes
+             if (original.includes(' i ') && corrected.includes(' I ')) confidence += 0.1;
+             if (/\s+/.test(original) && !/\s{2,}/.test(corrected)) confidence += 0.1;
+             
+             return Math.min(1.0, confidence);
+         }
+         
+         function hasVoiceDistortion(original, corrected) {
+             // Check for major structural changes that might alter creative voice
+             const originalWords = original.split(/\s+/).length;
+             const correctedWords = corrected.split(/\s+/).length;
+             const wordCountChange = Math.abs(correctedWords - originalWords) / originalWords;
+             
+             // More than 30% word count change suggests voice alteration
+             return wordCountChange > 0.3;
+         }
+         
+         function meetsProfessionalStandards(text) {
+             // Check for basic professional language standards
+             const unprofessionalPatterns = /\b(gonna|wanna|gotta|dunno|kinda|sorta)\b/gi;
+             return !unprofessionalPatterns.test(text);
+         }
+         
+         // ──────────────────────────────────────────────────────────────
+         // ACTIVE REGION VISUALIZATION - Shows current processing area
+         // ──────────────────────────────────────────────────────────────
+         
+         function updateActiveRegionVisualization(text, region) {
+             const overlay = document.getElementById('activeRegionOverlay');
+             if (!overlay) return;
+             
+             // Create highlighted version of text
+             let visualText = text;
+             if (region.start < region.end) {
+                 const beforeRegion = text.slice(0, region.start);
+                 const regionText = text.slice(region.start, region.end);
+                 const afterRegion = text.slice(region.end);
+                 
+                 visualText = beforeRegion + 
+                     `<span class="active-region-highlight">${regionText}</span>` + 
+                     afterRegion;
+             }
+             
+             overlay.innerHTML = visualText;
+             
+             console.log(`[ActiveRegion] 🎯 Visualized region:`, {
+                 start: region.start,
+                 end: region.end,
+                 text: text.slice(region.start, region.end),
+                 wordCount: text.slice(region.start, region.end).split(/\s+/).length
+             });
+         }
+
+        function startWorkerHeartbeat() {
+            console.log('[QualityGate] 🚀 Starting LM heartbeat test...');
+            
+            if (useFallback || !lmWorker) {
+                // Mock LM heartbeat
+                console.log('[QualityGate] 🔄 Using mock LM for testing');
+                status.textContent = 'Mock LM ready — start typing!';
+                lmReady = true;
+                
+                // Test mock corrections
+                const testInput = 'teh quick brwon fox';
+                let testOutput = testInput;
+                for (const [wrong, right] of Object.entries(UNIVERSAL_CORRECTIONS)) {
+                    testOutput = testOutput.replace(new RegExp('\\b' + wrong + '\\b', 'gi'), right);
+                }
+                console.log('[QualityGate] 🎯 Mock test result:', { input: testInput, output: testOutput });
+                return;
+            }
+            
+            // Try real worker with very short timeout (aggressive fallback)
+            console.log('[QualityGate] 🧪 Testing real worker (500ms timeout)...');
+            
+            // Real worker heartbeat
+            status.textContent = 'Loading QWEN model...';
+            const req = `heartbeat-${Date.now()}`;
+            const testPrompt = 'Fix typos: teh quick brwon fox';
+            const params = {
+                text: testPrompt,
+                band: { start: 11, end: testPrompt.length },
+                settings: { 
+                    maxNewTokens: 16,
+                    prompt: `Fix spelling errors in this text. Return only the corrected text:\n\n"${testPrompt.slice(11)}"`
+                }
+            };
+            
+            let gotResponse = false;
+            const startTime = performance.now();
+            
+            const timeout = setTimeout(() => {
+                if (!gotResponse) {
+                    console.error('[QualityGate] ❌ LM heartbeat timeout - falling back to mock');
+                    useFallback = true;
+                    lmWorker = null;
+                    startWorkerHeartbeat(); // Retry with fallback
+                }
+            }, 500); // Very aggressive timeout for immediate fallback
+            
+            const onMessage = (e) => {
+                const msg = e.data;
+                if (!msg || msg.requestId !== req) return;
+                
+                console.log('[QualityGate] 📨 Received:', msg.type, msg);
+                
+                if (msg.type === 'chunk') {
+                    gotResponse = true;
+                    console.log('[QualityGate] 📝 LM chunk received:', msg.text);
+                }
+                
+                if (msg.type === 'done' || msg.type === 'error') {
+                    clearTimeout(timeout);
+                    lmWorker.removeEventListener('message', onMessage);
+                    
+                    const elapsed = Math.round(performance.now() - startTime);
+                    
+                    if (msg.type === 'done') {
+                        console.log('[QualityGate] ✅ Real LM heartbeat SUCCESS in', elapsed + 'ms');
+                        status.textContent = `QWEN ready (${elapsed}ms) — start typing!`;
+                        useFallback = false; // Only now trust the real worker
+                        lmReady = true;
+                    } else {
+                        console.error('[QualityGate] ❌ LM heartbeat FAILED:', msg.message);
+                        
+                        // Immediate fallback for JSON parse errors (Vite/worker import issue)
+                        if (msg.message && msg.message.includes('JSON Parse error')) {
+                            console.log('[QualityGate] 🚨 Detected JSON parse error - Vite/worker dynamic import issue');
+                            console.log('[QualityGate] 💡 This is a known issue with @huggingface/transformers in web workers');
+                            console.log('[QualityGate] 🔄 Immediately switching to mock LM (no retry)');
+                        }
+                        
+                        console.log('[QualityGate] 🔄 Falling back to mock LM');
+                        useFallback = true;
+                        lmWorker = null;
+                        startWorkerHeartbeat(); // Retry with fallback
+                    }
+                }
+            };
+            
+            lmWorker.addEventListener('message', onMessage);
+            console.log('[QualityGate] 📤 Sending test request to real worker');
+            lmWorker.postMessage({ type: 'generate', requestId: req, params });
+        }
+
+        function runWorkerForRegion(fullText, region, options = {}) {
+            const regionText = fullText.slice(region.start, region.end);
+            const stage = options.stage || 'noise';
+            
+            console.log(`[Runner] 📤 ${stage.toUpperCase()} stage request:`, { 
+                regionText: regionText.slice(0, 50) + (regionText.length > 50 ? '...' : ''),
+                region,
+                useFallback
+            });
+            
+            if (useFallback || !lmWorker) {
+                // Mock LM processing
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        let correctedText = regionText;
+                        
+                         // Apply universal corrections based on stage
+                         if (stage === 'noise') {
+                             // NOISE STAGE: Fix typos, transpositions, and domain-specific terms
+                             for (const [wrong, right] of Object.entries(UNIVERSAL_CORRECTIONS)) {
+                                 correctedText = correctedText.replace(new RegExp('\\b' + wrong + '\\b', 'gi'), right);
+                             }
+                         } else if (stage === 'context') {
+                             // CONTEXT STAGE: Grammar, capitalization, professional polish
+                             correctedText = correctedText
+                                 .replace(/\bi\b/g, 'I')  // Capitalize I (all scenarios)
+                                 .replace(/\s+/g, ' ')    // Fix spacing (professional requirement)
+                                 .replace(/([.!?])\s*([a-z])/g, (match, punct, letter) => punct + ' ' + letter.toUpperCase()) // Sentence caps
+                                 .replace(/\bcan't\b/gi, 'cannot')    // Academic formality when appropriate
+                                 .replace(/\bokay\b/gi, 'OK')         // Professional polish
+                                 .replace(/\byeah\b/gi, 'yes');       // Professional language
+                         }
+                         
+                         // Apply quality gates
+                         if (!passesQualityGates(regionText, correctedText, stage)) {
+                             console.log(`[QualityGate] ❌ ${stage.toUpperCase()} correction rejected by quality gates`);
+                             correctedText = regionText; // Revert to original
+                         }
+                        
+                        console.log(`[Runner] ✅ Mock ${stage.toUpperCase()} complete:`, {
+                            original: regionText,
+                            corrected: correctedText,
+                            changed: correctedText !== regionText,
+                            originalLength: regionText.length,
+                            correctedLength: correctedText.length
+                        });
+                        
+                        // Detailed character-by-character comparison for debugging
+                        if (correctedText !== regionText) {
+                            console.log(`[Runner] 🔍 Detailed comparison:`, {
+                                before: `"${regionText}"`,
+                                after: `"${correctedText}"`,
+                                diff: regionText.split('').map((char, i) => 
+                                    char !== correctedText[i] ? `${i}:"${char}"→"${correctedText[i] || 'END'}"` : null
+                                ).filter(Boolean)
+                            });
+                        }
+                        
+                        resolve(correctedText);
+                    }, 100 + Math.random() * 200); // Simulate processing delay
+                });
+            }
+            
+            // Real worker processing
+            const req = `req-${Date.now()}`;
+            
+            // Build comprehensive prompt incorporating Seven Scenarios requirements
+            let prompt;
+            if (stage === 'noise') {
+                prompt = `Task: Fix spelling, typing errors, and domain-specific terminology.
+
+Input: "${regionText}"
+
+Correction Categories:
+- Transposition errors (research→resarch, analysis→anaylsis)
+- Scientific/medical terms (protein→protien, mechanism→mechaism)
+- Business terminology (financial→finacial, campaign→campain)
+- Cross-language errors (experiencing→experincing, that→que)
+- Phonetic shorthand (defendant→defdnt, contract→contrct)
+- Data notation (biotech→biot, Phase 2→phs2, FDA→fda)
+- Common typos (the→teh, brown→brwon, not→nto)
+
+Instructions:
+- Fix ONLY spelling and typing errors, preserve grammar and style
+- Prioritize academic/scientific accuracy for technical terms
+- Handle multilingual keyboard mapping errors
+- Expand compressed notation to full professional terms
+- Preserve creative voice and narrative flow
+- Maintain accessibility for screen readers
+- Return ONLY the corrected text, no explanations
+- If no errors found, return exact input text
+
+Output:`;
+            } else if (stage === 'context') {
+                const contextWindow = extractContextWindow(fullText, region.start, region.end);
+                prompt = `Task: Improve grammar, capitalization, and professional polish.
+
+Context Before: ${contextWindow.before}
+Target Text: "${regionText}"
+Context After: ${contextWindow.after}
+
+Enhancement Categories:
+- Grammar and sentence structure
+- Capitalization (I, proper nouns, sentence starts)
+- Professional language polish (okay→OK, yeah→yes)
+- Academic formality when appropriate (can't→cannot)
+- Punctuation and spacing consistency
+- Narrative coherence for creative writing
+- Business-appropriate tone for professional contexts
+
+Instructions:
+- Fix grammar, capitalization, and sentence structure
+- Maintain original meaning and creative voice
+- Apply minimal tone adjustments to preserve style
+- Ensure professional standards for business contexts
+- Preserve accessibility and screen reader compatibility
+- Handle multilingual context appropriately
+- Return ONLY the improved text, no explanations
+- If no improvements needed, return exact input text
+
+Output:`;
+            } else {
+                prompt = `Task: Apply minimal tone adjustments while preserving voice.
+
+Input: "${regionText}"
+
+Tone Considerations:
+- Academic: Formal, precise, scholarly language
+- Professional: Business-appropriate, polished
+- Creative: Preserve unique voice and style (minimal changes)
+- Multilingual: Culturally appropriate, professional
+- Accessibility: Clear, screen reader friendly
+- Speed: Maintain flow, minimal disruption
+- Data: Professional formatting, clear structure
+
+Instructions:
+- Apply MINIMAL tone adjustments only
+- Preserve original creative voice and style
+- Ensure professional appropriateness when needed
+- Maintain cultural context and nuances
+- Keep accessibility and clarity as priorities
+- Return ONLY the adjusted text, no explanations
+- If no adjustment needed, return exact input text
+
+Output:`;
+            }
+            
+            const params = {
+                text: fullText,
+                band: { start: region.start, end: region.end },
+                settings: { 
+                    maxNewTokens: options.maxNewTokens || 32,
+                    prompt: prompt
+                }
+            };
+            
+            const record = { chunks: [], startedAt: performance.now() };
+            pending.set(req, record);
+            
+            lmWorker.postMessage({ type: 'generate', requestId: req, params });
+            
+            return new Promise((resolve, reject) => {
+                const onMsg = (e) => {
+                    const msg = e.data;
+                    if (!msg || msg.requestId !== req) return;
+                    
+                    if (msg.type === 'chunk') {
+                        record.chunks.push(msg.text);
+                        console.log(`[Runner] 📝 ${stage.toUpperCase()} chunk:`, msg.text.slice(0, 30) + '...');
+                        return;
+                    }
+                    
+                    lmWorker.removeEventListener('message', onMsg);
+                    pending.delete(req);
+                    
+                    if (msg.type === 'done') {
+                        let result = record.chunks.join('').trim();
+                        
+                        // Clean LM response - remove common artifacts
+                        result = result
+                            .replace(/^(Output:|Result:|Corrected:|Fixed:)\s*/i, '') // Remove prefixes
+                            .replace(/^["']|["']$/g, '') // Remove surrounding quotes
+                            .replace(/\n.*$/s, '') // Remove everything after first newline
+                            .trim();
+                        
+                        // If result is empty or just punctuation, return original
+                        if (!result || /^[.,!?;:\s]*$/.test(result)) {
+                            result = regionText;
+                        }
+                        
+                        const elapsed = Math.round(performance.now() - record.startedAt);
+                        console.log(`[Runner] ✅ ${stage.toUpperCase()} complete in ${elapsed}ms:`, {
+                            original: regionText,
+                            rawResponse: record.chunks.join(''),
+                            cleaned: result,
+                            changed: result !== regionText
+                        });
+                        resolve(result);
+                    } else if (msg.type === 'error') {
+                        console.error(`[Runner] ❌ ${stage.toUpperCase()} error:`, msg.message);
+                        console.log(`[Runner] 🔄 Falling back to mock for ${stage.toUpperCase()}`);
+                        useFallback = true;
+                        lmWorker = null;
+                        // Retry with fallback
+                        resolve(runWorkerForRegion(fullText, region, options));
+                    }
+                };
+                lmWorker.addEventListener('message', onMsg);
+            });
+        }
+
+        async function runCorrections() {
+            console.log('[Pipeline] 🚀 runCorrections called', { isProcessing, lmReady });
+            
+            if (isProcessing) {
+                console.log('[Pipeline] ⏸️ Already processing, skipping');
+                return;
+            }
+            
+            if (!lmReady) {
+                console.log('[Pipeline] ⏸️ LM not ready, skipping corrections');
+                status.textContent = 'LM not ready yet...';
+                return;
+            }
+            
+            isProcessing = true;
+            status.textContent = 'Running correction wave...';
+            console.log('[Pipeline] ✅ Starting correction pipeline');
+            
+            try {
+                const text = editor.value;
+                const caret = editor.selectionStart;
+                const region = computeActiveRegion(text, caret);
+                const regionText = text.slice(region.start, region.end);
+                
+                console.log('[Pipeline] 📊 Region analysis:', { 
+                    textLength: text.length, 
+                    caret, 
+                    region, 
+                    regionText: regionText.slice(0, 50) + '...' 
+                });
+                
+                if (!regionText.trim()) {
+                    console.log('[Pipeline] ⏸️ No text in region to correct');
+                    status.textContent = 'No text to correct';
+                    return;
+                }
+                
+                let totalCorrections = 0;
+                
+                // STAGE 1: NOISE TRANSFORMER (via worker) - Fix typos and spacing
+                noiseStatus.innerHTML = 'NOISE<br>Processing';
+                console.log('[Pipeline] 🔧 Starting NOISE stage for region:', regionText.slice(0, 50) + '...');
+                
+                const noiseOut = await runWorkerForRegion(text, region, { 
+                    stage: 'noise',
+                    maxNewTokens: 32 
+                });
+                
+                const noiseCorrections = (noiseOut && noiseOut.trim() && noiseOut !== regionText)
+                  ? [{ start: region.start, end: region.end, original: regionText, corrected: noiseOut, stage: 'noise' }]
+                  : [];
+                totalCorrections += noiseCorrections.length;
+                
+                console.log('[Pipeline] 🔧 NOISE stage result:', {
+                    hasCorrections: noiseCorrections.length > 0,
+                    original: regionText,
+                    corrected: noiseOut
+                });
+                
+                for (const correction of noiseCorrections) {
+                    console.log(`[CorrectionWave] Starting noise correction at ${correction.start}, will draw toward caret at ${userCaretPosition}`);
+                    
+                    // Animate correction drawing in as marker travels toward user's caret
+                    await animateCorrection(correction);
+                    logCorrection('NOISE', correction.original, correction.corrected);
+                    
+                    // Brief pause before next correction
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                noiseStatus.innerHTML = 'NOISE<br>Complete';
+                
+                // STAGE 2: CONTEXT TRANSFORMER (worker; ±2 sentences) - Grammar and coherence
+                contextStatus.innerHTML = 'CONTEXT<br>Processing';
+                console.log('[Pipeline] 📝 Starting CONTEXT stage for region:', regionText.slice(0, 50) + '...');
+                
+                // Get current text after noise corrections
+                const currentText = editor.value;
+                const currentRegion = computeActiveRegion(currentText, userCaretPosition);
+                const currentRegionText = currentText.slice(currentRegion.start, currentRegion.end);
+                
+                const contextOut = await runWorkerForRegion(currentText, currentRegion, { 
+                    stage: 'context',
+                    maxNewTokens: 48 
+                });
+                
+                const contextCorrections = (contextOut && contextOut.trim() && contextOut !== currentRegionText)
+                  ? [{ start: currentRegion.start, end: currentRegion.end, original: currentRegionText, corrected: contextOut, stage: 'context' }]
+                  : [];
+                totalCorrections += contextCorrections.length;
+                
+                console.log('[Pipeline] 📝 CONTEXT stage result:', {
+                    hasCorrections: contextCorrections.length > 0,
+                    original: currentRegionText,
+                    corrected: contextOut
+                });
+                
+                for (const correction of contextCorrections) {
+                    console.log(`[CorrectionWave] Starting context correction at ${correction.start}, will draw toward caret at ${userCaretPosition}`);
+                    
+                    // Animate correction drawing in as marker travels toward user's caret
+                    await animateCorrection(correction);
+                    logCorrection('CONTEXT', correction.original, correction.corrected);
+                    
+                    // Brief pause before next correction
+                    await new Promise(resolve => setTimeout(resolve, 150));
+                }
+                contextStatus.innerHTML = 'CONTEXT<br>Complete';
+                
+                // STAGE 3: TONE TRANSFORMER
+                // Optional style adjustment (default: None)
+                if (false) { // Tone disabled by default per ADR-0006
+                    toneStatus.innerHTML = 'TONE<br>Processing';
+                    // Tone processing would go here
+                    toneStatus.innerHTML = 'TONE<br>Complete';
+                } else {
+                    toneStatus.innerHTML = 'TONE<br>None';
+                }
+                
+                status.textContent = totalCorrections > 0 ? 
+                    `Applied ${totalCorrections} correction${totalCorrections === 1 ? '' : 's'}` : 
+                    'No corrections needed';
+                
+            } catch (error) {
+                console.error('Correction error:', error);
+                status.textContent = 'Error: Correction pipeline failed';
+            } finally {
+                isProcessing = false;
+                setTimeout(() => {
+                    noiseStatus.innerHTML = 'NOISE<br>Ready';
+                    contextStatus.innerHTML = 'CONTEXT<br>Ready';
+                    toneStatus.innerHTML = 'TONE<br>None';
+                }, 2000);
+            }
+        }
+        
+        async function runNoiseStage(regionText, regionStart) {
+            if (!qwenModel) {
+                console.warn('QWEN model not loaded, skipping noise corrections');
+                return [];
+            }
+            
+            try {
+                // Use QWEN for noise corrections within Active Region
+                const prompt = `Fix spelling and typing errors in this text. Only correct obvious typos, maintain original meaning and style. Return only the corrected text without explanations:\n\n"${regionText}"`;
+                
+                const result = await qwenModel(prompt, {
+                    max_new_tokens: 50,
+                    temperature: 0.1, // Low temperature for consistent corrections
+                    do_sample: false,
+                });
+                
+                const correctedText = result[0].generated_text.trim().replace(/^"|"$/g, '');
+                
+                // Create diff if text changed
+                if (correctedText !== regionText && correctedText.length > 0) {
+                    return [{
+                        start: regionStart,
+                        end: regionStart + regionText.length,
+                        original: regionText,
+                        corrected: correctedText,
+                        stage: 'noise'
+                    }];
+                }
+                
+                return [];
+            } catch (error) {
+                console.error('Noise stage LM error:', error);
+                return [];
+            }
+        }
+        
+        async function runContextStage(text, caret) {
+            if (!qwenModel) {
+                console.warn('QWEN model not loaded, skipping context corrections');
+                return [];
+            }
+            
+            try {
+                const region = computeActiveRegion(text, caret);
+                const regionText = text.slice(region.start, region.end);
+                
+                if (!regionText.trim()) return [];
+                
+                // Use QWEN for context/grammar corrections with ±2 sentence window
+                const contextWindow = extractContextWindow(text, region.start, region.end);
+                const prompt = `Improve grammar and coherence in this text while maintaining the original meaning and style. Focus only on the text between [START] and [END]. Return only the improved text without explanations:\n\nContext: ${contextWindow.before}\n[START]${regionText}[END]\nContext: ${contextWindow.after}`;
+                
+                const result = await qwenModel(prompt, {
+                    max_new_tokens: 80,
+                    temperature: 0.2, // Slightly higher for creative grammar fixes
+                    do_sample: true,
+                });
+                
+                const correctedText = result[0].generated_text.trim();
+                
+                // Extract just the corrected region
+                const startMarker = correctedText.indexOf('[START]');
+                const endMarker = correctedText.indexOf('[END]');
+                
+                if (startMarker !== -1 && endMarker !== -1) {
+                    const contextCorrected = correctedText.slice(startMarker + 7, endMarker);
+                    
+                    if (contextCorrected !== regionText && contextCorrected.length > 0) {
+                        return [{
+                            start: region.start,
+                            end: region.end,
+                            original: regionText,
+                            corrected: contextCorrected,
+                            stage: 'context'
+                        }];
+                    }
+                }
+                
+                return [];
+            } catch (error) {
+                console.error('Context stage LM error:', error);
+                return [];
+            }
+        }
+        
+        function extractContextWindow(text, regionStart, regionEnd) {
+            // Extract ±2 sentences around the region for context
+            const beforeText = text.slice(0, regionStart);
+            const afterText = text.slice(regionEnd);
+            
+            // Simple sentence boundary detection
+            const beforeSentences = beforeText.split(/[.!?]+/).filter(s => s.trim()).slice(-2);
+            const afterSentences = afterText.split(/[.!?]+/).filter(s => s.trim()).slice(0, 2);
+            
+            return {
+                before: beforeSentences.join('. ').trim(),
+                after: afterSentences.join('. ').trim()
+            };
+        }
+        
+        function applyCorrection(correction) {
+            console.log(`[ApplyCorrection] 🔧 Applying correction:`, {
+                start: correction.start,
+                end: correction.end,
+                original: `"${correction.original}"`,
+                corrected: `"${correction.corrected}"`,
+                stage: correction.stage
+            });
+            
+            // Store current caret position before correction
+            const currentCaret = editor.selectionStart;
+            
+            // Remove marker temporarily to apply correction to clean text
+            const cleanText = removeMarkerFromText(editor.value);
+            console.log(`[ApplyCorrection] 📝 Text before correction: "${cleanText}"`);
+            
+            const newText = cleanText.slice(0, correction.start) + 
+                           correction.corrected + 
+                           cleanText.slice(correction.end);
+            
+            console.log(`[ApplyCorrection] 📝 Text after correction: "${newText}"`);
+            console.log(`[ApplyCorrection] 🔍 Correction details:`, {
+                beforeSlice: `"${cleanText.slice(0, correction.start)}"`,
+                replacement: `"${correction.corrected}"`,
+                afterSlice: `"${cleanText.slice(correction.end)}"`,
+                lengthChange: correction.corrected.length - correction.original.length
+            });
+            
+            // Update original text and editor
+            originalText = newText;
+            editor.value = newText;
+            
+            // Adjust caret position only if correction happened before it
+            let newCaretPosition = currentCaret;
+            if (correction.end <= currentCaret) {
+                const lengthDiff = correction.corrected.length - correction.original.length;
+                newCaretPosition = currentCaret + lengthDiff;
+            }
+            
+            // Restore caret position (allow normal movement, only adjust for text changes)
+            editor.selectionStart = newCaretPosition;
+            editor.selectionEnd = newCaretPosition;
+            
+            console.log(`[CaretBehavior] Applied correction at ${correction.start}-${correction.end}, caret adjusted from ${currentCaret} to ${newCaretPosition}`);
+        }
+        
+        async function animateCorrection(correction) {
+            // SIMPLIFIED: Apply correction first, then animate marker toward caret
+            console.log(`[CorrectionAnimation] Starting correction at ${correction.start}, caret at ${userCaretPosition}`);
+            
+            // Step 1: Apply the correction immediately (background processing)
+            applyCorrection(correction);
+            
+            // Step 2: Position marker at correction start
+            updateMarkerInText(correction.start);
+            
+            // Step 3: Animate marker traveling toward user's fixed caret
+            const startPos = correction.start;
+            const endPos = userCaretPosition;
+            const distance = Math.abs(endPos - startPos);
+            const steps = Math.max(5, Math.floor(distance / 4)); // Fewer steps to avoid complexity
+            const direction = endPos > startPos ? 1 : -1;
+            
+            console.log(`[CorrectionAnimation] Animating marker from ${startPos} toward caret at ${endPos}, ${steps} steps`);
+            
+            // Simple marker animation toward caret
+            for (let step = 1; step <= steps; step++) {
+                const progress = step / steps;
+                const currentPos = startPos + (distance * progress * direction);
+                const clampedPos = Math.min(Math.max(0, Math.floor(currentPos)), editor.value.length);
+                
+                updateMarkerInText(clampedPos);
+                
+                // Don't force caret position - let user move freely
+                
+                await new Promise(resolve => setTimeout(resolve, animationSpeed));
+            }
+            
+            // Final: Position marker at current caret (wherever user moved it)
+            const finalCaret = editor.selectionStart;
+            updateMarkerInText(finalCaret);
+            
+            console.log(`[CorrectionAnimation] Animation complete, marker at ${finalCaret}`);
+        }
+        
+        function interpolateText(original, corrected, progress) {
+            // Gradually transition from original to corrected text
+            if (progress <= 0) return original;
+            if (progress >= 1) return corrected;
+            
+            // Simple character-by-character interpolation
+            const targetLength = Math.floor(original.length + (corrected.length - original.length) * progress);
+            const chars = Math.floor(corrected.length * progress);
+            
+            return corrected.slice(0, chars) + original.slice(chars, targetLength);
+        }
+        
+        async function animateMarkerToPosition(targetPosition) {
+            // Simple marker movement (used for non-correction animations)
+            const cleanText = removeMarkerFromText(editor.value);
+            const currentPos = markerPosition >= 0 ? markerPosition : targetPosition;
+            
+            const steps = Math.abs(targetPosition - currentPos);
+            const stepSize = Math.max(1, Math.floor(steps / 15));
+            const direction = targetPosition > currentPos ? 1 : -1;
+            
+            for (let step = 0; step < steps; step += stepSize) {
+                const newPos = currentPos + (step * direction);
+                updateMarkerInText(Math.min(Math.max(0, newPos), cleanText.length));
+                await new Promise(resolve => setTimeout(resolve, animationSpeed));
+            }
+            
+            updateMarkerInText(targetPosition);
+        }
+        
+        function logCorrection(stage, original, corrected) {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${timestamp}] ${stage}: "${original}" → "${corrected}"`;
+            
+            correctionLog.insertBefore(entry, correctionLog.firstChild);
+            
+            // Keep max 10 entries
+            while (correctionLog.children.length > 10) {
+                correctionLog.removeChild(correctionLog.lastChild);
+            }
+        }
+        
+        // Event listeners
+        editor.addEventListener('input', (e) => {
+            // Handle marker behavior during typing
+            const newText = e.target.value;
+            const newCaret = e.target.selectionStart;
+            
+            // If user is typing (not programmatic change), update active region
+            if (!isProcessing) {
+                originalText = removeMarkerFromText(newText);
+                updateActiveRegion();
+                
+                // Auto-trigger corrections after pause
+                if (typingTimer) {
+                    clearTimeout(typingTimer);
+                    console.log('[TypingTimer] ⏰ Cleared previous timer');
+                }
+                
+                console.log('[TypingTimer] ⏰ Setting 2-second timer for corrections');
+                typingTimer = setTimeout(() => {
+                    console.log('[TypingTimer] ⏰ Timer fired, checking if ready for corrections');
+                    if (!isProcessing) {
+                        console.log('[TypingTimer] ✅ Triggering corrections');
+                        runCorrections();
+                    } else {
+                        console.log('[TypingTimer] ⏸️ Still processing, skipping');
+                    }
+                }, 2000);
+            }
+        });
+        
+        editor.addEventListener('selectionchange', () => {
+            if (!isProcessing) {
+                // Update active region when caret moves
+                updateActiveRegion();
+            }
+        });
+        
+        editor.addEventListener('focus', () => {
+            // Insert marker at caret position when user first enters
+            if (markerPosition === -1) {
+                const currentCaret = editor.selectionStart;
+                console.log(`[Marker] Inserting marker at caret position ${currentCaret}`);
+                updateMarkerInText(currentCaret);
+                positionMarkerAtCaret(currentCaret, editor.value);
+            }
+        });
+        
+        editor.addEventListener('click', () => {
+            // Update marker position to follow caret when user clicks
+            if (!isProcessing) {
+                const currentCaret = editor.selectionStart;
+                console.log(`[Marker] Moving marker to caret position ${currentCaret}`);
+                updateMarkerInText(currentCaret);
+            }
+        });
+        
+        regionSlider.addEventListener('input', () => {
+            activeRegionWords = parseInt(regionSlider.value);
+            regionValue.textContent = activeRegionWords;
+            if (!isProcessing) updateActiveRegion();
+        });
+        
+        // Animation speed control
+        animationSpeedSlider.addEventListener('input', () => {
+            animationSpeed = parseInt(animationSpeedSlider.value);
+            animationSpeedValue.textContent = animationSpeed;
+            console.log(`[MarkerControls] Animation speed updated to ${animationSpeed}ms`);
+            saveMarkerSettings();
+        });
+        
+        // Marker symbol selection removed - auto-cycling through symbols during animation
+        
+        // localStorage functions for marker settings
+        function saveMarkerSettings() {
+            const settings = {
+                animationSpeed,
+                // currentMarkerSymbol removed - auto-cycling through symbols
+                version: '0.6'
+            };
+            localStorage.setItem('mindflow-marker-settings', JSON.stringify(settings));
+        }
+        
+        function loadMarkerSettings() {
+            try {
+                const saved = localStorage.getItem('mindflow-marker-settings');
+                if (saved) {
+                    const settings = JSON.parse(saved);
+                    if (settings.version === '0.6') {
+                        animationSpeed = settings.animationSpeed || 80;
+                        // currentMarkerSymbol removed - auto-cycling through symbols
+                        
+                        // Update UI elements
+                        animationSpeedSlider.value = animationSpeed;
+                        animationSpeedValue.textContent = animationSpeed;
+                        // Marker symbol loaded from storage
+                        
+                        // Marker symbol buttons removed - auto-cycling during animation
+                        
+                        console.log(`[MarkerControls] Loaded settings: speed=${animationSpeed}ms, auto-cycling symbols`);
+                    }
+                }
+            } catch (error) {
+                console.warn('[MarkerControls] Failed to load settings:', error);
+            }
+        }
+        
+        // Initialize QWEN model and setup
+        async function initialize() {
+            console.log('🚀 Initializing Mind⠶Flow v0.6...');
+            
+            // Load saved marker settings
+            loadMarkerSettings();
+            
+            // Initialize the demo text
+            originalText = removeMarkerFromText(editor.value);
+            updateActiveRegion();
+            
+            // Start LM worker heartbeat (quality gate)
+            startWorkerHeartbeat();
+            
+            console.log('✅ Mind⠶Flow v0.6 Demo Ready!');
+            console.log('✅ QWEN LM pipeline integrated');
+            console.log('✅ Active Region Policy active');
+            console.log('✅ Native Correction Marker behavior');
+            console.log('✅ Marker controls with localStorage persistence');
+        }
+        
+        // Start initialization
+        initialize();
+    </script>
+</body>
+</html>

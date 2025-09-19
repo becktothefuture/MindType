@@ -23,6 +23,10 @@ export default defineConfig({
         server.middlewares.use((req: any, res: any, next: () => void) => {
           const url = req?.url || "";
           
+          // Add COOP/COEP headers for WebGPU/WASM threading support
+          res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+          res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+          
           // Serve all demo assets from project-root /demo directory (HTML, JS, CSS, etc.)
           if (typeof url === 'string' && url.startsWith('/demo/')) {
             const rel = url.slice('/demo/'.length);
