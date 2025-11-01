@@ -11,7 +11,7 @@ pub mod merge;
 pub mod logger;
 pub mod engine;
 pub mod confidence;
-pub mod tapestry;
+// pub mod tapestry; // Moved to DELETE - obsolete in v0.6
 pub mod ffi;
 pub mod caret_monitor;
 pub mod diffusion;
