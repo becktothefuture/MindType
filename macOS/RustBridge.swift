@@ -16,16 +16,97 @@
 */
 
 import Foundation
+import Darwin
 
-// C FFI declarations for Rust core
-@_silgen_name("mindtype_process_text")
-func mindtype_process_text(_ request: UnsafePointer<CChar>) -> UnsafePointer<CChar>?
+typealias mindtype_process_text_fn = @convention(c) (UnsafePointer<CChar>) -> UnsafePointer<CChar>?
+typealias mindtype_free_string_fn = @convention(c) (UnsafePointer<CChar>) -> Void
+typealias mindtype_init_engine_fn = @convention(c) (UnsafePointer<CChar>) -> Bool
 
-@_silgen_name("mindtype_free_string")
-func mindtype_free_string(_ str: UnsafePointer<CChar>)
+enum RustCoreLoadError: Error, LocalizedError {
+    case libraryNotFound
+    case symbolMissing(String)
 
-@_silgen_name("mindtype_init_engine")
-func mindtype_init_engine(_ config: UnsafePointer<CChar>) -> Bool
+    var errorDescription: String? {
+        switch self {
+        case .libraryNotFound:
+            return "Rust core library not found"
+        case .symbolMissing(let name):
+            return "Missing Rust symbol: \(name)"
+        }
+    }
+}
+
+final class RustCoreDynamicLoader {
+    static let shared = RustCoreDynamicLoader()
+
+    private var handle: UnsafeMutableRawPointer?
+    private(set) var processText: mindtype_process_text_fn?
+    private(set) var freeString: mindtype_free_string_fn?
+    private(set) var initEngine: mindtype_init_engine_fn?
+
+    func loadIfNeeded() throws {
+        if handle != nil { return }
+
+        for path in candidatePaths() {
+            if let h = dlopen(path, RTLD_NOW | RTLD_LOCAL) {
+                handle = h
+                resolveSymbols()
+                if processText != nil, freeString != nil, initEngine != nil {
+                    return
+                } else {
+                    // If symbols missing, close and continue
+                    dlclose(h)
+                    handle = nil
+                }
+            }
+        }
+        throw RustCoreLoadError.libraryNotFound
+    }
+
+    private func resolveSymbols() {
+        guard let handle = handle else { return }
+        if let sym = dlsym(handle, "mindtype_process_text") {
+            processText = unsafeBitCast(sym, to: mindtype_process_text_fn.self)
+        }
+        if let sym = dlsym(handle, "mindtype_free_string") {
+            freeString = unsafeBitCast(sym, to: mindtype_free_string_fn.self)
+        }
+        if let sym = dlsym(handle, "mindtype_init_engine") {
+            initEngine = unsafeBitCast(sym, to: mindtype_init_engine_fn.self)
+        }
+    }
+
+    private func candidatePaths() -> [String] {
+        var paths: [String] = []
+        // Allow override via env var
+        if let override = ProcessInfo.processInfo.environment["CORE_RS_LIB_PATH"], !override.isEmpty {
+            paths.append(override)
+        }
+        // App bundle Frameworks folder (macOS layout)
+        if let bundleURL = Bundle.main.bundleURL as URL? {
+            let frameworks = bundleURL.appendingPathComponent("Contents/Frameworks/libcore_rs.dylib").path
+            paths.append(frameworks)
+        }
+        // PrivateFrameworks (just in case)
+        if let privateFW = Bundle.main.privateFrameworksURL?.appendingPathComponent("libcore_rs.dylib").path {
+            paths.append(privateFW)
+        }
+        // Derived data fallback (useful while developing)
+        if let derivedDir = ProcessInfo.processInfo.environment["DERIVED_FILE_DIR"] {
+            paths.append(derivedDir + "/core-rs/libcore_rs.dylib")
+        }
+        // Common local install
+        paths.append("/usr/local/lib/libcore_rs.dylib")
+        paths.append("/opt/homebrew/lib/libcore_rs.dylib")
+        return paths
+    }
+
+    deinit {
+        if let handle = handle {
+            dlclose(handle)
+        }
+    }
+}
 
 // Swift wrapper for type safety
 struct CorrectionRequest: Codable {
@@ -59,28 +140,39 @@ struct ActiveRegion: Codable {
 
 class RustBridge {
     private var isInitialized = false
+    static let shared = RustBridge()
     
     func initialize() throws {
+        do {
+            try RustCoreDynamicLoader.shared.loadIfNeeded()
+        } catch {
+            throw RustBridgeError.initializationFailed
+        }
+
         let config = [
             "lm_only": true,
             "default_active_region_words": 20,
             "tone_default": "None",
             "device_tier_auto": true
         ]
-        
+
         guard let configData = try? JSONSerialization.data(withJSONObject: config),
               let configString = String(data: configData, encoding: .utf8) else {
             throw RustBridgeError.configSerialization
         }
-        
-        let success = configString.withCString { configPtr in
-            mindtype_init_engine(configPtr)
+
+        guard let initEngine = RustCoreDynamicLoader.shared.initEngine else {
+            throw RustBridgeError.initializationFailed
         }
-        
+
+        let success = configString.withCString { configPtr in
+            initEngine(configPtr)
+        }
+
         guard success else {
             throw RustBridgeError.initializationFailed
         }
-        
+
         isInitialized = true
         print("✅ Rust core initialized")
     }
@@ -110,13 +202,21 @@ class RustBridge {
             throw RustBridgeError.requestSerialization
         }
         
+        // Ensure loader is ready
+        try? RustCoreDynamicLoader.shared.loadIfNeeded()
+        
+        guard let processText = RustCoreDynamicLoader.shared.processText,
+              let freeString = RustCoreDynamicLoader.shared.freeString else {
+            throw RustBridgeError.processingFailed
+        }
+        
         guard let responsePtr = requestString.withCString({ requestPtr in
-            mindtype_process_text(requestPtr)
+            processText(requestPtr)
         }) else {
             throw RustBridgeError.processingFailed
         }
         
-        defer { mindtype_free_string(responsePtr) }
+        defer { freeString(responsePtr) }
         
         let responseString = String(cString: responsePtr)
         

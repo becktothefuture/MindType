@@ -100,3 +100,35 @@ export function getSentenceContextPerSide(): number {
 export function setSentenceContextPerSide(value: number): void {
   sentenceContextPerSide = Math.max(2, Math.min(5, Math.round(value)));
 }
+
+// ═══════════════════════════════════════════════════════════════
+// Latency Fallback Policy (PDF requirement: graceful degradation)
+// ═══════════════════════════════════════════════════════════════
+
+export interface LatencyFallbackPolicy {
+  /** Shrink Active Area when p95 latency exceeds this (ms) */
+  shrinkActiveAreaThreshold: number;
+  /** Skip Context stage when p95 latency exceeds this (ms) */
+  skipContextThreshold: number;
+  /** Skip Tone stage when p95 latency exceeds this (ms) */
+  skipToneThreshold: number;
+  /** Minimum Active Area words when shrunk */
+  minActiveRegionWords: number;
+}
+
+const LATENCY_FALLBACK_DEFAULTS: LatencyFallbackPolicy = {
+  shrinkActiveAreaThreshold: 25, // ms
+  skipContextThreshold: 40, // ms
+  skipToneThreshold: 60, // ms
+  minActiveRegionWords: 5, // words
+};
+
+let latencyFallbackPolicy: LatencyFallbackPolicy = { ...LATENCY_FALLBACK_DEFAULTS };
+
+export function getLatencyFallbackPolicy(): Readonly<LatencyFallbackPolicy> {
+  return latencyFallbackPolicy;
+}
+
+export function setLatencyFallbackPolicy(partial: Partial<LatencyFallbackPolicy>): void {
+  latencyFallbackPolicy = { ...latencyFallbackPolicy, ...partial };
+}

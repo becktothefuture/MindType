@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Privacy Manifest for Mind⠶Flow macOS App -->
+    
+    <!-- Data Collection: None -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array>
+        <!-- No data is collected, transmitted, or stored -->
+    </array>
+    
+    <!-- Tracking: None -->
+    <key>NSPrivacyTrackingDomains</key>
+    <array>
+        <!-- No tracking domains - all processing is on-device -->
+    </array>
+    
+    <!-- Required Reason APIs -->
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <!-- Accessibility APIs -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryAccessibility</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <!-- Reason 84.1: Provide assistive features for users with disabilities -->
+                <string>84.1</string>
+            </array>
+        </dict>
+        
+        <!-- System Boot Time (for diagnostics) -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategorySystemBootTime</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <!-- Reason 35.1: Measure time intervals for performance optimization -->
+                <string>35.1</string>
+            </array>
+        </dict>
+        
+        <!-- Active Keyboard (for IME detection) -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryActiveKeyboard</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <!-- Reason 54.1: Customize app behavior based on user's keyboard -->
+                <string>54.1</string>
+            </array>
+        </dict>
+    </array>
+    
+    <!-- Privacy Practices Summary -->
+    <key>NSPrivacyPracticesSummary</key>
+    <string>Mind⠶Flow processes text entirely on-device to provide typing corrections. No user data is collected, transmitted, or stored. The app requires Accessibility permissions to monitor typing in other applications for correction purposes only.</string>
+    
+    <!-- Contact Information -->
+    <key>NSPrivacyContactInfo</key>
+    <string>privacy@mindflow.app</string>
+    
+    <!-- Data Retention Policy -->
+    <key>NSPrivacyDataRetention</key>
+    <string>No user data is retained. All text processing occurs in memory and is immediately discarded after correction.</string>
+    
+    <!-- Third Party SDKs: None -->
+    <key>NSPrivacyThirdPartySDKs</key>
+    <array>
+        <!-- No third-party SDKs that collect data -->
+    </array>
+</dict>
+</plist>
+
+

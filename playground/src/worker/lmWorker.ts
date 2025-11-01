@@ -1,10 +1,19 @@
-/*╔══════════════════════════════════════════════════════╗
-  ║  ░  L M   W O R K E R  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
-  ║                                                      ║
-  ║  WHAT ▸ Transformers.js bridge for main-thread       ║
-  ║  WHY  ▸ Keep UI responsive; stream tokens via post   ║
-  ║  HOW  ▸ init on first use; handle generate/abort     ║
-  ╚══════════════════════════════════════════════════════╝ */
+/*╔══════════════════════════════════════════════════════════╗
+  ║  ░  LMWORKER  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ║                                                            ║
+  ╚══════════════════════════════════════════════════════════╝
+  • WHAT ▸ JSONL LM stream protocol (context → tone)
+  • WHY  ▸ CONTRACT-LM-STREAM
+  • HOW  ▸ See linked contracts and guides in docs
+*/
 /// <reference lib="webworker" />
 
 import { createQwenTokenStreamer } from '../../../core/lm/transformersRunner';

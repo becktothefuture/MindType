@@ -89,7 +89,7 @@ status: active
 modules:
   - core/lm/types.ts
   - core/lm/mockStreamAdapter.ts
-  - web-demo/src/lab/LMLab.tsx
+  - playground/src/worker/lmWorker.ts
 acceptance:
   - tests/lm_stream.spec.ts#SCEN-LM-STREAM-001
   - e2e/tests/lm_lab.spec.ts#SCEN-LM-LAB-002

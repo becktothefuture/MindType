@@ -1,0 +1,55 @@
+<!--══════════════════════════════════════════════════
+  ╔══════════════════════════════════════════════════════╗
+  ║  ░  W E B   L A B   V 0 . 6  ░░░░░░░░░░░░░░░░░░░░░  ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌              ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ║                                                      ║
+  ╚══════════════════════════════════════════════════════╝
+    • WHAT ▸ Standalone lab to observe end-to-end pipeline
+    • WHY  ▸ Debug/validate PDF-aligned behaviour with full logs
+    • HOW  ▸ Minimal UI + structured logs + JSON export
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mind⠶Flow Web Lab v0.6</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; padding: 16px; }
+      .container { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+      textarea { width: 100%; height: 260px; font-size: 16px; line-height: 1.5; }
+      .panel { border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; }
+      .logs { height: 260px; overflow: auto; background: #0b0f14; color: #c9def1; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+      .controls { display: flex; gap: 8px; align-items: center; }
+      .badge { padding: 2px 6px; border-radius: 4px; background: #eef; color: #224; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>Mind⠶Flow Web Lab v0.6 <span class="badge" id="tier">tier: unknown</span></h1>
+    <div id="viz-container"></div>
+    <div class="container">
+      <div class="panel">
+        <div class="controls">
+          <button id="reset">Reset</button>
+          <button id="export">Export Logs</button>
+          <label><input type="checkbox" id="reduced" /> reduced-motion</label>
+        </div>
+        <textarea id="input" placeholder="Type here…"></textarea>
+      </div>
+      <div class="panel">
+        <h3 style="margin: 0 0 8px 0; font-size: 14px;">Event Log</h3>
+        <div class="logs" id="logs"></div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+  </html>
+
+

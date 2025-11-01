@@ -10,6 +10,7 @@
   • HOW  ▸ Wraps C ABI with Swift types and memory management
 */
 import Foundation
+import Darwin
 
 // C ABI structures (matching Rust definitions)
 public struct MTString {
@@ -40,41 +41,6 @@ public struct MTBandRange {
     var valid: Bool
 }
 
-// C function declarations
-@_silgen_name("mind_type_core_version")
-func mind_type_core_version() -> MTString
-
-@_silgen_name("mind_type_core_free_string")
-func mind_type_core_free_string(_ s: MTString)
-
-@_silgen_name("mind_type_caret_monitor_new")
-func mind_type_caret_monitor_new() -> UnsafeMutableRawPointer?
-
-@_silgen_name("mind_type_caret_monitor_free")
-func mind_type_caret_monitor_free(_ monitor: UnsafeMutableRawPointer?)
-
-@_silgen_name("mind_type_caret_monitor_update")
-func mind_type_caret_monitor_update(_ monitor: UnsafeMutableRawPointer?, _ event: MTCaretEvent) -> Bool
-
-@_silgen_name("mind_type_caret_monitor_flush")
-func mind_type_caret_monitor_flush(_ monitor: UnsafeMutableRawPointer?, _ now_ms: UInt64) -> UInt32
-
-@_silgen_name("mind_type_caret_monitor_get_snapshots")
-func mind_type_caret_monitor_get_snapshots(
-    _ monitor: UnsafeMutableRawPointer?,
-    _ snapshots: UnsafeMutablePointer<MTCaretSnapshot>?,
-    _ max_count: UInt32
-) -> UInt32
-
-@_silgen_name("mind_type_extract_fragment")
-func mind_type_extract_fragment(_ text_ptr: UnsafePointer<UInt8>?, _ text_len: UInt) -> MTString
-
-@_silgen_name("mind_type_compute_band")
-func mind_type_compute_band(_ text_ptr: UnsafePointer<UInt8>?, _ text_len: UInt, _ caret: UInt32) -> MTBandRange
-
-@_silgen_name("mind_type_set_tone")
-func mind_type_set_tone(_ enabled: Bool, _ target_ptr: UnsafePointer<UInt8>?, _ target_len: UInt) -> Bool
-
 // Swift enums for type safety
 public enum CaretEventKind: UInt32 {
     case typing = 0
@@ -90,7 +56,78 @@ public enum CaretPrimaryState: UInt32 {
     case blur = 4
 }
 
-// Swift wrapper classes
+typealias mind_type_core_version_fn = @convention(c) () -> MTString
+typealias mind_type_core_free_string_fn = @convention(c) (MTString) -> Void
+typealias mind_type_caret_monitor_new_fn = @convention(c) () -> UnsafeMutableRawPointer?
+typealias mind_type_caret_monitor_free_fn = @convention(c) (UnsafeMutableRawPointer?) -> Void
+typealias mind_type_caret_monitor_update_fn = @convention(c) (UnsafeMutableRawPointer?, MTCaretEvent) -> Bool
+typealias mind_type_caret_monitor_flush_fn = @convention(c) (UnsafeMutableRawPointer?, UInt64) -> UInt32
+typealias mind_type_caret_monitor_get_snapshots_fn = @convention(c) (UnsafeMutableRawPointer?, UnsafeMutablePointer<MTCaretSnapshot>?, UInt32) -> UInt32
+typealias mind_type_extract_fragment_fn = @convention(c) (UnsafePointer<UInt8>?, UInt) -> MTString
+typealias mind_type_compute_band_fn = @convention(c) (UnsafePointer<UInt8>?, UInt, UInt32) -> MTBandRange
+typealias mind_type_set_tone_fn = @convention(c) (Bool, UnsafePointer<UInt8>?, UInt) -> Bool
+
+final class MindTypeCoreLoader {
+    static let shared = MindTypeCoreLoader()
+
+    private var handle: UnsafeMutableRawPointer?
+
+    private(set) var core_version: mind_type_core_version_fn?
+    private(set) var core_free_string: mind_type_core_free_string_fn?
+    private(set) var caret_monitor_new: mind_type_caret_monitor_new_fn?
+    private(set) var caret_monitor_free: mind_type_caret_monitor_free_fn?
+    private(set) var caret_monitor_update: mind_type_caret_monitor_update_fn?
+    private(set) var caret_monitor_flush: mind_type_caret_monitor_flush_fn?
+    private(set) var caret_monitor_get_snapshots: mind_type_caret_monitor_get_snapshots_fn?
+    private(set) var extract_fragment: mind_type_extract_fragment_fn?
+    private(set) var compute_band: mind_type_compute_band_fn?
+    private(set) var set_tone: mind_type_set_tone_fn?
+
+    func loadIfNeeded() {
+        if handle != nil { return }
+        for path in candidatePaths() {
+            if let h = dlopen(path, RTLD_NOW | RTLD_LOCAL) {
+                handle = h
+                resolveSymbols()
+                // Keep even if some symbols missing; callers will guard
+                return
+            }
+        }
+    }
+
+    private func resolveSymbols() {
+        guard let handle = handle else { return }
+        if let sym = dlsym(handle, "mind_type_core_version") { core_version = unsafeBitCast(sym, to: mind_type_core_version_fn.self) }
+        if let sym = dlsym(handle, "mind_type_core_free_string") { core_free_string = unsafeBitCast(sym, to: mind_type_core_free_string_fn.self) }
+        if let sym = dlsym(handle, "mind_type_caret_monitor_new") { caret_monitor_new = unsafeBitCast(sym, to: mind_type_caret_monitor_new_fn.self) }
+        if let sym = dlsym(handle, "mind_type_caret_monitor_free") { caret_monitor_free = unsafeBitCast(sym, to: mind_type_caret_monitor_free_fn.self) }
+        if let sym = dlsym(handle, "mind_type_caret_monitor_update") { caret_monitor_update = unsafeBitCast(sym, to: mind_type_caret_monitor_update_fn.self) }
+        if let sym = dlsym(handle, "mind_type_caret_monitor_flush") { caret_monitor_flush = unsafeBitCast(sym, to: mind_type_caret_monitor_flush_fn.self) }
+        if let sym = dlsym(handle, "mind_type_caret_monitor_get_snapshots") { caret_monitor_get_snapshots = unsafeBitCast(sym, to: mind_type_caret_monitor_get_snapshots_fn.self) }
+        if let sym = dlsym(handle, "mind_type_extract_fragment") { extract_fragment = unsafeBitCast(sym, to: mind_type_extract_fragment_fn.self) }
+        if let sym = dlsym(handle, "mind_type_compute_band") { compute_band = unsafeBitCast(sym, to: mind_type_compute_band_fn.self) }
+        if let sym = dlsym(handle, "mind_type_set_tone") { set_tone = unsafeBitCast(sym, to: mind_type_set_tone_fn.self) }
+    }
+
+    private func candidatePaths() -> [String] {
+        var paths: [String] = []
+        if let override = ProcessInfo.processInfo.environment["CORE_RS_LIB_PATH"], !override.isEmpty { paths.append(override) }
+        if let bundleURL = Bundle.main.bundleURL as URL? {
+            paths.append(bundleURL.appendingPathComponent("Contents/Frameworks/libcore_rs.dylib").path)
+        }
+        if let derivedDir = ProcessInfo.processInfo.environment["DERIVED_FILE_DIR"] {
+            paths.append(derivedDir + "/core-rs/libcore_rs.dylib")
+        }
+        paths.append("/usr/local/lib/libcore_rs.dylib")
+        paths.append("/opt/homebrew/lib/libcore_rs.dylib")
+        return paths
+    }
+
+    deinit {
+        if let handle = handle { dlclose(handle) }
+    }
+}
+
 public class CaretSnapshot {
     public let primary: CaretPrimaryState
     public let caret: UInt32
@@ -125,26 +162,29 @@ public class FFIBridge {
     private var caretMonitor: UnsafeMutableRawPointer?
     
     public init() {
-        self.caretMonitor = mind_type_caret_monitor_new()
+        MindTypeCoreLoader.shared.loadIfNeeded()
+        self.caretMonitor = MindTypeCoreLoader.shared.caret_monitor_new?()
     }
     
     deinit {
         if let monitor = caretMonitor {
-            mind_type_caret_monitor_free(monitor)
+            MindTypeCoreLoader.shared.caret_monitor_free?(monitor)
         }
     }
     
     // Get core version
     public func getCoreVersion() -> String {
-        let mtString = mind_type_core_version()
-        defer { mind_type_core_free_string(mtString) }
-        
-        guard let ptr = mtString.ptr, mtString.len > 0 else {
-            return "unknown"
+        MindTypeCoreLoader.shared.loadIfNeeded()
+        if let coreVersion = MindTypeCoreLoader.shared.core_version {
+            let mtString = coreVersion()
+            defer { MindTypeCoreLoader.shared.core_free_string?(mtString) }
+            guard let ptr = mtString.ptr, mtString.len > 0 else {
+                return "unknown"
+            }
+            let data = Data(bytes: ptr, count: Int(mtString.len))
+            return String(data: data, encoding: .utf8) ?? "unknown"
         }
-        
-        let data = Data(bytes: ptr, count: Int(mtString.len))
-        return String(data: data, encoding: .utf8) ?? "unknown"
+        return "unknown"
     }
     
     // Ingest text and caret position
@@ -159,7 +199,7 @@ public class FFIBridge {
                 timestamp_ms: UInt64(Date().timeIntervalSince1970 * 1000),
                 event_kind: eventKind.rawValue
             )
-            return mind_type_caret_monitor_update(monitor, event)
+            return MindTypeCoreLoader.shared.caret_monitor_update?(monitor, event) ?? false
         }
     }
     
@@ -167,7 +207,7 @@ public class FFIBridge {
     public func flush() -> UInt32 {
         guard let monitor = caretMonitor else { return 0 }
         let nowMs = UInt64(Date().timeIntervalSince1970 * 1000)
-        return mind_type_caret_monitor_flush(monitor, nowMs)
+        return MindTypeCoreLoader.shared.caret_monitor_flush?(monitor, nowMs) ?? 0
     }
     
     // Get caret snapshots
@@ -177,7 +217,7 @@ public class FFIBridge {
         let snapshots = UnsafeMutablePointer<MTCaretSnapshot>.allocate(capacity: maxCount)
         defer { snapshots.deallocate() }
         
-        let count = mind_type_caret_monitor_get_snapshots(monitor, snapshots, UInt32(maxCount))
+        let count = MindTypeCoreLoader.shared.caret_monitor_get_snapshots?(monitor, snapshots, UInt32(maxCount)) ?? 0
         
         var result: [CaretSnapshot] = []
         for i in 0..<Int(count) {
@@ -191,8 +231,11 @@ public class FFIBridge {
     // Extract text fragment
     public func extractFragment(from text: String) -> String? {
         return text.withCString { textPtr in
-            let mtString = mind_type_extract_fragment(UnsafePointer(textPtr), UInt(text.utf8.count))
-            defer { mind_type_core_free_string(mtString) }
+            guard let extractFragment = MindTypeCoreLoader.shared.extract_fragment else { return nil }
+            let mtString = extractFragment(UnsafePointer(textPtr), UInt(text.utf8.count))
+            if let coreFree = MindTypeCoreLoader.shared.core_free_string {
+                defer { coreFree(mtString) }
+            }
             
             guard let ptr = mtString.ptr, mtString.len > 0 else {
                 return nil
@@ -206,7 +249,8 @@ public class FFIBridge {
     // Compute active region band
     public func computeBand(text: String, caret: Int) -> BandRange? {
         return text.withCString { textPtr in
-            let mtBand = mind_type_compute_band(
+            guard let computeBand = MindTypeCoreLoader.shared.compute_band else { return nil }
+            let mtBand = computeBand(
                 UnsafePointer(textPtr),
                 UInt(text.utf8.count),
                 UInt32(caret)
@@ -220,7 +264,7 @@ public class FFIBridge {
     // Set tone configuration
     public func setTone(enabled: Bool, target: String) -> Bool {
         return target.withCString { targetPtr in
-            return mind_type_set_tone(enabled, UnsafePointer(targetPtr), UInt(target.utf8.count))
+            return MindTypeCoreLoader.shared.set_tone?(enabled, UnsafePointer(targetPtr), UInt(target.utf8.count)) ?? false
         }
     }
     

@@ -51,7 +51,7 @@ vi.mock('../core/diffusionController', () => ({
 import { createSweepScheduler } from '../core/sweepScheduler';
 import { SHORT_PAUSE_MS } from '../config/defaultThresholds';
 import * as cg from '../core/confidenceGate';
-import * as ctx from '../engines/contextTransformer';
+import * as ctx from '../engines/contextTransformer_v06';
 
 describe('SweepScheduler v0.4 pipeline', () => {
   beforeEach(() => {
