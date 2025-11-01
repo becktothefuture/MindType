@@ -64,6 +64,25 @@
     const titleWrap = header.querySelector('.title-wrapper');
     if(titleWrap){ titleWrap.textContent = pageTitle; }
 
+    // Inject non-dismissable deprecation overlay for demos
+    if(!document.querySelector('.mt-deprecated-overlay')){
+      const overlay = document.createElement('div');
+      overlay.className = 'mt-deprecated-overlay';
+      overlay.setAttribute('role','dialog');
+      overlay.setAttribute('aria-modal','true');
+      overlay.innerHTML = [
+        '<div class="mt-deprecated-card" role="document">',
+          '<h1>Deprecated demo</h1>',
+          '<p>This web demo is deprecated. Mind⠶Flow now lives as a lightweight macOS menu bar app with a liquid-glass panel and on-device intelligence.</p>',
+          '<div class="mt-actions">',
+            '<a class="mt-pill" href="/macOS/README.md">Open macOS setup</a>',
+            '<span class="muted">Symbol in menu bar: ⠶</span>',
+          '</div>',
+        '</div>'
+      ].join('');
+      document.body.appendChild(overlay);
+    }
+
     function formatLocal(iso){
       const d = new Date(iso);
       if(Number.isNaN(d.getTime())) return iso;

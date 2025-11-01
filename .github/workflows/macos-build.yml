@@ -1,0 +1,212 @@
+name: macOS Build & Release
+
+on:
+  push:
+    branches: [ main, v* ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-macos:
+    runs-on: macos-14  # macOS Sonoma with Apple Silicon
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for version detection
+    
+    - name: Setup Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        target: aarch64-apple-darwin
+        override: true
+        components: rustfmt, clippy
+    
+    - name: Setup Rust cache
+      uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: crates/core-rs
+    
+    - name: Install XcodeGen
+      run: |
+        brew install xcodegen
+        xcodegen --version
+    
+    - name: Build Rust core (Debug)
+      run: |
+        cd crates/core-rs
+        cargo build --features ffi
+        cargo test --features ffi
+        # Verify FFI symbols are exported
+        nm target/debug/libcore_rs.dylib | grep mindtype || echo "Warning: FFI symbols not found"
+    
+    - name: Build Rust core (Release)
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        cd crates/core-rs
+        cargo build --release --features ffi
+        # Strip debug symbols for release
+        strip target/release/libcore_rs.dylib
+    
+    - name: Generate Xcode project
+      run: |
+        cd macOS
+        xcodegen generate --spec Template/project.yml
+        ls -la MindTypeStatusBar.xcodeproj/
+    
+    - name: Build macOS app (Debug)
+      run: |
+        cd macOS
+        xcodebuild \
+          -project MindTypeStatusBar.xcodeproj \
+          -scheme MindTypeStatusBar \
+          -configuration Debug \
+          -destination "platform=macOS" \
+          build
+    
+    - name: Run Swift tests
+      run: |
+        cd macOS
+        xcodebuild test \
+          -project MindTypeStatusBar.xcodeproj \
+          -scheme MindTypeStatusBar \
+          -destination "platform=macOS"
+    
+    # Release build and signing (only for tags)
+    - name: Import signing certificate
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        SIGNING_CERTIFICATE_P12_DATA: ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }}
+        SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+      run: |
+        # Create temporary keychain
+        security create-keychain -p temp_password temp.keychain
+        security default-keychain -s temp.keychain
+        security unlock-keychain -p temp_password temp.keychain
+        
+        # Import certificate
+        echo "$SIGNING_CERTIFICATE_P12_DATA" | base64 --decode > certificate.p12
+        security import certificate.p12 -k temp.keychain -P "$SIGNING_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple: -s -k temp_password temp.keychain
+        
+        # Verify certificate
+        security find-identity -v temp.keychain
+    
+    - name: Build macOS app (Release)
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        cd macOS
+        xcodebuild \
+          -project MindTypeStatusBar.xcodeproj \
+          -scheme MindTypeStatusBar \
+          -configuration Release \
+          -destination "platform=macOS" \
+          -archivePath MindTypeStatusBar.xcarchive \
+          archive
+        
+        # Export app bundle
+        xcodebuild \
+          -exportArchive \
+          -archivePath MindTypeStatusBar.xcarchive \
+          -exportPath export \
+          -exportOptionsPlist ../scripts/ExportOptions.plist
+    
+    - name: Notarize app
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        NOTARIZATION_USERNAME: ${{ secrets.NOTARIZATION_USERNAME }}
+        NOTARIZATION_PASSWORD: ${{ secrets.NOTARIZATION_PASSWORD }}
+        NOTARIZATION_TEAM_ID: ${{ secrets.NOTARIZATION_TEAM_ID }}
+      run: |
+        cd macOS/export
+        
+        # Create ZIP for notarization
+        ditto -c -k --keepParent MindTypeStatusBar.app MindTypeStatusBar.zip
+        
+        # Submit for notarization
+        xcrun notarytool submit MindTypeStatusBar.zip \
+          --apple-id "$NOTARIZATION_USERNAME" \
+          --password "$NOTARIZATION_PASSWORD" \
+          --team-id "$NOTARIZATION_TEAM_ID" \
+          --wait
+        
+        # Staple notarization ticket
+        xcrun stapler staple MindTypeStatusBar.app
+        
+        # Verify notarization
+        spctl --assess --verbose MindTypeStatusBar.app
+    
+    - name: Create DMG
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        cd macOS/export
+        
+        # Create DMG using create-dmg (install if needed)
+        if ! command -v create-dmg &> /dev/null; then
+          brew install create-dmg
+        fi
+        
+        create-dmg \
+          --volname "Mind⠶Flow" \
+          --volicon "../../assets/app-icon.icns" \
+          --window-pos 200 120 \
+          --window-size 600 400 \
+          --icon-size 100 \
+          --icon "MindTypeStatusBar.app" 175 190 \
+          --hide-extension "MindTypeStatusBar.app" \
+          --app-drop-link 425 190 \
+          "MindTypeStatusBar.dmg" \
+          "MindTypeStatusBar.app"
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos-build-${{ github.sha }}
+        path: |
+          macOS/export/MindTypeStatusBar.app
+          macOS/export/MindTypeStatusBar.dmg
+        retention-days: 30
+    
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          macOS/export/MindTypeStatusBar.dmg
+        body: |
+          ## Mind⠶Flow macOS Release
+          
+          ### Installation
+          1. Download and mount the DMG file
+          2. Drag Mind⠶Flow to Applications folder
+          3. Launch and grant Accessibility permissions when prompted
+          
+          ### System Requirements
+          - macOS 14.0 (Sonoma) or later
+          - Apple Silicon Mac (M1/M2/M3) recommended
+          
+          ### Security
+          - Code signed and notarized by Apple
+          - App Sandbox enabled for security
+          - Privacy-first design with on-device processing
+          
+          See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+        draft: false
+        prerelease: contains(github.ref, 'beta') || contains(github.ref, 'alpha')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Cleanup keychain
+      if: always() && startsWith(github.ref, 'refs/tags/')
+      run: |
+        security delete-keychain temp.keychain || true
+        rm -f certificate.p12 || true
+
+

@@ -23,7 +23,9 @@ import { createDiffusionController } from './diffusionController';
 import type { LMAdapter } from './lm/types';
 import { createLogger } from './logger';
 import type { SecurityContext } from './security';
-import { contextTransform } from '../engines/contextTransformer';
+import { contextTransform } from '../engines/contextTransformer_v06';
+// Legacy tone functions: detectBaseline and planAdjustments are still used in legacy tone path
+// TODO: Refactor to use toneTransformer_v06.toneTransform() instead
 import {
   detectBaseline,
   planAdjustments,

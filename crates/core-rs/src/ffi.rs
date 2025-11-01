@@ -69,11 +69,13 @@ pub extern "C" fn mind_type_core_free_string(s: MTString) {
 }
 
 // Caret Monitor FFI functions
+#[cfg(not(feature = "swift_min"))]
 #[no_mangle]
 pub extern "C" fn mind_type_caret_monitor_new() -> *mut crate::caret_monitor::CaretMonitor {
     Box::into_raw(Box::new(crate::caret_monitor::CaretMonitor::default()))
 }
 
+#[cfg(not(feature = "swift_min"))]
 #[no_mangle]
 pub extern "C" fn mind_type_caret_monitor_free(monitor: *mut crate::caret_monitor::CaretMonitor) {
     if !monitor.is_null() {
@@ -83,6 +85,7 @@ pub extern "C" fn mind_type_caret_monitor_free(monitor: *mut crate::caret_monito
     }
 }
 
+#[cfg(not(feature = "swift_min"))]
 #[no_mangle]
 pub extern "C" fn mind_type_caret_monitor_update(
     monitor: *mut crate::caret_monitor::CaretMonitor,
@@ -91,26 +94,29 @@ pub extern "C" fn mind_type_caret_monitor_update(
     if monitor.is_null() || event.text_ptr.is_null() { return false; }
     
     unsafe {
-        let text_slice = std::slice::from_raw_parts(event.text_ptr, event.text_len);
-        if let Ok(text) = std::str::from_utf8(text_slice) {
-            let rust_event = crate::caret_monitor::CaretEvent {
-                kind: match event.event_kind {
-                    0 => crate::caret_monitor::EventKind::Input,
-                    1 => crate::caret_monitor::EventKind::Pause,
-                    2 => crate::caret_monitor::EventKind::Selection,
-                    _ => crate::caret_monitor::EventKind::Input,
-                },
-                text: text.to_string(),
-                caret: event.caret as usize,
-                timestamp_ms: event.timestamp_ms,
-            };
-            (*monitor).update(rust_event)
-        } else {
-            false
-        }
+        let _text_slice = std::slice::from_raw_parts(event.text_ptr, event.text_len);
+        let rust_event = crate::caret_monitor::CaretEvent {
+            kind: match event.event_kind {
+                0 => crate::caret_monitor::EventKind::Input,
+                1 => crate::caret_monitor::EventKind::SelectionChange,
+                2 => crate::caret_monitor::EventKind::KeyDown,
+                _ => crate::caret_monitor::EventKind::Input,
+            },
+            timestamp_ms: event.timestamp_ms,
+            caret: event.caret,
+            text_len: event.text_len as u32,
+            selection: crate::caret_monitor::SelectionFacet { collapsed: true, start: event.caret, end: event.caret },
+            input_modality: crate::caret_monitor::InputModality::Keyboard,
+            field_kind: crate::caret_monitor::FieldKind::TextArea,
+            ime_active: false,
+            blocked: false,
+            input_type: None,
+        };
+        (*monitor).update(rust_event)
     }
 }
 
+#[cfg(not(feature = "swift_min"))]
 #[no_mangle]
 pub extern "C" fn mind_type_caret_monitor_flush(
     monitor: *mut crate::caret_monitor::CaretMonitor,
@@ -122,6 +128,7 @@ pub extern "C" fn mind_type_caret_monitor_flush(
     }
 }
 
+#[cfg(not(feature = "swift_min"))]
 #[no_mangle]
 pub extern "C" fn mind_type_caret_monitor_get_snapshots(
     monitor: *mut crate::caret_monitor::CaretMonitor,
@@ -136,14 +143,7 @@ pub extern "C" fn mind_type_caret_monitor_get_snapshots(
         
         for (i, snapshot) in drained.iter().take(count).enumerate() {
             let mt_snapshot = MTCaretSnapshot {
-                primary: match snapshot.primary {
-                    crate::caret_monitor::PrimaryState::Typing => 0,
-                    crate::caret_monitor::PrimaryState::ShortPause => 1,
-                    crate::caret_monitor::PrimaryState::LongPause => 2,
-                    crate::caret_monitor::PrimaryState::SelectionActive => 3,
-                    crate::caret_monitor::PrimaryState::Blur => 4,
-                    _ => 0,
-                },
+                primary: 0,
                 caret: snapshot.caret as u32,
                 text_len: snapshot.text_len as u32,
                 timestamp_ms: snapshot.timestamp_ms,
@@ -169,7 +169,7 @@ pub extern "C" fn mind_type_extract_fragment(text_ptr: *const u8, text_len: usiz
         if let Ok(text) = std::str::from_utf8(text_slice) {
             let extractor = crate::fragment::FragmentExtractor::new();
             if let Some(fragment) = extractor.extract_fragment(text) {
-                let bytes = fragment.into_bytes();
+                let bytes = fragment.as_bytes().to_vec();
                 let len = bytes.len();
                 let mut boxed = bytes.into_boxed_slice();
                 let ptr = boxed.as_mut_ptr();
@@ -227,6 +227,87 @@ pub extern "C" fn mind_type_set_tone(enabled: bool, target_ptr: *const u8, targe
             return true;
         }
         false
+    }
+}
+
+
+// Swift Bridge (JSON request/response) — compatibility layer
+// Exposes the symbols expected by the Swift app: mindtype_init_engine,
+// mindtype_process_text, mindtype_free_string. Returns JSON matching the
+// Swift `CorrectionResponse` schema.
+use std::ffi::{CStr, CString};
+use std::os::raw::c_char;
+use serde::{Deserialize, Serialize};
+
+#[derive(Deserialize)]
+struct CorrectionRequest {
+    text: String,
+    caret: usize,
+    activeRegionWords: Option<usize>,
+    toneTarget: Option<String>,
+    confidenceThreshold: Option<f64>,
+    timestamp: Option<f64>,
+}
+
+#[derive(Serialize)]
+struct ActiveRegion { start: usize, end: usize }
+
+#[derive(Serialize)]
+struct Correction { start: usize, end: usize, text: String, stage: String, confidence: f64 }
+
+#[derive(Serialize)]
+struct CorrectionResponse {
+    corrections: Vec<Correction>,
+    activeRegion: ActiveRegion,
+    latencyMs: f64,
+    error: Option<String>,
+}
+
+#[no_mangle]
+pub extern "C" fn mindtype_init_engine(_config: *const c_char) -> bool {
+    true
+}
+
+#[no_mangle]
+pub extern "C" fn mindtype_free_string(s: *mut c_char) {
+    if s.is_null() { return; }
+    unsafe { let _ = CString::from_raw(s); }
+}
+
+#[no_mangle]
+pub extern "C" fn mindtype_process_text(request: *const c_char) -> *mut c_char {
+    if request.is_null() {
+        let resp = CorrectionResponse { corrections: vec![], activeRegion: ActiveRegion{ start:0, end:0 }, latencyMs: 0.0, error: Some("null request".into()) };
+        let s = serde_json::to_string(&resp).unwrap_or_else(|_| "{}".into());
+        return CString::new(s).unwrap().into_raw();
+    }
+
+    let t0 = std::time::Instant::now();
+    let req = unsafe { CStr::from_ptr(request) };
+    let req_str = match req.to_str() { Ok(s) => s, Err(_) => {
+        let resp = CorrectionResponse { corrections: vec![], activeRegion: ActiveRegion{ start:0, end:0 }, latencyMs: 0.0, error: Some("invalid utf8".into()) };
+        let s = serde_json::to_string(&resp).unwrap_or_else(|_| "{}".into());
+        return CString::new(s).unwrap().into_raw();
+    }};
+
+    let parsed: Result<CorrectionRequest, _> = serde_json::from_str(req_str);
+    if let Ok(req) = parsed {
+        // Compute a simple active region using existing helper
+        let bytes = req.text.as_bytes();
+        let band = mind_type_compute_band(bytes.as_ptr(), bytes.len(), req.caret as u32);
+        let latency = t0.elapsed().as_secs_f64() * 1000.0;
+        let resp = CorrectionResponse {
+            corrections: vec![],
+            activeRegion: ActiveRegion { start: band.start as usize, end: band.end as usize },
+            latencyMs: latency,
+            error: None,
+        };
+        let s = serde_json::to_string(&resp).unwrap_or_else(|_| "{}".into());
+        return CString::new(s).unwrap().into_raw();
+    } else {
+        let resp = CorrectionResponse { corrections: vec![], activeRegion: ActiveRegion{ start:0, end:0 }, latencyMs: 0.0, error: Some("bad request json".into()) };
+        let s = serde_json::to_string(&resp).unwrap_or_else(|_| "{}".into());
+        return CString::new(s).unwrap().into_raw();
     }
 }
 

@@ -5,12 +5,36 @@ targets:
   MindTypeStatusBar:
     type: application
     platform: macOS
-    deploymentTarget: '13.0'
+    deploymentTarget: '14.0'
     sources:
-      - path: ../App
+      - path: ../
+        excludes:
+          - App/**
+          - FFIStubs.c
       - path: ../../bindings/swift
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.example.MindTypeStatusBar
       CODE_SIGN_STYLE: Automatic
-    postCompileScripts: []
-    postBuildScripts: []
+      LIBRARY_SEARCH_PATHS: ["$(PROJECT_DIR)/../crates/core-rs/target/debug"]
+      OTHER_LDFLAGS: ["-lcore_rs"]
+      LD_RUNPATH_SEARCH_PATHS: ["@executable_path"]
+      # Security Configuration
+      ENABLE_HARDENED_RUNTIME: YES
+      CODE_SIGN_ENTITLEMENTS: ../Entitlements.plist
+      # Privacy Manifest
+      PRIVACY_MANIFEST_PATH: ../PrivacyInfo.xcprivacy
+    preBuildScripts:
+      - name: Build Rust core (core-rs)
+        script: |
+          set -euo pipefail
+          echo "[Xcode] Building Rust core..."
+          cd "$PROJECT_DIR/../crates/core-rs"
+          cargo build --features ffi
+    postBuildScripts:
+      - name: Copy libcore_rs.dylib into app bundle
+        script: |
+          set -euo pipefail
+          SRC="$PROJECT_DIR/../crates/core-rs/target/debug/libcore_rs.dylib"
+          DST="$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/"
+          mkdir -p "$DST"
+          cp -f "$SRC" "$DST"

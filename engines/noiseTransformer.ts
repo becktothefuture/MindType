@@ -84,8 +84,74 @@ export async function noiseTransform(input: NoiseInput): Promise<NoiseResult> {
   }
 }
 
-// Legacy sync export for compatibility during transition
-export function noiseTransformSync(_input: { text: string; caret: number }): NoiseResult {
-  // v0.6: sync version disabled; use async noiseTransform with LMAdapter
+/**
+ * Deterministic noise fallback (PDF requirement: deterministic-first)
+ * Handles common typos, spacing, and casing without requiring LM
+ */
+function applyDeterministicFixes(word: string): string {
+  // Common typo patterns (orthography)
+  const typoMap: Record<string, string> = {
+    'teh': 'the',
+    'recieve': 'receive',
+    'seperate': 'separate',
+    'occured': 'occurred',
+    'accomodate': 'accommodate',
+    'definately': 'definitely',
+    'acheive': 'achieve',
+  };
+  
+  const lower = word.toLowerCase();
+  if (typoMap[lower]) {
+    // Preserve casing
+    if (word[0] === word[0]?.toUpperCase()) {
+      return typoMap[lower][0]?.toUpperCase() + typoMap[lower].slice(1);
+    }
+    return typoMap[lower];
+  }
+  
+  // Transposition fixes (common adjacent swaps)
+  // "hte" -> "the", "adn" -> "and"
+  if (lower === 'hte') return word[0] === 'H' ? 'The' : 'the';
+  if (lower === 'adn') return word[0] === 'A' ? 'And' : 'and';
+  
+  return word; // No fix needed
+}
+
+/**
+ * Legacy sync export for streaming tick (deterministic-first per PDF)
+ * Returns deterministic fixes for immediate application during typing
+ */
+export function noiseTransformSync(input: { text: string; caret: number }): NoiseResult {
+  const { text, caret } = input;
+  
+  // Only process text behind caret
+  if (caret <= 0 || caret > text.length) {
+    return { diff: null };
+  }
+  
+  // Extract word immediately behind caret (last word in Active Region)
+  const beforeCaret = text.slice(Math.max(0, caret - 100), caret);
+  const wordMatch = beforeCaret.match(/[\p{L}\p{N}_]+$/u);
+  
+  if (!wordMatch) {
+    return { diff: null };
+  }
+  
+  const wordStart = caret - wordMatch[0].length;
+  const wordEnd = caret;
+  const originalWord = text.slice(wordStart, wordEnd);
+  const fixedWord = applyDeterministicFixes(originalWord);
+  
+  // Only return diff if fix was applied
+  if (fixedWord !== originalWord) {
+    return {
+      diff: {
+        start: wordStart,
+        end: wordEnd,
+        text: fixedWord,
+      },
+    };
+  }
+  
   return { diff: null };
 }

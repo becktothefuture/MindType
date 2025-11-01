@@ -18,12 +18,12 @@
 
 ![build](https://img.shields.io/badge/build-pending-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
-![version](https://img.shields.io/badge/version-0.4.0-purple)
+![version](https://img.shields.io/badge/version-0.6.0-purple)
 
 ### TL;DR
 
-- Typing engines propose caret-safe diffs in real time (Tidy Sweep) and during idle (Backfill Consistency). An active region (3–8 words) trails the caret and “draws in” corrections.
-- A small TypeScript core wires input monitoring and scheduling. A Rust crate powers WASM-ready primitives. Local LM target: Transformers.js + Qwen2.5‑0.5B‑Instruct (q4, WebGPU) with graceful fallback to rules.
+- Typing engines propose caret-safe diffs in real time via three-stage pipeline (Noise → Context → Tone). An active region (~20 words, 2–3 sentences) trails the caret and "draws in" corrections during natural pauses.
+- A small TypeScript core wires input monitoring and scheduling. A Rust crate powers WASM-ready primitives. Local LM target: Transformers.js + Qwen2.5‑0.5B‑Instruct (q4, WebGPU/WASM/CPU) with deterministic-first fallback.
 - Quality gates: pnpm typecheck, lint, format:check, test. Tasks live in `docs/02-implementation/02-Implementation.md`.
 
 ### Demo • _add GIF here_
@@ -135,13 +135,16 @@ MindType/
 
 ### engines/
 
-- `engines/noiseTransformer.ts`: Forward pass that proposes minimal diffs behind the CARET within a `MAX_SWEEP_WINDOW` window.
-- `engines/backfillConsistency.ts`: Reverse pass that proposes consistency diffs in the stable zone behind the caret (stub returns empty array).
+- `engines/noiseTransformer.ts`: Stage 1 - Deterministic typo/spacing fixes (sync) + LM corrections (async) within Active Region.
+- `engines/contextTransformer_v06.ts`: Stage 2 - LM-powered grammar and coherence improvements, confidence-gated.
+- `engines/toneTransformer_v06.ts`: Stage 3 - Optional tone adjustment (None/Casual/Professional), conservative gating.
+- `engines/toneTransformer.ts`: Legacy tone helper functions (detectBaseline, planAdjustments) - still used by sweepScheduler legacy path.
 
 ### ui/
 
-- `ui/highlighter.ts`: Renders active region (3–8 words behind caret) and applied fix highlights; honors reduced-motion.
-- `ui/groupUndo.ts`: Optional batching for host‑applied diffs. NOTE: Active region (formerly “tapestry”)/LM evolutions are explicitly exempt — normal editor undo semantics apply.
+- `ui/highlighter.ts`: Renders active region and applied fix highlights; honors reduced-motion.
+- `ui/correctionMarker_v06.ts`: Visual organism (braille-like symbol) that signals readiness and sweeps through text during corrections.
+- `ui/rollbackHandler.ts`: Cmd+Alt+Z handler for atomic wave rollback (groups all diffs from one sweep into single undo).
 
 ### utils/
 
@@ -150,7 +153,7 @@ MindType/
 ### tests/
 
 - `tests/noiseTransformer.spec.ts`: Verifies noise transformer returns no crossing-caret edits.
-- `tests/backfill.spec.ts`: Ensures reverse pass outputs array of diffs (shape guard for stable zone logic).
+- `tests/contextTransformer*.spec.ts`: Tests context stage gating and LM integration.
 - `tests/diff.spec.ts`: Validates `replaceRange` correctness and caret guardrails.
 
 ### docs/
@@ -176,15 +179,19 @@ MindType/
 - `src/llm.rs`: Token stream trait + stub tokenizer; placeholders for OpenAI/CoreML streams.
 - Cargo files: crate metadata/lock; `target/` contains build artifacts.
 
-### web-demo/
+### playground/
 
-- `web-demo/` is a Vite + React demo shell. Key files:
-  - `src/App.tsx`, `src/App.test.tsx`: Example UI and test stub.
-  - `src/components/DebugPanel.tsx`, `LogsTab.tsx`, `SettingsTab.tsx`: Debug UI panels.
-  - `src/main.tsx`: App bootstrap; Vite entry.
-  - `vite.config.ts`, `vitest.config.ts`: Build/test configs for the demo.
-  - `tsconfig.*.json`: TS configs for app/node.
-  - Note: demo is isolated from core unit tests; see root `vitest.config.ts`.
+- `playground/` is a Vite + React demo shell. Key files:
+  - `src/App.tsx`, `src/App_v06.tsx`: Demo UI components.
+  - `src/worker/lmWorker.ts`: LM worker integration with Transformers.js.
+  - `vite.config.ts`, `vitest.config.ts`: Build/test configs.
+  - Note: Demo is deprecated in favor of macOS app; see `demo/README.md`.
+
+### web-lab-v0.6/
+
+- `web-lab-v0.6/`: Standalone testing app with comprehensive pipeline logging and visualization.
+  - `src/PipelineLogger.ts`: Captures every pipeline event for debugging.
+  - `src/PipelineVisualizer.ts`: Real-time visualization of stage status, Active Region, confidence scores.
 
 ### e2e/
 
@@ -267,17 +274,16 @@ Where Swift fits (mac app):
 
 ## What's New
 
-For the latest features, changes, and improvements in v0.4, see:
+For the latest features, changes, and improvements in v0.6, see:
 
-📋 **[What's New in v0.4](docs/06-guides/06-guides/whats-new-v0.4.md)**
+📋 **[System Living Guide](docs/00-index/system-living-guide.md)** - Comprehensive reference for how Mind⠶Flow works
 
-Key highlights include:
+Key highlights:
 
-- Enhanced active region tracking and visualization
-- Improved caret safety with undo isolation
-- Performance optimizations and LM adapter interface
-- Comprehensive test coverage and e2e validation
-- Swift/FFI bridge foundations for native apps
+- **PDF-aligned architecture**: Three-stage pipeline (Noise → Context → Tone) with deterministic-first fallback
+- **Atomic undo**: Wave history groups all diffs from one sweep into single undo operation
+- **Testing infrastructure**: Web lab v0.6 with comprehensive event logging and visualization
+- **Documentation**: Living guide, mind maps, and alignment analysis
 
 ## License
 

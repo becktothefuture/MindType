@@ -242,8 +242,8 @@ modules:
 acceptance:
   - docs/12-qa/qa/acceptance/streamed_diffusion.feature
 tests:
-  - tests/noiseTransformer.spec.ts
   - tests/contextTransformer.spec.ts
+  - tests/performance/benchmarks.spec.ts
 -->
 
 <!-- SPEC:REQ
@@ -261,9 +261,9 @@ acceptance:
   - docs/12-qa/qa/acceptance/mechanical_swap.feature
 tests:
   - tests/sweepScheduler.spec.ts
-  - tests/noiseTransformer.spec.ts
   - tests/contextTransformer.spec.ts
   - tests/toneTransformer.spec.ts
+  - tests/integration/lm_full_flow.spec.ts
 -->
 
 ## Stakeholders & Success Criteria

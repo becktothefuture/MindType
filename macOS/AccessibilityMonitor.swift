@@ -218,13 +218,28 @@ class AccessibilityMonitor {
     }
     
     private func processTextChange(text: String, caret: Int) {
-        // This is where we'd call the Rust core LM-only pipeline
         print("📝 Processing text change: \(text.count) chars, caret: \(caret)")
-        
-        // TODO: Integrate with Rust core via FFI
-        // let result = rust_process_text(text, caret, activeRegionWords)
-        // if let corrections = result.corrections {
-        //     applyCorrections(corrections, to: currentElement)
-        // }
+        guard let element = currentElement else { return }
+        do {
+            let t0 = DispatchTime.now()
+            let response = try RustBridge.shared.processText(
+                text: text,
+                caret: caret,
+                activeRegionWords: 20
+            )
+            let t1 = DispatchTime.now()
+            let ffiMs = Double(t1.uptimeNanoseconds - t0.uptimeNanoseconds) / 1_000_000.0
+            print("⏱️ FFI latency: \(String(format: "%.2f", ffiMs)) ms")
+            if !response.corrections.isEmpty {
+                let applicator = CorrectionApplicator()
+                let a0 = DispatchTime.now()
+                applicator.applyCorrections(response.corrections, to: element)
+                let a1 = DispatchTime.now()
+                let axMs = Double(a1.uptimeNanoseconds - a0.uptimeNanoseconds) / 1_000_000.0
+                print("⏱️ AX apply latency: \(String(format: "%.2f", axMs)) ms")
+            }
+        } catch {
+            print("❌ Rust processing failed: \(error)")
+        }
     }
 }

@@ -44,8 +44,8 @@
       "docs/12-qa/qa/acceptance/streamed_diffusion.feature"
     ],
     "tests": [
-      "tests/noiseTransformer.spec.ts",
-      "tests/contextTransformer.spec.ts"
+      "tests/contextTransformer.spec.ts",
+      "tests/performance/benchmarks.spec.ts"
     ],
     "invariants": [],
     "types": [],
@@ -67,9 +67,9 @@
     ],
     "tests": [
       "tests/sweepScheduler.spec.ts",
-      "tests/noiseTransformer.spec.ts",
       "tests/contextTransformer.spec.ts",
-      "tests/toneTransformer.spec.ts"
+      "tests/toneTransformer.spec.ts",
+      "tests/integration/lm_full_flow.spec.ts"
     ],
     "invariants": [],
     "types": [],
@@ -146,7 +146,7 @@
     "modules": [
       "core/lm/types.ts",
       "core/lm/mockStreamAdapter.ts",
-      "web-demo/src/lab/LMLab.tsx"
+      "playground/src/worker/lmWorker.ts"
     ],
     "acceptance": [
       "tests/lm_stream.spec.ts#SCEN-LM-STREAM-001",

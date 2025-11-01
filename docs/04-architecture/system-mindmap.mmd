@@ -1,0 +1,153 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#e3f2fd', 'primaryTextColor': '#0d47a1', 'primaryBorderColor': '#1976d2', 'lineColor': '#424242', 'secondaryColor': '#f3e5f5', 'tertiaryColor': '#e8f5e8', 'background': '#fafafa', 'mainBkg': '#ffffff', 'secondBkg': '#f5f5f5', 'tertiaryBkg': '#eeeeee'}}}%%
+%% ═══════════════════════════════════════════════════════════════════════════════
+%% 🧠 MINDTYPE SYSTEM MINDMAP - PDF-ALIGNED ARCHITECTURE WITH ANNOTATIONS
+%% ═══════════════════════════════════════════════════════════════════════════════
+%% 
+%% PURPOSE: Comprehensive visual map of Mind⠶Flow system architecture
+%% SCOPE: All components, data flows, decisions, and PDF requirements
+%% ALIGNMENT: Validated against docs/00-index/pdf-guide-requirements.md
+%% 
+%% ANNOTATIONS: Each node includes purpose, why, file references, ADR links
+%% ═══════════════════════════════════════════════════════════════════════════════
+
+mindmap
+  root((Mind⠶Flow<br/>System))
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% ENTRY & BOOT
+    %% ═══════════════════════════════════════════════════════════════
+    Entry["`**Entry Point**<br/>index.ts`<br/><br/>• Boots system<br/>• Wires components<br/>• Exposes API<br/><br/>**Why**: Single initialization point<br/>**Ref**: docs/00-index/system-living-guide.md#indexts"]
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% INPUT LAYER
+    %% ═══════════════════════════════════════════════════════════════
+    Input["`**Input Layer**<br/>User Typing`"]
+      Input --> TypingMonitor["`**TypingMonitor**<br/>core/typingMonitor.ts<br/><br/>• Emits TypingEvent<br/>• Publisher/subscriber<br/><br/>**Why**: Decouple capture from processing<br/>**Data**: {text, caret, atMs}`"]
+      
+      TypingMonitor --> SweepScheduler["`**SweepScheduler**<br/>core/sweepScheduler.ts<br/><br/>• Orchestrates pipeline<br/>• Pause detection (600ms)<br/>• Streaming ticks (75ms)<br/>• Tier-aware debounce<br/><br/>**Why**: Centralized timing logic<br/>**PDF**: AC-PAUSE-TRIGGER<br/>**Ref**: docs/00-index/pdf-guide-requirements.md#11-pipeline-textual`"]
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% SAFETY & SECURITY
+    %% ═══════════════════════════════════════════════════════════════
+    Safety["`**Safety Layer**<br/>Always-On Guards`"]
+      Safety --> SecurityGuards["`**Security Guards**<br/>core/security.ts<br/><br/>• Secure field detection<br/>• IME composition guard<br/><br/>**Why**: PDF privacy requirement<br/>**PDF**: AC-PRIVACY-ON-DEVICE<br/>**Ref**: docs/00-index/pdf-guide-requirements.md#9-privacy-architectural`"]
+      
+      Safety --> CaretSafety["`**Caret Safety**<br/>utils/grapheme.ts<br/><br/>• isCaretSafe() validation<br/>• Grapheme alignment<br/><br/>**Why**: Absolute guarantee<br/>**PDF**: AC-CARET-SAFE<br/>**Ref**: docs/00-index/pdf-guide-requirements.md#6-safety-rails-always-on`"]
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% ACTIVE REGION
+    %% ═══════════════════════════════════════════════════════════════
+    ActiveRegion["`**Active Region**<br/>Editable Window`"]
+      ActiveRegion --> Policy["`**ActiveRegionPolicy**<br/>core/activeRegionPolicy.ts<br/><br/>• computeRenderRange()<br/>• Default: 20 words<br/>• Burst growth (1.5×)<br/>• Sentence-bound option<br/><br/>**Why**: Localized edits<br/>**PDF**: AC-ACTIVE-AREA<br/>**Ref**: docs/00-index/pdf-guide-requirements.md#7-zones`"]
+      
+      ActiveRegion --> Diffusion["`**DiffusionController**<br/>core/diffusionController.ts<br/><br/>• Frontier management<br/>• Streaming tick<br/>• Catch-up on pause<br/><br/>**Why**: Word-by-word advancement<br/>**Ref**: docs/00-index/system-living-guide.md#core-diffusioncontrollerts`"]
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% THREE-STAGE PIPELINE
+    %% ═══════════════════════════════════════════════════════════════
+    Pipeline["`**Three-Stage Pipeline**<br/>PDF Requirement`"]
+      Pipeline --> Noise["`**Stage 1: Noise**<br/>engines/noiseTransformer.ts<br/><br/>• Deterministic (sync)<br/>• LM (async)<br/>• Typos, spacing, casing<br/><br/>**Why**: Deterministic-first<br/>**PDF**: AC-DETERMINISTIC-FIRST<br/>**Ref**: docs/00-index/pdf-guide-requirements.md#5-edit-taxonomy`"]
+      
+      Pipeline --> Context["`**Stage 2: Context**<br/>engines/contextTransformer_v06.ts<br/><br/>• LM-only grammar<br/>• Confidence-gated<br/>• ±2 sentences window<br/><br/>**Why**: Context-aware coherence<br/>**PDF**: AC-CONFIDENCE-GATE<br/>**Ref**: docs/00-index/pdf-guide-requirements.md#11-pipeline-textual`"]
+      
+      Pipeline --> Tone["`**Stage 3: Tone**<br/>engines/toneTransformer_v06.ts<br/><br/>• Optional (None/Casual/Pro)<br/>• Conservative gating<br/>• τ_tone threshold<br/><br/>**Why**: Preserve user voice<br/>**PDF**: docs/00-index/pdf-guide-requirements.md#5-edit-taxonomy`"]
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% CORRECTION WAVE
+    %% ═══════════════════════════════════════════════════════════════
+    Wave["`**Correction Wave**<br/>core/correctionWave_v06.ts<br/><br/>• Orchestrates stages<br/>• Sequential execution<br/>• Returns all diffs<br/><br/>**Why**: Atomic sweep unit<br/>**Ref**: docs/00-index/system-living-guide.md#correction-wave-three-stage-pipeline`"]
+      Wave --> Noise
+      Wave --> Context
+      Wave --> Tone
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% CONFIDENCE GATING
+    %% ═══════════════════════════════════════════════════════════════
+    Confidence["`**Confidence Gate**<br/>core/confidenceGate.ts<br/><br/>• computeConfidence()<br/>• applyThresholds()<br/>• hold/commit/discard<br/><br/>**Why**: Non-interference bias<br/>**PDF**: AC-CONFIDENCE-GATE<br/>**Ref**: docs/00-index/pdf-guide-requirements.md#10-technical-framework`"]
+      Confidence --> Thresholds["`**Thresholds**<br/>config/defaultThresholds.ts<br/><br/>• τ_input: 0.55<br/>• τ_commit: 0.80<br/>• τ_tone: 0.75<br/>• τ_discard: 0.30<br/><br/>**Why**: Tunable quality gates`"]
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% LANGUAGE MODEL
+    %% ═══════════════════════════════════════════════════════════════
+    LM["`**LM Adapter**<br/>core/lm/types.ts<br/><br/>• AsyncIterable stream<br/>• Device-tier detection<br/>• WebGPU/WASM/CPU<br/><br/>**Why**: Abstraction layer<br/>**Ref**: docs/00-index/system-living-guide.md#lm-adapter-abstraction<br/>**ADR**: docs/05-adr/0007-macos-lm-strategy.md`"]
+      LM --> WorkerAdapter["`**Worker Adapter**<br/>core/lm/workerAdapter.ts<br/><br/>• Transformers.js<br/>• Web Worker isolation<br/><br/>**Why**: Non-blocking inference`"]
+      
+      LM --> DeviceTier["`**Device Tier**<br/>Automatic Detection<br/><br/>• WebGPU: 15ms, 48 tokens<br/>• WASM: 25ms, 24 tokens<br/>• CPU: 30ms, 16 tokens<br/><br/>**Why**: Graceful degradation<br/>**PDF**: AC-FALLBACKS<br/>**Ref**: docs/00-index/pdf-guide-requirements.md#10-technical-framework`"]
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% LATENCY FALLBACK
+    %% ═══════════════════════════════════════════════════════════════
+    Fallback["`**Latency Fallback**<br/>config/defaultThresholds.ts<br/><br/>• Shrink AR ≥25ms<br/>• Skip Context ≥40ms<br/>• Skip Tone ≥60ms<br/><br/>**Why**: Maintain deterministic<br/>**PDF**: AC-FALLBACKS<br/>**Ref**: docs/00-index/realignment-plan.md#phase-a--critical-corrections`"]
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% UNDO SYSTEM
+    %% ═══════════════════════════════════════════════════════════════
+    Undo["`**Undo System**<br/>Atomic per Sweep`"]
+      Undo --> WaveHistory["`**WaveHistoryTracker**<br/>core/waveHistory.ts<br/><br/>• Groups diffs per wave<br/>• Cmd+Alt+Z rollback<br/><br/>**Why**: Single undo mental model<br/>**PDF**: AC-UNDO-ATOMIC<br/>**Ref**: docs/00-index/pdf-guide-requirements.md#14-undo-grouping`"]
+      
+      Undo --> RollbackHandler["`**RollbackHandler**<br/>ui/rollbackHandler.ts<br/><br/>• Global hotkey (⌥+◀)<br/>• Revert operations<br/><br/>**Why**: PDF control requirement`"]
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% UI LAYER
+    %% ═══════════════════════════════════════════════════════════════
+    UI["`**UI Layer**<br/>Visual Feedback`"]
+      UI --> CorrectionMarker["`**Correction Marker**<br/>ui/correctionMarker_v06.ts<br/><br/>• Listening/Thinking/Cleaning<br/>• Braille animation<br/>• Stop at caret<br/><br/>**Why**: PDF visual organism<br/>**PDF**: docs/00-index/pdf-guide-requirements.md#8-caret-organism-state-language`"]
+      
+      UI --> Motion["`**Motion**<br/>ui/motion.ts<br/><br/>• Reduced-motion support<br/>• Instant swap<br/><br/>**Why**: Accessibility<br/>**PDF**: AC-ACCESSIBILITY`"]
+      
+      UI --> LiveRegion["`**Live Region**<br/>ui/liveRegion.ts<br/><br/>• Batch SR announcements<br/>• One per sweep<br/><br/>**Why**: Screen reader UX<br/>**PDF**: AC-ACCESSIBILITY`"]
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% OBSERVABILITY
+    %% ═══════════════════════════════════════════════════════════════
+    Observability["`**Observability**<br/>Debugging & Logging`"]
+      Observability --> Logger["`**Logger**<br/>core/logger.ts<br/><br/>• Namespaced logs<br/>• Pluggable sink<br/><br/>**Why**: Zero-dep debugging`"]
+      
+      Observability --> DiagnosticsBus["`**DiagnosticsBus**<br/>core/diagnosticsBus.ts<br/><br/>• noise channel<br/>• lm-wire channel<br/>• context-window channel<br/><br/>**Why**: Dev diagnostics`"]
+      
+      Observability --> WebLab["`**Web Lab v0.6**<br/>web-lab-v0.6/<br/><br/>• PipelineLogger<br/>• PipelineVisualizer<br/>• JSON export<br/><br/>**Why**: Digestive-path debugging`"]
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% TECHNICAL DECISIONS
+    %% ═══════════════════════════════════════════════════════════════
+    Decisions["`**Technical Decisions**<br/>ADR Documents`"]
+      Decisions --> RustFirst["`**Rust-First**<br/>ADR-0005<br/><br/>• Performance (5-10×)<br/>• Memory safety<br/>• Platform consistency<br/><br/>**Ref**: docs/05-adr/0005-rust-first-orchestrator.md`"]
+      
+      Decisions --> FFIJSON["`**JSON over FFI**<br/>ADR-0008<br/><br/>• Debuggability<br/>• Schema flexibility<br/>• 1.6ms overhead<br/><br/>**Ref**: docs/05-adr/0008-ffi-json-bridge.md`"]
+      
+      Decisions --> LMMLX["`**macOS LM Strategy**<br/>ADR-0007<br/><br/>• MLX Swift (MVP)<br/>• Core ML (Production)<br/>• Core LM (Future)<br/><br/>**Ref**: docs/05-adr/0007-macos-lm-strategy.md`"]
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% DATA FLOW CONNECTIONS
+    %% ═══════════════════════════════════════════════════════════════
+    Entry --> Input
+    Input --> Safety
+    Safety --> ActiveRegion
+    ActiveRegion --> Diffusion
+    Diffusion --> Pipeline
+    Pipeline --> Wave
+    Wave --> Confidence
+    Confidence --> LM
+    LM --> Fallback
+    Wave --> Undo
+    Undo --> UI
+    UI --> Observability
+    Pipeline --> Decisions
+    
+    %% ═══════════════════════════════════════════════════════════════
+    %% STYLING
+    %% ═══════════════════════════════════════════════════════════════
+    classDef entryStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:3px,color:#0d47a1
+    classDef inputStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#e65100
+    classDef safetyStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#1b5e20
+    classDef pipelineStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px,color:#4a148c
+    classDef lmStyle fill:#e0f2f1,stroke:#00796b,stroke-width:2px,color:#004d40
+    classDef uiStyle fill:#fff8e1,stroke:#f9a825,stroke-width:2px,color:#e65100
+    
+    class Entry entryStyle
+    class Input,TypingMonitor,SweepScheduler inputStyle
+    class Safety,SecurityGuards,CaretSafety safetyStyle
+    class Pipeline,Noise,Context,Tone,Wave pipelineStyle
+    class LM,WorkerAdapter,DeviceTier lmStyle
+    class UI,CorrectionMarker,Motion,LiveRegion uiStyle
+

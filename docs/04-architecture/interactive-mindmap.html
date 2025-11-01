@@ -1,0 +1,330 @@
+<!--══════════════════════════════════════════════════════════
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  ░  I N T E R A C T I V E   S Y S T E M   M I N D M A P  ░░  ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║           ╌╌  P L A C E H O L D E R  ╌╌                      ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ║                                                              ║
+  ╚══════════════════════════════════════════════════════════════╝
+    • WHAT ▸ Interactive HTML/JS visualization of Mind⠶Flow architecture
+    • WHY  ▸ Explore system relationships, components, and decisions
+    • HOW  ▸ D3.js graph with zoom, search, annotations, and filtering
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mind⠶Flow Interactive System Mind Map</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body { margin: 0; padding: 16px; font-family: system-ui, -apple-system, sans-serif; background: #fafafa; }
+    .controls { margin-bottom: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .controls input[type="search"] { padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; width: 300px; }
+    .controls button { padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; background: white; cursor: pointer; }
+    .controls button:hover { background: #f5f5f5; }
+    .controls label { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+    #graph-container { border: 1px solid #ddd; border-radius: 8px; background: white; }
+    .node { cursor: pointer; }
+    .node circle { stroke-width: 2px; }
+    .node text { font-size: 12px; fill: #333; pointer-events: none; }
+    .link { stroke: #999; stroke-opacity: 0.6; stroke-width: 1.5px; fill: none; }
+    .tooltip { position: absolute; padding: 8px 12px; background: rgba(0, 0, 0, 0.9); color: white; border-radius: 4px; font-size: 12px; pointer-events: none; max-width: 400px; z-index: 1000; }
+    .panel { position: fixed; top: 16px; right: 16px; width: 320px; max-height: 80vh; overflow-y: auto; background: white; border: 1px solid #ddd; border-radius: 8px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .panel h3 { margin: 0 0 12px 0; font-size: 16px; }
+    .panel-content { font-size: 13px; line-height: 1.6; }
+    .panel-content code { background: #f5f5f5; padding: 2px 4px; border-radius: 2px; font-size: 11px; }
+  </style>
+</head>
+<body>
+  <h1>Mind⠶Flow Interactive System Mind Map</h1>
+  <div class="controls">
+    <input type="search" id="search" placeholder="Search components..." />
+    <button id="reset-zoom">Reset Zoom</button>
+    <button id="fit-bounds">Fit to View</button>
+    <label><input type="checkbox" id="show-labels" checked /> Show Labels</label>
+    <label><input type="checkbox" id="show-details" /> Show Details</label>
+  </div>
+  
+  <div id="graph-container"></div>
+  
+  <div class="panel" id="details-panel" style="display: none;">
+    <h3 id="panel-title">Component Details</h3>
+    <div class="panel-content" id="panel-content"></div>
+  </div>
+
+  <script type="module">
+    // System architecture graph data (nodes and edges)
+    const graphData = {
+      nodes: [
+        { id: 'entry', label: 'Entry (index.ts)', type: 'entry', 
+          details: 'Boots system, wires components, exposes control API. Dependency injection pattern for LM adapter.' },
+        { id: 'typingMonitor', label: 'TypingMonitor', type: 'input',
+          details: 'core/typingMonitor.ts - Emits TypingEvent {text, caret, atMs}. Publisher/subscriber pattern.' },
+        { id: 'sweepScheduler', label: 'SweepScheduler', type: 'orchestration',
+          details: 'core/sweepScheduler.ts - Orchestrates pipeline, pause detection (600ms tier-adjusted), streaming ticks (75ms).' },
+        { id: 'security', label: 'Security Guards', type: 'safety',
+          details: 'core/security.ts - Detects secure fields and IME composition. PDF: AC-PRIVACY-ON-DEVICE' },
+        { id: 'caretSafety', label: 'Caret Safety', type: 'safety',
+          details: 'utils/grapheme.ts - isCaretSafe() validation, grapheme alignment. PDF: AC-CARET-SAFE' },
+        { id: 'activeRegion', label: 'ActiveRegionPolicy', type: 'region',
+          details: 'core/activeRegionPolicy.ts - Computes editable window (default 20 words, burst growth 1.5×). PDF: AC-ACTIVE-AREA' },
+        { id: 'diffusion', label: 'DiffusionController', type: 'region',
+          details: 'core/diffusionController.ts - Manages frontier, streaming tick, catch-up on pause.' },
+        { id: 'correctionWave', label: 'CorrectionWave', type: 'pipeline',
+          details: 'core/correctionWave_v06.ts - Orchestrates three-stage pipeline sequentially. Returns all diffs atomically.' },
+        { id: 'noise', label: 'Noise Transformer', type: 'engine',
+          details: 'engines/noiseTransformer.ts - Deterministic (sync) + LM (async). Typos, spacing, casing. PDF: AC-DETERMINISTIC-FIRST' },
+        { id: 'context', label: 'Context Transformer', type: 'engine',
+          details: 'engines/contextTransformer_v06.ts - LM-only grammar/coherence, confidence-gated. ±2 sentences window.' },
+        { id: 'tone', label: 'Tone Transformer', type: 'engine',
+          details: 'engines/toneTransformer_v06.ts - Optional style adjustment (None/Casual/Pro). Conservative gating.' },
+        { id: 'confidence', label: 'Confidence Gate', type: 'gate',
+          details: 'core/confidenceGate.ts - computeConfidence(), applyThresholds(). hold/commit/discard decisions.' },
+        { id: 'thresholds', label: 'Thresholds Config', type: 'config',
+          details: 'config/defaultThresholds.ts - τ_input: 0.55, τ_commit: 0.80, τ_tone: 0.75, τ_discard: 0.30' },
+        { id: 'lmAdapter', label: 'LM Adapter', type: 'lm',
+          details: 'core/lm/types.ts - AsyncIterable stream interface. Device-tier detection (WebGPU/WASM/CPU).' },
+        { id: 'workerAdapter', label: 'Worker Adapter', type: 'lm',
+          details: 'core/lm/workerAdapter.ts - Transformers.js integration, Web Worker isolation.' },
+        { id: 'latencyFallback', label: 'Latency Fallback', type: 'performance',
+          details: 'config/defaultThresholds.ts - Shrink AR ≥25ms, skip Context ≥40ms, skip Tone ≥60ms. PDF: AC-FALLBACKS' },
+        { id: 'waveHistory', label: 'WaveHistoryTracker', type: 'undo',
+          details: 'core/waveHistory.ts - Groups diffs per wave for atomic undo. Cmd+Alt+Z rollback support.' },
+        { id: 'rollbackHandler', label: 'RollbackHandler', type: 'undo',
+          details: 'ui/rollbackHandler.ts - Global hotkey handler (⌥+◀). PDF: docs/00-index/pdf-guide-requirements.md#12-controls--fallback' },
+        { id: 'correctionMarker', label: 'Correction Marker', type: 'ui',
+          details: 'ui/correctionMarker_v06.ts - Visual organism states: Listening/Thinking/Cleaning. PDF: Lifecycle scenes.' },
+        { id: 'motion', label: 'Motion', type: 'ui',
+          details: 'ui/motion.ts - Reduced-motion support, instant swap. PDF: AC-ACCESSIBILITY' },
+        { id: 'liveRegion', label: 'Live Region', type: 'ui',
+          details: 'ui/liveRegion.ts - Batch screen reader announcements (one per sweep). PDF: AC-ACCESSIBILITY' },
+        { id: 'logger', label: 'Logger', type: 'observability',
+          details: 'core/logger.ts - Namespaced logging, pluggable sink. Zero dependencies.' },
+        { id: 'diagnosticsBus', label: 'DiagnosticsBus', type: 'observability',
+          details: 'core/diagnosticsBus.ts - Publish/subscribe channels: noise, lm-wire, context-window.' },
+        { id: 'webLab', label: 'Web Lab v0.6', type: 'observability',
+          details: 'web-lab-v0.6/ - PipelineLogger, PipelineVisualizer, JSON export for digestive-path debugging.' },
+      ],
+      links: [
+        { source: 'entry', target: 'typingMonitor' },
+        { source: 'typingMonitor', target: 'sweepScheduler' },
+        { source: 'sweepScheduler', target: 'security' },
+        { source: 'sweepScheduler', target: 'activeRegion' },
+        { source: 'security', target: 'caretSafety' },
+        { source: 'activeRegion', target: 'diffusion' },
+        { source: 'diffusion', target: 'correctionWave' },
+        { source: 'correctionWave', target: 'noise' },
+        { source: 'correctionWave', target: 'context' },
+        { source: 'correctionWave', target: 'tone' },
+        { source: 'noise', target: 'lmAdapter' },
+        { source: 'context', target: 'lmAdapter' },
+        { source: 'tone', target: 'lmAdapter' },
+        { source: 'context', target: 'confidence' },
+        { source: 'tone', target: 'confidence' },
+        { source: 'confidence', target: 'thresholds' },
+        { source: 'lmAdapter', target: 'workerAdapter' },
+        { source: 'lmAdapter', target: 'latencyFallback' },
+        { source: 'correctionWave', target: 'waveHistory' },
+        { source: 'waveHistory', target: 'rollbackHandler' },
+        { source: 'rollbackHandler', target: 'correctionMarker' },
+        { source: 'correctionMarker', target: 'motion' },
+        { source: 'correctionMarker', target: 'liveRegion' },
+        { source: 'sweepScheduler', target: 'logger' },
+        { source: 'logger', target: 'diagnosticsBus' },
+        { source: 'diagnosticsBus', target: 'webLab' },
+      ]
+    };
+
+    // Initialize D3.js force-directed graph
+    const width = 1400;
+    const height = 900;
+    const svg = d3.select('#graph-container')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height);
+
+    const g = svg.append('g');
+    
+    // Tooltip
+    const tooltip = d3.select('body').append('div')
+      .attr('class', 'tooltip')
+      .style('opacity', 0);
+
+    // Zoom behavior
+    const zoom = d3.zoom()
+      .scaleExtent([0.1, 4])
+      .on('zoom', (event) => {
+        g.attr('transform', event.transform);
+      });
+    
+    svg.call(zoom);
+
+    // Force simulation
+    const simulation = d3.forceSimulation(graphData.nodes)
+      .force('link', d3.forceLink(graphData.links).id(d => d.id).distance(100))
+      .force('charge', d3.forceManyBody().strength(-300))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('collision', d3.forceCollide().radius(40));
+
+    // Color scale by type
+    const typeColors = {
+      entry: '#1976d2',
+      input: '#f57c00',
+      orchestration: '#388e3c',
+      safety: '#c62828',
+      region: '#7b1fa2',
+      pipeline: '#0097a7',
+      engine: '#e64a19',
+      gate: '#f9a825',
+      config: '#616161',
+      lm: '#00796b',
+      performance: '#5d4037',
+      undo: '#ad1457',
+      ui: '#f9a825',
+      observability: '#455a64',
+    };
+
+    // Links
+    const link = g.append('g')
+      .selectAll('line')
+      .data(graphData.links)
+      .enter()
+      .append('line')
+      .attr('class', 'link');
+
+    // Nodes
+    const node = g.append('g')
+      .selectAll('g')
+      .data(graphData.nodes)
+      .enter()
+      .append('g')
+      .attr('class', 'node')
+      .call(d3.drag()
+        .on('start', dragstarted)
+        .on('drag', dragged)
+        .on('end', dragended));
+
+    node.append('circle')
+      .attr('r', 20)
+      .attr('fill', d => typeColors[d.type] || '#999')
+      .on('mouseover', function(event, d) {
+        tooltip.transition().duration(200).style('opacity', 0.9);
+        tooltip.html(`<strong>${d.label}</strong><br/>${d.details}`)
+          .style('left', (event.pageX + 10) + 'px')
+          .style('top', (event.pageY - 10) + 'px');
+        
+        // Show details panel
+        if (document.getElementById('show-details').checked) {
+          document.getElementById('details-panel').style.display = 'block';
+          document.getElementById('panel-title').textContent = d.label;
+          document.getElementById('panel-content').innerHTML = `
+            <p><strong>Type:</strong> ${d.type}</p>
+            <p><strong>Details:</strong> ${d.details}</p>
+            <p><strong>Node ID:</strong> <code>${d.id}</code></p>
+          `;
+        }
+      })
+      .on('mouseout', function() {
+        tooltip.transition().duration(200).style('opacity', 0);
+      })
+      .on('click', function(event, d) {
+        // Focus node and highlight connections
+        highlightNode(d.id);
+      });
+
+    const labels = node.append('text')
+      .text(d => d.label)
+      .attr('dx', 25)
+      .attr('dy', 5)
+      .style('font-size', '11px')
+      .style('display', d => document.getElementById('show-labels').checked ? 'block' : 'none');
+
+    // Update positions on simulation tick
+    simulation.on('tick', () => {
+      link
+        .attr('x1', d => d.source.x)
+        .attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y);
+
+      node
+        .attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+
+    // Drag handlers
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+
+    // Search functionality
+    document.getElementById('search').addEventListener('input', function(e) {
+      const query = e.target.value.toLowerCase();
+      node.style('opacity', d => 
+        d.label.toLowerCase().includes(query) || d.details.toLowerCase().includes(query) ? 1 : 0.1
+      );
+      link.style('opacity', d => 
+        d.source.label.toLowerCase().includes(query) || d.target.label.toLowerCase().includes(query) ? 0.6 : 0.1
+      );
+    });
+
+    // Toggle labels
+    document.getElementById('show-labels').addEventListener('change', function(e) {
+      labels.style('display', e.target.checked ? 'block' : 'none');
+    });
+
+    // Toggle details panel
+    document.getElementById('show-details').addEventListener('change', function(e) {
+      document.getElementById('details-panel').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    // Reset zoom
+    document.getElementById('reset-zoom').addEventListener('click', () => {
+      svg.transition().duration(750).call(
+        zoom.transform,
+        d3.zoomIdentity
+      );
+    });
+
+    // Fit to view
+    document.getElementById('fit-bounds').addEventListener('click', () => {
+      const bounds = node.node().getBBox();
+      const fullWidth = bounds.width;
+      const fullHeight = bounds.height;
+      const scale = Math.min((width - 40) / fullWidth, (height - 40) / fullHeight, 1);
+      const translate = [width / 2 - scale * (bounds.x + fullWidth / 2), height / 2 - scale * (bounds.y + fullHeight / 2)];
+      svg.transition().duration(750).call(
+        zoom.transform,
+        d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+      );
+    });
+
+    // Highlight node and connections
+    function highlightNode(nodeId) {
+      node.select('circle').attr('stroke-width', d => d.id === nodeId ? 4 : 2);
+      link.style('stroke-width', d => 
+        d.source.id === nodeId || d.target.id === nodeId ? 3 : 1.5
+      );
+    }
+  </script>
+</body>
+</html>
+

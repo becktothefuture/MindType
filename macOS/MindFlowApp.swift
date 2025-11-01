@@ -24,9 +24,15 @@ struct MindFlowApp: App {
     @StateObject private var appState = AppState()
     
     var body: some Scene {
-        MenuBarExtra("Mind⠶Flow", systemImage: "brain.head.profile") {
+        MenuBarExtra {
             MenuBarView()
                 .environmentObject(appState)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        } label: {
+            Text("⠶")
+                .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                .accessibilityLabel("Mind Flow")
         }
         .menuBarExtraStyle(.window)
     }
@@ -68,6 +74,14 @@ class AppState: ObservableObject {
     init() {
         Task {
             await initializeMLX()
+            do {
+                try RustBridge.shared.initialize()
+            } catch {
+                await MainActor.run {
+                    lmStatus = .error("Rust init failed: \(error.localizedDescription)")
+                    lastError = lmStatus.description
+                }
+            }
         }
     }
     
@@ -121,6 +135,109 @@ class AppState: ObservableObject {
     }
 }
 
+struct TestingGroundView: View {
+    @State private var inputText: String = ""
+    @State private var outputText: String = ""
+    @State private var latencyMs: Double = 0
+    @State private var lastError: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Testing Ground")
+                .font(.title3)
+                .fontWeight(.semibold)
+            HStack(spacing: 8){
+                Button("Run Correction") { runOnce() }
+                    .buttonStyle(.borderedProminent)
+                if latencyMs > 0 {
+                    Text(String(format: "Latency: %.1f ms", latencyMs))
+                        .foregroundColor(.secondary)
+                }
+            }
+            VStack(alignment: .leading, spacing: 6){
+                Text("Input")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                TextEditor(text: $inputText)
+                    .border(Color.gray.opacity(0.2))
+                    .frame(minHeight: 120)
+            }
+            VStack(alignment: .leading, spacing: 6){
+                Text("Output (applied region)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                TextEditor(text: $outputText)
+                    .border(Color.gray.opacity(0.2))
+                    .frame(minHeight: 120)
+            }
+            if let err = lastError {
+                Text("Error: \(err)")
+                    .foregroundColor(.orange)
+            }
+            Spacer()
+        }
+        .padding()
+        .frame(width: 640, height: 520)
+    }
+
+    private func runOnce() {
+        let start = DispatchTime.now()
+        Task { @MainActor in
+            do {
+                let resp = try RustBridge.shared.processText(
+                    text: inputText,
+                    caret: inputText.count,
+                    activeRegionWords: 20
+                )
+                let end = DispatchTime.now()
+                latencyMs = Double(end.uptimeNanoseconds - start.uptimeNanoseconds) / 1_000_000.0
+                if resp.corrections.isEmpty {
+                    outputText = inputText
+                } else {
+                    // Apply corrections locally (simple model)
+                    var working = inputText
+                    for c in resp.corrections.sorted(by: { $0.start > $1.start }) {
+                        let s = working.index(working.startIndex, offsetBy: max(0, c.start))
+                        let e = working.index(working.startIndex, offsetBy: min(working.count, c.end))
+                        working.replaceSubrange(s..<e, with: c.text)
+                    }
+                    outputText = working
+                }
+                lastError = nil
+            } catch {
+                lastError = error.localizedDescription
+            }
+        }
+    }
+}
+
+final class TestingGroundWindowController {
+    static let shared = TestingGroundWindowController()
+    private var window: NSWindow?
+
+    func open() {
+        if let window = window {
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+        let hosting = NSHostingView(rootView: TestingGroundView())
+        let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 720, height: 560),
+                         styleMask: [.titled, .closable, .resizable, .miniaturizable],
+                         backing: .buffered, defer: false)
+        w.center()
+        w.title = "Mind⠶Flow Testing Ground"
+        w.contentView = hosting
+        w.isReleasedWhenClosed = false
+        w.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        window = w
+        NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: w, queue: .main) { [weak self] _ in
+            self?.window = nil
+        }
+    }
+}
+
 struct MenuBarView: View {
     @EnvironmentObject var appState: AppState
     @State private var showingSettings = false
@@ -168,6 +285,12 @@ struct MenuBarView: View {
             
             Divider()
             
+            // Testing Ground
+            Button("Open Testing Ground…") {
+                TestingGroundWindowController.shared.open()
+            }
+            .buttonStyle(.borderless)
+
             // Settings Button
             Button("Settings...") {
                 showingSettings.toggle()
