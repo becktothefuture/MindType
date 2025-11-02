@@ -1,0 +1,96 @@
+:root {
+  font-family: Geist, Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+  color: rgba(245, 246, 248, 0.92);
+  background-color: #0b0f12;
+  /* Premium theme tokens */
+  --accent-1: #7ce0b8;
+  --accent-2: #4db8ff;
+  --panel-bg: rgba(255, 255, 255, 0.06);
+  --panel-stroke: rgba(255, 255, 255, 0.12);
+  --panel-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-stroke: rgba(255, 255, 255, 0.18);
+  --glass-shadow: rgba(0, 0, 0, 0.25);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html { font-size: 130%; }
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #0b0f12;
+  overflow: hidden;
+}
+
+#bg-video {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+  filter: saturate(1.1) contrast(1.05) brightness(0.9);
+}
+
+/* Fixed-size editor textarea: larger font, no resize, fixed height */
+textarea.editor-textarea {
+  height: clamp(280px, 45vh, 420px);
+  font-size: 1.4em;
+  resize: none;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}

@@ -1,0 +1,87 @@
+/*╔══════════════════════════════════════════════════════════════╗
+  ║  ░  B R A I L L E   A N I M A T I O N   S T Y L E S  ░░░░░░  ║
+  ║                                                              ║
+  ║   CSS animations for braille indicator sweep across text.   ║
+  ║                                                              ║
+  ╚══════════════════════════════════════════════════════════════╝
+  • WHAT ▸ Braille micro-animation for commit feedback
+  • WHY  ▸ Visual indicator of text corrections behind caret
+  • HOW  ▸ Unicode braille glyph with CSS transitions
+*/
+
+.braille-indicator {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1000;
+  font-family: monospace;
+  font-size: 16px;
+  color: #7ce0b8;
+  opacity: 0;
+  transition: all 0.2s ease-out;
+  user-select: none;
+  /* Decorative only - no screen reader announcements */
+  aria-hidden: true;
+}
+
+.braille-indicator.animate {
+  opacity: 1;
+  animation: braille-sweep 0.8s ease-out forwards;
+}
+
+.braille-indicator.animate.reduced-motion {
+  animation: braille-fade 0.3s ease-out forwards;
+}
+
+@keyframes braille-sweep {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(var(--sweep-distance, 20px)) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(var(--sweep-distance, 20px)) scale(0.8);
+  }
+}
+
+@keyframes braille-fade {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .braille-indicator.animate {
+    animation: braille-fade 0.3s ease-out forwards;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .braille-indicator {
+    color: #ffffff;
+    text-shadow: 0 0 2px #000000;
+  }
+}
+
+/* Container for positioning braille indicators relative to textarea */
+.braille-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+
